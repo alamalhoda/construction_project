@@ -1,0 +1,184 @@
+from django.db import models
+from django.urls import reverse
+
+
+class Expense(models.Model):
+
+    # Fields
+    expense_type = models.CharField()
+    amount = models.DecimalField()
+    description = models.TextField()
+    created_at = models.DateTimeField()
+
+    class Meta:
+        pass
+
+    def __str__(self):
+        return str(self.pk)
+
+    def get_absolute_url(self):
+        return reverse("construction_Expense_detail", args=(self.pk,))
+
+    def get_update_url(self):
+        return reverse("construction_Expense_update", args=(self.pk,))
+
+    @staticmethod
+    def get_htmx_create_url():
+        return reverse("construction_Expense_htmx_create")
+
+    def get_htmx_delete_url(self):
+        return reverse("construction_Expense_htmx_delete", args=(self.pk,))
+
+
+class Investor(models.Model):
+
+    # Fields
+    first_name = models.CharField()
+    last_name = models.CharField()
+    phone = models.CharField()
+    email = models.EmailField()
+    created_at = models.DateTimeField()
+
+    class Meta:
+        pass
+
+    def __str__(self):
+        return str(self.pk)
+
+    def get_absolute_url(self):
+        return reverse("construction_Investor_detail", args=(self.pk,))
+
+    def get_update_url(self):
+        return reverse("construction_Investor_update", args=(self.pk,))
+
+    @staticmethod
+    def get_htmx_create_url():
+        return reverse("construction_Investor_htmx_create")
+
+    def get_htmx_delete_url(self):
+        return reverse("construction_Investor_htmx_delete", args=(self.pk,))
+
+
+class Period(models.Model):
+
+    # Fields
+    label = models.CharField()
+    year = models.IntegerField()
+    month_number = models.IntegerField()
+    month_name = models.CharField()
+    weight = models.IntegerField()
+    start_date_shamsi = models.DateField()
+    end_date_shamsi = models.DateField()
+    start_date_gregorian = models.DateField()
+    end_date_gregorian = models.DateField()
+
+    class Meta:
+        pass
+
+    def __str__(self):
+        return str(self.pk)
+
+    def get_absolute_url(self):
+        return reverse("construction_Period_detail", args=(self.pk,))
+
+    def get_update_url(self):
+        return reverse("construction_Period_update", args=(self.pk,))
+
+    @staticmethod
+    def get_htmx_create_url():
+        return reverse("construction_Period_htmx_create")
+
+    def get_htmx_delete_url(self):
+        return reverse("construction_Period_htmx_delete", args=(self.pk,))
+
+
+class Project(models.Model):
+
+    # Fields
+    name = models.CharField()
+    start_date_shamsi = models.DateField()
+    end_date_shamsi = models.DateField()
+    start_date_gregorian = models.DateField()
+    end_date_gregorian = models.DateField()
+    created_at = models.DateTimeField()
+    updated_at = models.DateTimeField()
+
+    class Meta:
+        pass
+
+    def __str__(self):
+        return str(self.name)
+
+    def get_absolute_url(self):
+        return reverse("construction_Project_detail", args=(self.pk,))
+
+    def get_update_url(self):
+        return reverse("construction_Project_update", args=(self.pk,))
+
+    @staticmethod
+    def get_htmx_create_url():
+        return reverse("construction_Project_htmx_create")
+
+    def get_htmx_delete_url(self):
+        return reverse("construction_Project_htmx_delete", args=(self.pk,))
+
+
+class Transaction(models.Model):
+
+    # Fields
+    date_shamsi = models.DateField()
+    date_gregorian = models.DateField()
+    amount = models.DecimalField()
+    transaction_type = models.CharField()
+    description = models.TextField()
+    day_remaining = models.IntegerField()
+    day_from_start = models.IntegerField()
+    created_at = models.DateTimeField()
+
+    class Meta:
+        pass
+
+    def __str__(self):
+        return str(self.pk)
+
+    def get_absolute_url(self):
+        return reverse("construction_Transaction_detail", args=(self.pk,))
+
+    def get_update_url(self):
+        return reverse("construction_Transaction_update", args=(self.pk,))
+
+    @staticmethod
+    def get_htmx_create_url():
+        return reverse("construction_Transaction_htmx_create")
+
+    def get_htmx_delete_url(self):
+        return reverse("construction_Transaction_htmx_delete", args=(self.pk,))
+
+
+class Unit(models.Model):
+
+    # Fields
+    name = models.CharField()
+    area = models.DecimalField()
+    price_per_meter = models.DecimalField()
+    total_price = models.DecimalField()
+    created_at = models.DateTimeField()
+
+    class Meta:
+        pass
+
+    def __str__(self):
+        return str(self.name)
+
+    def get_absolute_url(self):
+        return reverse("construction_Unit_detail", args=(self.pk,))
+
+    def get_update_url(self):
+        return reverse("construction_Unit_update", args=(self.pk,))
+
+    @staticmethod
+    def get_htmx_create_url():
+        return reverse("construction_Unit_htmx_create")
+
+    def get_htmx_delete_url(self):
+        return reverse("construction_Unit_htmx_delete", args=(self.pk,))

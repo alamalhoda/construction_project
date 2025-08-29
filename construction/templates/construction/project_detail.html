@@ -1,0 +1,23 @@
+
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+    
+<p>
+    <a class="btn btn-light" href="{% url 'construction_Project_list' %}">
+    Project Listing
+    </a>
+</p>
+    
+<table class="table">
+    <tr><td>name</td><td>{{ object.name }}</td></tr>
+    <tr><td>start_date_shamsi</td><td>{{ object.start_date_shamsi }}</td></tr>
+    <tr><td>end_date_shamsi</td><td>{{ object.end_date_shamsi }}</td></tr>
+    <tr><td>start_date_gregorian</td><td>{{ object.start_date_gregorian }}</td></tr>
+    <tr><td>end_date_gregorian</td><td>{{ object.end_date_gregorian }}</td></tr>
+    <tr><td>created_at</td><td>{{ object.created_at }}</td></tr>
+    <tr><td>updated_at</td><td>{{ object.updated_at }}</td></tr>
+</table>
+<a class="btn btn-primary" href="{{object.get_update_url}}">Edit</a>
+
+{% endblock %}

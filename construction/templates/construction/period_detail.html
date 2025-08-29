@@ -1,0 +1,25 @@
+
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+    
+<p>
+    <a class="btn btn-light" href="{% url 'construction_Period_list' %}">
+    Period Listing
+    </a>
+</p>
+    
+<table class="table">
+    <tr><td>label</td><td>{{ object.label }}</td></tr>
+    <tr><td>year</td><td>{{ object.year }}</td></tr>
+    <tr><td>month_number</td><td>{{ object.month_number }}</td></tr>
+    <tr><td>month_name</td><td>{{ object.month_name }}</td></tr>
+    <tr><td>weight</td><td>{{ object.weight }}</td></tr>
+    <tr><td>start_date_shamsi</td><td>{{ object.start_date_shamsi }}</td></tr>
+    <tr><td>end_date_shamsi</td><td>{{ object.end_date_shamsi }}</td></tr>
+    <tr><td>start_date_gregorian</td><td>{{ object.start_date_gregorian }}</td></tr>
+    <tr><td>end_date_gregorian</td><td>{{ object.end_date_gregorian }}</td></tr>
+</table>
+<a class="btn btn-primary" href="{{object.get_update_url}}">Edit</a>
+
+{% endblock %}

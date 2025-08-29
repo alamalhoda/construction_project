@@ -1,0 +1,72 @@
+
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+    
+<p>
+    <a class="btn btn-light" href="{% url 'construction_Period_list' %}">
+    Period Listing
+    </a>
+</p>
+    
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  {{form.errors}}
+  <div class="form-group row">
+      <label class="col-sm-2 col-form-label" for="label">label: </label>
+      <input class="form-control col-sm-10"
+         id="label" type="text"
+         name="label" value="{{ object.label }}">
+  </div>
+  <div class="form-group row">
+      <label class="col-sm-2 col-form-label" for="year">year: </label>
+      <input class="form-control col-sm-10"
+         id="year" type="number"
+         name="year" value="{{ object.year }}">
+  </div>
+  <div class="form-group row">
+      <label class="col-sm-2 col-form-label" for="month_number">month_number: </label>
+      <input class="form-control col-sm-10"
+         id="month_number" type="number"
+         name="month_number" value="{{ object.month_number }}">
+  </div>
+  <div class="form-group row">
+      <label class="col-sm-2 col-form-label" for="month_name">month_name: </label>
+      <input class="form-control col-sm-10"
+         id="month_name" type="text"
+         name="month_name" value="{{ object.month_name }}">
+  </div>
+  <div class="form-group row">
+      <label class="col-sm-2 col-form-label" for="weight">weight: </label>
+      <input class="form-control col-sm-10"
+         id="weight" type="number"
+         name="weight" value="{{ object.weight }}">
+  </div>
+  <div class="form-group row">
+      <label class="col-sm-2 col-form-label" for="start_date_shamsi">start_date_shamsi: </label>
+      <input class="form-control col-sm-10"
+         id="start_date_shamsi" type="date"
+         name="start_date_shamsi" value="{{ object.start_date_shamsi }}">
+  </div>
+  <div class="form-group row">
+      <label class="col-sm-2 col-form-label" for="end_date_shamsi">end_date_shamsi: </label>
+      <input class="form-control col-sm-10"
+         id="end_date_shamsi" type="date"
+         name="end_date_shamsi" value="{{ object.end_date_shamsi }}">
+  </div>
+  <div class="form-group row">
+      <label class="col-sm-2 col-form-label" for="start_date_gregorian">start_date_gregorian: </label>
+      <input class="form-control col-sm-10"
+         id="start_date_gregorian" type="date"
+         name="start_date_gregorian" value="{{ object.start_date_gregorian }}">
+  </div>
+  <div class="form-group row">
+      <label class="col-sm-2 col-form-label" for="end_date_gregorian">end_date_gregorian: </label>
+      <input class="form-control col-sm-10"
+         id="end_date_gregorian" type="date"
+         name="end_date_gregorian" value="{{ object.end_date_gregorian }}">
+  </div>
+  <input type="submit" value="Save" class="btn btn-primary">
+</form>
+
+{% endblock %}

@@ -1,0 +1,48 @@
+
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+    
+<p>
+    <a class="btn btn-light" href="{% url 'construction_Investor_list' %}">
+    Investor Listing
+    </a>
+</p>
+    
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  {{form.errors}}
+  <div class="form-group row">
+      <label class="col-sm-2 col-form-label" for="first_name">first_name: </label>
+      <input class="form-control col-sm-10"
+         id="first_name" type="text"
+         name="first_name" value="{{ object.first_name }}">
+  </div>
+  <div class="form-group row">
+      <label class="col-sm-2 col-form-label" for="last_name">last_name: </label>
+      <input class="form-control col-sm-10"
+         id="last_name" type="text"
+         name="last_name" value="{{ object.last_name }}">
+  </div>
+  <div class="form-group row">
+      <label class="col-sm-2 col-form-label" for="phone">phone: </label>
+      <input class="form-control col-sm-10"
+         id="phone" type="text"
+         name="phone" value="{{ object.phone }}">
+  </div>
+  <div class="form-group row">
+      <label class="col-sm-2 col-form-label" for="email">email: </label>
+      <input class="form-control col-sm-10"
+         id="email" type="text"
+         name="email" value="{{ object.email }}">
+  </div>
+  <div class="form-group row">
+      <label class="col-sm-2 col-form-label" for="created_at">created_at: </label>
+      <input class="form-control col-sm-10"
+         id="created_at" type="datetime-local"
+         name="created_at" value="{{ object.created_at }}">
+  </div>
+  <input type="submit" value="Save" class="btn btn-primary">
+</form>
+
+{% endblock %}

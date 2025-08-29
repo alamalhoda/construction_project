@@ -1,0 +1,42 @@
+
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+    
+<p>
+    <a class="btn btn-light" href="{% url 'construction_Expense_list' %}">
+    Expense Listing
+    </a>
+</p>
+    
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  {{form.errors}}
+  <div class="form-group row">
+      <label class="col-sm-2 col-form-label" for="expense_type">expense_type: </label>
+      <input class="form-control col-sm-10"
+         id="expense_type" type="text"
+         name="expense_type" value="{{ object.expense_type }}">
+  </div>
+  <div class="form-group row">
+      <label class="col-sm-2 col-form-label" for="amount">amount: </label>
+      <input class="form-control col-sm-10"
+         id="amount" type="text"
+         name="amount" value="{{ object.amount }}">
+  </div>
+  <div class="form-group row">
+      <label class="col-sm-2 col-form-label" for="description">description: </label>
+      <input class="form-control col-sm-10"
+         id="description" type="text"
+         name="description" value="{{ object.description }}">
+  </div>
+  <div class="form-group row">
+      <label class="col-sm-2 col-form-label" for="created_at">created_at: </label>
+      <input class="form-control col-sm-10"
+         id="created_at" type="datetime-local"
+         name="created_at" value="{{ object.created_at }}">
+  </div>
+  <input type="submit" value="Save" class="btn btn-primary">
+</form>
+
+{% endblock %}

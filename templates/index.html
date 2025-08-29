@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="m-2"><h4>construction</h4></div>
+<div class="m-2"><a class="btn btn-light" href="{% url 'construction_Expense_list' %}">Expense Listing</a></div>
+<div class="m-2"><a class="btn btn-light" href="{% url 'construction_Investor_list' %}">Investor Listing</a></div>
+<div class="m-2"><a class="btn btn-light" href="{% url 'construction_Period_list' %}">Period Listing</a></div>
+<div class="m-2"><a class="btn btn-light" href="{% url 'construction_Project_list' %}">Project Listing</a></div>
+<div class="m-2"><a class="btn btn-light" href="{% url 'construction_Transaction_list' %}">Transaction Listing</a></div>
+<div class="m-2"><a class="btn btn-light" href="{% url 'construction_Unit_list' %}">Unit Listing</a></div>
+<div class='container'>
+<div class='card'>
+<div class='card-body'>
+<div><a href="{% url 'htmx' %}">HTMX UI</a></div>
+</div>
+</div>
+</div>
+{% endblock %}

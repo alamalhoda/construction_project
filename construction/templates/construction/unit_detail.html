@@ -1,0 +1,21 @@
+
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+    
+<p>
+    <a class="btn btn-light" href="{% url 'construction_Unit_list' %}">
+    Unit Listing
+    </a>
+</p>
+    
+<table class="table">
+    <tr><td>name</td><td>{{ object.name }}</td></tr>
+    <tr><td>area</td><td>{{ object.area }}</td></tr>
+    <tr><td>price_per_meter</td><td>{{ object.price_per_meter }}</td></tr>
+    <tr><td>total_price</td><td>{{ object.total_price }}</td></tr>
+    <tr><td>created_at</td><td>{{ object.created_at }}</td></tr>
+</table>
+<a class="btn btn-primary" href="{{object.get_update_url}}">Edit</a>
+
+{% endblock %}
