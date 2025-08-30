@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>داشبورد پروژه آرشا</title>
+    <style>
+        body {
+            font-family: 'Tahoma', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            direction: rtl;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .menu {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        .menu-item {
+            display: block;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .menu-item:hover {
+            background: #764ba2;
+            transform: translateY(-5px);
+        }
+        .menu-item h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.2rem;
+        }
+        .menu-item p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>داشبورد پروژه آرشا</h1>
+        <div class="menu">
+            <a href="{% url 'dashboard:charts_investor' %}" class="menu-item">
+                <h3>نمودارهای سرمایه‌گذاری</h3>
+                <p>مشاهده نمودارها و آمار سرمایه‌گذاران</p>
+            </a>
+            <a href="{% url 'dashboard:csv_viewer' %}" class="menu-item">
+                <h3>نمایشگر CSV ساده</h3>
+                <p>مشاهده داده‌های CSV به صورت ساده</p>
+            </a>
+            <a href="{% url 'dashboard:csv_tabulator_viewer' %}" class="menu-item">
+                <h3>نمایشگر CSV پیشرفته</h3>
+                <p>مشاهده داده‌های CSV با Tabulator</p>
+            </a>
+            <a href="{% url 'dashboard:investor_profile' %}" class="menu-item">
+                <h3>پروفایل سرمایه‌گذاران</h3>
+                <p>اطلاعات کامل سرمایه‌گذاران</p>
+            </a>
+        </div>
+    </div>
+</body>
+</html>

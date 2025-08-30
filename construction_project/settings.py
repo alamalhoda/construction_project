@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_htmx',
     'construction',
+    'dashboard',
     'django_extensions',
 ]
 
