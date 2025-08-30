@@ -9,7 +9,6 @@ class ExpenseForm(forms.ModelForm):
             "expense_type",
             "amount",
             "description",
-            "created_at",
         ]
 
 
@@ -21,7 +20,6 @@ class InvestorForm(forms.ModelForm):
             "last_name",
             "phone",
             "email",
-            "created_at",
         ]
 
 
@@ -50,8 +48,6 @@ class ProjectForm(forms.ModelForm):
             "end_date_shamsi",
             "start_date_gregorian",
             "end_date_gregorian",
-            "created_at",
-            "updated_at",
         ]
 
 
@@ -64,9 +60,6 @@ class TransactionForm(forms.ModelForm):
             "amount",
             "transaction_type",
             "description",
-            "day_remaining",
-            "day_from_start",
-            "created_at",
         ]
 
 
@@ -78,5 +71,4 @@ class UnitForm(forms.ModelForm):
             "area",
             "price_per_meter",
             "total_price",
-            "created_at",
         ]

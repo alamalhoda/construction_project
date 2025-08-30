@@ -124,7 +124,19 @@ class Transaction(models.Model):
 
     def __str__(self):
         return f"{self.investor} - {self.amount} - {self.get_transaction_type_display()}"
-
+    
+    def save(self, *args, **kwargs):
+        # محاسبه روز مانده تا پایان پروژه
+        if self.project.end_date_gregorian and self.date_gregorian:
+            delta = self.project.end_date_gregorian - self.date_gregorian
+            self.day_remaining = max(0, delta.days)
+        
+        # محاسبه روز از ابتدای پروژه
+        if self.project.start_date_gregorian and self.date_gregorian:
+            delta = self.date_gregorian - self.project.start_date_gregorian
+            self.day_from_start = max(0, delta.days)
+        
+        super().save(*args, **kwargs)
 class Expense(models.Model):
     """
     مدل هزینه‌های پروژه
