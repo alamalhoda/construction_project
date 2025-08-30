@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پروفایل مالی سرمایه‌گذار</title>
+    
+    <!-- Chart.js for charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- PapaParse for CSV reading -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Tahoma', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .investor-selector {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .investor-selector h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+
+        .investor-selector select {
+            padding: 12px 20px;
+            font-size: 1.1rem;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            background: white;
+            color: #333;
+            min-width: 300px;
+            cursor: pointer;
+        }
+
+        .investor-selector select:focus {
+            outline: none;
+            border-color: #764ba2;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .investor-info {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            display: none;
+        }
+
+        .investor-info.show {
+            display: block;
+        }
+
+        .investor-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .investor-name {
+            font-size: 2rem;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .investor-status {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border-left: 4px solid #667eea;
+        }
+
+        .stat-card h4 {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .stat-card p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .chart-container h3 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 500px;
+        }
+
+
+
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 1.2rem;
+            margin: 50px 0;
+        }
+
+        .error {
+            background: #ff6b6b;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #667eea;
+            padding: 12px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+        @media (max-width: 768px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+
+            .investor-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .investor-selector select {
+                min-width: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="charts_investor.html" class="back-button">
+        <i class="fas fa-arrow-right"></i> بازگشت به داشبورد
+    </a>
+
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-user-tie"></i> پروفایل مالی سرمایه‌گذار</h1>
+            <p>نمایش جامع وضعیت مالی و فعالیت‌های سرمایه‌گذاری</p>
+        </div>
+
+        <div class="investor-selector">
+            <h3><i class="fas fa-search"></i> انتخاب سرمایه‌گذار</h3>
+            <select id="investorSelect">
+                <option value="">-- انتخاب کنید --</option>
+            </select>
+        </div>
+
+        <div id="loading" class="loading">
+            <i class="fas fa-spinner fa-spin"></i> در حال بارگذاری داده‌ها...
+        </div>
+
+        <div id="error" class="error" style="display: none;">
+            خطا در بارگذاری داده‌ها
+        </div>
+
+        <div id="investorInfo" class="investor-info">
+            <div class="investor-header">
+                <div class="investor-name" id="investorName">نام سرمایه‌گذار</div>
+                <div class="investor-status" id="investorStatus">وضعیت</div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h4 id="totalPrincipal">-</h4>
+                    <p>کل آورده (میلیون تومان)</p>
+                </div>
+                <div class="stat-card">
+                    <h4 id="totalWithdrawal">-</h4>
+                    <p>کل برداشت (میلیون تومان)</p>
+                </div>
+                <div class="stat-card">
+                    <h4 id="netPrincipal">-</h4>
+                    <p>آورده خالص (میلیون تومان)</p>
+                </div>
+                <div class="stat-card">
+                    <h4 id="totalProfit">-</h4>
+                    <p>کل سود (میلیون تومان)</p>
+                </div>
+                <div class="stat-card">
+                    <h4 id="totalBalance">-</h4>
+                    <p>موجودی کل (میلیون تومان)</p>
+                </div>
+                <div class="stat-card">
+                    <h4 id="profitRatio">-</h4>
+                    <p>نسبت سود به آورده</p>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <h3><i class="fas fa-chart-line"></i> روند آورده و برداشت</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="principalTrendChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3><i class="fas fa-chart-area"></i> روند سود روزانه</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="profitTrendChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3><i class="fas fa-chart-pie"></i> توزیع فعالیت‌ها</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="activityDistributionChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3><i class="fas fa-chart-bar"></i> مقایسه ماهانه</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="monthlyComparisonChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+
+    <script>
+        let chartData = null;
+        let selectedInvestor = null;
+        let charts = {}; // نگهداری نمودارها
+
+        // بارگذاری داده‌ها
+        function loadData() {
+            fetch('data.csv')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.text();
+                })
+                .then(csvText => {
+                    Papa.parse(csvText, {
+                        header: true,
+                        skipEmptyLines: true,
+                        complete: function(results) {
+                            chartData = results.data.filter(row => 
+                                row.project_id && 
+                                row.project_id.trim() !== '' && 
+                                row.investor_name && 
+                                row.investor_name !== '_src_row_index'
+                            );
+                            
+                            populateInvestorSelect();
+                            document.getElementById('loading').style.display = 'none';
+                        },
+                        error: function(error) {
+                            showError('خطا در پردازش فایل CSV: ' + error.message);
+                        }
+                    });
+                })
+                .catch(error => {
+                    showError('خطا در خواندن فایل CSV: ' + error.message);
+                });
+        }
+
+        // پر کردن select سرمایه‌گذاران
+        function populateInvestorSelect() {
+            const investors = [...new Set(chartData.map(row => row.investor_name))].sort();
+            const select = document.getElementById('investorSelect');
+            
+            investors.forEach(investor => {
+                const option = document.createElement('option');
+                option.value = investor;
+                option.textContent = investor;
+                select.appendChild(option);
+            });
+
+            // اضافه کردن event listener
+            select.addEventListener('change', function() {
+                if (this.value) {
+                    showInvestorProfile(this.value);
+                } else {
+                    hideInvestorProfile();
+                }
+            });
+        }
+
+        // نمایش پروفایل سرمایه‌گذار
+        function showInvestorProfile(investorName) {
+            console.log('نمایش پروفایل برای:', investorName);
+            selectedInvestor = investorName;
+            document.getElementById('investorInfo').classList.add('show');
+            
+            // ابتدا اطلاعات را به‌روزرسانی کنیم
+            updateInvestorInfo(investorName);
+            
+            // پاک کردن نمودارهای قبلی
+            destroyCharts();
+            
+            // سپس نمودارها را ایجاد کنیم
+            createPrincipalTrendChart(investorName);
+            createProfitTrendChart(investorName);
+            createActivityDistributionChart(investorName);
+            createMonthlyComparisonChart(investorName);
+        }
+
+        // پاک کردن نمودارهای قبلی
+        function destroyCharts() {
+            // پاک کردن نمودارهای Chart.js
+            Object.keys(charts).forEach(chartName => {
+                if (charts[chartName]) {
+                    try {
+                        charts[chartName].destroy();
+                        charts[chartName] = null;
+                    } catch (e) {
+                        console.log('خطا در پاک کردن نمودار:', chartName, e);
+                    }
+                }
+            });
+            charts = {}; // پاک کردن object
+        }
+
+        // مخفی کردن پروفایل
+        function hideInvestorProfile() {
+            selectedInvestor = null;
+            document.getElementById('investorInfo').classList.remove('show');
+        }
+
+        // به‌روزرسانی اطلاعات کلی سرمایه‌گذار
+        function updateInvestorInfo(investorName) {
+            const investorData = chartData.filter(row => row.investor_name === investorName);
+            const principalData = investorData.filter(row => row.entry_type === 'principal_deposit');
+            const withdrawalData = investorData.filter(row => row.entry_type === 'principal_withdrawal');
+            const profitData = investorData.filter(row => row.entry_type === 'profit_accrual');
+
+            const totalPrincipal = principalData.reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
+            const totalWithdrawal = withdrawalData.reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
+            const totalProfit = profitData.reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
+            
+            const netPrincipal = totalPrincipal + totalWithdrawal; // withdrawal معمولاً منفی است
+            const totalBalance = netPrincipal + totalProfit;
+            const profitRatio = netPrincipal > 0 ? ((totalProfit / netPrincipal) * 100).toFixed(2) : '0.00';
+
+            document.getElementById('investorName').textContent = investorName;
+            document.getElementById('totalPrincipal').textContent = (totalPrincipal / 10000000).toFixed(1);
+            document.getElementById('totalWithdrawal').textContent = (totalWithdrawal / 10000000).toFixed(1);
+            document.getElementById('netPrincipal').textContent = (netPrincipal / 10000000).toFixed(1);
+            document.getElementById('totalProfit').textContent = (totalProfit / 10000000).toFixed(1);
+            document.getElementById('totalBalance').textContent = (totalBalance / 10000000).toFixed(1);
+            document.getElementById('profitRatio').textContent = profitRatio + '%';
+
+            // تعیین وضعیت
+            const statusElement = document.getElementById('investorStatus');
+            if (netPrincipal > 0) {
+                statusElement.textContent = 'فعال';
+                statusElement.className = 'investor-status status-active';
+            } else {
+                statusElement.textContent = 'غیرفعال';
+                statusElement.className = 'investor-status status-inactive';
+            }
+        }
+
+        // نمودار روند آورده و برداشت
+        function createPrincipalTrendChart(investorName) {
+            const investorData = chartData.filter(row => row.investor_name === investorName);
+            const principalData = investorData.filter(row => row.entry_type === 'principal_deposit');
+            const withdrawalData = investorData.filter(row => row.entry_type === 'principal_withdrawal');
+            
+            const dates = [...new Set([
+                ...principalData.map(row => row.date_shamsi),
+                ...withdrawalData.map(row => row.date_shamsi)
+            ].filter(date => date))].sort();
+
+            const dailyPrincipal = {};
+            const dailyWithdrawal = {};
+            dates.forEach(date => {
+                dailyPrincipal[date] = 0;
+                dailyWithdrawal[date] = 0;
+            });
+
+            principalData.forEach(row => {
+                const date = row.date_shamsi;
+                if (date) {
+                    dailyPrincipal[date] += parseFloat(row.amount || 0);
+                }
+            });
+
+            withdrawalData.forEach(row => {
+                const date = row.date_shamsi;
+                if (date) {
+                    dailyWithdrawal[date] += parseFloat(row.amount || 0);
+                }
+            });
+
+            const cumulativePrincipal = [];
+            const cumulativeWithdrawal = [];
+            let cumulativeP = 0;
+            let cumulativeW = 0;
+
+            dates.forEach(date => {
+                cumulativeP += dailyPrincipal[date];
+                cumulativeW += dailyWithdrawal[date];
+                cumulativePrincipal.push(cumulativeP / 10000000);
+                cumulativeWithdrawal.push(cumulativeW / 10000000);
+            });
+
+            const ctx = document.getElementById('principalTrendChart').getContext('2d');
+            charts.principalTrendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [
+                        {
+                            label: 'آورده تجمعی (میلیون تومان)',
+                            data: cumulativePrincipal,
+                            borderColor: 'rgb(54, 162, 235)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'برداشت تجمعی (میلیون تومان)',
+                            data: cumulativeWithdrawal,
+                            borderColor: 'rgb(255, 99, 132)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'میلیون تومان' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // نمودار روند سود روزانه
+        function createProfitTrendChart(investorName) {
+            const investorData = chartData.filter(row => row.investor_name === investorName);
+            const profitData = investorData.filter(row => row.entry_type === 'profit_accrual');
+            
+            const dailyProfit = {};
+            profitData.forEach(row => {
+                const date = row.date_shamsi;
+                if (date) {
+                    dailyProfit[date] = (dailyProfit[date] || 0) + parseFloat(row.amount || 0);
+                }
+            });
+
+            const dates = Object.keys(dailyProfit).sort();
+            const profits = dates.map(date => dailyProfit[date] / 10000000);
+
+            const ctx = document.getElementById('profitTrendChart').getContext('2d');
+            charts.profitTrendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'سود روزانه (میلیون تومان)',
+                        data: profits,
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'میلیون تومان' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // نمودار توزیع فعالیت‌ها
+        function createActivityDistributionChart(investorName) {
+            const investorData = chartData.filter(row => row.investor_name === investorName);
+            const principalData = investorData.filter(row => row.entry_type === 'principal_deposit');
+            const withdrawalData = investorData.filter(row => row.entry_type === 'principal_withdrawal');
+            const profitData = investorData.filter(row => row.entry_type === 'profit_accrual');
+
+            const totalPrincipal = principalData.reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
+            const totalWithdrawal = Math.abs(withdrawalData.reduce((sum, row) => sum + parseFloat(row.amount || 0), 0));
+            const totalProfit = profitData.reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
+
+            const ctx = document.getElementById('activityDistributionChart').getContext('2d');
+            charts.activityDistributionChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['آورده', 'برداشت', 'سود'],
+                    datasets: [{
+                        data: [totalPrincipal, totalWithdrawal, totalProfit].map(amount => amount / 10000000),
+                        backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + context.parsed.toFixed(1) + ' میلیون تومان';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // نمودار مقایسه ماهانه
+        function createMonthlyComparisonChart(investorName) {
+            const investorData = chartData.filter(row => row.investor_name === investorName);
+            
+            const monthlyData = {};
+            investorData.forEach(row => {
+                if (row.date_shamsi) {
+                    const month = row.date_shamsi.substring(0, 7); // YYYY-MM
+                    if (!monthlyData[month]) {
+                        monthlyData[month] = { principal: 0, withdrawal: 0, profit: 0 };
+                    }
+                    
+                    const amount = parseFloat(row.amount || 0);
+                    switch (row.entry_type) {
+                        case 'principal_deposit':
+                            monthlyData[month].principal += amount;
+                            break;
+                        case 'principal_withdrawal':
+                            monthlyData[month].withdrawal += amount;
+                            break;
+                        case 'profit_accrual':
+                            monthlyData[month].profit += amount;
+                            break;
+                    }
+                }
+            });
+
+            const months = Object.keys(monthlyData).sort();
+            const principals = months.map(month => monthlyData[month].principal / 10000000);
+            const withdrawals = months.map(month => Math.abs(monthlyData[month].withdrawal) / 10000000);
+            const profits = months.map(month => monthlyData[month].profit / 10000000);
+
+            const ctx = document.getElementById('monthlyComparisonChart').getContext('2d');
+            charts.monthlyComparisonChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: months,
+                    datasets: [
+                        {
+                            label: 'آورده (میلیون تومان)',
+                            data: principals,
+                            backgroundColor: 'rgba(0, 99, 132, 0.8)',
+                            borderColor: 'rgba(0, 99, 132, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'برداشت (میلیون تومان)',
+                            data: withdrawals,
+                            backgroundColor: 'rgba(255, 99, 132, 0.8)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'سود (میلیون تومان)',
+                            data: profits,
+                            backgroundColor: 'rgba(255, 206, 86, 0.8)',
+                            borderColor: 'rgba(255, 206, 86, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'میلیون تومان' }
+                        }
+                    }
+                }
+            });
+        }
+
+
+
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').textContent = message;
+            document.getElementById('error').style.display = 'block';
+        }
+
+        // بارگذاری داده‌ها هنگام لود صفحه
+        window.addEventListener('load', loadData);
+    </script>
+</body>
+</html>
