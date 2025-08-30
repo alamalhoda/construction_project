@@ -1,0 +1,194 @@
+[
+{
+  "model": "construction.investor",
+  "pk": 1,
+  "fields": {
+    "first_name": "ندا",
+    "last_name": "آزاد داور",
+    "phone": "",
+    "email": "",
+    "created_at": "2025-08-30T12:45:20.424Z",
+    "units": []
+  }
+},
+{
+  "model": "construction.investor",
+  "pk": 2,
+  "fields": {
+    "first_name": "علی",
+    "last_name": "فرقانی",
+    "phone": "",
+    "email": "",
+    "created_at": "2025-08-30T12:45:20.430Z",
+    "units": []
+  }
+},
+{
+  "model": "construction.investor",
+  "pk": 3,
+  "fields": {
+    "first_name": "زهرا",
+    "last_name": "خاک باز",
+    "phone": "",
+    "email": "",
+    "created_at": "2025-08-30T12:45:20.443Z",
+    "units": []
+  }
+},
+{
+  "model": "construction.investor",
+  "pk": 4,
+  "fields": {
+    "first_name": "اکبر",
+    "last_name": "بی پروا",
+    "phone": "",
+    "email": "",
+    "created_at": "2025-08-30T12:45:20.450Z",
+    "units": []
+  }
+},
+{
+  "model": "construction.investor",
+  "pk": 5,
+  "fields": {
+    "first_name": "زهرا",
+    "last_name": "فلاح",
+    "phone": "",
+    "email": "",
+    "created_at": "2025-08-30T12:45:20.460Z",
+    "units": []
+  }
+},
+{
+  "model": "construction.investor",
+  "pk": 6,
+  "fields": {
+    "first_name": "حسین",
+    "last_name": "قاسم بیگلو",
+    "phone": "",
+    "email": "",
+    "created_at": "2025-08-30T12:45:20.463Z",
+    "units": []
+  }
+},
+{
+  "model": "construction.investor",
+  "pk": 7,
+  "fields": {
+    "first_name": "محمد",
+    "last_name": "مهدی یکتایی",
+    "phone": "",
+    "email": "",
+    "created_at": "2025-08-30T12:45:20.501Z",
+    "units": []
+  }
+},
+{
+  "model": "construction.investor",
+  "pk": 8,
+  "fields": {
+    "first_name": "سارا",
+    "last_name": "قناتی",
+    "phone": "",
+    "email": "",
+    "created_at": "2025-08-30T12:45:20.503Z",
+    "units": []
+  }
+},
+{
+  "model": "construction.investor",
+  "pk": 9,
+  "fields": {
+    "first_name": "سکنا",
+    "last_name": "سامان",
+    "phone": "",
+    "email": "",
+    "created_at": "2025-08-30T12:45:20.507Z",
+    "units": []
+  }
+},
+{
+  "model": "construction.investor",
+  "pk": 10,
+  "fields": {
+    "first_name": "عذرا",
+    "last_name": "محمدی",
+    "phone": "",
+    "email": "",
+    "created_at": "2025-08-30T12:45:20.510Z",
+    "units": []
+  }
+},
+{
+  "model": "construction.investor",
+  "pk": 11,
+  "fields": {
+    "first_name": "زهرا",
+    "last_name": "سادات آل یاسین",
+    "phone": "",
+    "email": "",
+    "created_at": "2025-08-30T12:45:20.523Z",
+    "units": []
+  }
+},
+{
+  "model": "construction.investor",
+  "pk": 12,
+  "fields": {
+    "first_name": "هادی",
+    "last_name": "جعفریان",
+    "phone": "",
+    "email": "",
+    "created_at": "2025-08-30T12:45:20.526Z",
+    "units": []
+  }
+},
+{
+  "model": "construction.investor",
+  "pk": 13,
+  "fields": {
+    "first_name": "فايزه",
+    "last_name": "نیک نظر",
+    "phone": "",
+    "email": "",
+    "created_at": "2025-08-30T12:45:20.543Z",
+    "units": []
+  }
+},
+{
+  "model": "construction.investor",
+  "pk": 14,
+  "fields": {
+    "first_name": "علیرضا",
+    "last_name": "مقدم",
+    "phone": "",
+    "email": "",
+    "created_at": "2025-08-30T12:45:20.558Z",
+    "units": []
+  }
+},
+{
+  "model": "construction.investor",
+  "pk": 15,
+  "fields": {
+    "first_name": "علیرضا",
+    "last_name": "کاشانی",
+    "phone": "",
+    "email": "",
+    "created_at": "2025-08-30T12:45:20.566Z",
+    "units": []
+  }
+},
+{
+  "model": "construction.investor",
+  "pk": 16,
+  "fields": {
+    "first_name": "سيدروح الله",
+    "last_name": "علم الهدي",
+    "phone": "09391321499--",
+    "email": "S.r.alamalhoda@gmail.com",
+    "created_at": "2025-08-30T16:47:35.733Z",
+    "units": []
+  }
+}
+]
