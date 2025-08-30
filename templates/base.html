@@ -1,9 +1,34 @@
 {% load static %}
 <html>
   <head>
-    <title>Django Builder - construction_project</title>
+    <title>مدیریت ساختمان آرشا</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
     integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    
+    <!-- Persian Date Picker CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/persian-datepicker@1.2.0/dist/css/persian-datepicker.min.css">
+    
+    <!-- Custom Persian Calendar CSS -->
+    <link rel="stylesheet" href="{% static 'construction/css/persian-calendar.css' %}">
+    
+    <!-- Custom CSS for RTL support -->
+    <style>
+        body {
+            direction: rtl;
+            text-align: right;
+            font-family: 'Tahoma', 'Vazir', sans-serif;
+        }
+        .persian-datepicker {
+            direction: rtl;
+        }
+        .table td:first-child {
+            font-weight: bold;
+        }
+    </style>
     
     {% block extrahead %}{% endblock %}
   </head>
@@ -20,5 +45,136 @@
     </div>
     
     {% endblock %}
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    
+    <!-- Persian Date Libraries -->
+    <script src="https://unpkg.com/persian-date@1.1.0/dist/persian-date.min.js"></script>
+    <script src="https://unpkg.com/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>
+    
+    <!-- Initialize Persian Date Picker -->
+    <script>
+        $(document).ready(function() {
+            // فعال‌سازی persian-datepicker برای فیلدهای تاریخ شمسی
+            $('input[name*="shamsi"]').each(function() {
+                var fieldName = $(this).attr('name');
+                
+                // تنظیم تاریخ امروز برای نمایش اولیه  
+                var todayForInit = new persianDate();
+                
+                $(this).pDatepicker({
+                    format: 'YYYY-MM-DD',
+                    initialValue: todayForInit,
+                    initialValueType: 'persian',
+                    calendar: {
+                        persian: {
+                            locale: 'fa',
+                            leapYearMode: 'astronomical'
+                        }
+                    },
+                    timePicker: {
+                        enabled: false
+                    },
+                    navigator: {
+                        enabled: true
+                    },
+                    toolbox: {
+                        enabled: true,
+                        calendarSwitch: {
+                            enabled: false
+                        },
+                        todayButton: {
+                            enabled: true,
+                            text: {
+                                fa: "امروز"
+                            }
+                        },
+                        submitButton: {
+                            enabled: true,
+                            text: {
+                                fa: "انتخاب"
+                            }
+                        }
+                    },
+                    // تنظیم تاریخ امروز به صورت صحیح
+                    observer: true,
+                    autoClose: true,
+                    // تنظیم تاریخ پیش‌فرض روی امروز
+                    viewMode: 'day',
+                    minDate: false,
+                    maxDate: false,
+                    defaultDate: todayForInit,
+                    onSelect: function(unix) {
+                        try {
+                            // استفاده از moment برای تاریخ امروز صحیح
+                            var today = new persianDate();
+                            var selectedDate = new persianDate(unix);
+                            
+                            console.log('تاریخ امروز:', today.format('YYYY-MM-DD'));
+                            console.log('تاریخ انتخابی:', selectedDate.format('YYYY-MM-DD'));
+                            console.log('Unix timestamp:', unix);
+                            
+                            // تبدیل به تاریخ میلادی
+                            var gregorianDate = selectedDate.toDate();
+                            
+                            // دیباگ بیشتر
+                            console.log('میلادی قبل از تنظیم:', gregorianDate);
+                            console.log('Timezone offset:', gregorianDate.getTimezoneOffset());
+                            
+                            // پیدا کردن فیلد میلادی مرتبط
+                            var gregorianFieldName = fieldName.replace('_shamsi', '_gregorian');
+                            var gregorianField = $("#id_" + gregorianFieldName);
+                            
+                            if (gregorianField.length) {
+                                // استفاده از UTC date برای جلوگیری از مشکلات timezone
+                                var utcDate = new Date(Date.UTC(
+                                    gregorianDate.getFullYear(),
+                                    gregorianDate.getMonth(),
+                                    gregorianDate.getDate()
+                                ));
+                                
+                                var year = utcDate.getUTCFullYear();
+                                var month = String(utcDate.getUTCMonth() + 1).padStart(2, '0');
+                                var day = String(utcDate.getUTCDate()).padStart(2, '0');
+                                
+                                gregorianField.val(year + '-' + month + '-' + day);
+                                console.log('تاریخ میلادی نهایی:', year + '-' + month + '-' + day);
+                            }
+                        } catch(e) {
+                            console.log('خطا در تبدیل تاریخ:', e);
+                        }
+                    }
+                });
+                
+                // اضافه کردن کلاس و ویژگی‌های اضافی
+                $(this).addClass('jalali-date-input');
+                $(this).attr('dir', 'rtl');
+                $(this).attr('readonly', 'readonly');
+                $(this).attr('placeholder', 'انتخاب تاریخ شمسی...');
+            });
+            
+            // نمایش تاریخ امروز در کنسول برای بررسی
+            var today = new persianDate();
+            console.log('=== بررسی تاریخ امروز ===');
+            console.log('تاریخ شمسی امروز:', today.format('dddd، DD MMMM YYYY'));
+            console.log('تاریخ شمسی (فرمت کوتاه):', today.format('YYYY-MM-DD'));
+            console.log('تاریخ میلادی امروز:', today.toDate());
+            console.log('Unix timestamp امروز:', today.unix());
+            
+            // دیباگ: نمایش مقادیر فرم هنگام ارسال
+            $('form').on('submit', function() {
+                console.log('=== ارسال فرم ===');
+                $('input[name*="shamsi"]').each(function() {
+                    console.log($(this).attr('name') + ':', $(this).val());
+                });
+            });
+        });
+    </script>
+    
+    {% block extrascripts %}{% endblock %}
   </body>
 </html>

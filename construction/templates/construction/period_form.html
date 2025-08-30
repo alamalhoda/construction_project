@@ -1,72 +1,92 @@
-
 {% extends "base.html" %}
 {% load static %}
+{% load jformat %}
 {% block content %}
     
 <p>
     <a class="btn btn-light" href="{% url 'construction_Period_list' %}">
-    Period Listing
+    ‏فهرست دوره‌ها
     </a>
 </p>
     
 <form method="post" enctype="multipart/form-data">
   {% csrf_token %}
-  {{form.errors}}
+  
+  {% if form.errors %}
+    <div class="alert alert-danger">
+      {{ form.errors }}
+    </div>
+  {% endif %}
+  
   <div class="form-group row">
-      <label class="col-sm-2 col-form-label" for="label">label: </label>
-      <input class="form-control col-sm-10"
-         id="label" type="text"
-         name="label" value="{{ object.label }}">
+      <label class="col-sm-3 col-form-label" for="{{ form.label.id_for_label }}">{{ form.label.label }}: </label>
+      <div class="col-sm-9">
+        {{ form.label }}
+      </div>
   </div>
+  
   <div class="form-group row">
-      <label class="col-sm-2 col-form-label" for="year">year: </label>
-      <input class="form-control col-sm-10"
-         id="year" type="number"
-         name="year" value="{{ object.year }}">
+      <label class="col-sm-3 col-form-label" for="{{ form.year.id_for_label }}">{{ form.year.label }}: </label>
+      <div class="col-sm-9">
+        {{ form.year }}
+      </div>
   </div>
+  
   <div class="form-group row">
-      <label class="col-sm-2 col-form-label" for="month_number">month_number: </label>
-      <input class="form-control col-sm-10"
-         id="month_number" type="number"
-         name="month_number" value="{{ object.month_number }}">
+      <label class="col-sm-3 col-form-label" for="{{ form.month_number.id_for_label }}">{{ form.month_number.label }}: </label>
+      <div class="col-sm-9">
+        {{ form.month_number }}
+      </div>
   </div>
+  
   <div class="form-group row">
-      <label class="col-sm-2 col-form-label" for="month_name">month_name: </label>
-      <input class="form-control col-sm-10"
-         id="month_name" type="text"
-         name="month_name" value="{{ object.month_name }}">
+      <label class="col-sm-3 col-form-label" for="{{ form.month_name.id_for_label }}">{{ form.month_name.label }}: </label>
+      <div class="col-sm-9">
+        {{ form.month_name }}
+      </div>
   </div>
+  
   <div class="form-group row">
-      <label class="col-sm-2 col-form-label" for="weight">weight: </label>
-      <input class="form-control col-sm-10"
-         id="weight" type="number"
-         name="weight" value="{{ object.weight }}">
+      <label class="col-sm-3 col-form-label" for="{{ form.weight.id_for_label }}">{{ form.weight.label }}: </label>
+      <div class="col-sm-9">
+        {{ form.weight }}
+      </div>
   </div>
+  
   <div class="form-group row">
-      <label class="col-sm-2 col-form-label" for="start_date_shamsi">start_date_shamsi: </label>
-      <input class="form-control col-sm-10"
-         id="start_date_shamsi" type="date"
-         name="start_date_shamsi" value="{{ object.start_date_shamsi }}">
+      <label class="col-sm-3 col-form-label" for="{{ form.start_date_shamsi.id_for_label }}">{{ form.start_date_shamsi.label }}: </label>
+      <div class="col-sm-9">
+        {{ form.start_date_shamsi }}
+      </div>
   </div>
+  
   <div class="form-group row">
-      <label class="col-sm-2 col-form-label" for="end_date_shamsi">end_date_shamsi: </label>
-      <input class="form-control col-sm-10"
-         id="end_date_shamsi" type="date"
-         name="end_date_shamsi" value="{{ object.end_date_shamsi }}">
+      <label class="col-sm-3 col-form-label" for="{{ form.end_date_shamsi.id_for_label }}">{{ form.end_date_shamsi.label }}: </label>
+      <div class="col-sm-9">
+        {{ form.end_date_shamsi }}
+      </div>
   </div>
+  
   <div class="form-group row">
-      <label class="col-sm-2 col-form-label" for="start_date_gregorian">start_date_gregorian: </label>
-      <input class="form-control col-sm-10"
-         id="start_date_gregorian" type="date"
-         name="start_date_gregorian" value="{{ object.start_date_gregorian }}">
+      <label class="col-sm-3 col-form-label" for="{{ form.start_date_gregorian.id_for_label }}">{{ form.start_date_gregorian.label }}: </label>
+      <div class="col-sm-9">
+        {{ form.start_date_gregorian }}
+      </div>
   </div>
+  
   <div class="form-group row">
-      <label class="col-sm-2 col-form-label" for="end_date_gregorian">end_date_gregorian: </label>
-      <input class="form-control col-sm-10"
-         id="end_date_gregorian" type="date"
-         name="end_date_gregorian" value="{{ object.end_date_gregorian }}">
+      <label class="col-sm-3 col-form-label" for="{{ form.end_date_gregorian.id_for_label }}">{{ form.end_date_gregorian.label }}: </label>
+      <div class="col-sm-9">
+        {{ form.end_date_gregorian }}
+      </div>
   </div>
-  <input type="submit" value="Save" class="btn btn-primary">
+  
+  <div class="form-group row">
+      <div class="col-sm-12">
+        <input type="submit" value="ذخیره" class="btn btn-primary">
+        <a href="{% url 'construction_Period_list' %}" class="btn btn-secondary">انصراف</a>
+      </div>
+  </div>
 </form>
 
 {% endblock %}

@@ -1,5 +1,19 @@
-.DS_Store
+# فایل‌های غیرضروری جنگو几十
+__pycache__/
 *.pyc
-env/
+*.pyo
+*.pyd
 *.sqlite3
+env/
+venv/
+*.env
+*.env.production
+*.env.development
+*.env.test
+*.env.local
+*.log
+.DS_Store
+.vscode/
 
+staticfiles/
+temp_data/

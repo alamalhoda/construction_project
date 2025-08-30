@@ -1,5 +1,48 @@
 from django import forms
+from django_jalali.forms import jDateField
+from django.core.exceptions import ValidationError
+import jdatetime
 from . import models
+
+
+class CustomJDateField(jDateField):
+    """
+    فیلد تاریخ شمسی سفارشی که فرمت‌های مختلف را پشتیبانی می‌کند
+    """
+    
+    def clean(self, value):
+        """
+        تمیز کردن و اعتبارسنجی مقدار تاریخ
+        """
+        if not value:
+            if self.required:
+                raise ValidationError("این فیلد الزامی است.")
+            return None
+            
+        # اگر value یک رشته است، تلاش برای تبدیل آن
+        if isinstance(value, str):
+            # حذف فاصله‌های اضافی
+            value = value.strip()
+            
+            # فرمت‌های پشتیبانی شده
+            formats = ['%Y-%m-%d', '%Y/%m/%d', '%Y/%m/%d', '%Y-%m-%d']
+            
+            for fmt in formats:
+                try:
+                    # تلاش برای parse کردن تاریخ شمسی
+                    parsed_date = jdatetime.datetime.strptime(value, fmt).date()
+                    return parsed_date
+                except ValueError:
+                    continue
+            
+            # اگر هیچ فرمتی کار نکرد، خطا برگردان
+            raise ValidationError("فرمت تاریخ نامعتبر است. لطفاً از فرمت YYYY-MM-DD استفاده کنید.")
+        
+        # اگر value از نوع date است، آن را برگردان
+        if hasattr(value, 'year'):
+            return value
+            
+        raise ValidationError("مقدار تاریخ نامعتبر است.")
 
 
 class ExpenseForm(forms.ModelForm):
@@ -24,6 +67,21 @@ class InvestorForm(forms.ModelForm):
 
 
 class PeriodForm(forms.ModelForm):
+    start_date_shamsi = CustomJDateField(
+        label="تاریخ شروع شمسی",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'انتخاب تاریخ شمسی...'
+        })
+    )
+    end_date_shamsi = CustomJDateField(
+        label="تاریخ پایان شمسی",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'انتخاب تاریخ شمسی...'
+        })
+    )
+    
     class Meta:
         model = models.Period
         fields = [
@@ -40,6 +98,21 @@ class PeriodForm(forms.ModelForm):
 
 
 class ProjectForm(forms.ModelForm):
+    start_date_shamsi = CustomJDateField(
+        label="تاریخ شروع (شمسی)",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'انتخاب تاریخ شمسی...'
+        })
+    )
+    end_date_shamsi = CustomJDateField(
+        label="تاریخ پایان (شمسی)",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'انتخاب تاریخ شمسی...'
+        })
+    )
+    
     class Meta:
         model = models.Project
         fields = [
@@ -52,6 +125,14 @@ class ProjectForm(forms.ModelForm):
 
 
 class TransactionForm(forms.ModelForm):
+    date_shamsi = CustomJDateField(
+        label="تاریخ شمسی",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'انتخاب تاریخ شمسی...'
+        })
+    )
+    
     class Meta:
         model = models.Transaction
         fields = [
