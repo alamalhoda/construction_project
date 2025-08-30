@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نمایشگر داده‌های CSV</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <style>
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .negative-amount {
+            background-color: #ffe6e6; /* قرمز کم‌رنگ برای مقادیر منفی */
+        }
+        .principal-deposit {
+            background-color: #e6f3ff; /* آبی کم‌رنگ برای سپرده اصلی */
+        }
+        .profit-accrual {
+            background-color: #e6ffe6; /* سبز کم‌رنگ برای سود */
+        }
+        .principal-withdrawal {
+            background-color: #ffcccb; /* قرمز روشن برای برداشت */
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            text-align: right;
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+            cursor: pointer;
+            position: relative;
+        }
+        th:hover {
+            background-color: #e0e0e0;
+        }
+        .sort-asc::after {
+            content: '↑';
+            position: absolute;
+            margin-right: 5px;
+        }
+        .sort-desc::after {
+            content: '↓';
+            position: absolute;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <header class="bg-blue-600 text-white p-4 text-center">
+        <h1 class="text-2xl">نمایشگر داده‌های CSV</h1>
+        <p>داده‌های خود را به صورت تعاملی مشاهده و تجزیه تحلیل کنید</p>
+    </header>
+    <main class="container mx-auto p-4">
+        <div class="flex flex-col md:flex-row gap-4 my-4">
+            <input type="file" id="csv-input" accept=".csv" class="p-2 border rounded">
+            <input type="text" id="search-input" placeholder="جستجو (نام سرمایه‌گذار یا نوع ورودی)" class="p-2 border rounded" aria-label="جستجو در داده‌ها">
+        </div>
+        <div class="error-message text-red-500" style="display: none;">
+            خطا در بارگذاری داده‌ها
+        </div>
+        <div class="loading flex items-center justify-center" style="display: none;">
+            <div class="spinner mr-2"></div>
+            <p>در حال بارگذاری داده‌ها... لطفاً صبر کنید</p>
+        </div>
+        <div class="actions flex flex-col md:flex-row justify-between gap-4 my-4">
+            <button class="btn bg-blue-500 text-white px-4 py-2 rounded" id="download-csv" disabled>دانلود CSV</button>
+            <button class="btn bg-green-500 text-white px-4 py-2 rounded" id="download-json" disabled>دانلود JSON</button>
+            <button class="btn bg-red-500 text-white px-4 py-2 rounded" id="clear-grouping" disabled>حذف گروه‌بندی</button>
+            <div class="grouping">
+                <label for="grouping">گروه‌بندی بر اساس...</label>
+                <select id="grouping" class="border p-2 rounded" disabled>
+                    <option value="">انتخاب کنید</option>
+                    <option value="project_id">شناسه پروژه</option>
+                    <option value="investor_name">نام سرمایه‌گذار</option>
+                    <option value="entry_type">نوع ورودی</option>
+                </select>
+            </div>
+        </div>
+        <div class="table-container overflow-x-auto my-4">
+            <table id="data-table" class="min-w-full bg-white border">
+                <thead>
+                    <tr>
+                        <th class="py-2 px-4 border" data-sort="project_id">شناسه پروژه</th>
+                        <th class="py-2 px-4 border" data-sort="row_index">ردیف</th>
+                        <th class="py-2 px-4 border" data-sort="period_label">دوره</th>
+                        <th class="py-2 px-4 border" data-sort="day_remaining">روزهای باقی‌مانده</th>
+                        <th class="py-2 px-4 border" data-sort="day_from_start">روز از شروع</th>
+                        <th class="py-2 px-4 border" data-sort="date_shamsi">تاریخ شمسی</th>
+                        <th class="py-2 px-4 border" data-sort="date_gregorian">تاریخ میلادی</th>
+                        <th class="py-2 px-4 border" data-sort="investor_name">نام سرمایه‌گذار</th>
+                        <th class="py-2 px-4 border" data-sort="entry_type">نوع ورودی</th>
+                        <th class="py-2 px-4 border" data-sort="amount">مقدار</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body"></tbody>
+            </table>
+        </div>
+        <div class="stats my-4">
+            <p><strong>کل رکوردها:</strong> <span id="total-records">0</span></p>
+            <p><strong>تعداد ستون‌ها:</strong> <span id="total-columns">0</span></p>
+        </div>
+    </main>
+    <script>
+        let currentData = [];
+        let sortKey = null;
+        let sortDirection = 1; // 1: صعودی، -1: نزولی
+
+        function loadTableData(data) {
+            const tableBody = document.getElementById('table-body');
+            tableBody.innerHTML = '';
+
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                let rowClass = '';
+                if (parseFloat(row.amount) < 0) {
+                    rowClass = 'negative-amount';
+                } else {
+                    switch (row.entry_type) {
+                        case 'principal_deposit':
+                            rowClass = 'principal-deposit';
+                            break;
+                        case 'profit_accrual':
+                            rowClass = 'profit-accrual';
+                            break;
+                        case 'principal_withdrawal':
+                            rowClass = 'principal-withdrawal';
+                            break;
+                    }
+                }
+                tr.className = rowClass;
+
+                tr.innerHTML = `
+                    <td>${row.project_id}</td>
+                    <td>${row.row_index}</td>
+                    <td>${row.period_label}</td>
+                    <td>${row.day_remaining}</td>
+                    <td>${row.day_from_start}</td>
+                    <td>${row.date_shamsi}</td>
+                    <td>${row.date_gregorian}</td>
+                    <td>${row.investor_name}</td>
+                    <td>${row.entry_type}</td>
+                    <td>${parseFloat(row.amount).toLocaleString()}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+
+            document.getElementById('total-records').textContent = data.length;
+            document.getElementById('total-columns').textContent = Object.keys(data[0] || {}).length;
+
+            document.getElementById('download-csv').disabled = !data.length;
+            document.getElementById('download-json').disabled = !data.length;
+            document.getElementById('clear-grouping').disabled = !data.length;
+            document.getElementById('grouping').disabled = !data.length;
+        }
+
+        function filterData(data, query) {
+            query = query.toLowerCase().trim();
+            if (!query) return data;
+            return data.filter(row =>
+                row.investor_name.toLowerCase().includes(query) ||
+                row.entry_type.toLowerCase().includes(query)
+            );
+        }
+
+        function sortData(data, key, direction) {
+            return [...data].sort((a, b) => {
+                let valA = a[key];
+                let valB = b[key];
+
+                // برای ستون‌های عددی
+                if (['row_index', 'day_remaining', 'day_from_start', 'amount'].includes(key)) {
+                    valA = parseFloat(valA) || 0;
+                    valB = parseFloat(valB) || 0;
+                    return (valA - valB) * direction;
+                }
+                // برای ستون‌های متنی
+                return valA.localeCompare(valB, 'fa') * direction;
+            });
+        }
+
+        function updateTable() {
+            const query = document.getElementById('search-input').value;
+            let filteredData = filterData(currentData, query);
+            if (sortKey) {
+                filteredData = sortData(filteredData, sortKey, sortDirection);
+            }
+            loadTableData(filteredData);
+        }
+
+        function downloadCSV(data) {
+            const csv = Papa.unparse(data);
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'data.csv';
+            link.click();
+        }
+
+        function downloadJSON(data) {
+            const json = JSON.stringify(data, null, 2);
+            const blob = new Blob([json], { type: 'application/json;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'data.json';
+            link.click();
+        }
+
+        function groupData(data, key) {
+            const grouped = data.reduce((acc, row) => {
+                const groupValue = row[key] || 'نامشخص';
+                if (!acc[groupValue]) acc[groupValue] = [];
+                acc[groupValue].push(row);
+                return acc;
+            }, {});
+            const groupedData = [];
+            for (const group in grouped) {
+                groupedData.push(...grouped[group]);
+            }
+            loadTableData(groupedData);
+        }
+
+        document.getElementById('csv-input').addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                document.querySelector('.loading').style.display = 'flex';
+                document.querySelector('.error-message').style.display = 'none';
+                Papa.parse(file, {
+                    header: true,
+                    complete: function(results) {
+                        currentData = results.data.map(row => ({
+                            ...row,
+                            amount: parseFloat(row.amount) || 0
+                        }));
+                        updateTable();
+                        document.querySelector('.loading').style.display = 'none';
+                    },
+                    error: function(error) {
+                        document.querySelector('.error-message').style.display = 'block';
+                        document.querySelector('.loading').style.display = 'none';
+                        console.error('خطا در بارگذاری CSV:', error);
+                    }
+                });
+            }
+        });
+
+        document.getElementById('download-csv').addEventListener('click', () => {
+            if (currentData.length) downloadCSV(currentData);
+        });
+
+        document.getElementById('download-json').addEventListener('click', () => {
+            if (currentData.length) downloadJSON(currentData);
+        });
+
+        document.getElementById('clear-grouping').addEventListener('click', () => {
+            if (currentData.length) updateTable();
+        });
+
+        document.getElementById('grouping').addEventListener('change', (event) => {
+            const key = event.target.value;
+            if (key && currentData.length) groupData(currentData, key);
+        });
+
+        document.getElementById('search-input').addEventListener('input', () => {
+            updateTable();
+        });
+
+        document.querySelectorAll('th[data-sort]').forEach(th => {
+            th.addEventListener('click', () => {
+                const key = th.getAttribute('data-sort');
+                if (sortKey === key) {
+                    sortDirection *= -1; // تغییر جهت مرتب‌سازی
+                } else {
+                    sortKey = key;
+                    sortDirection = 1;
+                }
+
+                // به‌روزرسانی نشانگر مرتب‌سازی
+                document.querySelectorAll('th').forEach(header => {
+                    header.classList.remove('sort-asc', 'sort-desc');
+                });
+                th.classList.add(sortDirection === 1 ? 'sort-asc' : 'sort-desc');
+
+                updateTable();
+            });
+        });
+    </script>
+</body>
+</html>
