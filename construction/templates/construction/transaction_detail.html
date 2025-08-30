@@ -1,6 +1,7 @@
 
 {% extends "base.html" %}
 {% load static %}
+{% load jformat %}
 {% block content %}
     
 <p>
@@ -10,14 +11,14 @@
 </p>
     
 <table class="table">
-    <tr><td>date_shamsi</td><td>{{ object.date_shamsi }}</td></tr>
-    <tr><td>date_gregorian</td><td>{{ object.date_gregorian }}</td></tr>
-    <tr><td>amount</td><td>{{ object.amount }}</td></tr>
-    <tr><td>transaction_type</td><td>{{ object.transaction_type }}</td></tr>
-    <tr><td>description</td><td>{{ object.description }}</td></tr>
-    <tr><td>day_remaining</td><td>{{ object.day_remaining }}</td></tr>
-    <tr><td>day_from_start</td><td>{{ object.day_from_start }}</td></tr>
-    <tr><td>created_at</td><td>{{ object.created_at }}</td></tr>
+    <tr><td>تاریخ (شمسی)</td><td>{{ object.date_shamsi|jformat:"%A، %d %B %Y" }}</td></tr>
+    <tr><td>تاریخ (میلادی)</td><td>{{ object.date_gregorian }}</td></tr>
+    <tr><td>مبلغ</td><td>{{ object.amount|floatformat:0 }} ریال</td></tr>
+    <tr><td>نوع تراکنش</td><td>{{ object.get_transaction_type_display }}</td></tr>
+    <tr><td>توضیحات</td><td>{{ object.description }}</td></tr>
+    <tr><td>روزهای باقی‌مانده</td><td>{{ object.day_remaining }} روز</td></tr>
+    <tr><td>روز از شروع</td><td>{{ object.day_from_start }} روز</td></tr>
+    <tr><td>تاریخ ایجاد</td><td>{{ object.created_at|jformat:"%Y/%m/%d - %H:%M" }}</td></tr>
 </table>
 <a class="btn btn-primary" href="{{object.get_update_url}}">Edit</a>
 

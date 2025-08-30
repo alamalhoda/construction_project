@@ -1,6 +1,6 @@
 from django.db import models
-
-# Create your models here.
+from django.urls import reverse
+from django_jalali.db import models as jmodels
 
 class Project(models.Model):
     """
@@ -8,8 +8,8 @@ class Project(models.Model):
     شامل اطلاعات کلی پروژه مانند نام، تاریخ شروع و پایان (شمسی و میلادی)
     """
     name = models.CharField(max_length=200, verbose_name="نام پروژه")
-    start_date_shamsi = models.DateField(verbose_name="تاریخ شروع (شمسی)")
-    end_date_shamsi = models.DateField(verbose_name="تاریخ پایان (شمسی)")
+    start_date_shamsi = jmodels.jDateField(verbose_name="تاریخ شروع (شمسی)")
+    end_date_shamsi = jmodels.jDateField(verbose_name="تاریخ پایان (شمسی)")
     start_date_gregorian = models.DateField(verbose_name="تاریخ شروع (میلادی)")
     end_date_gregorian = models.DateField(verbose_name="تاریخ پایان (میلادی)")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
@@ -21,6 +21,19 @@ class Project(models.Model):
 
     def __str__(self):
         return self.name
+    
+    def get_absolute_url(self):
+        return reverse('construction_Project_detail', kwargs={'pk': self.pk})
+    
+    def get_update_url(self):
+        return reverse('construction_Project_update', kwargs={'pk': self.pk})
+    
+    @staticmethod
+    def get_htmx_create_url():
+        return reverse("construction_Project_htmx_create")
+
+    def get_htmx_delete_url(self):
+        return reverse("construction_Project_htmx_delete", args=(self.pk,))
 
 class Unit(models.Model):
     """
@@ -40,6 +53,19 @@ class Unit(models.Model):
 
     def __str__(self):
         return f"{self.project.name} - {self.name}"
+    
+    def get_absolute_url(self):
+        return reverse('construction_Unit_detail', kwargs={'pk': self.pk})
+    
+    def get_update_url(self):
+        return reverse('construction_Unit_update', kwargs={'pk': self.pk})
+    
+    @staticmethod
+    def get_htmx_create_url():
+        return reverse("construction_Unit_htmx_create")
+
+    def get_htmx_delete_url(self):
+        return reverse("construction_Unit_htmx_delete", args=(self.pk,))
 
 class Investor(models.Model):
     """
@@ -59,6 +85,19 @@ class Investor(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
+    
+    def get_absolute_url(self):
+        return reverse('construction_Investor_detail', kwargs={'pk': self.pk})
+    
+    def get_update_url(self):
+        return reverse('construction_Investor_update', kwargs={'pk': self.pk})
+    
+    @staticmethod
+    def get_htmx_create_url():
+        return reverse("construction_Investor_htmx_create")
+
+    def get_htmx_delete_url(self):
+        return reverse("construction_Investor_htmx_delete", args=(self.pk,))
 
 class Period(models.Model):
     """
@@ -71,8 +110,8 @@ class Period(models.Model):
     month_number = models.IntegerField(verbose_name="شماره ماه")
     month_name = models.CharField(max_length=20, verbose_name="نام ماه")
     weight = models.IntegerField(verbose_name="وزن دوره")
-    start_date_shamsi = models.DateField(verbose_name="تاریخ شروع شمسی")
-    end_date_shamsi = models.DateField(verbose_name="تاریخ پایان شمسی")
+    start_date_shamsi = jmodels.jDateField(verbose_name="تاریخ شروع شمسی")
+    end_date_shamsi = jmodels.jDateField(verbose_name="تاریخ پایان شمسی")
     start_date_gregorian = models.DateField(verbose_name="تاریخ شروع میلادی")
     end_date_gregorian = models.DateField(verbose_name="تاریخ پایان میلادی")
 
@@ -83,6 +122,19 @@ class Period(models.Model):
 
     def __str__(self):
         return f"{self.label} - {self.project.name}"
+    
+    def get_absolute_url(self):
+        return reverse('construction_Period_detail', kwargs={'pk': self.pk})
+    
+    def get_update_url(self):
+        return reverse('construction_Period_update', kwargs={'pk': self.pk})
+    
+    @staticmethod
+    def get_htmx_create_url():
+        return reverse("construction_Period_htmx_create")
+
+    def get_htmx_delete_url(self):
+        return reverse("construction_Period_htmx_delete", args=(self.pk,))
 
 class Transaction(models.Model):
     """
@@ -98,7 +150,7 @@ class Transaction(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, verbose_name="پروژه")
     investor = models.ForeignKey(Investor, on_delete=models.CASCADE, verbose_name="سرمایه‌گذار")
     period = models.ForeignKey(Period, on_delete=models.CASCADE, verbose_name="دوره")
-    date_shamsi = models.DateField(verbose_name="تاریخ شمسی")
+    date_shamsi = jmodels.jDateField(verbose_name="تاریخ شمسی")
     date_gregorian = models.DateField(verbose_name="تاریخ میلادی")
     amount = models.DecimalField(max_digits=20, decimal_places=2, verbose_name="مبلغ")
     transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPES, verbose_name="نوع تراکنش")
@@ -125,18 +177,18 @@ class Transaction(models.Model):
     def __str__(self):
         return f"{self.investor} - {self.amount} - {self.get_transaction_type_display()}"
     
-    def save(self, *args, **kwargs):
-        # محاسبه روز مانده تا پایان پروژه
-        if self.project.end_date_gregorian and self.date_gregorian:
-            delta = self.project.end_date_gregorian - self.date_gregorian
-            self.day_remaining = max(0, delta.days)
-        
-        # محاسبه روز از ابتدای پروژه
-        if self.project.start_date_gregorian and self.date_gregorian:
-            delta = self.date_gregorian - self.project.start_date_gregorian
-            self.day_from_start = max(0, delta.days)
-        
-        super().save(*args, **kwargs)
+    def get_absolute_url(self):
+        return reverse('construction_Transaction_detail', kwargs={'pk': self.pk})
+    
+    def get_update_url(self):
+        return reverse('construction_Transaction_update', kwargs={'pk': self.pk})
+    
+    @staticmethod
+    def get_htmx_create_url():
+        return reverse("construction_Transaction_htmx_create")
+
+    def get_htmx_delete_url(self):
+        return reverse("construction_Transaction_htmx_delete", args=(self.pk,))
 class Expense(models.Model):
     """
     مدل هزینه‌های پروژه
@@ -164,3 +216,16 @@ class Expense(models.Model):
 
     def __str__(self):
         return f"{self.project.name} - {self.get_expense_type_display()} - {self.amount}"
+    
+    def get_absolute_url(self):
+        return reverse('construction_Expense_detail', kwargs={'pk': self.pk})
+    
+    def get_update_url(self):
+        return reverse('construction_Expense_update', kwargs={'pk': self.pk})
+    
+    @staticmethod
+    def get_htmx_create_url():
+        return reverse("construction_Expense_htmx_create")
+
+    def get_htmx_delete_url(self):
+        return reverse("construction_Expense_htmx_delete", args=(self.pk,))
