@@ -175,7 +175,7 @@ class Transaction(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.investor} - {self.amount} - {self.get_transaction_type_display()}"
+        return f"{self.investor} - {self.amount} - {self.get_transaction_type_display()} - {self.period} - {self.date_shamsi} - {self.date_gregorian} - {self.day_remaining} - {self.day_from_start}"
     
     def get_absolute_url(self):
         return reverse('construction_Transaction_detail', kwargs={'pk': self.pk})

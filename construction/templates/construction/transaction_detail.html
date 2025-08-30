@@ -11,7 +11,9 @@
 </p>
     
 <table class="table">
-    <tr><td>تاریخ (شمسی)</td><td>{{ object.date_shamsi|jformat:"%A، %d %B %Y" }}</td></tr>
+    <tr><td>سرمایه‌گذار</td><td>{{ object.investor }}</td></tr>
+    <tr><td>دوره</td><td>{{ object.period }}</td></tr>
+    <tr><td>تاریخ (شمسی)</td><td>{{ object.date_shamsi|jformat:"%Y/%m/%d" }}</td></tr>
     <tr><td>تاریخ (میلادی)</td><td>{{ object.date_gregorian }}</td></tr>
     <tr><td>مبلغ</td><td>{{ object.amount|floatformat:0 }} ریال</td></tr>
     <tr><td>نوع تراکنش</td><td>{{ object.get_transaction_type_display }}</td></tr>
