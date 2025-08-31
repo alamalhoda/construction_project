@@ -709,6 +709,106 @@
                 font-size: 16px;
             }
         }
+
+        /* Simple Chart Controls */
+        .simple-chart-controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            display: flex;
+            gap: 5px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .chart-container:hover .simple-chart-controls {
+            opacity: 1;
+        }
+
+        .simple-control-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 6px 8px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-size: 12px;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .simple-control-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .chart-container.hidden {
+            display: none;
+        }
+
+        .chart-container.big {
+            grid-column: 1 / -1;
+        }
+
+        .chart-container.big .chart-wrapper {
+            height: 500px;
+        }
+
+        /* Collapse/Expand functionality */
+        .chart-container.collapsed .chart-wrapper {
+            display: none;
+        }
+
+        .chart-container.collapsed {
+            min-height: auto;
+        }
+
+        /* Drag and Drop functionality */
+        .chart-header {
+            cursor: grab;
+            user-select: none;
+        }
+
+        .chart-header:active {
+            cursor: grabbing;
+        }
+
+        .chart-container.dragging {
+            opacity: 0.7;
+            transform: rotate(3deg) scale(0.95);
+            z-index: 1000;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: none;
+        }
+
+        .chart-container.drag-over {
+            border: 2px dashed var(--primary-color);
+            background: rgba(var(--primary-color-rgb), 0.1);
+        }
+
+        .drop-indicator {
+            position: absolute;
+            width: 100%;
+            height: 4px;
+            background: var(--primary-color);
+            border-radius: 2px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1001;
+        }
+
+        .drop-indicator.show {
+            opacity: 1;
+        }
+
+        .drop-indicator.before {
+            top: -2px;
+        }
+
+        .drop-indicator.after {
+            bottom: -2px;
+        }
     </style>
 </head>
 <body>
@@ -848,13 +948,20 @@
                             نرخ بازدهی (ROI) در طول زمان
                         </h3>
                         <div class="chart-actions">
-                            <button class="chart-btn" title="تنظیمات">
-                                <i class="fas fa-cog"></i>
-                            </button>
-                            <button class="chart-btn" title="تمام صفحه">
-                                <i class="fas fa-expand"></i>
-                            </button>
                         </div>
+                    </div>
+                    <!-- Simple Chart Controls -->
+                    <div class="simple-chart-controls">
+                        <button class="simple-control-btn" onclick="collapseChart('roiChart')" title="جمع/باز کردن">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
+                        <button class="simple-control-btn" onclick="simpleToggleChart('roiChart')" title="مخفی/نمایش">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="simple-control-btn" onclick="simpleResizeChart('roiChart')" title="بزرگ/کوچک">
+                            <i class="fas fa-expand-alt"></i>
+                        </button>
+                    </div>
                     </div>
                     <div class="chart-wrapper">
                         <canvas id="roiChart"></canvas>
@@ -873,10 +980,19 @@
                             روند تراکنش‌های آورده و برداشت
                         </h3>
                         <div class="chart-actions">
-                            <button class="chart-btn" title="تنظیمات">
-                                <i class="fas fa-cog"></i>
-                            </button>
                         </div>
+                    </div>
+                    <!-- Simple Chart Controls -->
+                    <div class="simple-chart-controls">
+                        <button class="simple-control-btn" onclick="collapseChart('principalTransactionChart')" title="جمع/باز کردن">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
+                        <button class="simple-control-btn" onclick="simpleToggleChart('principalTransactionChart')" title="مخفی/نمایش">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="simple-control-btn" onclick="simpleResizeChart('principalTransactionChart')" title="بزرگ/کوچک">
+                            <i class="fas fa-expand-alt"></i>
+                        </button>
                     </div>
                     <div class="chart-wrapper">
                         <canvas id="principalTransactionChart"></canvas>
@@ -891,10 +1007,19 @@
                             مقایسه ماهانه کامل
                         </h3>
                         <div class="chart-actions">
-                            <button class="chart-btn" title="تنظیمات">
-                                <i class="fas fa-cog"></i>
-                            </button>
                         </div>
+                    </div>
+                    <!-- Simple Chart Controls -->
+                    <div class="simple-chart-controls">
+                        <button class="simple-control-btn" onclick="collapseChart('monthlyComparisonChart')" title="جمع/باز کردن">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
+                        <button class="simple-control-btn" onclick="simpleToggleChart('monthlyComparisonChart')" title="مخفی/نمایش">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="simple-control-btn" onclick="simpleResizeChart('monthlyComparisonChart')" title="بزرگ/کوچک">
+                            <i class="fas fa-expand-alt"></i>
+                        </button>
                     </div>
                     <div class="chart-wrapper">
                         <canvas id="monthlyComparisonChart"></canvas>
@@ -909,6 +1034,18 @@
                             روند آورده و برداشت
                         </h3>
                     </div>
+                    <!-- Simple Chart Controls -->
+                    <div class="simple-chart-controls">
+                        <button class="simple-control-btn" onclick="collapseChart('principalTrendChart')" title="جمع/باز کردن">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
+                        <button class="simple-control-btn" onclick="simpleToggleChart('principalTrendChart')" title="مخفی/نمایش">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="simple-control-btn" onclick="simpleResizeChart('principalTrendChart')" title="بزرگ/کوچک">
+                            <i class="fas fa-expand-alt"></i>
+                        </button>
+                    </div>
                     <div class="chart-wrapper">
                         <canvas id="principalTrendChart"></canvas>
                     </div>
@@ -921,6 +1058,18 @@
                             <i class="fas fa-chart-area"></i>
                             روند سود روزانه
                         </h3>
+                    </div>
+                    <!-- Simple Chart Controls -->
+                    <div class="simple-chart-controls">
+                        <button class="simple-control-btn" onclick="collapseChart('profitTrendChart')" title="جمع/باز کردن">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
+                        <button class="simple-control-btn" onclick="simpleToggleChart('profitTrendChart')" title="مخفی/نمایش">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="simple-control-btn" onclick="simpleResizeChart('profitTrendChart')" title="بزرگ/کوچک">
+                            <i class="fas fa-expand-alt"></i>
+                        </button>
                     </div>
                     <div class="chart-wrapper">
                         <canvas id="profitTrendChart"></canvas>
@@ -935,6 +1084,18 @@
                             توزیع فعالیت‌ها
                         </h3>
                     </div>
+                    <!-- Simple Chart Controls -->
+                    <div class="simple-chart-controls">
+                        <button class="simple-control-btn" onclick="collapseChart('activityDistributionChart')" title="جمع/باز کردن">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
+                        <button class="simple-control-btn" onclick="simpleToggleChart('activityDistributionChart')" title="مخفی/نمایش">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="simple-control-btn" onclick="simpleResizeChart('activityDistributionChart')" title="بزرگ/کوچک">
+                            <i class="fas fa-expand-alt"></i>
+                        </button>
+                    </div>
                     <div class="chart-wrapper">
                         <canvas id="activityDistributionChart"></canvas>
                     </div>
@@ -948,13 +1109,27 @@
                             ماهانه آورده و برداشت
                         </h3>
                     </div>
+                    <!-- Simple Chart Controls -->
+                    <div class="simple-chart-controls">
+                        <button class="simple-control-btn" onclick="collapseChart('monthlyPrincipalChart')" title="جمع/باز کردن">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
+                        <button class="simple-control-btn" onclick="simpleToggleChart('monthlyPrincipalChart')" title="مخفی/نمایش">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="simple-control-btn" onclick="simpleResizeChart('monthlyPrincipalChart')" title="بزرگ/کوچک">
+                            <i class="fas fa-expand-alt"></i>
+                        </button>
+                    </div>
                     <div class="chart-wrapper">
                         <canvas id="monthlyPrincipalChart"></canvas>
                     </div>
                 </div>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
+
+    
 
     <script>
         let selectedInvestor = null;
@@ -990,6 +1165,173 @@
             const currentTheme = document.documentElement.getAttribute('data-theme');
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
             setTheme(newTheme);
+        }
+
+        // Simple Chart Controls
+        function collapseChart(chartId) {
+            const container = document.getElementById(chartId).closest('.chart-container');
+            const chevronIcon = container.querySelector('.simple-chart-controls .fa-chevron-up, .simple-chart-controls .fa-chevron-down');
+            
+            if (container.classList.contains('collapsed')) {
+                // باز کردن
+                container.classList.remove('collapsed');
+                chevronIcon.className = 'fas fa-chevron-up';
+                
+                // Resize chart بعد از باز کردن
+                setTimeout(() => {
+                    if (charts[chartId]) {
+                        charts[chartId].resize();
+                    }
+                }, 300);
+            } else {
+                // جمع کردن
+                container.classList.add('collapsed');
+                chevronIcon.className = 'fas fa-chevron-down';
+            }
+        }
+
+        function simpleToggleChart(chartId) {
+            const container = document.getElementById(chartId).closest('.chart-container');
+            const eyeIcon = container.querySelector('.simple-chart-controls .fa-eye, .simple-chart-controls .fa-eye-slash');
+            
+            if (container.classList.contains('hidden')) {
+                // نمایش نمودار
+                container.classList.remove('hidden');
+                eyeIcon.className = 'fas fa-eye';
+                
+                // Resize chart بعد از نمایش
+                setTimeout(() => {
+                    if (charts[chartId]) {
+                        charts[chartId].resize();
+                    }
+                }, 100);
+            } else {
+                // مخفی کردن نمودار
+                container.classList.add('hidden');
+                eyeIcon.className = 'fas fa-eye-slash';
+            }
+        }
+
+        function simpleResizeChart(chartId) {
+            const container = document.getElementById(chartId).closest('.chart-container');
+            const expandIcon = container.querySelector('.simple-chart-controls .fa-expand-alt, .simple-chart-controls .fa-compress-alt');
+            
+            if (container.classList.contains('big')) {
+                // کوچک کردن
+                container.classList.remove('big');
+                expandIcon.className = 'fas fa-expand-alt';
+            } else {
+                // بزرگ کردن
+                container.classList.add('big');
+                expandIcon.className = 'fas fa-compress-alt';
+            }
+            
+            // Resize chart بعد از تغییر اندازه
+            setTimeout(() => {
+                if (charts[chartId]) {
+                    charts[chartId].resize();
+                }
+            }, 300);
+        }
+
+        // Drag and Drop functionality
+        let draggedElement = null;
+        let dropIndicator = null;
+
+        function initializeDragAndDrop() {
+            const chartContainers = document.querySelectorAll('.chart-container');
+            
+            chartContainers.forEach(container => {
+                const header = container.querySelector('.chart-header');
+                
+                // Make headers draggable
+                header.draggable = true;
+                
+                header.addEventListener('dragstart', (e) => {
+                    draggedElement = container;
+                    container.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/html', '');
+                });
+                
+                header.addEventListener('dragend', () => {
+                    if (draggedElement) {
+                        draggedElement.classList.remove('dragging');
+                        draggedElement = null;
+                    }
+                    hideDropIndicator();
+                });
+                
+                // Drop zones
+                container.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    
+                    if (draggedElement && draggedElement !== container) {
+                        showDropIndicator(container, e);
+                    }
+                });
+                
+                container.addEventListener('dragleave', (e) => {
+                    if (!container.contains(e.relatedTarget)) {
+                        hideDropIndicator();
+                    }
+                });
+                
+                container.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    
+                    if (draggedElement && draggedElement !== container) {
+                        const rect = container.getBoundingClientRect();
+                        const midY = rect.top + rect.height / 2;
+                        
+                        if (e.clientY < midY) {
+                            // Insert before
+                            container.parentNode.insertBefore(draggedElement, container);
+                        } else {
+                            // Insert after
+                            container.parentNode.insertBefore(draggedElement, container.nextSibling);
+                        }
+                        
+                        // Re-render dragged chart
+                        const chartId = draggedElement.querySelector('canvas').id;
+                        setTimeout(() => {
+                            if (charts[chartId]) {
+                                charts[chartId].resize();
+                            }
+                        }, 100);
+                    }
+                    
+                    hideDropIndicator();
+                });
+            });
+        }
+
+        function showDropIndicator(container, e) {
+            hideDropIndicator();
+            
+            const rect = container.getBoundingClientRect();
+            const midY = rect.top + rect.height / 2;
+            
+            dropIndicator = document.createElement('div');
+            dropIndicator.className = 'drop-indicator show';
+            
+            if (e.clientY < midY) {
+                dropIndicator.classList.add('before');
+                container.style.position = 'relative';
+                container.appendChild(dropIndicator);
+            } else {
+                dropIndicator.classList.add('after');
+                container.style.position = 'relative';
+                container.appendChild(dropIndicator);
+            }
+        }
+
+        function hideDropIndicator() {
+            if (dropIndicator) {
+                dropIndicator.remove();
+                dropIndicator = null;
+            }
         }
 
         // تابع آپدیت کارت‌های KPI
@@ -2080,6 +2422,9 @@
             
             // Theme toggle event listener
             document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+            
+            // Initialize drag and drop functionality
+            initializeDragAndDrop();
             
             populateInvestorSelect(); // بارگذاری لیست سرمایه‌گذاران از دیتابیس
             // loadData() دیگر نیازی نیست چون داده‌ها به صورت فیلتر شده بارگذاری می‌شوند
