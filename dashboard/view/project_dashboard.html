@@ -389,7 +389,7 @@
             document.getElementById('error').style.display = 'block';
         }
 
-        function processData() {
+        async function processData() {
             document.getElementById('loading').style.display = 'none';
             document.getElementById('content').style.display = 'block';
 
@@ -403,7 +403,7 @@
             createProjectPrincipalTrendChart();
             createProjectMonthlyPrincipalChart();
             
-            createSummaryTable();
+            await createSummaryTable();
         }
 
         function updateStats() {
@@ -582,84 +582,60 @@
 
 
 
-        function createSummaryTable() {
-            const principalData = chartData.filter(row => row.entry_type === 'principal_deposit' && row.investor_name !== '_src_row_index');
-            const withdrawalData = chartData.filter(row => row.entry_type === 'principal_withdrawal' && row.investor_name !== '_src_row_index');
-            const profitData = chartData.filter(row => row.entry_type === 'profit_accrual' && row.investor_name !== '_src_row_index');
-            
-            const investorSummary = {};
-            
-            // محاسبه آورده خالص هر سرمایه‌گذار
-            principalData.forEach(row => {
-                const investor = row.investor_name;
-                if (investor) {
-                    if (!investorSummary[investor]) {
-                        investorSummary[investor] = { principal: 0, withdrawal: 0, profit: 0 };
-                    }
-                    investorSummary[investor].principal += parseFloat(row.amount || 0);
-                }
-            });
-            
-            // محاسبه برداشت‌ها
-            withdrawalData.forEach(row => {
-                const investor = row.investor_name;
-                if (investor) {
-                    if (!investorSummary[investor]) {
-                        investorSummary[investor] = { principal: 0, withdrawal: 0, profit: 0 };
-                    }
-                    investorSummary[investor].withdrawal += parseFloat(row.amount || 0);
-                }
-            });
-            
-            profitData.forEach(row => {
-                const investor = row.investor_name;
-                if (investor) {
-                    if (!investorSummary[investor]) {
-                        investorSummary[investor] = { principal: 0, withdrawal: 0, profit: 0 };
-                    }
-                    investorSummary[investor].profit += parseFloat(row.amount || 0);
-                }
-            });
-
-            let tableHTML = `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>نام سرمایه‌گذار</th>
-                            <th>آورده (تومان)</th>
-                            <th>برداشت (تومان)</th>
-                            <th>آورده خالص (تومان)</th>
-                            <th>سود (تومان)</th>
-                            <th>مجموع (تومان)</th>
-                            <th>نسبت سود به آورده خالص</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-
-            Object.entries(investorSummary).forEach(([investor, data]) => {
-                const netPrincipal = data.principal + data.withdrawal; // withdrawal معمولاً منفی است
-                const total = netPrincipal + data.profit;
-                const profitRatio = netPrincipal > 0 ? ((data.profit / netPrincipal) * 100).toFixed(2) : '0.00';
+        async function createSummaryTable() {
+            try {
+                console.log('🔄 بارگذاری خلاصه سرمایه‌گذاران از سرور...');
                 
-                // فقط سرمایه‌گذارانی که آورده خالص مثبت دارند
-                if (netPrincipal > 0) {
+                // دریافت داده‌های محاسبه شده از سرور
+                const response = await fetch('/construction/api/v1/Investor/summary/');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const summaryData = await response.json();
+                console.log('✅ داده‌های خلاصه دریافت شد:', summaryData);
+
+                let tableHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>نام سرمایه‌گذار</th>
+                                <th>آورده (تومان)</th>
+                                <th>برداشت (تومان)</th>
+                                <th>آورده خالص (تومان)</th>
+                                <th>سود (تومان)</th>
+                                <th>مجموع (تومان)</th>
+                                <th>نسبت سود به آورده خالص</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                summaryData.forEach(investor => {
+                    const profitRatio = investor.net_principal > 0 ? 
+                        ((investor.total_profit / investor.net_principal) * 100).toFixed(2) : '0.00';
+                    
                     tableHTML += `
                         <tr>
-                            <td>${investor}</td>
-                            <td>${data.principal.toLocaleString('fa-IR')}</td>
-                            <td>${data.withdrawal.toLocaleString('fa-IR')}</td>
-                            <td>${netPrincipal.toLocaleString('fa-IR')}</td>
-                            <td>${data.profit.toLocaleString('fa-IR')}</td>
-                            <td>${total.toLocaleString('fa-IR')}</td>
+                            <td>${investor.name}</td>
+                            <td>${investor.total_deposits.toLocaleString('fa-IR')}</td>
+                            <td>${investor.total_withdrawals.toLocaleString('fa-IR')}</td>
+                            <td>${investor.net_principal.toLocaleString('fa-IR')}</td>
+                            <td>${investor.total_profit.toLocaleString('fa-IR')}</td>
+                            <td>${investor.grand_total.toLocaleString('fa-IR')}</td>
                             <td>${profitRatio}%</td>
                         </tr>
                     `;
-                }
-            });
+                });
 
-            tableHTML += '</tbody></table>';
-            document.getElementById('summaryTable').innerHTML = tableHTML;
+                tableHTML += '</tbody></table>';
+                document.getElementById('summaryTable').innerHTML = tableHTML;
+                
+            } catch (error) {
+                console.error('❌ خطا در دریافت خلاصه سرمایه‌گذاران:', error);
+                document.getElementById('summaryTable').innerHTML = 
+                    '<p style="text-align: center; color: #d32f2f;">خطا در بارگذاری جدول خلاصه</p>';
+            }
         }
 
 
