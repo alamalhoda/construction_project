@@ -13,17 +13,82 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
+        /* CSS Variables for Theme System */
+        :root {
+            /* Light Theme Colors */
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --info-color: #17a2b8;
+            
+            /* Background Colors */
+            --bg-primary: #f8f9fa;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --bg-overlay: rgba(255, 255, 255, 0.95);
+            
+            /* Text Colors */
+            --text-primary: #2c3e50;
+            --text-secondary: #6c757d;
+            --text-muted: #8e9297;
+            --text-white: #ffffff;
+            
+            /* Border & Shadow */
+            --border-color: #e9ecef;
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 8px 25px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 15px 35px rgba(0, 0, 0, 0.12);
+            
+            /* Chart Colors */
+            --chart-primary: rgba(54, 162, 235, 1);
+            --chart-secondary: rgba(255, 99, 132, 1);
+            --chart-success: rgba(75, 192, 192, 1);
+            --chart-warning: rgba(255, 206, 86, 1);
+        }
+
+        /* Dark Theme */
+        [data-theme="dark"] {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --info-color: #17a2b8;
+            
+            /* Dark Background Colors */
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e1e;
+            --bg-card: #2d2d2d;
+            --bg-overlay: rgba(45, 45, 45, 0.95);
+            
+            /* Dark Text Colors */
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --text-muted: #888888;
+            --text-white: #ffffff;
+            
+            /* Dark Border & Shadow */
+            --border-color: #404040;
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 8px 25px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 15px 35px rgba(0, 0, 0, 0.5);
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
         }
 
         body {
             font-family: 'Tahoma', 'Arial', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             min-height: 100vh;
             padding: 20px;
+            color: var(--text-primary);
         }
 
         .container {
@@ -33,8 +98,9 @@
 
         .header {
             text-align: center;
-            color: white;
+            color: var(--text-white);
             margin-bottom: 30px;
+            position: relative;
         }
 
         .header h1 {
@@ -48,17 +114,46 @@
             opacity: 0.9;
         }
 
+        /* Theme Toggle Button */
+        .theme-toggle {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: var(--bg-overlay);
+            border: 2px solid var(--border-color);
+            border-radius: 50px;
+            padding: 8px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--text-primary);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-md);
+        }
+
+        .theme-toggle i {
+            font-size: 16px;
+        }
+
         .investor-selector {
-            background: white;
+            background: var(--bg-card);
             padding: 25px;
             border-radius: 15px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            box-shadow: var(--shadow-md);
             margin-bottom: 30px;
             text-align: center;
+            border: 1px solid var(--border-color);
         }
 
         .investor-selector h3 {
-            color: #333;
+            color: var(--text-primary);
             margin-bottom: 20px;
             font-size: 1.3rem;
         }
@@ -66,27 +161,28 @@
         .investor-selector select {
             padding: 12px 20px;
             font-size: 1.1rem;
-            border: 2px solid #667eea;
+            border: 2px solid var(--primary-color);
             border-radius: 8px;
-            background: white;
-            color: #333;
+            background: var(--bg-card);
+            color: var(--text-primary);
             min-width: 300px;
             cursor: pointer;
         }
 
         .investor-selector select:focus {
             outline: none;
-            border-color: #764ba2;
+            border-color: var(--secondary-color);
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
         .investor-info {
-            background: white;
+            background: var(--bg-card);
             padding: 25px;
             border-radius: 15px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            box-shadow: var(--shadow-md);
             margin-bottom: 30px;
             display: none;
+            border: 1px solid var(--border-color);
         }
 
         .investor-info.show {
@@ -281,11 +377,11 @@
         }
 
         .kpi-card {
-            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-            border: none;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
             border-radius: 16px;
             padding: 24px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            box-shadow: var(--shadow-md);
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
@@ -293,7 +389,7 @@
 
         .kpi-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+            box-shadow: var(--shadow-lg);
         }
 
         .kpi-card::before {
@@ -308,19 +404,19 @@
         }
 
         .kpi-card.positive {
-            --card-color: #28a745;
+            --card-color: var(--success-color);
         }
 
         .kpi-card.negative {
-            --card-color: #dc3545;
+            --card-color: var(--danger-color);
         }
 
         .kpi-card.neutral {
-            --card-color: #6c757d;
+            --card-color: var(--text-secondary);
         }
 
         .kpi-card.warning {
-            --card-color: #ffc107;
+            --card-color: var(--warning-color);
         }
 
         .kpi-header {
@@ -344,7 +440,7 @@
         }
 
         .kpi-title {
-            color: #6c757d;
+            color: var(--text-secondary);
             font-size: 14px;
             font-weight: 500;
             margin: 0;
@@ -353,14 +449,14 @@
         .kpi-value {
             font-size: 32px;
             font-weight: 700;
-            color: #2c3e50;
+            color: var(--text-primary);
             margin: 8px 0;
             direction: ltr;
             text-align: right;
         }
 
         .kpi-subtitle {
-            color: #8e9297;
+            color: var(--text-muted);
             font-size: 12px;
             margin: 0;
         }
@@ -395,6 +491,224 @@
         .kpi-value.animate {
             animation: countUp 0.8s ease-out;
         }
+
+        /* Advanced Layout & Grid System */
+        .dashboard-layout {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 24px;
+            margin-top: 20px;
+        }
+
+        .chart-container {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-container:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .chart-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            opacity: 0.8;
+        }
+
+        .chart-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .chart-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-primary);
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .chart-title i {
+            color: var(--primary-color);
+            font-size: 20px;
+        }
+
+        .chart-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .chart-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 6px 10px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+            font-size: 12px;
+        }
+
+        .chart-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+            min-height: 350px;
+        }
+
+        .chart-wrapper canvas {
+            max-height: 100% !important;
+        }
+
+        /* Special Chart Layouts */
+        .chart-container.featured {
+            grid-column: 1 / -1;
+        }
+
+        .chart-container.half-width {
+            grid-column: span 1;
+        }
+
+        .chart-container.compact {
+            padding: 16px;
+        }
+
+        .chart-container.compact .chart-wrapper {
+            height: 300px;
+        }
+
+        /* Stats Grid Enhancement */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin: 24px 0;
+            padding: 20px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stat-card h4 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .stat-card p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin: 0;
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 1200px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .chart-container.featured {
+                grid-column: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-layout {
+                gap: 16px;
+            }
+            
+            .charts-grid {
+                gap: 16px;
+            }
+            
+            .chart-container {
+                padding: 16px;
+            }
+            
+            .chart-wrapper {
+                height: 300px;
+            }
+            
+            .kpi-container {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 16px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 12px;
+                padding: 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .chart-container {
+                padding: 12px;
+            }
+            
+            .chart-wrapper {
+                height: 250px;
+            }
+            
+            .kpi-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-title {
+                font-size: 16px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -404,10 +718,15 @@
 
     <div class="container">
         <div class="header">
+            <button class="theme-toggle" id="themeToggle">
+                <i class="fas fa-moon" id="themeIcon"></i>
+                <span id="themeText">حالت تیره</span>
+            </button>
             <h1><i class="fas fa-user-tie"></i> پروفایل مالی سرمایه‌گذار</h1>
             <p>نمایش جامع وضعیت مالی و فعالیت‌های سرمایه‌گذاری</p>
         </div>
 
+        <div class="dashboard-layout">
         <div class="investor-selector">
             <h3><i class="fas fa-search"></i> انتخاب سرمایه‌گذار</h3>
             <select id="investorSelect">
@@ -519,75 +838,159 @@
                 </div>
             </div>
 
+            <!-- Charts Section with New Grid Layout -->
             <div class="charts-grid">
-                <div class="chart-container">
-                    <h3><i class="fas fa-chart-line"></i> روند آورده و برداشت</h3>
+                <!-- ROI Chart - Featured -->
+                <div class="chart-container featured">
+                    <div class="chart-header">
+                        <h3 class="chart-title">
+                            <i class="fas fa-percentage"></i>
+                            نرخ بازدهی (ROI) در طول زمان
+                        </h3>
+                        <div class="chart-actions">
+                            <button class="chart-btn" title="تنظیمات">
+                                <i class="fas fa-cog"></i>
+                            </button>
+                            <button class="chart-btn" title="تمام صفحه">
+                                <i class="fas fa-expand"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="roiChart"></canvas>
+                    </div>
+                    <div style="margin-top: 10px; padding: 10px; background: var(--bg-secondary); border-radius: 8px; font-size: 12px; color: var(--text-secondary);">
+                        <strong>توضیح:</strong> نرخ بازدهی (ROI) نشان می‌دهد که تا هر ماه چند درصد از سرمایه اولیه به عنوان سود کسب شده است.
+                        <br><strong>فرمول:</strong> ROI = (مجموع سود تا آن ماه ÷ مجموع سرمایه تا آن ماه) × 100
+                    </div>
+                </div>
+
+                <!-- Principal Transaction Chart -->
+                <div class="chart-container half-width">
+                    <div class="chart-header">
+                        <h3 class="chart-title">
+                            <i class="fas fa-chart-line"></i>
+                            روند تراکنش‌های آورده و برداشت
+                        </h3>
+                        <div class="chart-actions">
+                            <button class="chart-btn" title="تنظیمات">
+                                <i class="fas fa-cog"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="principalTransactionChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Monthly Comparison Chart -->
+                <div class="chart-container half-width">
+                    <div class="chart-header">
+                        <h3 class="chart-title">
+                            <i class="fas fa-chart-bar"></i>
+                            مقایسه ماهانه کامل
+                        </h3>
+                        <div class="chart-actions">
+                            <button class="chart-btn" title="تنظیمات">
+                                <i class="fas fa-cog"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="monthlyComparisonChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Principal Trend Chart -->
+                <div class="chart-container compact">
+                    <div class="chart-header">
+                        <h3 class="chart-title">
+                            <i class="fas fa-chart-line"></i>
+                            روند آورده و برداشت
+                        </h3>
+                    </div>
                     <div class="chart-wrapper">
                         <canvas id="principalTrendChart"></canvas>
                     </div>
                 </div>
 
-                <div class="chart-container">
-                    <h3><i class="fas fa-chart-area"></i> روند سود روزانه</h3>
+                <!-- Profit Trend Chart -->
+                <div class="chart-container compact">
+                    <div class="chart-header">
+                        <h3 class="chart-title">
+                            <i class="fas fa-chart-area"></i>
+                            روند سود روزانه
+                        </h3>
+                    </div>
                     <div class="chart-wrapper">
                         <canvas id="profitTrendChart"></canvas>
                     </div>
                 </div>
 
-                <div class="chart-container">
-                    <h3><i class="fas fa-chart-pie"></i> توزیع فعالیت‌ها</h3>
+                <!-- Activity Distribution Chart -->
+                <div class="chart-container compact">
+                    <div class="chart-header">
+                        <h3 class="chart-title">
+                            <i class="fas fa-chart-pie"></i>
+                            توزیع فعالیت‌ها
+                        </h3>
+                    </div>
                     <div class="chart-wrapper">
                         <canvas id="activityDistributionChart"></canvas>
                     </div>
                 </div>
 
-                <div class="chart-container">
-                    <h3><i class="fas fa-chart-bar"></i> مقایسه ماهانه</h3>
-                    <div class="chart-wrapper">
-                        <canvas id="monthlyComparisonChart"></canvas>
+                <!-- Monthly Principal Chart -->
+                <div class="chart-container compact">
+                    <div class="chart-header">
+                        <h3 class="chart-title">
+                            <i class="fas fa-chart-area"></i>
+                            ماهانه آورده و برداشت
+                        </h3>
                     </div>
-                </div>
-                
-                <!-- نمودار ترکیبی آورده و برداشت -->
-                <div class="chart-container">
-                    <h3><i class="fas fa-chart-line"></i> روند تراکنش‌های آورده و برداشت</h3>
-                    <div class="chart-wrapper">
-                        <canvas id="principalTransactionChart"></canvas>
-                    </div>
-                </div>
-                
-                <!-- نمودار ماهانه آورده و برداشت (بدون سود) -->
-                <div class="chart-container">
-                    <h3><i class="fas fa-chart-area"></i> روند ماهانه آورده و برداشت</h3>
                     <div class="chart-wrapper">
                         <canvas id="monthlyPrincipalChart"></canvas>
                     </div>
                 </div>
-                
-                <!-- نمودار نرخ بازدهی (ROI) -->
-                <div class="chart-container">
-                    <h3><i class="fas fa-percentage"></i> نرخ بازدهی (ROI) در طول زمان</h3>
-                    <div class="chart-wrapper">
-                        <canvas id="roiChart"></canvas>
-                    </div>
-                    <div style="margin-top: 10px; padding: 10px; background-color: #f8f9fa; border-radius: 5px; font-size: 12px;">
-                        <strong>توضیح:</strong> نرخ بازدهی (ROI) نشان می‌دهد که تا هر ماه چند درصد از سرمایه اولیه به عنوان سود کسب شده است.
-                        <br><strong>فرمول:</strong> ROI = (مجموع سود تا آن ماه ÷ مجموع سرمایه تا آن ماه) × 100
-                    </div>
-                </div>
             </div>
-
-
         </div>
     </div>
 
     <script>
         let selectedInvestor = null;
         let charts = {}; // نگهداری نمودارها
-        
+
         // متغیر برای تبدیل مبالغ (10 میلیون)
         const BASE_AMOUNT = 10000000;
         // const BASE_AMOUNT = 1;
+
+        // Theme Management
+        function initializeTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            setTheme(savedTheme);
+        }
+
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            
+            const themeIcon = document.getElementById('themeIcon');
+            const themeText = document.getElementById('themeText');
+            
+            if (theme === 'dark') {
+                themeIcon.className = 'fas fa-sun';
+                themeText.textContent = 'حالت روشن';
+            } else {
+                themeIcon.className = 'fas fa-moon';
+                themeText.textContent = 'حالت تیره';
+            }
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            setTheme(newTheme);
+        }
 
         // تابع آپدیت کارت‌های KPI
         function updateKPICards(investorTransactions) {
@@ -700,7 +1103,7 @@
                     showInvestorProfile(this.value);
                 } else {
                     hideInvestorProfile();
-                }
+                        }
                     });
                 })
                 .catch(error => {
@@ -724,7 +1127,7 @@
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(htmlContent, 'text/html');
                     
-                    const select = document.getElementById('investorSelect');
+            const select = document.getElementById('investorSelect');
                     select.innerHTML = '<option value="">انتخاب سرمایه‌گذار...</option>';
                     
                     // فرض می‌کنم که در HTML view، لیست سرمایه‌گذاران در جدولی نمایش داده می‌شود
@@ -737,20 +1140,20 @@
                             const firstName = cells[0].textContent.trim();
                             const lastName = cells[1].textContent.trim();
                             
-                            const option = document.createElement('option');
+                const option = document.createElement('option');
                             option.value = firstName;
                             option.textContent = firstName + ' ' + lastName;
-                            select.appendChild(option);
+                select.appendChild(option);
                         }
-                    });
+            });
 
-                    // اضافه کردن event listener
-                    select.addEventListener('change', function() {
-                        if (this.value) {
-                            showInvestorProfile(this.value);
-                        } else {
-                            hideInvestorProfile();
-                        }
+            // اضافه کردن event listener
+            select.addEventListener('change', function() {
+                if (this.value) {
+                    showInvestorProfile(this.value);
+                } else {
+                    hideInvestorProfile();
+                }
                     });
                 })
                 .catch(error => {
@@ -1672,6 +2075,12 @@
 
         // بارگذاری داده‌ها هنگام لود صفحه
         window.addEventListener('load', function() {
+            // Initialize theme
+            initializeTheme();
+            
+            // Theme toggle event listener
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+            
             populateInvestorSelect(); // بارگذاری لیست سرمایه‌گذاران از دیتابیس
             // loadData() دیگر نیازی نیست چون داده‌ها به صورت فیلتر شده بارگذاری می‌شوند
             
