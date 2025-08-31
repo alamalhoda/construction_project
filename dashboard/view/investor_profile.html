@@ -263,6 +263,138 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* KPI Cards Styles */
+        .kpi-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s ease;
+        }
+
+        .kpi-container.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .kpi-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border: none;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+        }
+
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--card-color, #6c757d);
+            transition: all 0.3s ease;
+        }
+
+        .kpi-card.positive {
+            --card-color: #28a745;
+        }
+
+        .kpi-card.negative {
+            --card-color: #dc3545;
+        }
+
+        .kpi-card.neutral {
+            --card-color: #6c757d;
+        }
+
+        .kpi-card.warning {
+            --card-color: #ffc107;
+        }
+
+        .kpi-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .kpi-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+            background: var(--card-color, #6c757d);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .kpi-title {
+            color: #6c757d;
+            font-size: 14px;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .kpi-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin: 8px 0;
+            direction: ltr;
+            text-align: right;
+        }
+
+        .kpi-subtitle {
+            color: #8e9297;
+            font-size: 12px;
+            margin: 0;
+        }
+
+        .kpi-trend {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 8px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .kpi-trend.positive {
+            color: #28a745;
+        }
+
+        .kpi-trend.negative {
+            color: #dc3545;
+        }
+
+        .kpi-trend.neutral {
+            color: #6c757d;
+        }
+
+        /* Counter Animation */
+        @keyframes countUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .kpi-value.animate {
+            animation: countUp 0.8s ease-out;
+        }
     </style>
 </head>
 <body>
@@ -292,6 +424,69 @@
         </div>
 
         <div id="investorInfo" class="investor-info">
+            <!-- KPI Cards -->
+            <div class="kpi-container" id="kpiContainer">
+                <div class="kpi-card neutral" id="kpiPrincipal">
+                    <div class="kpi-header">
+                        <div class="kpi-icon">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                        <h4 class="kpi-title">کل سرمایه</h4>
+                    </div>
+                    <div class="kpi-value" id="kpiPrincipalValue">0</div>
+                    <p class="kpi-subtitle">کرور تومان</p>
+                    <div class="kpi-trend neutral" id="kpiPrincipalTrend">
+                        <i class="fas fa-minus"></i>
+                        <span>آماده محاسبه</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card neutral" id="kpiProfit">
+                    <div class="kpi-header">
+                        <div class="kpi-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h4 class="kpi-title">کل سود</h4>
+                    </div>
+                    <div class="kpi-value" id="kpiProfitValue">0</div>
+                    <p class="kpi-subtitle">کرور تومان</p>
+                    <div class="kpi-trend neutral" id="kpiProfitTrend">
+                        <i class="fas fa-minus"></i>
+                        <span>آماده محاسبه</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card neutral" id="kpiROI">
+                    <div class="kpi-header">
+                        <div class="kpi-icon">
+                            <i class="fas fa-percentage"></i>
+                        </div>
+                        <h4 class="kpi-title">نرخ بازدهی</h4>
+                    </div>
+                    <div class="kpi-value" id="kpiROIValue">0</div>
+                    <p class="kpi-subtitle">درصد</p>
+                    <div class="kpi-trend neutral" id="kpiROITrend">
+                        <i class="fas fa-minus"></i>
+                        <span>آماده محاسبه</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card neutral" id="kpiBalance">
+                    <div class="kpi-header">
+                        <div class="kpi-icon">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <h4 class="kpi-title">موجودی کل</h4>
+                    </div>
+                    <div class="kpi-value" id="kpiBalanceValue">0</div>
+                    <p class="kpi-subtitle">کرور تومان</p>
+                    <div class="kpi-trend neutral" id="kpiBalanceTrend">
+                        <i class="fas fa-minus"></i>
+                        <span>آماده محاسبه</span>
+                    </div>
+                </div>
+            </div>
+
             <div class="investor-header">
                 <div class="investor-name" id="investorName">نام سرمایه‌گذار</div>
                 <div class="investor-status" id="investorStatus">وضعیت</div>
@@ -393,6 +588,80 @@
         // متغیر برای تبدیل مبالغ (10 میلیون)
         const BASE_AMOUNT = 10000000;
         // const BASE_AMOUNT = 1;
+
+        // تابع آپدیت کارت‌های KPI
+        function updateKPICards(investorTransactions) {
+            // محاسبه مقادیر
+            const principalData = getTransactionsByType(investorTransactions, 'principal_deposit');
+            const withdrawalData = getTransactionsByType(investorTransactions, 'principal_withdrawal');
+            const profitData = getTransactionsByType(investorTransactions, 'profit_accrual');
+
+            const totalPrincipal = principalData.reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
+            const totalWithdrawal = withdrawalData.reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
+            const totalProfit = profitData.reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
+            
+            const netPrincipal = totalPrincipal + totalWithdrawal;
+            const totalBalance = netPrincipal + totalProfit;
+            const profitRatio = netPrincipal > 0 ? ((totalProfit / netPrincipal) * 100) : 0;
+
+            // آپدیت کارت کل سرمایه
+            updateKPICard('kpiPrincipal', 'kpiPrincipalValue', 'kpiPrincipalTrend', 
+                totalPrincipal / BASE_AMOUNT, netPrincipal > 0 ? 'positive' : 'neutral', 
+                `سرمایه خالص: ${(netPrincipal / BASE_AMOUNT).toFixed(1)} کرور`);
+
+            // آپدیت کارت کل سود
+            updateKPICard('kpiProfit', 'kpiProfitValue', 'kpiProfitTrend', 
+                totalProfit / BASE_AMOUNT, totalProfit > 0 ? 'positive' : totalProfit < 0 ? 'negative' : 'neutral', 
+                totalProfit > 0 ? 'سودآور' : totalProfit < 0 ? 'ضررده' : 'بدون سود');
+
+            // آپدیت کارت نرخ بازدهی
+            updateKPICard('kpiROI', 'kpiROIValue', 'kpiROITrend', 
+                profitRatio, profitRatio > 0 ? 'positive' : profitRatio < 0 ? 'negative' : 'neutral', 
+                `${profitRatio > 0 ? 'بازدهی مثبت' : profitRatio < 0 ? 'بازدهی منفی' : 'بدون بازدهی'}`, '%');
+
+            // آپدیت کارت موجودی کل
+            updateKPICard('kpiBalance', 'kpiBalanceValue', 'kpiBalanceTrend', 
+                totalBalance / BASE_AMOUNT, totalBalance > 0 ? 'positive' : totalBalance < 0 ? 'negative' : 'neutral', 
+                `شامل سود: ${(totalProfit / BASE_AMOUNT).toFixed(1)} کرور`);
+
+            // نمایش کارت‌ها با انیمیشن
+            setTimeout(() => {
+                document.getElementById('kpiContainer').classList.add('show');
+            }, 100);
+        }
+
+        // تابع کمکی برای آپدیت یک کارت KPI
+        function updateKPICard(cardId, valueId, trendId, value, status, trendText, suffix = '') {
+            const card = document.getElementById(cardId);
+            const valueElement = document.getElementById(valueId);
+            const trendElement = document.getElementById(trendId);
+
+            // آپدیت وضعیت کارت
+            card.className = `kpi-card ${status}`;
+
+            // آپدیت مقدار با انیمیشن
+            valueElement.classList.add('animate');
+            if (suffix === '%') {
+                valueElement.textContent = value.toFixed(1) + '%';
+            } else {
+                valueElement.textContent = value.toFixed(1);
+            }
+
+            // آپدیت trend
+            trendElement.className = `kpi-trend ${status}`;
+            
+            let icon = 'fas fa-minus';
+            if (status === 'positive') icon = 'fas fa-arrow-up';
+            else if (status === 'negative') icon = 'fas fa-arrow-down';
+            else if (status === 'warning') icon = 'fas fa-exclamation-triangle';
+
+            trendElement.innerHTML = `<i class="${icon}"></i><span>${trendText}</span>`;
+
+            // حذف کلاس انیمیشن بعد از مدتی
+            setTimeout(() => {
+                valueElement.classList.remove('animate');
+            }, 800);
+        }
         
 
         // تابع loadData() حذف شد چون دیگر نیازی نیست
@@ -580,7 +849,10 @@
             loadInvestorTransactions(investorId)
                 .then(investorTransactions => {
                     if (investorTransactions && investorTransactions.length > 0) {
-                        // ابتدا اطلاعات را به‌روزرسانی کنیم
+                        // ابتدا کارت‌های KPI را آپدیت کنیم
+                        updateKPICards(investorTransactions);
+                        
+                        // سپس اطلاعات تفصیلی را به‌روزرسانی کنیم
                         updateInvestorInfoWithData(investorId, investorTransactions);
                         
                         // ایجاد نمودارها با داده‌های فیلتر شده
