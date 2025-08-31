@@ -233,6 +233,36 @@
                 min-width: 250px;
             }
         }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            border-radius: 15px;
+        }
+
+        .loading-overlay .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -322,6 +352,22 @@
                         <canvas id="monthlyComparisonChart"></canvas>
                     </div>
                 </div>
+                
+                <!-- نمودار ترکیبی آورده و برداشت -->
+                <div class="chart-container">
+                    <h3><i class="fas fa-chart-line"></i> روند تراکنش‌های آورده و برداشت</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="principalTransactionChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- نمودار ماهانه آورده و برداشت (بدون سود) -->
+                <div class="chart-container">
+                    <h3><i class="fas fa-chart-area"></i> روند ماهانه آورده و برداشت</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="monthlyPrincipalChart"></canvas>
+                    </div>
+                </div>
             </div>
 
 
@@ -329,53 +375,41 @@
     </div>
 
     <script>
-        let chartData = null;
         let selectedInvestor = null;
         let charts = {}; // نگهداری نمودارها
+        
+        // متغیر برای تبدیل مبالغ (10 میلیون)
+        const BASE_AMOUNT = 10000000;
+        // const BASE_AMOUNT = 1;
+        
 
-        // بارگذاری داده‌ها
-        function loadData() {
-            fetch('data.csv')
+        // تابع loadData() حذف شد چون دیگر نیازی نیست
+        // داده‌ها به صورت فیلتر شده و تنها هنگام انتخاب سرمایه‌گذار بارگذاری می‌شوند
+
+        // پر کردن select سرمایه‌گذاران
+        function populateInvestorSelectFromAPI() {
+            // خواندن لیست سرمایه‌گذاران از REST API موجود در construction
+            fetch('/construction/api/v1/Investor/')
                 .then(response => {
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
-                    return response.text();
+                    return response.json();
                 })
-                .then(csvText => {
-                    Papa.parse(csvText, {
-                        header: true,
-                        skipEmptyLines: true,
-                        complete: function(results) {
-                            chartData = results.data.filter(row => 
-                                row.project_id && 
-                                row.project_id.trim() !== '' && 
-                                row.investor_name && 
-                                row.investor_name !== '_src_row_index'
-                            );
-                            
-                            populateInvestorSelect();
-                            document.getElementById('loading').style.display = 'none';
-                        },
-                        error: function(error) {
-                            showError('خطا در پردازش فایل CSV: ' + error.message);
-                        }
-                    });
-                })
-                .catch(error => {
-                    showError('خطا در خواندن فایل CSV: ' + error.message);
-                });
-        }
-
-        // پر کردن select سرمایه‌گذاران
-        function populateInvestorSelect() {
-            const investors = [...new Set(chartData.map(row => row.investor_name))].sort();
+                .then(data => {
+                    // Django REST Framework returns a 'results' array for list views
+                    const investors = data.results || data;
+                    
             const select = document.getElementById('investorSelect');
             
+                    // پاک کردن گزینه‌های قبلی
+                    select.innerHTML = '<option value="">انتخاب سرمایه‌گذار...</option>';
+                    
+                    // اضافه کردن سرمایه‌گذاران جدید
             investors.forEach(investor => {
                 const option = document.createElement('option');
-                option.value = investor;
-                option.textContent = investor;
+                        option.value = investor.id;
+                        option.textContent = investor.first_name + ' ' + investor.last_name;
                 select.appendChild(option);
             });
 
@@ -386,26 +420,235 @@
                 } else {
                     hideInvestorProfile();
                 }
-            });
+                    });
+                })
+                .catch(error => {
+                    console.error('خطا در بارگذاری سرمایه‌گذاران:', error);
+                    showError('خطا در ارتباط با سرور برای دریافت لیست سرمایه‌گذاران');
+                });
+        }
+
+        // جایگزین: استفاده از HTML view موجود  
+        function populateInvestorSelectFromHTML() {
+            // خواندن لیست سرمایه‌گذاران از HTML view موجود در construction
+            fetch('/construction/Investor/')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.text(); // HTML content به جای JSON
+                })
+                .then(htmlContent => {
+                    // Parse HTML content
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(htmlContent, 'text/html');
+                    
+                    const select = document.getElementById('investorSelect');
+                    select.innerHTML = '<option value="">انتخاب سرمایه‌گذار...</option>';
+                    
+                    // فرض می‌کنم که در HTML view، لیست سرمایه‌گذاران در جدولی نمایش داده می‌شود
+                    // باید ساختار واقعی HTML view را ببینیم
+                    const rows = doc.querySelectorAll('table tbody tr'); // نمونه selector
+                    
+                    rows.forEach(row => {
+                        const cells = row.querySelectorAll('td');
+                        if (cells.length >= 2) {
+                            const firstName = cells[0].textContent.trim();
+                            const lastName = cells[1].textContent.trim();
+                            
+                            const option = document.createElement('option');
+                            option.value = firstName;
+                            option.textContent = firstName + ' ' + lastName;
+                            select.appendChild(option);
+                        }
+                    });
+
+                    // اضافه کردن event listener
+                    select.addEventListener('change', function() {
+                        if (this.value) {
+                            showInvestorProfile(this.value);
+                        } else {
+                            hideInvestorProfile();
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('خطا در بارگذاری سرمایه‌گذاران:', error);
+                    showError('خطا در ارتباط با سرور برای دریافت لیست سرمایه‌گذاران');
+                });
+        }
+
+        // استفاده از API (روش فعلی - بهتر برای JavaScript)
+        function populateInvestorSelect() {
+            // برای سادگی از API استفاده می‌کنیم
+            populateInvestorSelectFromAPI();
+        }
+
+        // تابع جدید: بارگذاری تراکنش‌های یک سرمایه‌گذار خاص از سرور
+        function loadInvestorTransactions(investorId) {
+            console.log('بارگذاری تراکنش‌های سرمایه‌گذار:', investorId);
+            
+            // نمایش loading برای بخش پروفایل
+            const investorInfo = document.getElementById('investorInfo');
+            if (investorInfo) {
+                const loadingDiv = document.createElement('div');
+                loadingDiv.id = 'investor-loading';
+                loadingDiv.className = 'loading-overlay';
+                loadingDiv.innerHTML = '<div class="spinner"></div><p>در حال بارگذاری اطلاعات سرمایه‌گذار...</p>';
+                investorInfo.appendChild(loadingDiv);
+            }
+            
+            // بارگذاری تراکنش‌های این سرمایه‌گذار با فیلتر
+            return fetch(`/construction/api/v1/Transaction/?investor=${investorId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const transactions = data.results || data;
+                    
+                    // تبدیل داده‌ها به فرمت مشابه CSV
+                    const investorTransactions = transactions.map(transaction => ({
+                        project_id: transaction.project?.name || '',
+                        investor_name: `${transaction.investor?.first_name || ''} ${transaction.investor?.last_name || ''}`.trim(),
+                        investor_id: transaction.investor?.id || '',
+                        entry_type: transaction.transaction_type || '',
+                        amount: parseFloat(transaction.amount) || 0,
+                        date_shamsi: transaction.date_shamsi || '',
+                        date_gregorian: transaction.date_gregorian || '',
+                        period_label: transaction.period?.label || '',
+                        row_index: transaction.id,
+                        day_remaining: transaction.day_remaining || 0,
+                        day_from_start: transaction.day_from_start || 0
+                    }));
+                    
+                    console.log(`${investorTransactions.length} تراکنش برای سرمایه‌گذار بارگذاری شد`);
+                    
+                    // حذف loading
+                    const loadingElement = document.getElementById('investor-loading');
+                    if (loadingElement) {
+                        loadingElement.remove();
+                    }
+                    
+                    return investorTransactions;
+                })
+                .catch(error => {
+                    console.error('خطا در بارگذاری تراکنش‌های سرمایه‌گذار:', error);
+                    
+                    // حذف loading
+                    const loadingElement = document.getElementById('investor-loading');
+                    if (loadingElement) {
+                        loadingElement.remove();
+                    }
+                    
+                    showError('خطا در بارگذاری اطلاعات سرمایه‌گذار: ' + error.message);
+                    return [];
+                });
+        }
+
+        // تابع کمکی: گرفتن تراکنش‌های یک نوع خاص از لیست
+        function getTransactionsByType(transactions, transactionType) {
+            return transactions.filter(transaction => 
+                transaction.entry_type === transactionType
+            );
         }
 
         // نمایش پروفایل سرمایه‌گذار
-        function showInvestorProfile(investorName) {
-            console.log('نمایش پروفایل برای:', investorName);
-            selectedInvestor = investorName;
+        function showInvestorProfile(investorId) {
+            console.log('نمایش پروفایل برای:', investorId);
+            selectedInvestor = investorId;
             document.getElementById('investorInfo').classList.add('show');
-            
-            // ابتدا اطلاعات را به‌روزرسانی کنیم
-            updateInvestorInfo(investorName);
             
             // پاک کردن نمودارهای قبلی
             destroyCharts();
             
-            // سپس نمودارها را ایجاد کنیم
-            createPrincipalTrendChart(investorName);
-            createProfitTrendChart(investorName);
-            createActivityDistributionChart(investorName);
-            createMonthlyComparisonChart(investorName);
+            // بارگذاری تراکنش‌های این سرمایه‌گذار از سرور
+            loadInvestorTransactions(investorId)
+                .then(investorTransactions => {
+                    if (investorTransactions && investorTransactions.length > 0) {
+                        // ابتدا اطلاعات را به‌روزرسانی کنیم
+                        updateInvestorInfoWithData(investorId, investorTransactions);
+                        
+                        // ایجاد نمودارها با داده‌های فیلتر شده
+                        try {
+                            createPrincipalTrendChart(investorTransactions);
+                            createProfitTrendChart(investorTransactions);
+                            createActivityDistributionChart(investorTransactions);
+                            createMonthlyComparisonChart(investorTransactions);
+                            createPrincipalTransactionChart(investorTransactions);
+                            createMonthlyPrincipalChart(investorTransactions);
+                        } catch (error) {
+                            console.log('خطا در ایجاد نمودارها:', error);
+                        }
+                    } else {
+                        // اگر تراکنشی وجود نداشت
+                        updateInvestorInfoWithData(investorId, []);
+                        showError('هیچ تراکنشی برای این سرمایه‌گذار یافت نشد');
+                    }
+                })
+                .catch(error => {
+                    console.error('خطا در نمایش پروفایل سرمایه‌گذار:', error);
+                    showError('خطا در بارگذاری پروفایل سرمایه‌گذار');
+                });
+        }
+
+        // به‌روزرسانی اطلاعات کلی سرمایه‌گذار با داده‌های جدید از API
+        function updateInvestorInfoWithData(investorId, investorTransactions) {
+            // دریافت نام سرمایه‌گذار از API
+            fetch(`/construction/api/v1/Investor/${investorId}/`)
+                .then(response => response.json())
+                .then(investorData => {
+                    const investorName = `${investorData.first_name} ${investorData.last_name}`;
+                    document.getElementById('investorName').textContent = investorName;
+                })
+                .catch(error => {
+                    console.error('خطا در دریافت نام سرمایه‌گذار:', error);
+                    document.getElementById('investorName').textContent = 'نام نامشخص';
+                });
+
+            // محاسبه اطلاعات مالی
+            const principalData = getTransactionsByType(investorTransactions, 'principal_deposit');
+            const withdrawalData = getTransactionsByType(investorTransactions, 'principal_withdrawal');
+            const profitData = getTransactionsByType(investorTransactions, 'profit_accrual');
+
+            const totalPrincipal = principalData.reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
+            const totalWithdrawal = withdrawalData.reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
+            const totalProfit = profitData.reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
+            
+            const netPrincipal = totalPrincipal + totalWithdrawal; // withdrawal معمولاً منفی است
+            const totalBalance = netPrincipal + totalProfit;
+            const profitRatio = netPrincipal > 0 ? ((totalProfit / netPrincipal) * 100).toFixed(2) : '0.00';
+
+            // نمایش اطلاعات
+            document.getElementById('totalPrincipal').textContent = (totalPrincipal / BASE_AMOUNT).toFixed(1);
+            document.getElementById('totalWithdrawal').textContent = (Math.abs(totalWithdrawal) / BASE_AMOUNT).toFixed(1);
+            document.getElementById('netPrincipal').textContent = (netPrincipal / BASE_AMOUNT).toFixed(1);
+            document.getElementById('totalProfit').textContent = (totalProfit / BASE_AMOUNT).toFixed(1);
+            document.getElementById('totalBalance').textContent = (totalBalance / BASE_AMOUNT).toFixed(1);
+            document.getElementById('profitRatio').textContent = profitRatio + '%';
+
+            // تعیین وضعیت
+            const statusElement = document.getElementById('investorStatus');
+            if (statusElement) {
+                if (netPrincipal > 0) {
+                    statusElement.textContent = 'فعال';
+                    statusElement.className = 'investor-status status-active';
+                } else {
+                    statusElement.textContent = 'غیرفعال';
+                    statusElement.className = 'investor-status status-inactive';
+                }
+            }
+            
+            console.log('اطلاعات سرمایه‌گذار به‌روزرسانی شد:', {
+                totalPrincipal: totalPrincipal / BASE_AMOUNT,
+                totalWithdrawal: totalWithdrawal / BASE_AMOUNT,
+                netPrincipal: netPrincipal / BASE_AMOUNT,
+                totalProfit: totalProfit / BASE_AMOUNT,
+                totalBalance: totalBalance / BASE_AMOUNT,
+                profitRatio: profitRatio
+            });
         }
 
         // پاک کردن نمودارهای قبلی
@@ -431,8 +674,8 @@
         }
 
         // به‌روزرسانی اطلاعات کلی سرمایه‌گذار
-        function updateInvestorInfo(investorName) {
-            const investorData = chartData.filter(row => row.investor_name === investorName);
+        function updateInvestorInfo(investorId) {
+            const investorData = chartData.filter(row => row.investor_name === investorId);
             const principalData = investorData.filter(row => row.entry_type === 'principal_deposit');
             const withdrawalData = investorData.filter(row => row.entry_type === 'principal_withdrawal');
             const profitData = investorData.filter(row => row.entry_type === 'profit_accrual');
@@ -445,12 +688,12 @@
             const totalBalance = netPrincipal + totalProfit;
             const profitRatio = netPrincipal > 0 ? ((totalProfit / netPrincipal) * 100).toFixed(2) : '0.00';
 
-            document.getElementById('investorName').textContent = investorName;
-            document.getElementById('totalPrincipal').textContent = (totalPrincipal / 10000000).toFixed(1);
-            document.getElementById('totalWithdrawal').textContent = (totalWithdrawal / 10000000).toFixed(1);
-            document.getElementById('netPrincipal').textContent = (netPrincipal / 10000000).toFixed(1);
-            document.getElementById('totalProfit').textContent = (totalProfit / 10000000).toFixed(1);
-            document.getElementById('totalBalance').textContent = (totalBalance / 10000000).toFixed(1);
+            document.getElementById('investorName').textContent = investorId;
+            document.getElementById('totalPrincipal').textContent = (totalPrincipal / BASE_AMOUNT).toFixed(1);
+            document.getElementById('totalWithdrawal').textContent = (totalWithdrawal / BASE_AMOUNT).toFixed(1);
+            document.getElementById('netPrincipal').textContent = (netPrincipal / BASE_AMOUNT).toFixed(1);
+            document.getElementById('totalProfit').textContent = (totalProfit / BASE_AMOUNT).toFixed(1);
+            document.getElementById('totalBalance').textContent = (totalBalance / BASE_AMOUNT).toFixed(1);
             document.getElementById('profitRatio').textContent = profitRatio + '%';
 
             // تعیین وضعیت
@@ -465,10 +708,10 @@
         }
 
         // نمودار روند آورده و برداشت
-        function createPrincipalTrendChart(investorName) {
-            const investorData = chartData.filter(row => row.investor_name === investorName);
-            const principalData = investorData.filter(row => row.entry_type === 'principal_deposit');
-            const withdrawalData = investorData.filter(row => row.entry_type === 'principal_withdrawal');
+        function createPrincipalTrendChart(investorTransactions) {
+            // داده‌های فیلتر شده از سرور استفاده می‌کنیم
+            const principalData = investorTransactions.filter(row => row.entry_type === 'principal_deposit');
+            const withdrawalData = investorTransactions.filter(row => row.entry_type === 'principal_withdrawal');
             
             const dates = [...new Set([
                 ...principalData.map(row => row.date_shamsi),
@@ -504,8 +747,8 @@
             dates.forEach(date => {
                 cumulativeP += dailyPrincipal[date];
                 cumulativeW += dailyWithdrawal[date];
-                cumulativePrincipal.push(cumulativeP / 10000000);
-                cumulativeWithdrawal.push(cumulativeW / 10000000);
+                cumulativePrincipal.push(cumulativeP / BASE_AMOUNT);
+                cumulativeWithdrawal.push(cumulativeW / BASE_AMOUNT);
             });
 
             const ctx = document.getElementById('principalTrendChart').getContext('2d');
@@ -549,9 +792,9 @@
         }
 
         // نمودار روند سود روزانه
-        function createProfitTrendChart(investorName) {
-            const investorData = chartData.filter(row => row.investor_name === investorName);
-            const profitData = investorData.filter(row => row.entry_type === 'profit_accrual');
+        function createProfitTrendChart(investorTransactions) {
+            // داده‌های فیلتر شده از سرور استفاده می‌کنیم
+            const profitData = investorTransactions.filter(row => row.entry_type === 'profit_accrual');
             
             const dailyProfit = {};
             profitData.forEach(row => {
@@ -562,7 +805,7 @@
             });
 
             const dates = Object.keys(dailyProfit).sort();
-            const profits = dates.map(date => dailyProfit[date] / 10000000);
+            const profits = dates.map(date => dailyProfit[date] / BASE_AMOUNT);
 
             const ctx = document.getElementById('profitTrendChart').getContext('2d');
             charts.profitTrendChart = new Chart(ctx, {
@@ -595,11 +838,11 @@
         }
 
         // نمودار توزیع فعالیت‌ها
-        function createActivityDistributionChart(investorName) {
-            const investorData = chartData.filter(row => row.investor_name === investorName);
-            const principalData = investorData.filter(row => row.entry_type === 'principal_deposit');
-            const withdrawalData = investorData.filter(row => row.entry_type === 'principal_withdrawal');
-            const profitData = investorData.filter(row => row.entry_type === 'profit_accrual');
+        function createActivityDistributionChart(investorTransactions) {
+            // داده‌های فیلتر شده از سرور استفاده می‌کنیم
+            const principalData = investorTransactions.filter(row => row.entry_type === 'principal_deposit');
+            const withdrawalData = investorTransactions.filter(row => row.entry_type === 'principal_withdrawal');
+            const profitData = investorTransactions.filter(row => row.entry_type === 'profit_accrual');
 
             const totalPrincipal = principalData.reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
             const totalWithdrawal = Math.abs(withdrawalData.reduce((sum, row) => sum + parseFloat(row.amount || 0), 0));
@@ -611,7 +854,7 @@
                 data: {
                     labels: ['آورده', 'برداشت', 'سود'],
                     datasets: [{
-                        data: [totalPrincipal, totalWithdrawal, totalProfit].map(amount => amount / 10000000),
+                        data: [totalPrincipal, totalWithdrawal, totalProfit].map(amount => amount / BASE_AMOUNT),
                         backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56']
                     }]
                 },
@@ -633,11 +876,11 @@
         }
 
         // نمودار مقایسه ماهانه
-        function createMonthlyComparisonChart(investorName) {
-            const investorData = chartData.filter(row => row.investor_name === investorName);
+        function createMonthlyComparisonChart(investorTransactions) {
+            // داده‌های فیلتر شده از سرور استفاده می‌کنیم
             
             const monthlyData = {};
-            investorData.forEach(row => {
+            investorTransactions.forEach(row => {
                 if (row.date_shamsi) {
                     const month = row.date_shamsi.substring(0, 7); // YYYY-MM
                     if (!monthlyData[month]) {
@@ -660,9 +903,18 @@
             });
 
             const months = Object.keys(monthlyData).sort();
-            const principals = months.map(month => monthlyData[month].principal / 10000000);
-            const withdrawals = months.map(month => Math.abs(monthlyData[month].withdrawal) / 10000000);
-            const profits = months.map(month => monthlyData[month].profit / 10000000);
+            const principals = months.map(month => monthlyData[month].principal / BASE_AMOUNT);
+            const withdrawals = months.map(month => Math.abs(monthlyData[month].withdrawal) / BASE_AMOUNT);
+            const profits = months.map(month => monthlyData[month].profit / BASE_AMOUNT);
+            
+            // محاسبه مجموع تجمعی ماهانه
+            const cumulativeTotals = [];
+            let cumulativeSum = 0;
+            months.forEach(month => {
+                const monthlyNet = monthlyData[month].principal + monthlyData[month].withdrawal + monthlyData[month].profit;
+                cumulativeSum += monthlyNet;
+                cumulativeTotals.push(cumulativeSum / BASE_AMOUNT);
+            });
 
             const ctx = document.getElementById('monthlyComparisonChart').getContext('2d');
             charts.monthlyComparisonChart = new Chart(ctx, {
@@ -671,25 +923,42 @@
                     labels: months,
                     datasets: [
                         {
-                            label: 'آورده (میلیون تومان)',
+                            type: 'bar',
+                            label: 'آورده (کرور تومان)',
                             data: principals,
                             backgroundColor: 'rgba(0, 99, 132, 0.8)',
                             borderColor: 'rgba(0, 99, 132, 1)',
-                            borderWidth: 1
+                            borderWidth: 1,
+                            yAxisID: 'y'
                         },
                         {
-                            label: 'برداشت (میلیون تومان)',
+                            type: 'bar',
+                            label: 'برداشت (کرور تومان)',
                             data: withdrawals,
                             backgroundColor: 'rgba(255, 99, 132, 0.8)',
                             borderColor: 'rgba(255, 99, 132, 1)',
-                            borderWidth: 1
+                            borderWidth: 1,
+                            yAxisID: 'y'
                         },
                         {
-                            label: 'سود (میلیون تومان)',
+                            type: 'bar',
+                            label: 'سود (کرور تومان)',
                             data: profits,
                             backgroundColor: 'rgba(255, 206, 86, 0.8)',
                             borderColor: 'rgba(255, 206, 86, 1)',
-                            borderWidth: 1
+                            borderWidth: 1,
+                            yAxisID: 'y'
+                        },
+                        {
+                            type: 'line',
+                            label: 'مجموع تجمعی (کرور تومان)',
+                            data: cumulativeTotals,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderWidth: 3,
+                            fill: false,
+                            tension: 0.1,
+                            yAxisID: 'y1'
                         }
                     ]
                 },
@@ -697,19 +966,292 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
+                        title: {
+                            display: true,
+                            text: 'مقایسه ماهانه آورده، برداشت، سود و روند تجمعی'
+                        },
                         legend: { position: 'top' }
                     },
                     scales: {
+                        x: {
+                            title: { 
+                                display: true, 
+                                text: 'ماه' 
+                            }
+                        },
                         y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
                             beginAtZero: true,
-                            title: { display: true, text: 'میلیون تومان' }
+                            title: { 
+                                display: true, 
+                                text: 'مبلغ ماهانه (کرور تومان)' 
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            beginAtZero: false,
+                            title: { 
+                                display: true, 
+                                text: 'مجموع تجمعی (کرور تومان)' 
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
                         }
                     }
                 }
             });
         }
 
+        // نمودار ترکیبی آورده و برداشت (میله‌ای + خطی)
+        function createPrincipalTransactionChart(investorTransactions) {
+            // فیلتر کردن تراکنش‌های آورده و برداشت
+            const principalTransactions = investorTransactions.filter(row => 
+                row.entry_type === 'principal_deposit' || row.entry_type === 'principal_withdrawal'
+            );
+            
+            // مرتب کردن بر اساس تاریخ
+            principalTransactions.sort((a, b) => {
+                if (a.date_shamsi && b.date_shamsi) {
+                    return a.date_shamsi.localeCompare(b.date_shamsi);
+                }
+                return 0;
+            });
+            
+            // آماده‌سازی داده‌ها برای نمودار
+            const labels = [];
+            const depositAmounts = [];
+            const withdrawalAmounts = [];
+            const cumulativeAmounts = []; // مجموع تجمعی
+            
+            let cumulative = 0;
+            
+            principalTransactions.forEach(transaction => {
+                const date = transaction.date_shamsi || 'نامعلوم';
+                const amount = parseFloat(transaction.amount || 0);
+                
+                labels.push(date);
+                
+                if (transaction.entry_type === 'principal_deposit') {
+                    depositAmounts.push(amount / BASE_AMOUNT);
+                    withdrawalAmounts.push(0);
+                    cumulative += amount;
+                } else { // principal_withdrawal
+                    depositAmounts.push(0);
+                    withdrawalAmounts.push(Math.abs(amount) / BASE_AMOUNT); // نمایش مثبت برای برداشت
+                    cumulative += amount; // withdrawal معمولاً منفی است
+                }
+                
+                cumulativeAmounts.push(cumulative / BASE_AMOUNT);
+            });
+            
+            const ctx = document.getElementById('principalTransactionChart').getContext('2d');
+            charts.principalTransactionChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            type: 'bar',
+                            label: 'آورده',
+                            data: depositAmounts,
+                            backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1,
+                            yAxisID: 'y'
+                        },
+                        {
+                            type: 'bar', 
+                            label: 'برداشت',
+                            data: withdrawalAmounts,
+                            backgroundColor: 'rgba(255, 99, 132, 0.8)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1,
+                            yAxisID: 'y'
+                        },
+                        {
+                            type: 'line',
+                            label: 'مجموع تجمعی',
+                            data: cumulativeAmounts,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderWidth: 3,
+                            fill: false,
+                            tension: 0.1,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'روند تراکنش‌های آورده و برداشت'
+                        },
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { 
+                                display: true, 
+                                text: 'تاریخ' 
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            beginAtZero: true,
+                            title: { 
+                                display: true, 
+                                text: 'مبلغ تراکنش (کرور تومان)' 
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            beginAtZero: false,
+                            title: { 
+                                display: true, 
+                                text: 'مجموع تجمعی (کرور تومان)' 
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        }
+                    }
+                }
+            });
+        }
 
+        // نمودار ماهانه آورده و برداشت (بدون سود)
+        function createMonthlyPrincipalChart(investorTransactions) {
+            // فیلتر کردن فقط تراکنش‌های آورده و برداشت
+            const principalTransactions = investorTransactions.filter(row => 
+                row.entry_type === 'principal_deposit' || row.entry_type === 'principal_withdrawal'
+            );
+            
+            const monthlyData = {};
+            principalTransactions.forEach(row => {
+                if (row.date_shamsi) {
+                    const month = row.date_shamsi.substring(0, 7); // YYYY-MM
+                    if (!monthlyData[month]) {
+                        monthlyData[month] = { principal: 0, withdrawal: 0 };
+                    }
+                    
+                    const amount = parseFloat(row.amount || 0);
+                    if (row.entry_type === 'principal_deposit') {
+                        monthlyData[month].principal += amount;
+                    } else { // principal_withdrawal
+                        monthlyData[month].withdrawal += amount;
+                    }
+                }
+            });
+
+            const months = Object.keys(monthlyData).sort();
+            const principals = months.map(month => monthlyData[month].principal / BASE_AMOUNT);
+            const withdrawals = months.map(month => Math.abs(monthlyData[month].withdrawal) / BASE_AMOUNT);
+            
+            // محاسبه مجموع تجمعی فقط آورده و برداشت
+            const cumulativePrincipalTotals = [];
+            let cumulativeSum = 0;
+            months.forEach(month => {
+                const monthlyNet = monthlyData[month].principal + monthlyData[month].withdrawal;
+                cumulativeSum += monthlyNet;
+                cumulativePrincipalTotals.push(cumulativeSum / BASE_AMOUNT);
+            });
+
+            const ctx = document.getElementById('monthlyPrincipalChart').getContext('2d');
+            charts.monthlyPrincipalChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: months,
+                    datasets: [
+                        {
+                            type: 'bar',
+                            label: 'آورده (کرور تومان)',
+                            data: principals,
+                            backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1,
+                            yAxisID: 'y'
+                        },
+                        {
+                            type: 'bar',
+                            label: 'برداشت (کرور تومان)',
+                            data: withdrawals,
+                            backgroundColor: 'rgba(255, 99, 132, 0.8)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1,
+                            yAxisID: 'y'
+                        },
+                        {
+                            type: 'line',
+                            label: 'مجموع تجمعی (کرور تومان)',
+                            data: cumulativePrincipalTotals,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderWidth: 3,
+                            fill: false,
+                            tension: 0.1,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'روند ماهانه آورده و برداشت (بدون سود)'
+                        },
+                        legend: { position: 'top' }
+                    },
+                    scales: {
+                        x: {
+                            title: { 
+                                display: true, 
+                                text: 'ماه' 
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            beginAtZero: true,
+                            title: { 
+                                display: true, 
+                                text: 'مبلغ ماهانه (کرور تومان)' 
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            beginAtZero: false,
+                            title: { 
+                                display: true, 
+                                text: 'مجموع تجمعی آورده (کرور تومان)' 
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        }
+                    }
+                }
+            });
+        }
 
         function showError(message) {
             document.getElementById('loading').style.display = 'none';
@@ -718,7 +1260,13 @@
         }
 
         // بارگذاری داده‌ها هنگام لود صفحه
-        window.addEventListener('load', loadData);
+        window.addEventListener('load', function() {
+            populateInvestorSelect(); // بارگذاری لیست سرمایه‌گذاران از دیتابیس
+            // loadData() دیگر نیازی نیست چون داده‌ها به صورت فیلتر شده بارگذاری می‌شوند
+            
+            // مخفی کردن loading چون دیگر داده‌ای بارگذاری نمی‌کنیم
+            document.getElementById('loading').style.display = 'none';
+        });
     </script>
 </body>
 </html>

@@ -17,7 +17,7 @@ class InvestorViewSet(viewsets.ModelViewSet):
 
     queryset = models.Investor.objects.all()
     serializer_class = serializers.InvestorSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]  # موقتاً برای داشبورد
 
 
 class PeriodViewSet(viewsets.ModelViewSet):
@@ -41,7 +41,8 @@ class TransactionViewSet(viewsets.ModelViewSet):
 
     queryset = models.Transaction.objects.all()
     serializer_class = serializers.TransactionSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]  # موقتاً برای داشبورد
+    filterset_fields = ['investor', 'project', 'period', 'transaction_type']
 
 
 class UnitViewSet(viewsets.ModelViewSet):

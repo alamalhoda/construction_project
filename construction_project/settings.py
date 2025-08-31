@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     "django_jalali",  # Place this before your custom apps
     'rest_framework',
+    'django_filters',
     'django_htmx',
     'construction',
     'dashboard',
@@ -146,3 +147,10 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 LANGUAGE_CODE = 'fa-ir'
+
+# Django REST Framework settings
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ],
+}
