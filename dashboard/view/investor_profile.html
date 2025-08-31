@@ -368,6 +368,18 @@
                         <canvas id="monthlyPrincipalChart"></canvas>
                     </div>
                 </div>
+                
+                <!-- نمودار نرخ بازدهی (ROI) -->
+                <div class="chart-container">
+                    <h3><i class="fas fa-percentage"></i> نرخ بازدهی (ROI) در طول زمان</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="roiChart"></canvas>
+                    </div>
+                    <div style="margin-top: 10px; padding: 10px; background-color: #f8f9fa; border-radius: 5px; font-size: 12px;">
+                        <strong>توضیح:</strong> نرخ بازدهی (ROI) نشان می‌دهد که تا هر ماه چند درصد از سرمایه اولیه به عنوان سود کسب شده است.
+                        <br><strong>فرمول:</strong> ROI = (مجموع سود تا آن ماه ÷ مجموع سرمایه تا آن ماه) × 100
+                    </div>
+                </div>
             </div>
 
 
@@ -579,6 +591,7 @@
                             createMonthlyComparisonChart(investorTransactions);
                             createPrincipalTransactionChart(investorTransactions);
                             createMonthlyPrincipalChart(investorTransactions);
+                            createROIChart(investorTransactions);
                         } catch (error) {
                             console.log('خطا در ایجاد نمودارها:', error);
                         }
@@ -1247,6 +1260,132 @@
                             grid: {
                                 drawOnChartArea: false,
                             },
+                        }
+                    }
+                }
+            });
+        }
+
+        // نمودار نرخ بازدهی (ROI) در طول زمان
+        function createROIChart(investorTransactions) {
+            // گروه‌بندی تراکنش‌ها بر اساس ماه
+            const monthlyData = {};
+            investorTransactions.forEach(row => {
+                if (row.date_shamsi) {
+                    const month = row.date_shamsi.substring(0, 7); // YYYY-MM
+                    if (!monthlyData[month]) {
+                        monthlyData[month] = { principal: 0, profit: 0 };
+                    }
+                    
+                    const amount = parseFloat(row.amount || 0);
+                    if (row.entry_type === 'principal_deposit') {
+                        monthlyData[month].principal += amount;
+                    } else if (row.entry_type === 'principal_withdrawal') {
+                        monthlyData[month].principal += amount; // withdrawal معمولاً منفی است
+                    } else if (row.entry_type === 'profit_accrual') {
+                        monthlyData[month].profit += amount;
+                    }
+                }
+            });
+
+            const months = Object.keys(monthlyData).sort();
+            
+            // محاسبه ROI تجمعی برای هر ماه
+            const roiData = [];
+            const monthLabels = [];
+            let cumulativePrincipal = 0;
+            let cumulativeProfit = 0;
+            
+            months.forEach(month => {
+                cumulativePrincipal += monthlyData[month].principal;
+                cumulativeProfit += monthlyData[month].profit;
+                
+                // محاسبه ROI فقط اگر سرمایه مثبت باشد
+                let roi = 0;
+                if (cumulativePrincipal > 0) {
+                    roi = (cumulativeProfit / cumulativePrincipal) * 100;
+                }
+                
+                roiData.push(roi);
+                monthLabels.push(month);
+            });
+
+            const ctx = document.getElementById('roiChart').getContext('2d');
+            charts.roiChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: monthLabels,
+                    datasets: [
+                        {
+                            label: 'نرخ بازدهی (ROI %)',
+                            data: roiData,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: 'rgba(75, 192, 192, 1)',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 5
+                        },
+                        {
+                            label: 'خط صفر',
+                            data: roiData.map(() => 0),
+                            borderColor: 'rgba(255, 99, 132, 0.5)',
+                            borderWidth: 1,
+                            borderDash: [5, 5],
+                            fill: false,
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'روند نرخ بازدهی (ROI) در طول زمان'
+                        },
+                        legend: { position: 'top' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    if (context.datasetIndex === 0) {
+                                        return `ROI: ${context.parsed.y.toFixed(2)}%`;
+                                    }
+                                    return null;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { 
+                                display: true, 
+                                text: 'ماه' 
+                            }
+                        },
+                        y: {
+                            title: { 
+                                display: true, 
+                                text: 'نرخ بازدهی (درصد)' 
+                            },
+                            grid: {
+                                color: function(context) {
+                                    // خط صفر را پررنگ‌تر نمایش دهیم
+                                    if (context.tick.value === 0) {
+                                        return 'rgba(255, 99, 132, 0.5)';
+                                    }
+                                    return 'rgba(0, 0, 0, 0.1)';
+                                }
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toFixed(1) + '%';
+                                }
+                            }
                         }
                     }
                 }
