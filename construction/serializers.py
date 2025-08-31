@@ -19,6 +19,7 @@ class InvestorSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Investor
         fields = [
+            "id",
             "first_name",
             "last_name",
             "phone",
@@ -31,6 +32,7 @@ class PeriodSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Period
         fields = [
+            "id",
             "label",
             "year",
             "month_number",
@@ -47,6 +49,7 @@ class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Project
         fields = [
+            "id",
             "name",
             "start_date_shamsi",
             "end_date_shamsi",
@@ -57,10 +60,15 @@ class ProjectSerializer(serializers.ModelSerializer):
         ]
 
 class TransactionSerializer(serializers.ModelSerializer):
+    # اضافه کردن foreign key relationships برای داشبورد
+    investor = InvestorSerializer(read_only=True)
+    project = ProjectSerializer(read_only=True) 
+    period = PeriodSerializer(read_only=True)
 
     class Meta:
         model = models.Transaction
         fields = [
+            "id",
             "date_shamsi",
             "date_gregorian",
             "amount",
@@ -69,6 +77,9 @@ class TransactionSerializer(serializers.ModelSerializer):
             "day_remaining",
             "day_from_start",
             "created_at",
+            "investor",
+            "project", 
+            "period",
         ]
 
 class UnitSerializer(serializers.ModelSerializer):
@@ -76,6 +87,7 @@ class UnitSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Unit
         fields = [
+            "id",
             "name",
             "area",
             "price_per_meter",
