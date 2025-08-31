@@ -9,10 +9,10 @@ def dashboard_home(request):
     """نمایش صفحه اصلی داشبورد"""
     return render(request, 'dashboard/home.html')
 
-def charts_investor(request):
-    """نمایش صفحه نمودارهای سرمایه‌گذار"""
+def project_dashboard(request):
+    """نمایش صفحه داشبورد پروژه"""
     # خواندن فایل HTML از پوشه view
-    file_path = os.path.join(settings.BASE_DIR, 'dashboard', 'view', 'charts_investor.html')
+    file_path = os.path.join(settings.BASE_DIR, 'dashboard', 'view', 'project_dashboard.html')
     try:
         with open(file_path, 'r', encoding='utf-8') as file:
             content = file.read()
