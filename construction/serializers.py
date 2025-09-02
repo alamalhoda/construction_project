@@ -178,6 +178,62 @@ class TransactionSerializer(serializers.ModelSerializer):
             transaction.save()
         
         return transaction
+    
+    def update(self, instance, validated_data):
+        # تبدیل تاریخ شمسی به میلادی
+        from jdatetime import datetime as jdatetime
+        from datetime import datetime
+        
+        # دریافت تاریخ شمسی از frontend
+        date_shamsi_input = validated_data.pop('date_shamsi_input', None)
+        date_shamsi_raw = validated_data.pop('date_shamsi_raw', None)
+        
+        # استفاده از هر کدام که موجود باشد
+        date_shamsi_value = date_shamsi_input or date_shamsi_raw
+        
+        if date_shamsi_value:
+            # تبدیل تاریخ شمسی (string) به میلادی (date object)
+            jdate = jdatetime.strptime(str(date_shamsi_value), '%Y-%m-%d')
+            gregorian_datetime = jdate.togregorian()
+            # تبدیل datetime به date
+            validated_data['date_gregorian'] = gregorian_datetime.date()
+            # date_shamsi باید تاریخ میلادی باشد (برای jmodels.jDateField)
+            validated_data['date_shamsi'] = gregorian_datetime.date()
+        
+        # Handle کردن فیلدهای مختلف از frontend
+        # اگر investor_id وجود دارد، از آن استفاده کن
+        if 'investor_id' in validated_data:
+            validated_data['investor_id'] = validated_data.pop('investor_id')
+        # اگر investor وجود دارد، آن را به investor_id تبدیل کن
+        elif 'investor' in validated_data:
+            validated_data['investor_id'] = validated_data.pop('investor')
+        
+        # اگر project_id وجود دارد، از آن استفاده کن
+        if 'project_id' in validated_data:
+            validated_data['project_id'] = validated_data.pop('project_id')
+        # اگر project وجود دارد، آن را به project_id تبدیل کن
+        elif 'project' in validated_data:
+            validated_data['project_id'] = validated_data.pop('project')
+        
+        # اگر period_id وجود دارد، از آن استفاده کن
+        if 'period_id' in validated_data:
+            validated_data['period_id'] = validated_data.pop('period_id')
+        # اگر period وجود دارد، آن را به period_id تبدیل کن
+        elif 'period' in validated_data:
+            validated_data['period_id'] = validated_data.pop('period')
+        
+        # بروزرسانی تراکنش
+        transaction = super().update(instance, validated_data)
+        
+        # محاسبه مجدد روزها بعد از بروزرسانی
+        if transaction.project and transaction.date_gregorian:
+            if transaction.project.end_date_gregorian:
+                transaction.day_remaining = (transaction.project.end_date_gregorian - transaction.date_gregorian).days
+            if transaction.project.start_date_gregorian:
+                transaction.day_from_start = (transaction.date_gregorian - transaction.project.start_date_gregorian).days
+            transaction.save(update_fields=['day_remaining', 'day_from_start'])
+        
+        return transaction
 
 class UnitSerializer(serializers.ModelSerializer):
 
