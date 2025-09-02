@@ -3,28 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>داشبورد پروژه آرشا</title>
+    <title>سیستم مدیریت پروژه آرشا</title>
     <style>
+        /* CSS Variables for Theme System */
+        :root {
+            /* Light Theme Colors */
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --info-color: #17a2b8;
+            
+            /* Background Colors */
+            --bg-primary: #f8f9fa;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --bg-overlay: rgba(255, 255, 255, 0.95);
+            
+            /* Text Colors */
+            --text-primary: #2c3e50;
+            --text-secondary: #6c757d;
+            --text-muted: #8e9297;
+            --text-white: #ffffff;
+            
+            /* Border & Shadow */
+            --border-color: #e9ecef;
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 8px 25px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 15px 35px rgba(0, 0, 0, 0.12);
+        }
+
+        /* Dark Theme */
+        [data-theme="dark"] {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --info-color: #17a2b8;
+            
+            /* Dark Background Colors */
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e1e;
+            --bg-card: #2d2d2d;
+            --bg-overlay: rgba(45, 45, 45, 0.95);
+            
+            /* Dark Text Colors */
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --text-muted: #888888;
+            --text-white: #ffffff;
+            
+            /* Dark Border & Shadow */
+            --border-color: #404040;
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 8px 25px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 15px 35px rgba(0, 0, 0, 0.5);
+        }
+
+        * {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
         body {
             font-family: 'Tahoma', 'Arial', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             min-height: 100vh;
             margin: 0;
             padding: 20px;
             direction: rtl;
+            color: var(--text-primary);
         }
         .container {
             max-width: 800px;
             margin: 0 auto;
-            background: white;
+            background: var(--bg-card);
             border-radius: 15px;
             padding: 30px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
         }
         h1 {
             text-align: center;
-            color: #333;
-            margin-bottom: 30px;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+        .subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+            font-size: 1.1rem;
         }
         .menu {
             display: grid;
@@ -36,47 +106,178 @@
             background: #667eea;
             color: white;
             text-decoration: none;
-            padding: 20px;
-            border-radius: 10px;
+            padding: 25px;
+            border-radius: 15px;
             text-align: center;
             transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+            position: relative;
+            overflow: hidden;
         }
         .menu-item:hover {
             background: #764ba2;
-            transform: translateY(-5px);
+            transform: translateY(-8px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        .menu-item.featured {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            grid-column: span 2;
+        }
+        .menu-item.featured:hover {
+            background: linear-gradient(135deg, #ee5a24 0%, #ff6b6b 100%);
         }
         .menu-item h3 {
             margin: 0 0 10px 0;
-            font-size: 1.2rem;
+            font-size: 1.3rem;
+            font-weight: bold;
         }
         .menu-item p {
             margin: 0;
             opacity: 0.9;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+        .menu-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        .menu-item:hover::before {
+            left: 100%;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .subtitle {
+                font-size: 1rem;
+            }
+            
+            .menu {
+                grid-template-columns: 1fr;
+            }
+            
+            .menu-item.featured {
+                grid-column: span 1;
+            }
+            
+            .menu-item {
+                padding: 20px;
+            }
+        }
+
+        /* Theme Toggle Button */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: var(--bg-overlay);
+            border: 2px solid var(--border-color);
+            border-radius: 50px;
+            padding: 12px 20px;
+            cursor: pointer;
             font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .theme-toggle:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .theme-toggle i {
+            font-size: 1.1rem;
         }
     </style>
 </head>
 <body>
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle" id="themeToggle">
+        <i class="fas fa-moon" id="themeIcon"></i>
+        <span id="themeText">حالت تیره</span>
+    </button>
+
     <div class="container">
-        <h1>داشبورد پروژه آرشا</h1>
+        <h1>🏗️ سیستم مدیریت پروژه آرشا</h1>
+        <p class="subtitle">مدیریت جامع پروژه‌های ساختمانی و سرمایه‌گذاری</p>
+        
         <div class="menu">
-            <a href="{% url 'dashboard:csv_viewer' %}" class="menu-item">
-                <h3>📊 نمایشگر CSV ساده</h3>
-                <p>مشاهده داده‌های CSV به صورت ساده</p>
+            <a href="{% url 'dashboard:project_dashboard' %}" class="menu-item featured">
+                <h3>📊 داشبورد اصلی پروژه</h3>
+                <p>نمایش جامع وضعیت مالی، نرخ سود روزانه، نمودارها و آمار کامل پروژه</p>
             </a>
-            <a href="{% url 'dashboard:csv_tabulator_viewer' %}" class="menu-item">
-                <h3>📈 نمایشگر CSV پیشرفته</h3>
-                <p>مشاهده داده‌های CSV با Tabulator</p>
-            </a>
-            <a href="{% url 'dashboard:investor_profile' %}" class="menu-item">
-                <h3>👥 پروفایل سرمایه‌گذاران</h3>
-                <p>اطلاعات کامل سرمایه‌گذاران</p>
-            </a>
+            
             <a href="{% url 'dashboard:transaction_manager' %}" class="menu-item">
                 <h3>💰 مدیریت تراکنش‌ها</h3>
-                <p>مدیریت کامل تراکنش‌های مالی</p>
+                <p>مدیریت کامل تراکنش‌های مالی، آورده، برداشت و سود</p>
             </a>
+            
+            <a href="{% url 'dashboard:investor_profile' %}" class="menu-item">
+                <h3>👥 پروفایل سرمایه‌گذاران</h3>
+                <p>اطلاعات کامل سرمایه‌گذاران و تحلیل عملکرد</p>
+            </a>
+            
+
         </div>
     </div>
+
+    <script>
+        // Theme Management
+        function initializeTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            setTheme(savedTheme);
+        }
+
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            
+            const themeIcon = document.getElementById('themeIcon');
+            const themeText = document.getElementById('themeText');
+            
+            if (theme === 'dark') {
+                themeIcon.className = 'fas fa-sun';
+                themeText.textContent = 'حالت روشن';
+            } else {
+                themeIcon.className = 'fas fa-moon';
+                themeText.textContent = 'حالت تیره';
+            }
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            setTheme(newTheme);
+        }
+
+        // Initialize theme on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeTheme();
+            
+            // Theme toggle event listener
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+        });
+    </script>
 </body>
 </html>

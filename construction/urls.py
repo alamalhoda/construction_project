@@ -9,6 +9,7 @@ from . import htmx
 router = routers.DefaultRouter()
 router.register("Expense", api.ExpenseViewSet)
 router.register("Investor", api.InvestorViewSet)
+router.register("InterestRate", api.InterestRateViewSet)
 router.register("Period", api.PeriodViewSet)
 router.register("Project", api.ProjectViewSet)
 router.register("Transaction", api.TransactionViewSet)
