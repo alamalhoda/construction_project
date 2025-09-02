@@ -59,19 +59,23 @@
         
         .stats-cards {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
             margin-bottom: 30px;
         }
         
         .stat-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 25px;
+            padding: 30px;
             border-radius: 15px;
             text-align: center;
             box-shadow: 0 10px 20px rgba(0,0,0,0.1);
             transition: transform 0.3s ease;
+        }
+        
+        .stat-card.large {
+            padding: 35px;
         }
         
         .stat-card:hover {
@@ -79,14 +83,36 @@
         }
         
         .stat-number {
-            font-size: 2.5rem;
+            font-size: 2.8rem;
             font-weight: bold;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            word-break: break-all;
+            line-height: 1.2;
+        }
+        
+        .stat-card.large .stat-number {
+            font-size: 3.2rem;
         }
         
         .stat-label {
             font-size: 1rem;
             opacity: 0.9;
+        }
+        
+        /* Responsive design for mobile */
+        @media (max-width: 768px) {
+            .stats-cards {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .stat-card.large .stat-number {
+                font-size: 2.8rem;
+            }
+            
+            .stat-number {
+                font-size: 2.4rem;
+            }
         }
         
         .controls-section {
@@ -284,29 +310,24 @@
 
             <!-- Statistics Cards -->
             <div class="stats-cards" id="statsCards" style="display: none;">
-                <div class="stat-card">
-                    <div class="stat-number" id="totalTransactions">0</div>
-                    <div class="stat-label">کل تراکنش‌ها</div>
-                </div>
-                
-                <div class="stat-card">
+                <div class="stat-card large">
                     <div class="stat-number" id="totalDeposits">0</div>
                     <div class="stat-label">مجموع واریزها (ریال)</div>
                 </div>
                 
-                <div class="stat-card">
+                <div class="stat-card large">
                     <div class="stat-number" id="totalWithdrawals">0</div>
                     <div class="stat-label">مجموع برداشت‌ها (ریال)</div>
                 </div>
                 
-                <div class="stat-card">
+                <div class="stat-card large">
                     <div class="stat-number" id="totalProfits">0</div>
                     <div class="stat-label">مجموع سود (ریال)</div>
                 </div>
                 
-                <div class="stat-card">
-                    <div class="stat-number" id="uniqueInvestors">0</div>
-                    <div class="stat-label">سرمایه‌گذاران فعال</div>
+                <div class="stat-card large">
+                    <div class="stat-number" id="netCapital">0</div>
+                    <div class="stat-label">سرمایه موجود (بدون سود) (ریال)</div>
                 </div>
             </div>
 
@@ -372,15 +393,9 @@
                             پاک کردن فیلترها
                         </button>
                         
-                        <button class="ui purple button" onclick="debugFilters()" title="کلیدهای میانبر: Ctrl+F (جستجو), Ctrl+R (پاک کردن فیلترها), Ctrl+N (تراکنش جدید)">
-                            <i class="bug icon"></i>
-                            دیباگ فیلترها
-                        </button>
+
                         
-                        <button class="ui green button" onclick="refreshData()" title="بروزرسانی داده‌ها">
-                            <i class="refresh icon"></i>
-                            بروزرسانی
-                        </button>
+
                         
                         <button class="ui primary button" onclick="showAddTransactionModal()" title="افزودن تراکنش جدید (Ctrl+N)">
                             <i class="plus icon"></i>
@@ -1080,12 +1095,10 @@
                 .filter(row => row.transaction_type === 'profit_accrual')
                 .reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
             
-            const uniqueInvestors = new Set(filteredData.map(row => row.investor_data?.id).filter(id => id !== undefined)).size;
+            // محاسبه سرمایه موجود (بدون سود) = مجموع واریزها - مجموع برداشت‌ها
+            const netCapital = deposits - withdrawals;
             
             // Update display
-            document.getElementById('totalTransactions').textContent = 
-                filteredData.length.toLocaleString('fa-IR');
-                
             document.getElementById('totalDeposits').textContent = 
                 deposits.toLocaleString('fa-IR');
                 
@@ -1095,8 +1108,8 @@
             document.getElementById('totalProfits').textContent = 
                 profits.toLocaleString('fa-IR');
                 
-            document.getElementById('uniqueInvestors').textContent = 
-                uniqueInvestors.toLocaleString('fa-IR');
+            document.getElementById('netCapital').textContent = 
+                netCapital.toLocaleString('fa-IR');
             
             // Update results count display
             updateResultsCount(filteredData.length, totalData.length);
