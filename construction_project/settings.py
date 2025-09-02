@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django_htmx',
     'construction',
     'dashboard',
+    'backup',
     'django_extensions',
 ]
 

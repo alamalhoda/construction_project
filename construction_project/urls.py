@@ -23,6 +23,7 @@ urlpatterns = [
     path('', TemplateView.as_view(template_name='index.html'), name='index'),
     path('construction/', include('construction.urls')),
     path('dashboard/', include('dashboard.urls')),
+    path('backup/', include('backup.urls')),
     path('htmx/', views.htmx_home, name='htmx'),
     path('admin/', admin.site.urls),
 ]
