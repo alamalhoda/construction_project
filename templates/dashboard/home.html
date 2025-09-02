@@ -60,21 +60,21 @@
     <div class="container">
         <h1>داشبورد پروژه آرشا</h1>
         <div class="menu">
-            <a href="{% url 'dashboard:charts_investor' %}" class="menu-item">
-                <h3>نمودارهای سرمایه‌گذاری</h3>
-                <p>مشاهده نمودارها و آمار سرمایه‌گذاران</p>
-            </a>
             <a href="{% url 'dashboard:csv_viewer' %}" class="menu-item">
-                <h3>نمایشگر CSV ساده</h3>
+                <h3>📊 نمایشگر CSV ساده</h3>
                 <p>مشاهده داده‌های CSV به صورت ساده</p>
             </a>
             <a href="{% url 'dashboard:csv_tabulator_viewer' %}" class="menu-item">
-                <h3>نمایشگر CSV پیشرفته</h3>
+                <h3>📈 نمایشگر CSV پیشرفته</h3>
                 <p>مشاهده داده‌های CSV با Tabulator</p>
             </a>
             <a href="{% url 'dashboard:investor_profile' %}" class="menu-item">
-                <h3>پروفایل سرمایه‌گذاران</h3>
+                <h3>👥 پروفایل سرمایه‌گذاران</h3>
                 <p>اطلاعات کامل سرمایه‌گذاران</p>
+            </a>
+            <a href="{% url 'dashboard:transaction_manager' %}" class="menu-item">
+                <h3>💰 مدیریت تراکنش‌ها</h3>
+                <p>مدیریت کامل تراکنش‌های مالی</p>
             </a>
         </div>
     </div>

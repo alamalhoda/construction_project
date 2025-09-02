@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تست صفحه مدیریت تراکنش‌ها</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            direction: rtl;
+        }
+        
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .test-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        .test-item h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .test-item.success {
+            border-color: #4CAF50;
+            background-color: #f1f8e9;
+        }
+        
+        .test-item.error {
+            border-color: #f44336;
+            background-color: #ffebee;
+        }
+        
+        .test-item.warning {
+            border-color: #ff9800;
+            background-color: #fff3e0;
+        }
+        
+        .test-button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        .test-button:hover {
+            background: #1976D2;
+        }
+        
+        .test-button.success {
+            background: #4CAF50;
+        }
+        
+        .test-button.error {
+            background: #f44336;
+        }
+        
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 3px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 تست صفحه مدیریت تراکنش‌ها</h1>
+        <p>این صفحه برای تست عملکرد API ها و ویژگی‌های صفحه مدیریت تراکنش‌ها طراحی شده است.</p>
+        
+        <div class="test-item">
+            <h3>1. تست اتصال به API تراکنش‌ها</h3>
+            <button class="test-button" onclick="testTransactionsAPI()">تست API تراکنش‌ها</button>
+            <div id="transactionsResult" class="result"></div>
+        </div>
+        
+        <div class="test-item">
+            <h3>2. تست API سرمایه‌گذاران</h3>
+            <button class="test-button" onclick="testInvestorsAPI()">تست API سرمایه‌گذاران</button>
+            <div id="investorsResult" class="result"></div>
+        </div>
+        
+        <div class="test-item">
+            <h3>3. تست API پروژه‌ها</h3>
+            <button class="test-button" onclick="testProjectsAPI()">تست API پروژه‌ها</button>
+            <div id="projectsResult" class="result"></div>
+        </div>
+        
+        <div class="test-item">
+            <h3>4. تست API دوره‌ها</h3>
+            <button class="test-button" onclick="testPeriodsAPI()">تست API دوره‌ها</button>
+            <div id="periodsResult" class="result"></div>
+        </div>
+        
+        <div class="test-item">
+            <h3>5. تست آمار تراکنش‌ها</h3>
+            <button class="test-button" onclick="testStatisticsAPI()">تست آمار تراکنش‌ها</button>
+            <div id="statisticsResult" class="result"></div>
+        </div>
+        
+        <div class="test-item">
+            <h3>6. تست کامل صفحه</h3>
+            <button class="test-button success" onclick="testFullPage()">تست کامل صفحه</button>
+            <div id="fullPageResult" class="result"></div>
+        </div>
+        
+        <div class="test-item">
+            <h3>7. تست عملکرد مرورگر</h3>
+            <button class="test-button" onclick="testBrowserFeatures()">تست ویژگی‌های مرورگر</button>
+            <div id="browserResult" class="result"></div>
+        </div>
+        
+        <div class="test-item">
+            <h3>8. تست داده‌های نمونه</h3>
+            <button class="test-button" onclick="testSampleData()">تست داده‌های نمونه</button>
+            <div id="sampleDataResult" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api/';
+        
+        async function testAPI(endpoint, resultId) {
+            const resultDiv = document.getElementById(resultId);
+            resultDiv.textContent = 'در حال تست...';
+            
+            try {
+                const response = await fetch(API_BASE + endpoint);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.textContent = `✅ موفقیت!\nتعداد رکوردها: ${data.length || 0}\nنمونه داده: ${JSON.stringify(data.slice(0, 2), null, 2)}`;
+                    resultDiv.parentElement.className = 'test-item success';
+                } else {
+                    resultDiv.textContent = `❌ خطا: ${response.status} - ${response.statusText}`;
+                    resultDiv.parentElement.className = 'test-item error';
+                }
+            } catch (error) {
+                resultDiv.textContent = `❌ خطای شبکه: ${error.message}`;
+                resultDiv.parentElement.className = 'test-item error';
+            }
+        }
+        
+        function testTransactionsAPI() {
+            testAPI('transactions/', 'transactionsResult');
+        }
+        
+        function testInvestorsAPI() {
+            testAPI('investors/', 'investorsResult');
+        }
+        
+        function testProjectsAPI() {
+            testAPI('projects/', 'projectsResult');
+        }
+        
+        function testPeriodsAPI() {
+            testAPI('periods/', 'periodsResult');
+        }
+        
+        async function testStatisticsAPI() {
+            const resultDiv = document.getElementById('statisticsResult');
+            resultDiv.textContent = 'در حال تست...';
+            
+            try {
+                const response = await fetch(API_BASE + 'transactions/statistics/');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.textContent = `✅ موفقیت!\nآمار تراکنش‌ها:\n${JSON.stringify(data, null, 2)}`;
+                    resultDiv.parentElement.className = 'test-item success';
+                } else {
+                    resultDiv.textContent = `❌ خطا: ${response.status} - ${response.statusText}`;
+                    resultDiv.parentElement.className = 'test-item error';
+                }
+            } catch (error) {
+                resultDiv.textContent = `❌ خطای شبکه: ${error.message}`;
+                resultDiv.parentElement.className = 'test-item error';
+            }
+        }
+        
+        function testFullPage() {
+            const resultDiv = document.getElementById('fullPageResult');
+            resultDiv.textContent = 'در حال تست...';
+            
+            // تست ویژگی‌های مورد نیاز
+            const tests = {
+                'jQuery': typeof $ !== 'undefined',
+                'Semantic UI': typeof $.fn.dropdown !== 'undefined',
+                'Tabulator': typeof Tabulator !== 'undefined',
+                'Fetch API': typeof fetch !== 'undefined',
+                'Local Storage': typeof localStorage !== 'undefined',
+                'JSON': typeof JSON !== 'undefined'
+            };
+            
+            const results = Object.entries(tests).map(([feature, available]) => 
+                `${available ? '✅' : '❌'} ${feature}: ${available ? 'موجود' : 'ناموجود'}`
+            ).join('\n');
+            
+            resultDiv.textContent = `نتایج تست ویژگی‌ها:\n${results}`;
+            resultDiv.parentElement.className = 'test-item success';
+        }
+        
+        function testBrowserFeatures() {
+            const resultDiv = document.getElementById('browserResult');
+            
+            const features = {
+                'User Agent': navigator.userAgent,
+                'Language': navigator.language,
+                'Cookies Enabled': navigator.cookieEnabled,
+                'Online': navigator.onLine,
+                'Screen Resolution': `${screen.width}x${screen.height}`,
+                'Viewport': `${window.innerWidth}x${window.innerHeight}`,
+                'Local Storage': typeof localStorage !== 'undefined',
+                'Session Storage': typeof sessionStorage !== 'undefined',
+                'IndexedDB': typeof indexedDB !== 'undefined',
+                'Web Workers': typeof Worker !== 'undefined',
+                'Service Workers': 'serviceWorker' in navigator,
+                'Push Notifications': 'PushManager' in window
+            };
+            
+            const results = Object.entries(features).map(([feature, value]) => 
+                `${feature}: ${value}`
+            ).join('\n');
+            
+            resultDiv.textContent = `ویژگی‌های مرورگر:\n${results}`;
+            resultDiv.parentElement.className = 'test-item success';
+        }
+        
+        function testSampleData() {
+            const resultDiv = document.getElementById('sampleDataResult');
+            
+            const sampleTransaction = {
+                id: 1,
+                investor: {
+                    id: 1,
+                    first_name: 'علی',
+                    last_name: 'احمدی'
+                },
+                project: {
+                    id: 1,
+                    name: 'پروژه آرشا'
+                },
+                period: {
+                    id: 1,
+                    label: 'مرداد 1402'
+                },
+                transaction_type: 'principal_deposit',
+                amount: '10000000',
+                date_shamsi: '1402-05-16',
+                date_gregorian: '2023-08-07',
+                description: 'واریز اولیه',
+                day_remaining: 730,
+                day_from_start: 1,
+                created_at: '2023-08-07T10:00:00Z'
+            };
+            
+            resultDiv.textContent = `نمونه داده تراکنش:\n${JSON.stringify(sampleTransaction, null, 2)}`;
+            resultDiv.parentElement.className = 'test-item success';
+        }
+        
+        // تست خودکار در بارگذاری صفحه
+        window.addEventListener('load', function() {
+            console.log('صفحه تست بارگذاری شد');
+            console.log('برای تست API ها، روی دکمه‌های مربوطه کلیک کنید');
+        });
+    </script>
+</body>
+</html>

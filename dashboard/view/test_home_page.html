@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تست صفحه Home</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            direction: rtl;
+        }
+        
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .test-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        .test-item h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .test-item.success {
+            border-color: #4CAF50;
+            background-color: #f1f8e9;
+        }
+        
+        .test-item.error {
+            border-color: #f44336;
+            background-color: #ffebee;
+        }
+        
+        .test-button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .test-button:hover {
+            background: #1976D2;
+        }
+        
+        .test-button.success {
+            background: #4CAF50;
+        }
+        
+        .test-button.error {
+            background: #f44336;
+        }
+        
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 3px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        
+        .menu-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .menu-item {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            text-decoration: none;
+        }
+        
+        .menu-item:hover {
+            background: #764ba2;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 تست صفحه Home Dashboard</h1>
+        <p>این صفحه برای تست عملکرد صفحه home و منوهای آن طراحی شده است.</p>
+        
+        <div class="test-item">
+            <h3>1. تست دسترسی به صفحه Home</h3>
+            <a href="/dashboard/" class="test-button" target="_blank">باز کردن صفحه Home</a>
+            <div class="result">برای تست، روی دکمه بالا کلیک کنید و صفحه را بررسی کنید.</div>
+        </div>
+        
+        <div class="test-item">
+            <h3>2. تست منوهای موجود</h3>
+            <div class="menu-preview">
+                <a href="/dashboard/csv-viewer/" class="menu-item" target="_blank">
+                    <h4>📊 نمایشگر CSV ساده</h4>
+                    <p>مشاهده داده‌های CSV به صورت ساده</p>
+                </a>
+                
+                <a href="/dashboard/csv-tabulator/" class="menu-item" target="_blank">
+                    <h4>📈 نمایشگر CSV پیشرفته</h4>
+                    <p>مشاهده داده‌های CSV با Tabulator</p>
+                </a>
+                
+                <a href="/dashboard/investor-profile/" class="menu-item" target="_blank">
+                    <h4>👥 پروفایل سرمایه‌گذاران</h4>
+                    <p>اطلاعات کامل سرمایه‌گذاران</p>
+                </a>
+                
+                <a href="/dashboard/transaction-manager/" class="menu-item" target="_blank">
+                    <h4>💰 مدیریت تراکنش‌ها</h4>
+                    <p>مدیریت کامل تراکنش‌های مالی</p>
+                </a>
+            </div>
+        </div>
+        
+        <div class="test-item">
+            <h3>3. تست URL ها</h3>
+            <button class="test-button" onclick="testURLs()">تست URL ها</button>
+            <div id="urlsResult" class="result"></div>
+        </div>
+        
+        <div class="test-item">
+            <h3>4. تست عملکرد مرورگر</h3>
+            <button class="test-button" onclick="testBrowser()">تست مرورگر</button>
+            <div id="browserResult" class="result"></div>
+        </div>
+        
+        <div class="test-item">
+            <h3>5. تست اتصال به سرور</h3>
+            <button class="test-button" onclick="testServer()">تست سرور</button>
+            <div id="serverResult" class="result"></div>
+        </div>
+        
+        <div class="test-item">
+            <h3>6. راهنمای عیب‌یابی</h3>
+            <div class="result">
+                <strong>مشکلات رایج:</strong>
+                
+                1. <strong>خطای 404:</strong>
+                   - بررسی کنید که سرور Django در حال اجرا است
+                   - بررسی کنید که URL ها درست تنظیم شده‌اند
+                
+                2. <strong>خطای Template:</strong>
+                   - بررسی کنید که فایل‌های HTML موجود هستند
+                   - بررسی کنید که syntax template درست است
+                
+                3. <strong>خطای URL:</strong>
+                   - بررسی کنید که URL ها در urls.py تعریف شده‌اند
+                   - بررسی کنید که view functions موجود هستند
+                
+                4. <strong>مشکل در بارگذاری:</strong>
+                   - بررسی کنید که فایل‌های static درست بارگذاری می‌شوند
+                   - بررسی کنید که encoding فایل‌ها UTF-8 است
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function testURLs() {
+            const resultDiv = document.getElementById('urlsResult');
+            resultDiv.textContent = 'در حال تست URL ها...';
+            
+            const urls = [
+                '/dashboard/',
+                '/dashboard/csv-viewer/',
+                '/dashboard/csv-tabulator/',
+                '/dashboard/investor-profile/',
+                '/dashboard/transaction-manager/'
+            ];
+            
+            const results = [];
+            
+            for (const url of urls) {
+                try {
+                    const response = await fetch(url);
+                    const status = response.status;
+                    const statusText = response.statusText;
+                    
+                    if (status === 200) {
+                        results.push(`✅ ${url}: ${status} - ${statusText}`);
+                    } else {
+                        results.push(`❌ ${url}: ${status} - ${statusText}`);
+                    }
+                } catch (error) {
+                    results.push(`❌ ${url}: خطای شبکه - ${error.message}`);
+                }
+            }
+            
+            resultDiv.textContent = results.join('\n');
+            resultDiv.parentElement.className = 'test-item success';
+        }
+        
+        function testBrowser() {
+            const resultDiv = document.getElementById('browserResult');
+            
+            const features = {
+                'User Agent': navigator.userAgent,
+                'Language': navigator.language,
+                'Cookies Enabled': navigator.cookieEnabled,
+                'Online': navigator.onLine,
+                'Screen Resolution': `${screen.width}x${screen.height}`,
+                'Viewport': `${window.innerWidth}x${window.innerHeight}`,
+                'Local Storage': typeof localStorage !== 'undefined',
+                'Session Storage': typeof sessionStorage !== 'undefined',
+                'Fetch API': typeof fetch !== 'undefined',
+                'Promise': typeof Promise !== 'undefined',
+                'Async/Await': (async () => {}).constructor.name === 'AsyncFunction'
+            };
+            
+            const results = Object.entries(features).map(([feature, value]) => 
+                `${feature}: ${value}`
+            ).join('\n');
+            
+            resultDiv.textContent = `ویژگی‌های مرورگر:\n${results}`;
+            resultDiv.parentElement.className = 'test-item success';
+        }
+        
+        async function testServer() {
+            const resultDiv = document.getElementById('serverResult');
+            resultDiv.textContent = 'در حال تست اتصال به سرور...';
+            
+            try {
+                const response = await fetch('/dashboard/');
+                const status = response.status;
+                const statusText = response.statusText;
+                
+                if (status === 200) {
+                    resultDiv.textContent = `✅ سرور در دسترس است!\nStatus: ${status} - ${statusText}\nURL: ${response.url}`;
+                    resultDiv.parentElement.className = 'test-item success';
+                } else {
+                    resultDiv.textContent = `⚠️ سرور پاسخ می‌دهد اما با خطا\nStatus: ${status} - ${statusText}`;
+                    resultDiv.parentElement.className = 'test-item error';
+                }
+            } catch (error) {
+                resultDiv.textContent = `❌ خطا در اتصال به سرور\nError: ${error.message}\n\nمطمئن شوید که:\n1. سرور Django در حال اجرا است\n2. آدرس درست است\n3. پورت 8000 باز است`;
+                resultDiv.parentElement.className = 'test-item error';
+            }
+        }
+        
+        // تست خودکار در بارگذاری صفحه
+        window.addEventListener('load', function() {
+            console.log('صفحه تست بارگذاری شد');
+            console.log('برای تست کامل، روی دکمه‌های مربوطه کلیک کنید');
+        });
+    </script>
+</body>
+</html>

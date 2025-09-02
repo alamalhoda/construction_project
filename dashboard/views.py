@@ -50,6 +50,16 @@ def investor_profile(request):
     except FileNotFoundError:
         return HttpResponse('‏‍فایل یافت نشد', status=404)
 
+def transaction_manager(request):
+    """نمایش صفحه مدیریت تراکنش‌های مالی"""
+    file_path = os.path.join(settings.BASE_DIR, 'dashboard', 'view', 'transaction_manager.html')
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            content = file.read()
+        return HttpResponse(content)
+    except FileNotFoundError:
+        return HttpResponse('‏‍فایل یافت نشد', status=404)
+
 def serve_csv_file(request, filename):
     """سرو کردن فایل‌های CSV از پوشه view"""
     file_path = os.path.join(settings.BASE_DIR, 'dashboard', 'view', filename)
@@ -60,5 +70,45 @@ def serve_csv_file(request, filename):
             return response
     except FileNotFoundError:
         raise Http404('‏‍فایل یافت نشد')
+
+def test_home_page(request):
+    """نمایش صفحه تست Home Dashboard"""
+    file_path = os.path.join(settings.BASE_DIR, 'dashboard', 'view', 'test_home_page.html')
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            content = file.read()
+        return HttpResponse(content)
+    except FileNotFoundError:
+        return HttpResponse('فایل تست Home یافت نشد', status=404)
+
+def test_transaction_manager(request):
+    """نمایش صفحه تست مدیریت تراکنش‌ها"""
+    file_path = os.path.join(settings.BASE_DIR, 'dashboard', 'view', 'test_transaction_manager.html')
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            content = file.read()
+        return HttpResponse(content)
+    except FileNotFoundError:
+        return HttpResponse('فایل تست مدیریت تراکنش‌ها یافت نشد', status=404)
+
+def test_transaction_api(request):
+    """نمایش صفحه تست API های مدیریت تراکنش‌ها"""
+    file_path = os.path.join(settings.BASE_DIR, 'dashboard', 'view', 'test_transaction_manager_api.html')
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            content = file.read()
+        return HttpResponse(content)
+    except FileNotFoundError:
+        return HttpResponse('فایل تست API مدیریت تراکنش‌ها یافت نشد', status=404)
+
+def test_filters(request):
+    """نمایش صفحه تست فیلترهای مدیریت تراکنش‌ها"""
+    file_path = os.path.join(settings.BASE_DIR, 'dashboard', 'view', 'test_filters.html')
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            content = file.read()
+        return HttpResponse(content)
+    except FileNotFoundError:
+        return HttpResponse('فایل تست فیلترها یافت نشد', status=404)
 
 
