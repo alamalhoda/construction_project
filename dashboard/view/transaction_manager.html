@@ -1426,17 +1426,32 @@
                 return;
             }
             
+            console.log('Editing transaction:', transaction);
+            
             // Fill form
             document.getElementById('editTransactionId').value = id;
-            $('#editInvestorInput').val(transaction.investor_data?.id || '');
-            $('#editProjectInput').val(transaction.project_data?.id || '');
-            $('#editPeriodInput').val(transaction.period_data?.id || '');
-            $('#editTransactionTypeInput').val(transaction.transaction_type);
             $('#editAmountInput').val(transaction.amount);
             $('#editDateShamsiInput').val(transaction.date_shamsi);
             $('#editDescriptionInput').val(transaction.description || '');
             
-            // Refresh dropdowns
+            // Set dropdown values and refresh
+            if (transaction.investor_data?.id) {
+                $('#editInvestorDropdown').dropdown('set selected', transaction.investor_data.id);
+            }
+            
+            if (transaction.project_data?.id) {
+                $('#editProjectDropdown').dropdown('set selected', transaction.project_data.id);
+            }
+            
+            if (transaction.period_data?.id) {
+                $('#editPeriodDropdown').dropdown('set selected', transaction.period_data.id);
+            }
+            
+            if (transaction.transaction_type) {
+                $('#editTransactionTypeDropdown').dropdown('set selected', transaction.transaction_type);
+            }
+            
+            // Refresh dropdowns to show selected values
             $('#editInvestorDropdown').dropdown('refresh');
             $('#editProjectDropdown').dropdown('refresh');
             $('#editPeriodDropdown').dropdown('refresh');
@@ -1457,13 +1472,13 @@
                 period: $('#editPeriodInput').val(),
                 transaction_type: $('#editTransactionTypeInput').val(),
                 amount: $('#editAmountInput').val(),
-                date_shamsi: $('#editDateShamsiInput').val(),
+                date_shamsi_raw: $('#editDateShamsiInput').val(),
                 description: $('#editDescriptionInput').val()
             };
             
             // Validation
             if (!formData.investor || !formData.project || !formData.period || 
-                !formData.transaction_type || !formData.amount || !formData.date_shamsi) {
+                !formData.transaction_type || !formData.amount || !formData.date_shamsi_raw) {
                 showError('لطفاً تمام فیلدهای اجباری را پر کنید');
                 return;
             }
