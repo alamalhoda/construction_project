@@ -1,36 +1,16 @@
-#!/usr/bin/env python
 """
-اسکریپت پشتیبان‌گیری پیشرفته از دیتابیس
-
-این اسکریپت:
-1. پوشه‌ای با تاریخ و ساعت فعلی ایجاد می‌کند
-2. یک fixture کامل از همه داده‌ها
-3. fixture جداگانه از هر جدول
-4. فایل آمار و گزارش
-
-استفاده:
-python scripts/create_backup.py
+ابزارهای کمکی برای مدیریت بک‌آپ
 """
 
 import os
 import sys
-import django
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
-
-# اضافه کردن مسیر پروژه به Python path
-project_root = Path(__file__).resolve().parent.parent
-sys.path.append(str(project_root))
-
-# تنظیم متغیر محیطی Django
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'construction_project.settings')
-
-# راه‌اندازی Django
-django.setup()
+import shutil
 
 from django.core.management import call_command
-from construction.models import Project, Investor, Period, Transaction, Unit, InterestRate, Expense
+from django.apps import apps
 
 
 def create_backup_directory():
@@ -57,29 +37,59 @@ def get_database_stats():
     """
     دریافت آمار داده‌های موجود در دیتابیس
     """
-    from django.contrib.auth.models import User, Group
-    from backup.models import BackupRecord
-    
-    stats = {
-        # مدل‌های construction
-        'projects': Project.objects.count(),
-        'investors': Investor.objects.count(),
-        'periods': Period.objects.count(),
-        'transactions': Transaction.objects.count(),
-        'units': Unit.objects.count(),
-        'interest_rates': InterestRate.objects.count(),
-        'expenses': Expense.objects.count(),
+    try:
+        Project = apps.get_model('construction', 'Project')
+        Investor = apps.get_model('construction', 'Investor')
+        Period = apps.get_model('construction', 'Period')
+        Transaction = apps.get_model('construction', 'Transaction')
+        Unit = apps.get_model('construction', 'Unit')
         
-        # مدل‌های Django داخلی
-        'users': User.objects.count(),
-        'groups': Group.objects.count(),
+        InterestRate = apps.get_model('construction', 'InterestRate')
+        Expense = apps.get_model('construction', 'Expense')
+        User = apps.get_model('auth', 'User')
+        Group = apps.get_model('auth', 'Group')
+        BackupRecord = apps.get_model('backup', 'BackupRecord')
         
-        # مدل‌های backup
-        'backup_records': BackupRecord.objects.count(),
-    }
-    
-    stats['total'] = sum(stats.values())
-    return stats
+        stats = {
+            # مدل‌های construction
+            'projects': Project.objects.count(),
+            'investors': Investor.objects.count(),
+            'periods': Period.objects.count(),
+            'transactions': Transaction.objects.count(),
+            'units': Unit.objects.count(),
+            'interest_rates': InterestRate.objects.count(),
+            'expenses': Expense.objects.count(),
+            
+            # مدل‌های Django داخلی
+            'users': User.objects.count(),
+            'groups': Group.objects.count(),
+            
+            # مدل‌های backup
+            'backup_records': BackupRecord.objects.count(),
+        }
+        
+        stats['total'] = sum(stats.values())
+        return stats
+    except Exception as e:
+        print(f"خطا در دریافت آمار دیتابیس: {e}")
+        return {
+            # مدل‌های construction
+            'projects': 0,
+            'investors': 0,
+            'periods': 0,
+            'transactions': 0,
+            'units': 0,
+            'interest_rates': 0,
+            'expenses': 0,
+            
+            # مدل‌های Django داخلی
+            'users': 0,
+            'groups': 0,
+            
+            # مدل‌های backup
+            'backup_records': 0,
+            'total': 0
+        }
 
 
 def create_complete_fixture(backup_path):
@@ -169,6 +179,7 @@ def create_stats_file(backup_path, timestamp, stats):
     transaction_stats = {}
     if stats['transactions'] > 0:
         try:
+            Transaction = apps.get_model('construction', 'Transaction')
             for tx_type, display_name in Transaction.TRANSACTION_TYPES:
                 count = Transaction.objects.filter(transaction_type=tx_type).count()
                 positive_count = Transaction.objects.filter(
@@ -262,54 +273,162 @@ def create_stats_file(backup_path, timestamp, stats):
     print(f"  ✅ backup_summary.txt")
 
 
-def main():
+def format_timestamp(timestamp):
     """
-    تابع اصلی
+    تبدیل timestamp به فرمت خوانا
     """
-    print("🚀 شروع پشتیبان‌گیری پیشرفته")
-    print("=" * 60)
-    
-    # ایجاد پوشه backup
-    backup_path, timestamp = create_backup_directory()
-    print(f"📁 پوشه backup: {backup_path}")
-    
-    # دریافت آمار دیتابیس
-    stats = get_database_stats()
-    print(f"📊 کل داده‌ها: {stats['total']} رکورد")
-    
-    # ایجاد fixtures
-    complete_success = create_complete_fixture(backup_path)
-    individual_count = create_individual_fixtures(backup_path)
-    
-    # ایجاد فایل آمار
-    create_stats_file(backup_path, timestamp, stats)
-    
-    # گزارش نهایی
-    print("\n" + "=" * 60)
-    
-    if complete_success and individual_count == 15:
-        print("🎉 پشتیبان‌گیری با موفقیت کامل شد!")
-        print(f"📁 مسیر: {backup_path}")
-        print(f"📦 فایل‌های ایجاد شده: {len(os.listdir(backup_path))}")
+    try:
+        date_part = timestamp[:8]
+        time_part = timestamp[9:]
         
-        # محاسبه حجم کل
+        year = date_part[:4]
+        month = date_part[4:6]
+        day = date_part[6:8]
+        
+        hour = time_part[:2]
+        minute = time_part[2:4]
+        second = time_part[4:6]
+        
+        return f"{year}/{month}/{day} - {hour}:{minute}:{second}"
+    except:
+        return timestamp
+
+
+def get_backup_size(backup_path):
+    """
+    محاسبه حجم backup
+    """
+    try:
         total_size = sum(
             os.path.getsize(backup_path / f) 
             for f in os.listdir(backup_path)
         )
-        size_kb = total_size / 1024
-        print(f"💾 حجم کل: {size_kb:.1f} KB")
-        
-    else:
-        print("⚠️  پشتیبان‌گیری با مشکل مواجه شد!")
-        print(f"Fixture کامل: {'✅' if complete_success else '❌'}")
-        print(f"Fixtures جداگانه: {individual_count}/15")
+        return total_size / 1024  # KB
+    except:
+        return 0
+
+
+def read_backup_info(backup_path):
+    """
+    خواندن اطلاعات backup از فایل گزارش
+    """
+    report_file = backup_path / "backup_report.json"
+    if report_file.exists():
+        try:
+            with open(report_file, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except:
+            pass
+    return None
+
+
+def cleanup_old_backups(max_backups=10, cleanup_after_days=30):
+    """
+    پاک‌سازی بک‌آپ‌های قدیمی
+    """
+    deleted_count = 0
     
-    print("\n🔄 برای بازیابی:")
-    print(f"python scripts/restore_backup.py")
-    print("یا")
-    print(f"python manage.py loaddata {backup_path.name}/complete_database.json")
+    try:
+        BackupRecord = apps.get_model('backup', 'BackupRecord')
+        
+        # حذف بک‌آپ‌های قدیمی از دیتابیس
+        cutoff_date = datetime.now() - timedelta(days=cleanup_after_days)
+        old_backups = BackupRecord.objects.filter(
+            created_at__lt=cutoff_date,
+            status='completed'
+        ).order_by('created_at')
+        
+        # نگه داشتن فقط جدیدترین بک‌آپ‌ها
+        if old_backups.count() > max_backups:
+            backups_to_delete = old_backups[:old_backups.count() - max_backups]
+            
+            for backup in backups_to_delete:
+                # حذف فایل‌های فیزیکی
+                if backup.file_path and os.path.exists(backup.file_path):
+                    shutil.rmtree(backup.file_path)
+                
+                # حذف رکورد از دیتابیس
+                backup.delete()
+                deleted_count += 1
+        
+        # پاک‌سازی فایل‌های فیزیکی بدون رکورد دیتابیس
+        backups_dir = Path("backups")
+        if backups_dir.exists():
+            for backup_dir in backups_dir.iterdir():
+                if backup_dir.is_dir() and backup_dir.name.startswith('backup_'):
+                    # بررسی وجود رکورد در دیتابیس
+                    backup_name = backup_dir.name
+                    if not BackupRecord.objects.filter(name=backup_name).exists():
+                        # حذف پوشه قدیمی
+                        shutil.rmtree(backup_dir)
+                        deleted_count += 1
+        
+        return deleted_count
+        
+    except Exception as e:
+        print(f"خطا در پاک‌سازی بک‌آپ‌ها: {e}")
+        return deleted_count
 
 
-if __name__ == '__main__':
-    main()
+def create_backup_with_record():
+    """
+    ایجاد بک‌آپ با ثبت در دیتابیس
+    """
+    try:
+        BackupRecord = apps.get_model('backup', 'BackupRecord')
+        
+        # ایجاد رکورد بک‌آپ
+        backup_record = BackupRecord.objects.create(
+            name=f"backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            backup_type='manual',
+            status='running'
+        )
+        
+        # ایجاد پوشه backup
+        backup_path, timestamp = create_backup_directory()
+        
+        # دریافت آمار دیتابیس
+        stats = get_database_stats()
+        
+        # ایجاد fixtures
+        complete_success = create_complete_fixture(backup_path)
+        individual_count = create_individual_fixtures(backup_path)
+        
+        # ایجاد فایل آمار
+        create_stats_file(backup_path, timestamp, stats)
+        
+        # به‌روزرسانی رکورد
+        if complete_success and individual_count == 15:
+            backup_record.status = 'completed'
+            backup_record.completed_at = datetime.now()
+            backup_record.success_message = "بک‌آپ با موفقیت ایجاد شد"
+        else:
+            backup_record.status = 'failed'
+            backup_record.completed_at = datetime.now()
+            backup_record.error_message = f"خطا در ایجاد fixture: {individual_count}/15"
+        
+        # آمار داده‌ها
+        backup_record.projects_count = stats['projects']
+        backup_record.investors_count = stats['investors']
+        backup_record.periods_count = stats['periods']
+        backup_record.transactions_count = stats['transactions']
+        backup_record.units_count = stats['units']
+        backup_record.total_records = stats['total']
+        
+        # اطلاعات فایل
+        backup_record.file_path = str(backup_path)
+        backup_record.file_size_kb = get_backup_size(backup_path)
+        
+        backup_record.save()
+        
+        return backup_record
+        
+    except Exception as e:
+        # در صورت خطا، رکورد را به‌روزرسانی کن
+        if 'backup_record' in locals():
+            backup_record.status = 'failed'
+            backup_record.completed_at = datetime.now()
+            backup_record.error_message = str(e)
+            backup_record.save()
+        
+        raise e

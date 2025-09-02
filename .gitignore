@@ -17,3 +17,4 @@ venv/
 
 staticfiles/
 temp_data/
+backups/
