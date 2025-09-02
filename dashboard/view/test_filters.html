@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تست فیلترهای مدیریت تراکنش‌ها</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            direction: rtl;
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .test-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        .test-item h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .test-button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        .test-button:hover {
+            background: #1976D2;
+        }
+        
+        .test-button.success {
+            background: #4CAF50;
+        }
+        
+        .test-button.error {
+            background: #f44336;
+        }
+        
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 3px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .filter-test {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        .filter-test h4 {
+            color: #2e7d32;
+            margin-top: 0;
+        }
+        
+        .sample-data {
+            background: #f3e5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        .sample-data h4 {
+            color: #7b1fa2;
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 تست فیلترهای مدیریت تراکنش‌ها</h1>
+        
+        <div class="test-item">
+            <h3>1. تست API های فیلتر</h3>
+            <button class="test-button" onclick="testFilterAPIs()">تست API های فیلتر</button>
+            <div id="filterApisResult" class="result"></div>
+        </div>
+        
+        <div class="test-item">
+            <h3>2. تست داده‌های نمونه</h3>
+            <button class="test-button" onclick="testSampleData()">تست داده‌های نمونه</button>
+            <div id="sampleDataResult" class="result"></div>
+        </div>
+        
+        <div class="test-item">
+            <h3>3. تست منطق فیلتر</h3>
+            <button class="test-button" onclick="testFilterLogic()">تست منطق فیلتر</button>
+            <div id="filterLogicResult" class="result"></div>
+        </div>
+        
+        <div class="test-item">
+            <h3>4. تست عملکرد فیلتر</h3>
+            <button class="test-button success" onclick="testFilterPerformance()">تست عملکرد فیلتر</button>
+            <div id="filterPerformanceResult" class="result"></div>
+        </div>
+        
+        <div class="sample-data">
+            <h4>📋 نمونه داده‌های فیلتر</h4>
+            <p><strong>سرمایه‌گذاران:</strong> 16 سرمایه‌گذار (از جمله: ندا آزاد داور، علی فرقانی، زهرا خاک باز)</p>
+            <p><strong>پروژه‌ها:</strong> 1 پروژه (پروژه اصلی)</p>
+            <p><strong>دوره‌ها:</strong> 25+ دوره (از مرداد 1402 تا تیر 1404)</p>
+            <p><strong>نوع تراکنش:</strong> آورده، خروج از سرمایه، سود</p>
+            <p><strong>کل تراکنش‌ها:</strong> 625+ رکورد</p>
+        </div>
+        
+        <div class="filter-test">
+            <h4>🔍 تست‌های فیلتر</h4>
+            <p><strong>فیلتر سرمایه‌گذار:</strong> باید تراکنش‌های یک سرمایه‌گذار خاص را نشان دهد</p>
+            <p><strong>فیلتر نوع تراکنش:</strong> باید تراکنش‌های یک نوع خاص را نشان دهد</p>
+            <p><strong>فیلتر دوره:</strong> باید تراکنش‌های یک دوره خاص را نشان دهد</p>
+            <p><strong>فیلتر پروژه:</strong> باید تراکنش‌های یک پروژه خاص را نشان دهد</p>
+            <p><strong>ترکیب فیلترها:</strong> باید تراکنش‌هایی که همه شرایط را دارند نشان دهد</p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/construction/api/v1/';
+        
+        async function testFilterAPIs() {
+            const resultDiv = document.getElementById('filterApisResult');
+            resultDiv.textContent = 'در حال تست API های فیلتر...';
+            
+            const apis = [
+                { endpoint: 'Transaction/', name: 'تراکنش‌ها' },
+                { endpoint: 'Investor/', name: 'سرمایه‌گذاران' },
+                { endpoint: 'Project/', name: 'پروژه‌ها' },
+                { endpoint: 'Period/', name: 'دوره‌ها' }
+            ];
+            
+            const results = [];
+            
+            for (const api of apis) {
+                try {
+                    const response = await fetch(API_BASE + api.endpoint);
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        const recordCount = Array.isArray(data) ? data.length : 1;
+                        const sampleItem = Array.isArray(data) ? data[0] : data;
+                        
+                        results.push(`✅ ${api.name}: ${recordCount} رکورد`);
+                        results.push(`   نمونه: ${JSON.stringify(sampleItem, null, 2)}`);
+                    } else {
+                        results.push(`❌ ${api.name}: خطا ${response.status}`);
+                    }
+                } catch (error) {
+                    results.push(`❌ ${api.name}: خطای شبکه - ${error.message}`);
+                }
+            }
+            
+            resultDiv.textContent = results.join('\n');
+        }
+        
+        function testSampleData() {
+            const resultDiv = document.getElementById('sampleDataResult');
+            
+            const sampleTransaction = {
+                id: 1,
+                investor: {
+                    id: 1,
+                    first_name: 'ندا',
+                    last_name: 'آزاد داور'
+                },
+                project: {
+                    id: 1,
+                    name: 'پروژه اصلی'
+                },
+                period: {
+                    id: 1,
+                    label: 'مرداد 1402'
+                },
+                transaction_type: 'principal_deposit',
+                amount: '10000000',
+                date_shamsi: '1402-05-16',
+                description: 'واریز اولیه'
+            };
+            
+            const filterTests = [
+                {
+                    name: 'فیلتر سرمایه‌گذار',
+                    filter: { field: 'investor.id', type: '=', value: 1 },
+                    expected: 'تراکنش‌های ندا آزاد داور'
+                },
+                {
+                    name: 'فیلتر نوع تراکنش',
+                    filter: { field: 'transaction_type', type: '=', value: 'principal_deposit' },
+                    expected: 'فقط آورده‌ها'
+                },
+                {
+                    name: 'فیلتر دوره',
+                    filter: { field: 'period.id', type: '=', value: 1 },
+                    expected: 'تراکنش‌های مرداد 1402'
+                },
+                {
+                    name: 'فیلتر پروژه',
+                    filter: { field: 'project.id', type: '=', value: 1 },
+                    expected: 'تراکنش‌های پروژه اصلی'
+                }
+            ];
+            
+            let result = `📋 نمونه داده تراکنش:\n${JSON.stringify(sampleTransaction, null, 2)}\n\n`;
+            result += `🔍 تست‌های فیلتر:\n`;
+            
+            filterTests.forEach(test => {
+                result += `\n${test.name}:\n`;
+                result += `  فیلتر: ${JSON.stringify(test.filter)}\n`;
+                result += `  انتظار: ${test.expected}\n`;
+            });
+            
+            resultDiv.textContent = result;
+        }
+        
+        function testFilterLogic() {
+            const resultDiv = document.getElementById('filterLogicResult');
+            
+            // شبیه‌سازی منطق فیلتر
+            const sampleData = [
+                { id: 1, investor: { id: 1, name: 'علی' }, type: 'deposit', amount: 1000 },
+                { id: 2, investor: { id: 2, name: 'زهرا' }, type: 'withdrawal', amount: 500 },
+                { id: 3, investor: { id: 1, name: 'علی' }, type: 'profit', amount: 200 },
+                { id: 4, investor: { id: 3, name: 'محمد' }, type: 'deposit', amount: 1500 }
+            ];
+            
+            const testFilters = [
+                {
+                    name: 'فیلتر سرمایه‌گذار (علی)',
+                    filters: [{ field: 'investor.id', type: '=', value: 1 }],
+                    expected: 2
+                },
+                {
+                    name: 'فیلتر نوع تراکنش (deposit)',
+                    filters: [{ field: 'type', type: '=', value: 'deposit' }],
+                    expected: 2
+                },
+                {
+                    name: 'ترکیب فیلترها (علی + deposit)',
+                    filters: [
+                        { field: 'investor.id', type: '=', value: 1 },
+                        { field: 'type', type: '=', value: 'deposit' }
+                    ],
+                    expected: 1
+                }
+            ];
+            
+            let result = `🧮 تست منطق فیلتر:\n\n`;
+            result += `📊 داده‌های نمونه (${sampleData.length} رکورد):\n`;
+            sampleData.forEach(item => {
+                result += `  ID: ${item.id}, سرمایه‌گذار: ${item.investor.name}, نوع: ${item.type}, مبلغ: ${item.amount}\n`;
+            });
+            
+            result += `\n🔍 نتایج تست فیلتر:\n`;
+            
+            testFilters.forEach(test => {
+                let filteredData = sampleData;
+                
+                test.filters.forEach(filter => {
+                    filteredData = filteredData.filter(item => {
+                        const fieldValue = getNestedValue(item, filter.field);
+                        return fieldValue == filter.value; // استفاده از == برای مقایسه عددی/متنی
+                    });
+                });
+                
+                const passed = filteredData.length === test.expected;
+                result += `\n${passed ? '✅' : '❌'} ${test.name}:\n`;
+                result += `  فیلترها: ${JSON.stringify(test.filters)}\n`;
+                result += `  نتیجه: ${filteredData.length} رکورد (انتظار: ${test.expected})\n`;
+                if (filteredData.length > 0) {
+                    result += `  رکوردهای یافت شده: ${filteredData.map(d => d.id).join(', ')}\n`;
+                }
+            });
+            
+            resultDiv.textContent = result;
+        }
+        
+        function getNestedValue(obj, path) {
+            return path.split('.').reduce((current, key) => current && current[key], obj);
+        }
+        
+        async function testFilterPerformance() {
+            const resultDiv = document.getElementById('filterPerformanceResult');
+            resultDiv.textContent = 'در حال تست عملکرد فیلتر...';
+            
+            try {
+                const startTime = performance.now();
+                const response = await fetch(API_BASE + 'Transaction/');
+                const endTime = performance.now();
+                const loadTime = endTime - startTime;
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const recordCount = data.length;
+                    
+                    // تست عملکرد فیلتر
+                    const filterStartTime = performance.now();
+                    const filteredData = data.filter(item => 
+                        item.transaction_type === 'principal_deposit'
+                    );
+                    const filterEndTime = performance.now();
+                    const filterTime = filterEndTime - filterStartTime;
+                    
+                    const result = `📊 نتایج تست عملکرد:\n\n`;
+                    result += `📥 بارگذاری داده‌ها:\n`;
+                    result += `  تعداد رکوردها: ${recordCount}\n`;
+                    result += `  زمان بارگذاری: ${loadTime.toFixed(2)}ms\n\n`;
+                    result += `🔍 عملکرد فیلتر:\n`;
+                    result += `  فیلتر آورده‌ها: ${filteredData.length} رکورد\n`;
+                    result += `  زمان فیلتر: ${filterTime.toFixed(2)}ms\n`;
+                    result += `  سرعت: ${(recordCount / filterTime * 1000).toFixed(0)} رکورد/ثانیه\n\n`;
+                    result += `📈 آمار:\n`;
+                    result += `  آورده‌ها: ${data.filter(d => d.transaction_type === 'principal_deposit').length}\n`;
+                    result += `  خروج‌ها: ${data.filter(d => d.transaction_type === 'principal_withdrawal').length}\n`;
+                    result += `  سودها: ${data.filter(d => d.transaction_type === 'profit_accrual').length}\n`;
+                    
+                    resultDiv.textContent = result;
+                } else {
+                    resultDiv.textContent = `❌ خطا در بارگذاری داده‌ها: ${response.status}`;
+                }
+            } catch (error) {
+                resultDiv.textContent = `❌ خطای شبکه: ${error.message}`;
+            }
+        }
+        
+        // تست خودکار در بارگذاری صفحه
+        window.addEventListener('load', function() {
+            console.log('صفحه تست فیلتر بارگذاری شد');
+        });
+    </script>
+</body>
+</html>

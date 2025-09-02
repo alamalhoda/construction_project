@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تست API های مدیریت تراکنش‌ها</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            direction: rtl;
+        }
+        
+        .test-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .test-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        .test-item h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .test-item.success {
+            border-color: #4CAF50;
+            background-color: #f1f8e9;
+        }
+        
+        .test-item.error {
+            border-color: #f44336;
+            background-color: #ffebee;
+        }
+        
+        .test-button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        .test-button:hover {
+            background: #1976D2;
+        }
+        
+        .test-button.success {
+            background: #4CAF50;
+        }
+        
+        .test-button.error {
+            background: #f44336;
+        }
+        
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 3px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .summary {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .summary h2 {
+            color: #1976d2;
+            margin-top: 0;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .stat-item {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1976d2;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 تست API های مدیریت تراکنش‌ها</h1>
+        
+        <div class="summary">
+            <h2>خلاصه وضعیت API ها</h2>
+            <div class="stats-grid" id="apiStats">
+                <div class="stat-item">
+                    <div class="stat-number" id="totalApis">0</div>
+                    <div class="stat-label">کل API ها</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="workingApis">0</div>
+                    <div class="stat-label">API های فعال</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="failedApis">0</div>
+                    <div class="stat-label">API های ناموفق</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="totalRecords">0</div>
+                    <div class="stat-label">کل رکوردها</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-item">
+            <h3>1. تست API تراکنش‌ها</h3>
+            <button class="test-button" onclick="testTransactionsAPI()">تست API تراکنش‌ها</button>
+            <button class="test-button" onclick="testTransactionStatistics()">تست آمار تراکنش‌ها</button>
+            <div id="transactionsResult" class="result"></div>
+        </div>
+        
+        <div class="test-item">
+            <h3>2. تست API سرمایه‌گذاران</h3>
+            <button class="test-button" onclick="testInvestorsAPI()">تست API سرمایه‌گذاران</button>
+            <button class="test-button" onclick="testInvestorSummary()">تست خلاصه سرمایه‌گذاران</button>
+            <div id="investorsResult" class="result"></div>
+        </div>
+        
+        <div class="test-item">
+            <h3>3. تست API پروژه‌ها</h3>
+            <button class="test-button" onclick="testProjectsAPI()">تست API پروژه‌ها</button>
+            <div id="projectsResult" class="result"></div>
+        </div>
+        
+        <div class="test-item">
+            <h3>4. تست API دوره‌ها</h3>
+            <button class="test-button" onclick="testPeriodsAPI()">تست API دوره‌ها</button>
+            <div id="periodsResult" class="result"></div>
+        </div>
+        
+        <div class="test-item">
+            <h3>5. تست کامل تمام API ها</h3>
+            <button class="test-button success" onclick="testAllAPIs()">تست کامل تمام API ها</button>
+            <div id="allApisResult" class="result"></div>
+        </div>
+        
+        <div class="test-item">
+            <h3>6. تست عملکرد صفحه</h3>
+            <button class="test-button" onclick="testPagePerformance()">تست عملکرد صفحه</button>
+            <div id="performanceResult" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/construction/api/v1/';
+        let apiResults = {};
+        
+        async function testAPI(endpoint, resultId, description) {
+            const resultDiv = document.getElementById(resultId);
+            resultDiv.textContent = `در حال تست ${description}...`;
+            
+            try {
+                const startTime = performance.now();
+                const response = await fetch(API_BASE + endpoint);
+                const endTime = performance.now();
+                const responseTime = endTime - startTime;
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const recordCount = Array.isArray(data) ? data.length : 1;
+                    const sampleData = Array.isArray(data) ? data.slice(0, 2) : data;
+                    
+                    resultDiv.textContent = `✅ موفقیت!\n
+📊 ${description}:
+• تعداد رکوردها: ${recordCount}
+• زمان پاسخ: ${responseTime.toFixed(2)}ms
+• وضعیت: ${response.status} - ${response.statusText}
+
+📋 نمونه داده:
+${JSON.stringify(sampleData, null, 2)}`;
+                    
+                    resultDiv.parentElement.className = 'test-item success';
+                    apiResults[endpoint] = { success: true, count: recordCount, time: responseTime };
+                } else {
+                    resultDiv.textContent = `❌ خطا: ${response.status} - ${response.statusText}`;
+                    resultDiv.parentElement.className = 'test-item error';
+                    apiResults[endpoint] = { success: false, error: response.statusText };
+                }
+            } catch (error) {
+                resultDiv.textContent = `❌ خطای شبکه: ${error.message}`;
+                resultDiv.parentElement.className = 'test-item error';
+                apiResults[endpoint] = { success: false, error: error.message };
+            }
+            
+            updateApiStats();
+        }
+        
+        function testTransactionsAPI() {
+            testAPI('Transaction/', 'transactionsResult', 'API تراکنش‌ها');
+        }
+        
+        function testTransactionStatistics() {
+            testAPI('Transaction/statistics/', 'transactionsResult', 'آمار تراکنش‌ها');
+        }
+        
+        function testInvestorsAPI() {
+            testAPI('Investor/', 'investorsResult', 'API سرمایه‌گذاران');
+        }
+        
+        function testInvestorSummary() {
+            testAPI('Investor/summary/', 'investorsResult', 'خلاصه سرمایه‌گذاران');
+        }
+        
+        function testProjectsAPI() {
+            testAPI('Project/', 'projectsResult', 'API پروژه‌ها');
+        }
+        
+        function testPeriodsAPI() {
+            testAPI('Period/', 'periodsResult', 'API دوره‌ها');
+        }
+        
+        async function testAllAPIs() {
+            const resultDiv = document.getElementById('allApisResult');
+            resultDiv.textContent = 'در حال تست تمام API ها...';
+            
+            const apis = [
+                { endpoint: 'Transaction/', name: 'تراکنش‌ها' },
+                { endpoint: 'Transaction/statistics/', name: 'آمار تراکنش‌ها' },
+                { endpoint: 'Investor/', name: 'سرمایه‌گذاران' },
+                { endpoint: 'Investor/summary/', name: 'خلاصه سرمایه‌گذاران' },
+                { endpoint: 'Project/', name: 'پروژه‌ها' },
+                { endpoint: 'Period/', name: 'دوره‌ها' }
+            ];
+            
+            const results = [];
+            
+            for (const api of apis) {
+                try {
+                    const startTime = performance.now();
+                    const response = await fetch(API_BASE + api.endpoint);
+                    const endTime = performance.now();
+                    const responseTime = endTime - startTime;
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        const recordCount = Array.isArray(data) ? data.length : 1;
+                        results.push(`✅ ${api.name}: ${recordCount} رکورد (${responseTime.toFixed(2)}ms)`);
+                    } else {
+                        results.push(`❌ ${api.name}: خطا ${response.status}`);
+                    }
+                } catch (error) {
+                    results.push(`❌ ${api.name}: خطای شبکه`);
+                }
+            }
+            
+            resultDiv.textContent = `نتایج تست تمام API ها:\n\n${results.join('\n')}`;
+            resultDiv.parentElement.className = 'test-item success';
+        }
+        
+        function testPagePerformance() {
+            const resultDiv = document.getElementById('performanceResult');
+            
+            const performance = {
+                'User Agent': navigator.userAgent,
+                'Language': navigator.language,
+                'Online': navigator.onLine,
+                'Memory': performance.memory ? `${Math.round(performance.memory.usedJSHeapSize / 1024 / 1024)}MB / ${Math.round(performance.memory.totalJSHeapSize / 1024 / 1024)}MB` : 'نامشخص',
+                'Connection': navigator.connection ? navigator.connection.effectiveType : 'نامشخص',
+                'Screen Resolution': `${screen.width}x${screen.height}`,
+                'Viewport': `${window.innerWidth}x${window.innerHeight}`,
+                'Device Pixel Ratio': window.devicePixelRatio,
+                'Local Storage': typeof localStorage !== 'undefined' ? 'موجود' : 'ناموجود',
+                'Session Storage': typeof sessionStorage !== 'undefined' ? 'موجود' : 'ناموجود',
+                'Fetch API': typeof fetch !== 'undefined' ? 'موجود' : 'ناموجود',
+                'Promise': typeof Promise !== 'undefined' ? 'موجود' : 'ناموجود',
+                'Async/Await': (async () => {}).constructor.name === 'AsyncFunction' ? 'موجود' : 'ناموجود'
+            };
+            
+            const results = Object.entries(performance).map(([key, value]) => 
+                `${key}: ${value}`
+            ).join('\n');
+            
+            resultDiv.textContent = `ویژگی‌های عملکرد مرورگر:\n\n${results}`;
+            resultDiv.parentElement.className = 'test-item success';
+        }
+        
+        function updateApiStats() {
+            const totalApis = Object.keys(apiResults).length;
+            const workingApis = Object.values(apiResults).filter(r => r.success).length;
+            const failedApis = totalApis - workingApis;
+            const totalRecords = Object.values(apiResults)
+                .filter(r => r.success && r.count)
+                .reduce((sum, r) => sum + r.count, 0);
+            
+            document.getElementById('totalApis').textContent = totalApis;
+            document.getElementById('workingApis').textContent = workingApis;
+            document.getElementById('failedApis').textContent = failedApis;
+            document.getElementById('totalRecords').textContent = totalRecords;
+        }
+        
+        // تست خودکار در بارگذاری صفحه
+        window.addEventListener('load', function() {
+            console.log('صفحه تست API بارگذاری شد');
+            console.log('برای تست کامل، روی دکمه‌های مربوطه کلیک کنید');
+        });
+    </script>
+</body>
+</html>

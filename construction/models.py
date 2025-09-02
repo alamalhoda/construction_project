@@ -155,8 +155,8 @@ class Transaction(models.Model):
     amount = models.DecimalField(max_digits=20, decimal_places=2, verbose_name="مبلغ")
     transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPES, verbose_name="نوع تراکنش")
     description = models.TextField(blank=True, verbose_name="توضیحات")
-    day_remaining = models.IntegerField(verbose_name="روز مانده تا پایان پروژه")
-    day_from_start = models.IntegerField(verbose_name="روز از ابتدای پروژه")
+    day_remaining = models.IntegerField(verbose_name="روز مانده تا پایان پروژه", default=0)
+    day_from_start = models.IntegerField(verbose_name="روز از ابتدای پروژه", default=0)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
 
     class Meta:
@@ -164,13 +164,41 @@ class Transaction(models.Model):
         verbose_name_plural = "تراکنش‌ها"
 
     def save(self, *args, **kwargs):
+        # تبدیل تاریخ شمسی به میلادی اگر لازم باشد
+        if self.date_shamsi and not self.date_gregorian:
+            from jdatetime import datetime as jdatetime
+            from datetime import date
+            # اگر date_shamsi string است (از frontend آمده)
+            if isinstance(self.date_shamsi, str):
+                jdate = jdatetime.strptime(str(self.date_shamsi), '%Y-%m-%d')
+                gregorian_datetime = jdate.togregorian()
+                # تبدیل datetime به date
+                self.date_gregorian = gregorian_datetime.date()
+                # date_shamsi باید تاریخ میلادی باشد (برای jmodels.jDateField)
+                self.date_shamsi = gregorian_datetime.date()
+            # اگر date_shamsi از قبل date object است (از serializer آمده)
+            elif hasattr(self.date_shamsi, 'year'):
+                self.date_gregorian = self.date_shamsi
+        
         # محاسبه روز مانده تا پایان پروژه
-        if self.project.end_date_gregorian and self.date_gregorian:
-            self.day_remaining = (self.project.end_date_gregorian - self.date_gregorian).days
+        if hasattr(self, 'project') and self.project and self.project.end_date_gregorian and self.date_gregorian:
+            # اطمینان از اینکه هر دو تاریخ از نوع date هستند
+            end_date = self.project.end_date_gregorian
+            if isinstance(end_date, str):
+                from datetime import datetime
+                end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+            
+            self.day_remaining = (end_date - self.date_gregorian).days
         
         # محاسبه روز از ابتدای پروژه
-        if self.project.start_date_gregorian and self.date_gregorian:
-            self.day_from_start = (self.date_gregorian - self.project.start_date_gregorian).days
+        if hasattr(self, 'project') and self.project and self.project.start_date_gregorian and self.date_gregorian:
+            # اطمینان از اینکه هر دو تاریخ از نوع date هستند
+            start_date = self.project.start_date_gregorian
+            if isinstance(start_date, str):
+                from datetime import datetime
+                start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+            
+            self.day_from_start = (self.date_gregorian - start_date).days
         
         super().save(*args, **kwargs)
 

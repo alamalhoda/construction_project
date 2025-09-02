@@ -88,7 +88,9 @@ class PeriodViewSet(viewsets.ModelViewSet):
 
     queryset = models.Period.objects.all()
     serializer_class = serializers.PeriodSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]  # موقتاً برای داشبورد
+
 
 
 class ProjectViewSet(viewsets.ModelViewSet):
@@ -107,6 +109,35 @@ class TransactionViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.TransactionSerializer
     permission_classes = [permissions.AllowAny]  # موقتاً برای داشبورد
     filterset_fields = ['investor', 'project', 'period', 'transaction_type']
+
+    @action(detail=False, methods=['get'])
+    def statistics(self, request):
+        """آمار کلی تراکنش‌ها"""
+        from django.db.models import Count, Sum, Q
+        
+        # محاسبه آمار کلی
+        total_transactions = models.Transaction.objects.count()
+        total_deposits = models.Transaction.objects.filter(
+            transaction_type='principal_deposit'
+        ).aggregate(total=Sum('amount'))['total'] or 0
+        
+        total_withdrawals = models.Transaction.objects.filter(
+            transaction_type='principal_withdrawal'
+        ).aggregate(total=Sum('amount'))['total'] or 0
+        
+        total_profits = models.Transaction.objects.filter(
+            transaction_type='profit_accrual'
+        ).aggregate(total=Sum('amount'))['total'] or 0
+        
+        unique_investors = models.Transaction.objects.values('investor').distinct().count()
+        
+        return Response({
+            'total_transactions': total_transactions,
+            'total_deposits': float(total_deposits),
+            'total_withdrawals': float(total_withdrawals),
+            'total_profits': float(total_profits),
+            'unique_investors': unique_investors
+        })
 
 
 class UnitViewSet(viewsets.ModelViewSet):

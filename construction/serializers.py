@@ -60,16 +60,42 @@ class ProjectSerializer(serializers.ModelSerializer):
         ]
 
 class TransactionSerializer(serializers.ModelSerializer):
-    # اضافه کردن foreign key relationships برای داشبورد
-    investor = InvestorSerializer(read_only=True)
-    project = ProjectSerializer(read_only=True) 
-    period = PeriodSerializer(read_only=True)
+    # فیلدهای محاسبه شده - فقط برای خواندن
+    date_gregorian = serializers.DateField(read_only=True)
+    day_remaining = serializers.IntegerField(read_only=True)
+    day_from_start = serializers.IntegerField(read_only=True)
+    
+    # فیلد date_shamsi برای نمایش (تبدیل میلادی به شمسی)
+    date_shamsi = serializers.SerializerMethodField()
+    
+    # فیلد date_shamsi_input برای دریافت از frontend
+    date_shamsi_input = serializers.CharField(write_only=True, required=False)
+    
+    # فیلد date_shamsi_raw برای دریافت مستقیم از frontend
+    date_shamsi_raw = serializers.CharField(write_only=True, required=False)
+    
+    # فیلدهای foreign key برای نوشتن
+    investor_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
+    project_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
+    period_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
+    
+    # فیلدهای alternative برای frontend (write_only)
+    investor = serializers.IntegerField(write_only=True, required=False, allow_null=True)
+    project = serializers.IntegerField(write_only=True, required=False, allow_null=True)
+    period = serializers.IntegerField(write_only=True, required=False, allow_null=True)
+    
+    # فیلدهای nested برای خواندن (read_only)
+    investor_data = InvestorSerializer(source='investor', read_only=True)
+    project_data = ProjectSerializer(source='project', read_only=True)
+    period_data = PeriodSerializer(source='period', read_only=True)
 
     class Meta:
         model = models.Transaction
         fields = [
             "id",
             "date_shamsi",
+            "date_shamsi_input",
+            "date_shamsi_raw",
             "date_gregorian",
             "amount",
             "transaction_type",
@@ -80,7 +106,78 @@ class TransactionSerializer(serializers.ModelSerializer):
             "investor",
             "project", 
             "period",
+            "investor_id",
+            "project_id",
+            "period_id",
+            "investor_data",
+            "project_data",
+            "period_data",
         ]
+    
+    def get_date_shamsi(self, obj):
+        """تبدیل تاریخ میلادی به شمسی برای نمایش"""
+        if obj.date_gregorian:
+            from jdatetime import datetime as jdatetime
+            # تبدیل تاریخ میلادی به شمسی
+            jdate = jdatetime.fromgregorian(date=obj.date_gregorian)
+            return jdate.strftime('%Y-%m-%d')
+        return None
+        
+    def create(self, validated_data):
+        # تبدیل تاریخ شمسی به میلادی
+        from jdatetime import datetime as jdatetime
+        from datetime import datetime
+        
+        # دریافت تاریخ شمسی از frontend
+        date_shamsi_input = validated_data.pop('date_shamsi_input', None)
+        date_shamsi_raw = validated_data.pop('date_shamsi_raw', None)
+        
+        # استفاده از هر کدام که موجود باشد
+        date_shamsi_value = date_shamsi_input or date_shamsi_raw
+        
+        if date_shamsi_value:
+            # تبدیل تاریخ شمسی (string) به میلادی (date object)
+            jdate = jdatetime.strptime(str(date_shamsi_value), '%Y-%m-%d')
+            gregorian_datetime = jdate.togregorian()
+            # تبدیل datetime به date
+            validated_data['date_gregorian'] = gregorian_datetime.date()
+            # date_shamsi باید تاریخ میلادی باشد (برای jmodels.jDateField)
+            validated_data['date_shamsi'] = gregorian_datetime.date()
+        
+        # Handle کردن فیلدهای مختلف از frontend
+        # اگر investor_id وجود دارد، از آن استفاده کن
+        if 'investor_id' in validated_data:
+            validated_data['investor_id'] = validated_data.pop('investor_id')
+        # اگر investor وجود دارد، آن را به investor_id تبدیل کن
+        elif 'investor' in validated_data:
+            validated_data['investor_id'] = validated_data.pop('investor')
+        
+        # اگر project_id وجود دارد، از آن استفاده کن
+        if 'project_id' in validated_data:
+            validated_data['project_id'] = validated_data.pop('project_id')
+        # اگر project وجود دارد، آن را به project_id تبدیل کن
+        elif 'project' in validated_data:
+            validated_data['project_id'] = validated_data.pop('project')
+        
+        # اگر period_id وجود دارد، از آن استفاده کن
+        if 'period_id' in validated_data:
+            validated_data['period_id'] = validated_data.pop('period_id')
+        # اگر period وجود دارد، آن را به period_id تبدیل کن
+        elif 'period' in validated_data:
+            validated_data['period_id'] = validated_data.pop('period')
+        
+        # ایجاد تراکنش
+        transaction = super().create(validated_data)
+        
+        # محاسبه مجدد روزها بعد از ایجاد
+        if transaction.project and transaction.date_gregorian:
+            if transaction.project.end_date_gregorian:
+                transaction.day_remaining = (transaction.project.end_date_gregorian - transaction.date_gregorian).days
+            if transaction.project.start_date_gregorian:
+                transaction.day_from_start = (transaction.date_gregorian - transaction.project.start_date_gregorian).days
+            transaction.save()
+        
+        return transaction
 
 class UnitSerializer(serializers.ModelSerializer):
 
