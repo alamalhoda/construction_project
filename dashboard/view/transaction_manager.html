@@ -313,21 +313,25 @@
                 <div class="stat-card large">
                     <div class="stat-number" id="totalDeposits">0</div>
                     <div class="stat-label">مجموع واریزها (ریال)</div>
+                    <div class="stat-words" id="totalDepositsWords" style="font-size: 0.9rem; margin-top: 10px; opacity: 0.8;"></div>
                 </div>
                 
                 <div class="stat-card large">
                     <div class="stat-number" id="totalWithdrawals">0</div>
                     <div class="stat-label">مجموع برداشت‌ها (ریال)</div>
+                    <div class="stat-words" id="totalWithdrawalsWords" style="font-size: 0.9rem; margin-top: 10px; opacity: 0.8;"></div>
                 </div>
                 
                 <div class="stat-card large">
                     <div class="stat-number" id="totalProfits">0</div>
                     <div class="stat-label">مجموع سود (ریال)</div>
+                    <div class="stat-words" id="totalProfitsWords" style="font-size: 0.9rem; margin-top: 10px; opacity: 0.8;"></div>
                 </div>
                 
                 <div class="stat-card large">
                     <div class="stat-number" id="netCapital">0</div>
                     <div class="stat-label">سرمایه موجود (بدون سود) (ریال)</div>
+                    <div class="stat-words" id="netCapitalWords" style="font-size: 0.9rem; margin-top: 10px; opacity: 0.8;"></div>
                 </div>
             </div>
 
@@ -397,7 +401,7 @@
                         
 
                         
-                        <button class="ui primary button" onclick="showAddTransactionModal()" title="افزودن تراکنش جدید (Ctrl+N)">
+                        <button class="ui primary button" onclick="showAddTransactionModal()" title="افزودن تراکنش جدید">
                             <i class="plus icon"></i>
                             افزودن تراکنش جدید
                         </button>
@@ -490,9 +494,11 @@
                         <label>مبلغ (ریال)</label>
                         <div class="ui right labeled input">
                             <input type="text" name="amount" id="addAmountInput" placeholder="مثال: 1000000" 
-                                   oninput="formatAmount(this)" onblur="validateAmount(this)">
+                                   oninput="formatAmount(this); updateAmountWordsInAddForm();" 
+                                   onblur="validateAmount(this)">
                             <div class="ui basic label">ریال</div>
                         </div>
+                        <div id="addAmountWords" style="margin-top: 8px; padding: 8px; background-color: #f8f9fa; border-radius: 4px; font-size: 0.9rem; color: #666; text-align: center; min-height: 20px;"></div>
                         <div class="ui tiny text" style="margin-top: 5px; color: #666;">
                             <i class="info circle icon"></i>
                             اعداد را بدون کاما وارد کنید
@@ -587,7 +593,9 @@
                     
                     <div class="field">
                         <label>مبلغ (ریال)</label>
-                        <input type="number" name="amount" id="editAmountInput" placeholder="مبلغ را وارد کنید" step="0.01" min="0">
+                        <input type="text" name="amount" id="editAmountInput" placeholder="مبلغ را وارد کنید" 
+                               oninput="formatAmount(this); updateAmountWordsInEditForm();">
+                        <div id="editAmountWords" style="margin-top: 8px; padding: 8px; background-color: #f8f9fa; border-radius: 4px; font-size: 0.9rem; color: #666; text-align: center; min-height: 20px;"></div>
                     </div>
                     
                     <div class="field">
@@ -675,24 +683,7 @@
             initialValue: false
         });
         
-        // Add keyboard shortcuts
-        $(document).keydown(function(e) {
-            // Ctrl/Cmd + F: Focus search
-            if ((e.ctrlKey || e.metaKey) && e.keyCode === 70) {
-                e.preventDefault();
-                $('#searchInput').focus();
-            }
-            // Ctrl/Cmd + R: Clear filters
-            if ((e.ctrlKey || e.metaKey) && e.keyCode === 82) {
-                e.preventDefault();
-                clearFilters();
-            }
-            // Ctrl/Cmd + N: Add new transaction
-            if ((e.ctrlKey || e.metaKey) && e.keyCode === 78) {
-                e.preventDefault();
-                showAddTransactionModal();
-            }
-        });
+
         });
         
         function initializeDropdowns() {
@@ -1101,15 +1092,23 @@
             // Update display
             document.getElementById('totalDeposits').textContent = 
                 deposits.toLocaleString('fa-IR');
+            document.getElementById('totalDepositsWords').textContent = 
+                amountToPersianWords(deposits);
                 
             document.getElementById('totalWithdrawals').textContent = 
                 withdrawals.toLocaleString('fa-IR');
+            document.getElementById('totalWithdrawalsWords').textContent = 
+                amountToPersianWords(withdrawals);
                 
             document.getElementById('totalProfits').textContent = 
                 profits.toLocaleString('fa-IR');
+            document.getElementById('totalProfitsWords').textContent = 
+                amountToPersianWords(profits);
                 
             document.getElementById('netCapital').textContent = 
                 netCapital.toLocaleString('fa-IR');
+            document.getElementById('netCapitalWords').textContent = 
+                amountToPersianWords(netCapital);
             
             // Update results count display
             updateResultsCount(filteredData.length, totalData.length);
@@ -1235,6 +1234,12 @@
             // Clear any error states
             $('#addAmountInput').removeClass('error');
             
+            // Clear amount words display
+            const addAmountWords = document.getElementById('addAmountWords');
+            if (addAmountWords) {
+                addAmountWords.textContent = '';
+            }
+            
             // Set today's date as default
             $('#addDateShamsiInput').val(getTodayShamsi());
         }
@@ -1243,6 +1248,132 @@
         window.testFunction = function() {
             console.log('Test function called successfully');
             alert('Test function works!');
+        };
+        
+        // تابع تست تبدیل اعداد به حروف
+        window.testNumberToWords = function() {
+            const testNumbers = [
+                0, 1, 10, 11, 20, 25, 100, 101, 110, 111, 200, 250, 1000, 1001, 1010, 1100, 2000, 2500,
+                10000, 10001, 10010, 10100, 11000, 20000, 25000, 100000, 100001, 100010, 100100, 101000,
+                200000, 250000, 1000000, 1000001, 1000010, 1000100, 1001000, 2000000, 2500000,
+                10000000, 10000001, 10000010, 10000100, 10001000, 20000000, 25000000,
+                100000000, 100000001, 100000010, 100000100, 100001000, 200000000, 250000000,
+                1000000000, 1000000001, 1000000010, 1000000100, 1000001000, 2000000000, 2500000000
+            ];
+            
+            let result = 'تست تبدیل اعداد به حروف فارسی:\\n\\n';
+            
+            testNumbers.forEach(num => {
+                const words = amountToPersianWords(num);
+                result += num.toLocaleString('fa-IR') + ' = ' + words + '\\n';
+            });
+            
+            console.log(result);
+            alert(result);
+        };
+        
+
+        
+        // تابع به‌روزرسانی نمایش حروف در فرم افزودن
+        window.updateAmountWordsInAddForm = function() {
+            const amountInput = document.getElementById('addAmountInput');
+            const wordsDiv = document.getElementById('addAmountWords');
+            
+            if (amountInput && wordsDiv) {
+                const value = amountInput.value.replace(/,/g, '');
+                if (value && !isNaN(value) && parseFloat(value) > 0) {
+                    wordsDiv.textContent = amountToPersianWords(value);
+                } else {
+                    wordsDiv.textContent = '';
+                }
+            }
+        };
+        
+        // تابع به‌روزرسانی نمایش حروف در فرم ویرایش
+        window.updateAmountWordsInEditForm = function() {
+            const amountInput = document.getElementById('editAmountInput');
+            const wordsDiv = document.getElementById('editAmountWords');
+            
+            if (amountInput && wordsDiv) {
+                const value = amountInput.value.replace(/,/g, '');
+                if (value && !isNaN(value) && parseFloat(value) > 0) {
+                    wordsDiv.textContent = amountToPersianWords(value);
+                } else {
+                    wordsDiv.textContent = '';
+                }
+            }
+        };
+        
+        // تابع تبدیل اعداد به حروف فارسی
+        window.numberToPersianWords = function(number) {
+            if (number === 0) return 'صفر';
+            if (number < 0) return 'منفی ' + numberToPersianWords(-number);
+            
+            const ones = ['', 'یک', 'دو', 'سه', 'چهار', 'پنج', 'شش', 'هفت', 'هشت', 'نه'];
+            const teens = ['ده', 'یازده', 'دوازده', 'سیزده', 'چهارده', 'پانزده', 'شانزده', 'هفده', 'هجده', 'نوزده'];
+            const tens = ['', '', 'بیست', 'سی', 'چهل', 'پنجاه', 'شصت', 'هفتاد', 'هشتاد', 'نود'];
+            const hundreds = ['', 'یکصد', 'دویست', 'سیصد', 'چهارصد', 'پانصد', 'ششصد', 'هفتصد', 'هشتصد', 'نهصد'];
+            const thousands = ['', 'هزار', 'میلیون', 'میلیارد', 'تریلیون'];
+            
+            function convertGroup(num) {
+                if (num === 0) return '';
+                
+                let result = '';
+                
+                // صدگان
+                if (num >= 100) {
+                    result += hundreds[Math.floor(num / 100)] + ' ';
+                    num %= 100;
+                }
+                
+                // دهگان و یکان
+                if (num >= 20) {
+                    result += tens[Math.floor(num / 10)] + ' ';
+                    num %= 10;
+                } else if (num >= 10) {
+                    result += teens[num - 10] + ' ';
+                    num = 0;
+                }
+                
+                // یکان
+                if (num > 0) {
+                    result += ones[num] + ' ';
+                }
+                
+                return result.trim();
+            }
+            
+            let result = '';
+            let groupIndex = 0;
+            
+            while (number > 0) {
+                const group = number % 1000;
+                if (group !== 0) {
+                    const groupWords = convertGroup(group);
+                    if (groupIndex > 0) {
+                        result = groupWords + ' ' + thousands[groupIndex] + ' ' + result;
+                    } else {
+                        result = groupWords;
+                    }
+                }
+                number = Math.floor(number / 1000);
+                groupIndex++;
+            }
+            
+            return result.trim();
+        };
+        
+        // تابع تبدیل مبلغ به حروف فارسی (با واحد تومان)
+        window.amountToPersianWords = function(amount) {
+            if (amount === 0) return 'صفر تومان';
+            
+            // تبدیل ریال به تومان (تقسیم بر 10)
+            const tomanAmount = Math.floor(parseFloat(amount) / 10);
+            
+            // تبدیل به حروف
+            const words = numberToPersianWords(tomanAmount);
+            
+            return words + ' تومان';
         };
         
         // Make function globally accessible
@@ -1258,6 +1389,11 @@
             
             // Set loading state
             saveBtn.addClass('loading');
+            
+            // تبدیل مبلغ به ریال برای ارسال به سرور
+            const displayAmount = $('#addAmountInput').val().replace(/,/g, '');
+            const rialAmount = currencySettings.unit === 'toman' ? 
+                parseFloat(displayAmount) * 10 : parseFloat(displayAmount);
             
             const formData = {
                 investor: $('#addInvestorInput').val(),
@@ -1430,9 +1566,14 @@
             
             // Fill form
             document.getElementById('editTransactionId').value = id;
+            
             $('#editAmountInput').val(transaction.amount);
+            
             $('#editDateShamsiInput').val(transaction.date_shamsi);
             $('#editDescriptionInput').val(transaction.description || '');
+            
+            // Update amount words display
+            updateAmountWordsInEditForm();
             
             // Set dropdown values and refresh
             if (transaction.investor_data?.id) {
@@ -1466,6 +1607,11 @@
         
         function updateTransaction() {
             const id = document.getElementById('editTransactionId').value;
+            // تبدیل مبلغ به ریال برای ارسال به سرور
+            const displayAmount = $('#editAmountInput').val().replace(/,/g, '');
+            const rialAmount = currencySettings.unit === 'toman' ? 
+                parseFloat(displayAmount) * 10 : parseFloat(displayAmount);
+            
             const formData = {
                 investor: $('#editInvestorInput').val(),
                 project: $('#editProjectInput').val(),
