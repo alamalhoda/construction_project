@@ -1,6 +1,7 @@
 from django.db import models
 from django.urls import reverse
 from django_jalali.db import models as jmodels
+from decimal import Decimal
 
 class Project(models.Model):
     """
@@ -136,6 +137,81 @@ class Period(models.Model):
     def get_htmx_delete_url(self):
         return reverse("construction_Period_htmx_delete", args=(self.pk,))
 
+class InterestRate(models.Model):
+    """
+    مدل نرخ سود روزانه
+    شامل نرخ سود و تاریخ اعمال آن
+    """
+    rate = models.DecimalField(
+        max_digits=10, 
+        decimal_places=7, 
+        verbose_name="نرخ سود روزانه",
+        help_text="مثال: 0.0004819"
+    )
+    effective_date = jmodels.jDateField(
+        verbose_name="تاریخ اعمال (شمسی)",
+        help_text="تاریخی که این نرخ از آن اعمال می‌شود"
+    )
+    effective_date_gregorian = models.DateField(
+        verbose_name="تاریخ اعمال (میلادی)",
+        null=True, blank=True
+    )
+    description = models.TextField(
+        blank=True, 
+        verbose_name="توضیحات",
+        help_text="دلیل تغییر نرخ سود"
+    )
+    is_active = models.BooleanField(
+        default=True, 
+        verbose_name="فعال",
+        help_text="آیا این نرخ در حال حاضر فعال است؟"
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="تاریخ به‌روزرسانی")
+
+    class Meta:
+        verbose_name = "نرخ سود"
+        verbose_name_plural = "نرخ‌های سود"
+        ordering = ['-effective_date']
+
+    def __str__(self):
+        return f"نرخ {self.rate}% از {self.effective_date}"
+
+    def save(self, *args, **kwargs):
+        # تبدیل تاریخ شمسی به میلادی
+        if self.effective_date and not self.effective_date_gregorian:
+            from jdatetime import datetime as jdatetime
+            if isinstance(self.effective_date, str):
+                jdate = jdatetime.strptime(self.effective_date, '%Y-%m-%d')
+            else:
+                jdate = self.effective_date
+            self.effective_date_gregorian = jdate.togregorian().date()
+        
+        # غیرفعال کردن نرخ‌های قبلی
+        if self.is_active:
+            InterestRate.objects.filter(is_active=True).update(is_active=False)
+        
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def get_current_rate(cls):
+        """دریافت نرخ سود فعلی"""
+        try:
+            return cls.objects.filter(is_active=True).first()
+        except cls.DoesNotExist:
+            return None
+
+    @classmethod
+    def get_rate_for_date(cls, date):
+        """دریافت نرخ سود برای تاریخ مشخص"""
+        try:
+            return cls.objects.filter(
+                effective_date__lte=date,
+                is_active=True
+            ).order_by('-effective_date').first()
+        except cls.DoesNotExist:
+            return None
+
 class Transaction(models.Model):
     """
     مدل تراکنش مالی
@@ -157,6 +233,25 @@ class Transaction(models.Model):
     description = models.TextField(blank=True, verbose_name="توضیحات")
     day_remaining = models.IntegerField(verbose_name="روز مانده تا پایان پروژه", default=0)
     day_from_start = models.IntegerField(verbose_name="روز از ابتدای پروژه", default=0)
+    interest_rate = models.ForeignKey(
+        InterestRate, 
+        on_delete=models.SET_NULL, 
+        null=True, blank=True,
+        verbose_name="نرخ سود اعمال شده",
+        help_text="نرخ سودی که برای محاسبه این تراکنش استفاده شده"
+    )
+    is_system_generated = models.BooleanField(
+        default=False,
+        verbose_name="تولید شده توسط سیستم",
+        help_text="آیا این تراکنش توسط سیستم محاسبه شده است؟"
+    )
+    parent_transaction = models.ForeignKey(
+        'self',
+        on_delete=models.CASCADE,
+        null=True, blank=True,
+        verbose_name="تراکنش اصلی",
+        help_text="برای تراکنش‌های سود: تراکنش آورده یا خروج از سرمایه مربوطه"
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
 
     class Meta:
@@ -217,6 +312,94 @@ class Transaction(models.Model):
 
     def get_htmx_delete_url(self):
         return reverse("construction_Transaction_htmx_delete", args=(self.pk,))
+
+    def calculate_profit(self, interest_rate=None):
+        """
+        محاسبه سود بر اساس فرمول:
+        سود = مبلغ تراکنش × روز مانده تا پایان پروژه × نرخ سود روزانه
+        
+        برای آورده: سود مثبت
+        برای خروج از سرمایه: سود منفی
+        """
+        if self.transaction_type not in ['principal_deposit', 'principal_withdrawal']:
+            return Decimal('0')
+        
+        if not interest_rate:
+            interest_rate = InterestRate.get_current_rate()
+        
+        if not interest_rate:
+            return Decimal('0')
+        
+        if self.day_remaining <= 0:
+            return Decimal('0')
+        
+        # محاسبه سود (مبلغ می‌تواند مثبت یا منفی باشد)
+        profit = self.amount * self.day_remaining * interest_rate.rate
+        
+        return profit.quantize(Decimal('0.01'))  # گرد کردن به 2 رقم اعشار
+
+    @classmethod
+    def calculate_all_profits(cls, interest_rate=None):
+        """
+        محاسبه سود برای همه آورده‌ها
+        """
+        if not interest_rate:
+            interest_rate = InterestRate.get_current_rate()
+        
+        if not interest_rate:
+            return []
+        
+        # دریافت همه تراکنش‌های سرمایه (آورده و خروج)
+        capital_transactions = cls.objects.filter(
+            transaction_type__in=['principal_deposit', 'principal_withdrawal'],
+            day_remaining__gt=0
+        )
+        
+        profit_transactions = []
+        
+        for transaction in capital_transactions:
+            profit_amount = transaction.calculate_profit(interest_rate)
+            
+            if profit_amount != 0:  # سود مثبت یا منفی
+                # ایجاد تراکنش سود
+                profit_transaction = cls(
+                    project=transaction.project,
+                    investor=transaction.investor,
+                    period=transaction.period,
+                    date_shamsi=transaction.date_shamsi,
+                    date_gregorian=transaction.date_gregorian,
+                    amount=profit_amount,
+                    transaction_type='profit_accrual',
+                    description=f'سود محاسبه شده برای {transaction.get_transaction_type_display()} {transaction.amount}',
+                    day_remaining=transaction.day_remaining,
+                    day_from_start=transaction.day_from_start,
+                    interest_rate=interest_rate,
+                    is_system_generated=True,
+                    parent_transaction=transaction  # ردیابی تراکنش اصلی
+                )
+                profit_transactions.append(profit_transaction)
+        
+        return profit_transactions
+
+    @classmethod
+    def recalculate_profits_with_new_rate(cls, new_interest_rate):
+        """
+        محاسبه مجدد سودها با نرخ جدید
+        """
+        # حذف سودهای قبلی که توسط سیستم تولید شده‌اند
+        cls.objects.filter(
+            transaction_type='profit_accrual',
+            is_system_generated=True
+        ).delete()
+        
+        # محاسبه سودهای جدید
+        new_profit_transactions = cls.calculate_all_profits(new_interest_rate)
+        
+        # ذخیره سودهای جدید
+        for profit_transaction in new_profit_transactions:
+            profit_transaction.save()
+        
+        return len(new_profit_transactions)
 class Expense(models.Model):
     """
     مدل هزینه‌های پروژه

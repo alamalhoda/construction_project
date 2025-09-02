@@ -88,6 +88,10 @@ class TransactionSerializer(serializers.ModelSerializer):
     investor_data = InvestorSerializer(source='investor', read_only=True)
     project_data = ProjectSerializer(source='project', read_only=True)
     period_data = PeriodSerializer(source='period', read_only=True)
+    
+    # فیلد parent_transaction برای ردیابی تراکنش اصلی
+    parent_transaction_id = serializers.IntegerField(read_only=True)
+    parent_transaction_data = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Transaction
@@ -112,6 +116,8 @@ class TransactionSerializer(serializers.ModelSerializer):
             "investor_data",
             "project_data",
             "period_data",
+            "parent_transaction_id",
+            "parent_transaction_data",
         ]
     
     def get_date_shamsi(self, obj):
@@ -121,6 +127,18 @@ class TransactionSerializer(serializers.ModelSerializer):
             # تبدیل تاریخ میلادی به شمسی
             jdate = jdatetime.fromgregorian(date=obj.date_gregorian)
             return jdate.strftime('%Y-%m-%d')
+        return None
+    
+    def get_parent_transaction_data(self, obj):
+        """اطلاعات تراکنش اصلی برای تراکنش‌های سود"""
+        if obj.parent_transaction:
+            return {
+                'id': obj.parent_transaction.id,
+                'transaction_type': obj.parent_transaction.transaction_type,
+                'amount': obj.parent_transaction.amount,
+                'date_gregorian': obj.parent_transaction.date_gregorian,
+                'investor_name': f"{obj.parent_transaction.investor.first_name} {obj.parent_transaction.investor.last_name}"
+            }
         return None
         
     def create(self, validated_data):
