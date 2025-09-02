@@ -140,6 +140,24 @@ class TransactionViewSet(viewsets.ModelViewSet):
         })
 
 
+class InterestRateViewSet(viewsets.ModelViewSet):
+    """ViewSet for the InterestRate class"""
+
+    queryset = models.InterestRate.objects.all()
+    serializer_class = serializers.InterestRateSerializer
+    permission_classes = [permissions.AllowAny]  # موقتاً برای داشبورد
+
+    @action(detail=False, methods=['get'])
+    def current(self, request):
+        """دریافت نرخ سود فعال فعلی"""
+        current_rate = models.InterestRate.get_current_rate()
+        if current_rate:
+            serializer = self.get_serializer(current_rate)
+            return Response(serializer.data)
+        else:
+            return Response({'error': 'هیچ نرخ سود فعالی یافت نشد'}, status=404)
+
+
 class UnitViewSet(viewsets.ModelViewSet):
     """ViewSet for the Unit class"""
 

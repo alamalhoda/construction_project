@@ -253,6 +253,21 @@ class TransactionSerializer(serializers.ModelSerializer):
         
         return transaction
 
+class InterestRateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.InterestRate
+        fields = [
+            "id",
+            "rate",
+            "effective_date",
+            "effective_date_gregorian",
+            "description",
+            "is_active",
+            "created_at",
+            "updated_at",
+        ]
+
 class UnitSerializer(serializers.ModelSerializer):
 
     class Meta:

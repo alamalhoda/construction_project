@@ -143,10 +143,10 @@ class InterestRate(models.Model):
     شامل نرخ سود و تاریخ اعمال آن
     """
     rate = models.DecimalField(
-        max_digits=10, 
-        decimal_places=7, 
+        max_digits=20, 
+        decimal_places=15, 
         verbose_name="نرخ سود روزانه",
-        help_text="مثال: 0.0004819"
+        help_text="مثال: 0.000481925679775"
     )
     effective_date = jmodels.jDateField(
         verbose_name="تاریخ اعمال (شمسی)",

@@ -11,17 +11,82 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
+        /* CSS Variables for Theme System */
+        :root {
+            /* Light Theme Colors */
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --info-color: #17a2b8;
+            
+            /* Background Colors */
+            --bg-primary: #f8f9fa;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --bg-overlay: rgba(255, 255, 255, 0.95);
+            
+            /* Text Colors */
+            --text-primary: #2c3e50;
+            --text-secondary: #6c757d;
+            --text-muted: #8e9297;
+            --text-white: #ffffff;
+            
+            /* Border & Shadow */
+            --border-color: #e9ecef;
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 8px 25px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 15px 35px rgba(0, 0, 0, 0.12);
+            
+            /* Chart Colors */
+            --chart-primary: rgba(54, 162, 235, 1);
+            --chart-secondary: rgba(255, 99, 132, 1);
+            --chart-success: rgba(75, 192, 192, 1);
+            --chart-warning: rgba(255, 206, 86, 1);
+        }
+
+        /* Dark Theme */
+        [data-theme="dark"] {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --info-color: #17a2b8;
+            
+            /* Dark Background Colors */
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e1e;
+            --bg-card: #2d2d2d;
+            --bg-overlay: rgba(45, 45, 45, 0.95);
+            
+            /* Dark Text Colors */
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --text-muted: #888888;
+            --text-white: #ffffff;
+            
+            /* Dark Border & Shadow */
+            --border-color: #404040;
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 8px 25px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 15px 35px rgba(0, 0, 0, 0.5);
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
         }
 
         body {
             font-family: 'Tahoma', 'Arial', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             min-height: 100vh;
             padding: 20px;
+            color: var(--text-primary);
         }
 
         .container {
@@ -29,6 +94,122 @@
             margin: 0 auto;
         }
 
+        /* Unified Header Design */
+        .unified-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            border-radius: 20px 20px 0 0;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .unified-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.05)"/><circle cx="10" cy="60" r="0.5" fill="rgba(255,255,255,0.05)"/><circle cx="90" cy="40" r="0.5" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .unified-header-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+
+        .unified-header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            font-weight: 300;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .unified-header h1 i {
+            font-size: 2.5rem;
+            opacity: 0.9;
+        }
+
+        .unified-header .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 25px;
+            font-weight: 300;
+        }
+
+        .unified-header .navigation-links {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .unified-header .nav-link {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .unified-header .nav-link:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .unified-header .nav-link i {
+            font-size: 1.1rem;
+        }
+
+        /* Theme Toggle Button */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: var(--bg-overlay);
+            border: 2px solid var(--border-color);
+            border-radius: 50px;
+            padding: 12px 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .theme-toggle:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .theme-toggle i {
+            font-size: 1.1rem;
+        }
+
+        /* Legacy header styles for backward compatibility */
         .header {
             text-align: center;
             color: white;
@@ -53,33 +234,59 @@
             margin-bottom: 30px;
         }
 
+        .stat-card.interest-rate-card {
+            grid-column: span 2;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.3);
+        }
+
+        .stat-card.interest-rate-card i {
+            color: white;
+            font-size: 3rem;
+        }
+
+        .stat-card.interest-rate-card h3 {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+
+        .stat-card.interest-rate-card p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+        }
+
         .stat-card {
-            background: white;
+            background: var(--bg-card);
             padding: 20px;
             border-radius: 15px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            box-shadow: var(--shadow-md);
             text-align: center;
             transition: transform 0.3s ease;
+            border: 1px solid var(--border-color);
         }
 
         .stat-card:hover {
             transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
         }
 
         .stat-card i {
             font-size: 2.5rem;
-            color: #667eea;
+            color: var(--primary-color);
             margin-bottom: 15px;
         }
 
         .stat-card h3 {
             font-size: 2rem;
-            color: #333;
+            color: var(--text-primary);
             margin-bottom: 10px;
         }
 
         .stat-card p {
-            color: #666;
+            color: var(--text-secondary);
             font-size: 1rem;
         }
 
@@ -91,15 +298,16 @@
         }
 
         .chart-container {
-            background: white;
+            background: var(--bg-card);
             padding: 30px;
             border-radius: 15px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
         }
 
         .chart-container h3 {
             text-align: center;
-            color: #333;
+            color: var(--text-primary);
             margin-bottom: 20px;
             font-size: 1.3rem;
         }
@@ -110,16 +318,17 @@
         }
 
         .table-container {
-            background: white;
+            background: var(--bg-card);
             padding: 25px;
             border-radius: 15px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            box-shadow: var(--shadow-md);
             margin-bottom: 30px;
+            border: 1px solid var(--border-color);
         }
 
         .table-container h3 {
             text-align: center;
-            color: #333;
+            color: var(--text-primary);
             margin-bottom: 20px;
             font-size: 1.3rem;
         }
@@ -133,17 +342,18 @@
         th, td {
             padding: 12px;
             text-align: right;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
         }
 
         th {
-            background-color: #f8f9fa;
+            background-color: var(--bg-primary);
             font-weight: bold;
-            color: #333;
+            color: var(--text-primary);
         }
 
         tr:hover {
-            background-color: #f5f5f5;
+            background-color: var(--bg-primary);
         }
 
         .loading {
@@ -163,6 +373,36 @@
         }
 
         @media (max-width: 768px) {
+            .unified-header {
+                padding: 25px 20px;
+                border-radius: 15px 15px 0 0;
+            }
+
+            .unified-header h1 {
+                font-size: 2.2rem;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .unified-header h1 i {
+                font-size: 2rem;
+            }
+
+            .unified-header .subtitle {
+                font-size: 1.1rem;
+            }
+
+            .unified-header .navigation-links {
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .unified-header .nav-link {
+                padding: 10px 20px;
+                font-size: 0.95rem;
+            }
+
             .charts-grid {
                 grid-template-columns: 1fr;
             }
@@ -170,28 +410,51 @@
             .stats-grid {
                 grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             }
+
+            .stat-card.interest-rate-card {
+                grid-column: span 1;
+                transform: scale(1);
+            }
+
+            .stat-card.interest-rate-card i {
+                font-size: 2.5rem;
+            }
+
+            .stat-card.interest-rate-card h3 {
+                font-size: 2rem;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle" id="themeToggle">
+        <i class="fas fa-moon" id="themeIcon"></i>
+        <span id="themeText">حالت تیره</span>
+    </button>
+
     <div class="container">
-        <div class="header">
-            <h1><i class="fas fa-chart-line"></i> داشبورد مالی پروژه آرشا</h1>
-            <p>نمایش جامع وضعیت مالی و سرمایه‌گذاری</p>
-            <div style="margin-top: 20px;">
-                <a href="investor_profile.html" style="
-                    background: rgba(255, 255, 255, 0.2);
-                    color: white;
-                    padding: 12px 25px;
-                    border-radius: 25px;
-                    text-decoration: none;
-                    font-weight: bold;
-                    border: 2px solid rgba(255, 255, 255, 0.3);
-                    transition: all 0.3s ease;
-                    display: inline-block;
-                " onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
-                    <i class="fas fa-user-tie"></i> مشاهده پروفایل سرمایه‌گذاران
-                </a>
+        <div class="unified-header">
+            <div class="unified-header-content">
+                <h1>
+                    <i class="fas fa-chart-line"></i>
+                    داشبورد مالی پروژه آرشا
+                </h1>
+                <p class="subtitle">نمایش جامع وضعیت مالی و سرمایه‌گذاری</p>
+                <div class="navigation-links">
+                    <a href="/dashboard/" class="nav-link">
+                        <i class="fas fa-home"></i>
+                        صفحه اصلی
+                    </a>
+                    <a href="/dashboard/transaction-manager/" class="nav-link">
+                        <i class="fas fa-money-bill-wave"></i>
+                        مدیریت تراکنش‌ها
+                    </a>
+                    <a href="/dashboard/investor-profile/" class="nav-link">
+                        <i class="fas fa-user-tie"></i>
+                        پروفایل سرمایه‌گذاران
+                    </a>
+                </div>
             </div>
         </div>
 
@@ -207,11 +470,6 @@
             <!-- آمار کلی -->
             <div class="stats-grid">
                 <div class="stat-card">
-                    <i class="fas fa-users"></i>
-                    <h3 id="totalInvestors">-</h3>
-                    <p>کل سرمایه‌گذاران</p>
-                </div>
-                <div class="stat-card">
                     <i class="fas fa-money-bill-wave"></i>
                     <h3 id="totalPrincipal">-</h3>
                     <p>سرمایه موجود (میلیون تومان)</p>
@@ -220,6 +478,11 @@
                     <i class="fas fa-chart-pie"></i>
                     <h3 id="totalProfit">-</h3>
                     <p>کل سود (میلیون تومان)</p>
+                </div>
+                <div class="stat-card interest-rate-card">
+                    <i class="fas fa-percentage"></i>
+                    <h3 id="currentInterestRate">-</h3>
+                    <p>نرخ سود روزانه  (%)</p>
                 </div>
                 <div class="stat-card">
                     <i class="fas fa-calendar-alt"></i>
@@ -234,7 +497,7 @@
                 <div class="stat-card">
                     <i class="fas fa-stop-circle"></i>
                     <h3 id="endDate">-</h3>
-                    <p>آخرین فعالیت</p>
+                    <p>تاریخ پایان پروژه</p>
                 </div>
             </div>
 
@@ -307,6 +570,7 @@
         let charts = {};
         let allInvestors = [];
         let allProjects = [];
+        let currentInterestRate = null;
 
         // متغیر برای تبدیل مبالغ (10 میلیون)
         const BASE_AMOUNT = 10000000;
@@ -317,12 +581,16 @@
                 console.log('شروع بارگذاری داده‌ها از API...');
                 
                 // بارگذاری موازی همه داده‌ها
-                const [transactionsResponse, investorsResponse, projectsResponse] = await Promise.all([
+                const [transactionsResponse, investorsResponse, projectsResponse, interestRateResponse] = await Promise.all([
                     fetch('/construction/api/v1/Transaction/'),
                     fetch('/construction/api/v1/Investor/'),
                     fetch('/construction/api/v1/Project/').catch(err => {
                         console.warn('خطا در دسترسی به API پروژه‌ها:', err);
                         return { ok: false, status: 403 }; // fallback response
+                    }),
+                    fetch('/construction/api/v1/InterestRate/current/').catch(err => {
+                        console.warn('خطا در دسترسی به API نرخ سود:', err);
+                        return { ok: false, status: 404 }; // fallback response
                     })
                 ]);
                 
@@ -347,6 +615,15 @@
                     allProjects = [];
                 }
                 
+                // اگر نرخ سود API دسترسی داشت، آن را بارگذاری کن
+                if (interestRateResponse.ok) {
+                    currentInterestRate = await interestRateResponse.json();
+                    console.log('نرخ سود فعال بارگذاری شد:', currentInterestRate);
+                } else {
+                    console.warn('API نرخ سود دسترسی ندارد');
+                    currentInterestRate = null;
+                }
+                
                 console.log('داده‌ها بارگذاری شدند:', {
                     transactions: transactions.length,
                     investors: allInvestors.length,
@@ -355,15 +632,15 @@
                 
                 // تبدیل تراکنش‌ها به فرمت سازگار
                 chartData = transactions.map(transaction => ({
-                    project_id: transaction.project?.id || '',
-                    project_name: transaction.project?.name || '',
-                    investor_name: transaction.investor?.name || '',
-                    investor_id: transaction.investor?.id || '',
+                    project_id: transaction.project_data?.id || '',
+                    project_name: transaction.project_data?.name || '',
+                    investor_name: transaction.investor_data ? `${transaction.investor_data.first_name} ${transaction.investor_data.last_name}` : '',
+                    investor_id: transaction.investor_data?.id || '',
                     entry_type: transaction.transaction_type || '',
                     date_shamsi: transaction.date_shamsi || '',
-                    date_miladi: transaction.date || '',
+                    date_miladi: transaction.date_gregorian || '',
                     amount: parseFloat(transaction.amount) || 0,
-                    period_name: transaction.period?.name || '',
+                    period_name: transaction.period_data?.label || '',
                     description: transaction.description || ''
                 })).filter(row => row.project_id && row.project_id.toString().trim() !== '');
                 
@@ -458,19 +735,27 @@
             }
 
             // به‌روزرسانی المان‌های HTML
-            document.getElementById('totalInvestors').textContent = totalInvestors.toLocaleString('fa-IR');
             document.getElementById('totalPrincipal').textContent = (currentCapital / BASE_AMOUNT).toFixed(1);
             document.getElementById('totalProfit').textContent = (totalProfit / BASE_AMOUNT).toFixed(1);
             document.getElementById('totalDays').textContent = projectDuration.toLocaleString('fa-IR');
             document.getElementById('startDate').textContent = projectStartDate;
             document.getElementById('endDate').textContent = projectEndDate === '-' ? 'ادامه دارد' : projectEndDate;
+            
+            // نمایش نرخ سود روزانه فعال با دقت کامل
+            if (currentInterestRate && currentInterestRate.rate) {
+                const ratePercent = (parseFloat(currentInterestRate.rate) * 100);
+                // نمایش با دقت کامل (تا 15 رقم اعشار)
+                document.getElementById('currentInterestRate').textContent = ratePercent.toFixed(15);
+            } else {
+                document.getElementById('currentInterestRate').textContent = 'تعریف نشده';
+            }
 
             console.log('آمار محاسبه شده:', {
-                totalInvestors: totalInvestors,
                 totalDeposits: (totalDeposits / BASE_AMOUNT).toFixed(1) + ' میلیون',
                 totalWithdrawals: (totalWithdrawals / BASE_AMOUNT).toFixed(1) + ' میلیون',
                 currentCapital: (currentCapital / BASE_AMOUNT).toFixed(1) + ' میلیون',
                 totalProfit: (totalProfit / BASE_AMOUNT).toFixed(1) + ' میلیون',
+                currentInterestRate: currentInterestRate ? (parseFloat(currentInterestRate.rate) * 100).toFixed(15) + '%' : 'تعریف نشده',
                 projectDuration: projectDuration + ' روز',
                 projectStartDate: projectStartDate,
                 projectEndDate: projectEndDate,
@@ -1101,12 +1386,44 @@
             return true;
         }
 
+        // Theme Management
+        function initializeTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            setTheme(savedTheme);
+        }
+
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            
+            const themeIcon = document.getElementById('themeIcon');
+            const themeText = document.getElementById('themeText');
+            
+            if (theme === 'dark') {
+                themeIcon.className = 'fas fa-sun';
+                themeText.textContent = 'حالت روشن';
+            } else {
+                themeIcon.className = 'fas fa-moon';
+                themeText.textContent = 'حالت تیره';
+            }
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            setTheme(newTheme);
+        }
+
         // بارگذاری داده‌ها هنگام لود صفحه
         window.addEventListener('load', function() {
+            initializeTheme();
             if (checkChartJS()) {
                 loadData();
             }
         });
+
+        // Theme toggle event listener
+        document.getElementById('themeToggle').addEventListener('click', toggleTheme);
     </script>
 </body>
 </html>
