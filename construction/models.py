@@ -400,6 +400,54 @@ class Transaction(models.Model):
             profit_transaction.save()
         
         return len(new_profit_transactions)
+    
+    @classmethod
+    def delete_all_profit_transactions(cls):
+        """
+        حذف همه رکوردهای سود (اعم از سیستم‌ی و دستی)
+        """
+        deleted_count = cls.objects.filter(
+            transaction_type='profit_accrual'
+        ).count()
+        
+        cls.objects.filter(
+            transaction_type='profit_accrual'
+        ).delete()
+        
+        return deleted_count
+    
+    @classmethod
+    def recalculate_all_profits_with_new_rate(cls, new_interest_rate):
+        """
+        سناریوی کامل: حذف همه سودهای قبلی و محاسبه مجدد با نرخ جدید
+        
+        این تابع:
+        1. همه رکوردهای سود قبلی را حذف می‌کند
+        2. سودهای جدید را با نرخ جدید محاسبه می‌کند
+        3. سودهای جدید را ذخیره می‌کند
+        
+        Args:
+            new_interest_rate (Decimal): نرخ سود جدید
+            
+        Returns:
+            dict: شامل تعداد رکوردهای حذف شده و تعداد رکوردهای جدید
+        """
+        # مرحله 1: حذف همه رکوردهای سود قبلی
+        deleted_count = cls.delete_all_profit_transactions()
+        
+        # مرحله 2: محاسبه سودهای جدید با نرخ جدید
+        new_profit_transactions = cls.calculate_all_profits(new_interest_rate)
+        
+        # مرحله 3: ذخیره سودهای جدید
+        for profit_transaction in new_profit_transactions:
+            profit_transaction.save()
+        
+        return {
+            'deleted_count': deleted_count,
+            'new_count': len(new_profit_transactions),
+            'total_affected': deleted_count + len(new_profit_transactions)
+        }
+
 class Expense(models.Model):
     """
     مدل هزینه‌های پروژه
