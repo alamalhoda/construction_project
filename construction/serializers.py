@@ -149,9 +149,13 @@ class TransactionSerializer(serializers.ModelSerializer):
         # دریافت تاریخ شمسی از frontend
         date_shamsi_input = validated_data.pop('date_shamsi_input', None)
         date_shamsi_raw = validated_data.pop('date_shamsi_raw', None)
+        date_shamsi_direct = validated_data.pop('date_shamsi', None)
+        
+        # حذف date_shamsi از validated_data اگر وجود دارد
+        validated_data.pop('date_shamsi', None)
         
         # استفاده از هر کدام که موجود باشد
-        date_shamsi_value = date_shamsi_input or date_shamsi_raw
+        date_shamsi_value = date_shamsi_input or date_shamsi_raw or date_shamsi_direct
         
         if date_shamsi_value:
             # تبدیل تاریخ شمسی (string) به میلادی (date object)
@@ -160,7 +164,7 @@ class TransactionSerializer(serializers.ModelSerializer):
             # تبدیل datetime به date
             validated_data['date_gregorian'] = gregorian_datetime.date()
             # date_shamsi باید تاریخ میلادی باشد (برای jmodels.jDateField)
-            validated_data['date_shamsi'] = gregorian_datetime.date()
+            validated_data['date_shamsi'] = jdate.date()
         
         # Handle کردن فیلدهای مختلف از frontend
         # اگر investor_id وجود دارد، از آن استفاده کن
@@ -216,7 +220,7 @@ class TransactionSerializer(serializers.ModelSerializer):
             # تبدیل datetime به date
             validated_data['date_gregorian'] = gregorian_datetime.date()
             # date_shamsi باید تاریخ میلادی باشد (برای jmodels.jDateField)
-            validated_data['date_shamsi'] = gregorian_datetime.date()
+            validated_data['date_shamsi'] = jdate.date()
         
         # Handle کردن فیلدهای مختلف از frontend
         # اگر investor_id وجود دارد، از آن استفاده کن
