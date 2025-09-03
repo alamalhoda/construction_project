@@ -2,6 +2,7 @@ from django.db import models
 from django.urls import reverse
 from django_jalali.db import models as jmodels
 from decimal import Decimal
+from django.contrib.auth.models import User
 
 class Project(models.Model):
     """
@@ -488,3 +489,84 @@ class Expense(models.Model):
 
     def get_htmx_delete_url(self):
         return reverse("construction_Expense_htmx_delete", args=(self.pk,))
+
+
+class UserProfile(models.Model):
+    """
+    مدل پروفایل کاربر برای مدیریت نقش‌ها و دسترسی‌ها
+    """
+    ROLE_CHOICES = [
+        ('technical_admin', 'مدیر فنی'),
+        ('end_user', 'کاربر نهایی/بهره‌بردار'),
+    ]
+    
+    user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name="کاربر")
+    role = models.CharField(
+        max_length=20, 
+        choices=ROLE_CHOICES, 
+        default='end_user',
+        verbose_name="نقش کاربر"
+    )
+    phone = models.CharField(max_length=15, blank=True, null=True, verbose_name="شماره تلفن")
+    department = models.CharField(max_length=100, blank=True, null=True, verbose_name="بخش")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="تاریخ به‌روزرسانی")
+    
+    class Meta:
+        verbose_name = "پروفایل کاربر"
+        verbose_name_plural = "پروفایل‌های کاربران"
+    
+    def __str__(self):
+        return f"{self.user.get_full_name()} - {self.get_role_display()}"
+    
+    @property
+    def is_technical_admin(self):
+        """بررسی اینکه آیا کاربر مدیر فنی است یا نه"""
+        return self.role == 'technical_admin'
+    
+    @property
+    def is_end_user(self):
+        """بررسی اینکه آیا کاربر نهایی است یا نه"""
+        return self.role == 'end_user'
+    
+    def can_access_admin(self):
+        """بررسی دسترسی به پنل ادمین"""
+        return self.is_technical_admin or self.user.is_staff
+    
+    def can_access_dashboard(self):
+        """بررسی دسترسی به داشبورد"""
+        return True  # همه کاربران می‌توانند به داشبورد دسترسی داشته باشند
+    
+    def can_manage_projects(self):
+        """بررسی دسترسی به مدیریت پروژه‌ها"""
+        return self.is_technical_admin
+    
+    def can_manage_investors(self):
+        """بررسی دسترسی به مدیریت سرمایه‌گذاران"""
+        return self.is_technical_admin
+    
+    def can_manage_transactions(self):
+        """بررسی دسترسی به مدیریت تراکنش‌ها"""
+        return self.is_technical_admin
+    
+    def can_view_reports(self):
+        """بررسی دسترسی به گزارش‌ها"""
+        return self.is_technical_admin
+    
+    def get_allowed_pages(self):
+        """دریافت لیست صفحات مجاز برای کاربر"""
+        if self.is_technical_admin:
+            return [
+                'dashboard',
+                'projects',
+                'investors', 
+                'transactions',
+                'reports',
+                'admin',
+                'api'
+            ]
+        else:
+            return [
+                'dashboard',
+                'profile'
+            ]

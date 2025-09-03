@@ -1,0 +1,427 @@
+
+{% load static %}
+
+{% block extrahead %}
+<style>
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        font-family: 'Tahoma', 'Vazir', sans-serif;
+    }
+    
+    .dashboard-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .dashboard-header {
+        background: rgba(255, 255, 255, 0.95);
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    
+    .dashboard-header h1 {
+        color: #333;
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        font-weight: 300;
+    }
+    
+    .dashboard-header p {
+        color: #666;
+        font-size: 1.1rem;
+        margin-bottom: 20px;
+    }
+    
+    .user-info {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 15px;
+        display: inline-block;
+        margin: 0 10px;
+    }
+    
+    .user-info h3 {
+        margin: 0 0 10px 0;
+        font-size: 1.2rem;
+    }
+    
+    .user-info p {
+        margin: 0;
+        opacity: 0.9;
+    }
+    
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 25px;
+        margin-bottom: 30px;
+    }
+    
+    .dashboard-card {
+        background: rgba(255, 255, 255, 0.95);
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        text-align: center;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .dashboard-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+    
+    .card-icon {
+        font-size: 3rem;
+        margin-bottom: 20px;
+        display: block;
+    }
+    
+    .card-title {
+        color: #333;
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+        font-weight: 600;
+    }
+    
+    .card-description {
+        color: #666;
+        font-size: 1rem;
+        margin-bottom: 25px;
+        line-height: 1.6;
+    }
+    
+    .card-btn {
+        display: inline-block;
+        padding: 12px 25px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        text-decoration: none;
+        border-radius: 25px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .card-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .card-btn.secondary {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    }
+    
+    .card-btn.secondary:hover {
+        box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
+    }
+    
+    .card-btn.danger {
+        background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+    }
+    
+    .card-btn.danger:hover {
+        box-shadow: 0 8px 25px rgba(220, 53, 69, 0.3);
+    }
+    
+    .user-actions {
+        background: rgba(255, 255, 255, 0.95);
+        padding: 25px;
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        text-align: center;
+    }
+    
+    .user-actions h3 {
+        color: #333;
+        margin-bottom: 20px;
+        font-size: 1.3rem;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .action-btn {
+        padding: 10px 20px;
+        border: 2px solid #667eea;
+        background: transparent;
+        color: #667eea;
+        text-decoration: none;
+        border-radius: 25px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .action-btn:hover {
+        background: #667eea;
+        color: white;
+        text-decoration: none;
+    }
+    
+    .action-btn.logout {
+        border-color: #dc3545;
+        color: #dc3545;
+    }
+    
+    .action-btn.logout:hover {
+        background: #dc3545;
+        color: white;
+    }
+    
+    .welcome-message {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 15px;
+        margin-bottom: 25px;
+        text-align: center;
+    }
+    
+    .welcome-message h2 {
+        margin: 0 0 10px 0;
+        font-size: 1.8rem;
+    }
+    
+    .welcome-message p {
+        margin: 0;
+        opacity: 0.9;
+        font-size: 1.1rem;
+    }
+    
+    @media (max-width: 768px) {
+        .dashboard-container {
+            padding: 15px;
+        }
+        
+        .dashboard-header {
+            padding: 20px;
+        }
+        
+        .dashboard-header h1 {
+            font-size: 2rem;
+        }
+        
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        
+        .dashboard-card {
+            padding: 20px;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .action-btn {
+            width: 200px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+
+        <div class="welcome-message">
+            <h2>سلام {{ user_full_name }}! 👋</h2>
+        </div>
+
+    </div>
+    
+    <div class="dashboard-grid">
+        {% if is_technical_admin %}
+            <!-- کارت‌های مدیر فنی -->
+            <div class="dashboard-card">
+                <span class="card-icon">📋</span>
+                <h3 class="card-title">مدیریت پروژه‌ها</h3>
+                <p class="card-description">
+                    مشاهده، ایجاد و مدیریت پروژه‌های ساختمانی
+                </p>
+                <a href="{% url 'construction_Project_list' %}" class="card-btn">
+                    مشاهده پروژه‌ها
+                </a>
+            </div>
+            
+            <div class="dashboard-card">
+                <span class="card-icon">👥</span>
+                <h3 class="card-title">مدیریت سرمایه‌گذاران</h3>
+                <p class="card-description">
+                    مدیریت اطلاعات سرمایه‌گذاران و پروفایل‌های مالی
+                </p>
+                <a href="{% url 'construction_Investor_list' %}" class="card-btn">
+                    مشاهده سرمایه‌گذاران
+                </a>
+            </div>
+            
+            <div class="dashboard-card">
+                <span class="card-icon">💰</span>
+                <h3 class="card-title">مدیریت تراکنش‌ها</h3>
+                <p class="card-description">
+                    ثبت و مدیریت تراکنش‌های مالی و سود
+                </p>
+                <a href="{% url 'construction_Transaction_list' %}" class="card-btn">
+                    مشاهده تراکنش‌ها
+                </a>
+            </div>
+            
+            <div class="dashboard-card">
+                <span class="card-icon">🏗️</span>
+                <h3 class="card-title">مدیریت واحدها</h3>
+                <p class="card-description">
+                    مدیریت واحدهای ساختمانی و اطلاعات آن‌ها
+                </p>
+                <a href="{% url 'construction_Unit_list' %}" class="card-btn">
+                    مشاهده واحدها
+                </a>
+            </div>
+            
+            <div class="dashboard-card">
+                <span class="card-icon">⚡</span>
+                <h3 class="card-title">رابط HTMX</h3>
+                <p class="card-description">
+                    استفاده از رابط کاربری پیشرفته HTMX
+                </p>
+                <a href="{% url 'protected_htmx' %}" class="card-btn secondary">
+                    ورود به HTMX
+                </a>
+            </div>
+            
+            <div class="dashboard-card">
+                <span class="card-icon">🔧</span>
+                <h3 class="card-title">پنل ادمین</h3>
+                <p class="card-description">
+                    دسترسی به پنل مدیریت سیستم
+                </p>
+                <a href="{% url 'admin:index' %}" class="card-btn danger">
+                    ورود به ادمین
+                </a>
+            </div>
+            
+        {% else %}
+            <!-- کارت‌های کاربر نهایی -->
+            
+            <div class="dashboard-card">
+                <span class="card-icon">📋</span>
+                <h3 class="card-title">خلاصه مالی</h3>
+                <p class="card-description">
+                    مشاهده اطلاعات مالی و سرمایه گذاری
+                </p>
+                <a href="/dashboard/project/" class="card-btn">
+                   خلاصه مالی
+                </a>
+            </div>
+            
+            <div class="dashboard-card">
+                <span class="card-icon">💰</span>
+                <h3 class="card-title">مدیریت تراکنش‌ها</h3>
+                <p class="card-description">
+                    مشاهده و مدیریت تراکنش‌های مالی
+                </p>
+                <a href="/dashboard/transaction-manager/" class="card-btn">
+                    مدیریت تراکنش‌ها
+                </a>
+            </div>
+            
+            <div class="dashboard-card">
+                <span class="card-icon">👥</span>
+                <h3 class="card-title">پروفایل سرمایه‌گذاران</h3>
+                <p class="card-description">
+                    مشاهده پروفایل و اطلاعات سرمایه‌گذاران
+                </p>
+                <a href="/dashboard/investor-profile/" class="card-btn">
+                    پروفایل سرمایه‌گذاران
+                </a>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="user-actions">
+        <h3>🔧 عملیات کاربری</h3>
+        <div class="action-buttons">
+            {% if is_technical_admin %}
+                <a href="{% url 'admin:index' %}" class="action-btn danger">
+                    🔧 پنل ادمین
+                </a>
+            {% endif %}
+            <a href="{% url 'user_profile' %}" class="action-btn">
+                👤 پروفایل من
+            </a>
+            <a href="{% url 'change_password' %}" class="action-btn">
+                🔒 تغییر رمز عبور
+            </a>
+            <a href="{% url 'user_logout' %}" class="action-btn logout">
+                🚪 خروج از سیستم
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+// اضافه کردن انیمیشن به کارت‌ها
+document.querySelectorAll('.dashboard-card').forEach(card => {
+    card.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-5px) scale(1.02)';
+    });
+    
+    card.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0) scale(1)';
+    });
+});
+
+// اضافه کردن انیمیشن به دکمه‌ها
+document.querySelectorAll('.card-btn, .action-btn').forEach(btn => {
+    btn.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-2px) scale(1.05)';
+    });
+    
+    btn.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0) scale(1)';
+    });
+});
+
+// نمایش پیام خوش‌آمدگویی
+setTimeout(() => {
+    const welcomeMessage = document.querySelector('.welcome-message');
+    if (welcomeMessage) {
+        welcomeMessage.style.animation = 'fadeInUp 0.6s ease-out';
+    }
+}, 500);
+
+// اضافه کردن CSS animation
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}
