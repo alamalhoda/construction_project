@@ -118,6 +118,9 @@ class EnhancedAuthenticationBackend(ModelBackend):
     
     def get_client_ip(self, request):
         """دریافت IP واقعی کاربر"""
+        if request is None:
+            return '127.0.0.1'  # IP پیش‌فرض برای تست‌ها
+        
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
         if x_forwarded_for:
             ip = x_forwarded_for.split(',')[0]

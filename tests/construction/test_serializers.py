@@ -56,7 +56,7 @@ class TransactionSerializerTestCase(TestCase):
             'period_id': self.period.id,
             'transaction_type': 'principal_deposit',
             'amount': '10000',
-            'date_shamsi': '1404-06-01',
+            'date_shamsi_input': '1404-06-01',
             'description': 'تست معتبر'
         }
         
@@ -71,7 +71,7 @@ class TransactionSerializerTestCase(TestCase):
             'period_id': self.period.id,
             'transaction_type': 'principal_deposit',
             'amount': '۱۰۰۰۰',  # اعداد فارسی
-            'date_shamsi': '۱۴۰۴-۰۶-۰۱',  # اعداد فارسی
+            'date_shamsi_input': '۱۴۰۴-۰۶-۰۱',  # اعداد فارسی
             'description': 'تست اعداد فارسی'
         }
         
@@ -90,7 +90,7 @@ class TransactionSerializerTestCase(TestCase):
             'period_id': self.period.id,
             'transaction_type': 'principal_deposit',
             'amount': '50000',
-            'date_shamsi': '1404-06-01',
+            'date_shamsi_input': '1404-06-01',
             'description': 'تست تبدیل تاریخ'
         }
         
@@ -111,7 +111,7 @@ class TransactionSerializerTestCase(TestCase):
             'period_id': self.period.id,
             'transaction_type': 'invalid_type',
             'amount': '10000',
-            'date_shamsi': '1404-06-01',
+            'date_shamsi_input': '1404-06-01',
             'description': 'تست نوع نامعتبر'
         }
         
@@ -127,7 +127,7 @@ class TransactionSerializerTestCase(TestCase):
             'period': self.period.id,
             'transaction_type': 'principal_deposit',
             'amount': '10000',
-            'date_shamsi': '1404-06-01',
+            'date_shamsi_input': '1404-06-01',
         }
         
         serializer = TransactionSerializer(data=data)
@@ -156,7 +156,7 @@ class TransactionSerializerTestCase(TestCase):
             'period_id': self.period.id,
             'transaction_type': 'principal_deposit',
             'amount': '-1000',
-            'date_shamsi': '1404-06-01',
+            'date_shamsi_input': '1404-06-01',
             'description': 'تست مبلغ منفی'
         }
         
@@ -178,7 +178,7 @@ class TransactionSerializerTestCase(TestCase):
             'period_id': self.period.id,
             'transaction_type': 'principal_deposit',
             'amount': '10000',
-            'date_shamsi': '1404-06-01',
+            'date_shamsi_input': '1404-06-01',
             'description': 'تست فیلدهای خواندنی',
             # فیلدهای read-only که نباید در validated_data باشند
             'date_gregorian': '2025-08-23',

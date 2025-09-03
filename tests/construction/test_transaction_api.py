@@ -14,16 +14,42 @@ from construction.models import Transaction, Investor, Project, Period
 from construction.serializers import TransactionSerializer
 
 
-class TransactionAPITestCase(APITestCase):
+class TestUserMixin:
+    """کلاس کمکی برای ایجاد کاربر تستی مشترک"""
+    
+    @classmethod
+    def setUpTestData(cls):
+        """ایجاد داده‌های تست مشترک برای تمام تست‌ها"""
+        # ایجاد کاربر تستی مشترک
+        cls.test_user = User.objects.create_user(
+            username='api_test_user_shared',
+            password='api_test_password_123',
+            email='api_shared@test.com',
+            first_name='کاربر',
+            last_name='تست API'
+        )
+        
+        # ایجاد کاربر مدیر تستی
+        cls.admin_user = User.objects.create_user(
+            username='api_admin_user_shared',
+            password='api_admin_password_123',
+            email='api_admin_shared@test.com',
+            is_staff=True,
+            is_superuser=True
+        )
+    
+    def setUp(self):
+        """تنظیمات اولیه برای هر تست"""
+        # احراز هویت کاربر تستی
+        self.client.force_authenticate(user=self.test_user)
+
+
+class TransactionAPITestCase(TestUserMixin, APITestCase):
     """تست‌های API برای Transaction"""
     
     def setUp(self):
         """تنظیمات اولیه برای تست‌ها"""
-        # ایجاد کاربر برای تست
-        self.user = User.objects.create_user(
-            username='testuser',
-            password='testpass123'
-        )
+        super().setUp()  # فراخوانی setUp از TestUserMixin
         
         # ایجاد داده‌های تست
         self.investor = Investor.objects.create(
@@ -62,7 +88,7 @@ class TransactionAPITestCase(APITestCase):
             'period_id': self.period.id,
             'transaction_type': 'principal_deposit',
             'amount': '10000',
-            'date_shamsi': '1404-06-01',
+            'date_shamsi_input': '1404-06-01',
             'description': 'تست تراکنش'
         }
         
@@ -77,7 +103,7 @@ class TransactionAPITestCase(APITestCase):
             'period_id': self.period.id,
             'transaction_type': 'principal_deposit',
             'amount': '۱۰۰۰۰',  # اعداد فارسی
-            'date_shamsi': '۱۴۰۴-۰۶-۰۱',  # اعداد فارسی
+            'date_shamsi_input': '۱۴۰۴-۰۶-۰۱',  # اعداد فارسی
             'description': 'تست با اعداد فارسی'
         }
         
@@ -86,7 +112,8 @@ class TransactionAPITestCase(APITestCase):
         
         transaction = serializer.save()
         self.assertEqual(transaction.amount, 10000)
-        self.assertEqual(transaction.date_shamsi, date(1404, 6, 1))
+        from jdatetime import date as jdate
+        self.assertEqual(transaction.date_shamsi, jdate(1404, 6, 1))
         self.assertIsNotNone(transaction.date_gregorian)
         self.assertGreater(transaction.day_remaining, 0)
         self.assertGreater(transaction.day_from_start, 0)
@@ -99,7 +126,7 @@ class TransactionAPITestCase(APITestCase):
             'period_id': self.period.id,
             'transaction_type': 'principal_deposit',
             'amount': '50000',
-            'date_shamsi': '1404-06-01',
+            'date_shamsi_input': '1404-06-01',
             'description': 'تست تبدیل تاریخ'
         }
         
@@ -120,7 +147,7 @@ class TransactionAPITestCase(APITestCase):
             'period_id': self.period.id,
             'transaction_type': 'principal_deposit',
             'amount': '25000',
-            'date_shamsi': '1404-06-01',
+            'date_shamsi_input': '1404-06-01',
             'description': 'تست محاسبه روزها'
         }
         
@@ -143,7 +170,7 @@ class TransactionAPITestCase(APITestCase):
             'period_id': self.period.id,
             'transaction_type': 'principal_deposit',
             'amount': '15000',
-            'date_shamsi': '1404-06-01',
+            'date_shamsi_input': '1404-06-01',
             'description': 'تست API endpoint'
         }
         
@@ -163,7 +190,7 @@ class TransactionAPITestCase(APITestCase):
             'period_id': self.period.id,
             'transaction_type': 'invalid_type',  # نوع نامعتبر
             'amount': '-1000',  # مبلغ منفی
-            'date_shamsi': 'invalid_date',  # تاریخ نامعتبر
+            'date_shamsi_input': 'invalid_date',  # تاریخ نامعتبر
         }
         
         serializer = TransactionSerializer(data=invalid_data)
@@ -285,8 +312,12 @@ class TransactionModelTestCase(TestCase):
 
 
 @pytest.mark.django_db
-class TransactionIntegrationTestCase(APITestCase):
+class TransactionIntegrationTestCase(TestUserMixin, APITestCase):
     """تست‌های یکپارچگی Transaction"""
+    
+    def setUp(self):
+        """تنظیمات اولیه برای تست‌ها"""
+        super().setUp()  # فراخوانی setUp از TestUserMixin
     
     def test_full_transaction_workflow(self):
         """تست کامل workflow تراکنش"""
@@ -326,7 +357,7 @@ class TransactionIntegrationTestCase(APITestCase):
             'period_id': period.id,
             'transaction_type': 'principal_deposit',
             'amount': '۱۰۰۰۰۰',  # اعداد فارسی
-            'date_shamsi': '۱۴۰۴-۰۶-۰۱',  # اعداد فارسی
+            'date_shamsi_input': '۱۴۰۴-۰۶-۰۱',  # اعداد فارسی
             'description': 'تست یکپارچگی کامل'
         }
         
@@ -340,7 +371,8 @@ class TransactionIntegrationTestCase(APITestCase):
         # 4. بررسی داده‌های ذخیره شده
         transaction = Transaction.objects.get(id=transaction_id)
         self.assertEqual(transaction.amount, 100000)
-        self.assertEqual(transaction.date_shamsi, date(1404, 6, 1))
+        from jdatetime import date as jdate
+        self.assertEqual(transaction.date_shamsi, jdate(1404, 6, 1))
         self.assertIsNotNone(transaction.date_gregorian)
         self.assertGreater(transaction.day_remaining, 0)
         self.assertGreater(transaction.day_from_start, 0)
@@ -357,7 +389,7 @@ class TransactionIntegrationTestCase(APITestCase):
             'period_id': period.id,
             'transaction_type': 'profit_accrual',
             'amount': '50000',
-            'date_shamsi': '1404-06-02',
+            'date_shamsi_input': '1404-06-02',
             'description': 'تست آپدیت'
         }
         

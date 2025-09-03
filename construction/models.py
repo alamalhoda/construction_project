@@ -250,8 +250,8 @@ class Transaction(models.Model):
                 gregorian_datetime = jdate.togregorian()
                 # تبدیل datetime به date
                 self.date_gregorian = gregorian_datetime.date()
-                # date_shamsi باید تاریخ میلادی باشد (برای jmodels.jDateField)
-                self.date_shamsi = gregorian_datetime.date()
+                # date_shamsi باید تاریخ شمسی باشد (برای jmodels.jDateField)
+                self.date_shamsi = jdate.date()
             # اگر date_shamsi از قبل date object است (از serializer آمده)
             elif hasattr(self.date_shamsi, 'year'):
                 self.date_gregorian = self.date_shamsi
