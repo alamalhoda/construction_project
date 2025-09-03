@@ -1,0 +1,45 @@
+# Security Requirements for Construction Project
+# نیازمندی‌های امنیتی پروژه ساختمانی
+
+# Django Security Extensions
+django-ratelimit>=4.1.0          # Rate limiting
+django-cors-headers>=4.3.1       # CORS security
+django-axes>=6.1.1               # Login attempt monitoring
+django-ratelimit>=4.1.0          # Rate limiting
+django-security>=0.20.0          # Security headers
+
+# Password Security
+bcrypt>=4.0.1                    # Password hashing
+argon2-cffi>=21.3.0              # Alternative password hashing
+
+# Two-Factor Authentication
+django-otp>=1.2.0                # OTP support
+qrcode>=7.4.2                    # QR code generation
+
+# Encryption
+cryptography>=41.0.0             # Encryption library
+pycryptodome>=3.19.0             # Cryptographic functions
+
+# Security Monitoring
+django-admin-honeypot>=1.1.0     # Honeypot for admin
+django-security-logger>=0.1.0    # Security logging
+
+# File Security
+python-magic>=0.4.27             # File type detection
+clamd>=1.0.2                     # Antivirus scanning
+
+# Network Security
+requests>=2.31.0                 # HTTP requests
+urllib3>=2.0.0                   # URL handling
+
+# Database Security
+psycopg2-binary>=2.9.7           # PostgreSQL adapter
+redis>=5.0.0                     # Redis for caching
+
+# Logging and Monitoring
+sentry-sdk>=1.38.0               # Error tracking
+django-extensions>=3.2.3         # Django extensions
+
+# Development Security
+bandit>=1.7.5                    # Security linting
+safety>=2.3.5                    # Dependency vulnerability scanning
