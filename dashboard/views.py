@@ -1,14 +1,17 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, Http404
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
 import os
 
 # Create your views here.
 
+@login_required
 def dashboard_home(request):
     """هدایت به داشبورد API"""
     return redirect('/api/dashboard/')
 
+@login_required
 def project_dashboard(request):
     """نمایش صفحه داشبورد پروژه"""
     # خواندن فایل HTML از پوشه view
@@ -20,6 +23,7 @@ def project_dashboard(request):
     except FileNotFoundError:
         return HttpResponse('‏‍فایل یافت نشد', status=404)
 
+@login_required
 def csv_viewer(request):
     """نمایش صفحه نمایشگر CSV"""
     file_path = os.path.join(settings.BASE_DIR, 'dashboard', 'view', 'csv_viewer.html')
@@ -30,6 +34,7 @@ def csv_viewer(request):
     except FileNotFoundError:
         return HttpResponse('‏‍فایل یافت نشد', status=404)
 
+@login_required
 def csv_tabulator_viewer(request):
     """نمایش صفحه نمایشگر CSV با Tabulator"""
     file_path = os.path.join(settings.BASE_DIR, 'dashboard', 'view', 'csv_tabulator_viewer.html')
@@ -40,6 +45,7 @@ def csv_tabulator_viewer(request):
     except FileNotFoundError:
         return HttpResponse('‏‍فایل یافت نشد', status=404)
 
+@login_required
 def investor_profile(request):
     """نمایش صفحه پروفایل سرمایه‌گذاران"""
     file_path = os.path.join(settings.BASE_DIR, 'dashboard', 'view', 'investor_profile.html')
@@ -50,6 +56,7 @@ def investor_profile(request):
     except FileNotFoundError:
         return HttpResponse('‏‍فایل یافت نشد', status=404)
 
+@login_required
 def transaction_manager(request):
     """نمایش صفحه مدیریت تراکنش‌های مالی"""
     file_path = os.path.join(settings.BASE_DIR, 'dashboard', 'view', 'transaction_manager.html')
@@ -60,6 +67,7 @@ def transaction_manager(request):
     except FileNotFoundError:
         return HttpResponse('‏‍فایل یافت نشد', status=404)
 
+@login_required
 def serve_csv_file(request, filename):
     """سرو کردن فایل‌های CSV از پوشه view"""
     file_path = os.path.join(settings.BASE_DIR, 'dashboard', 'view', filename)
@@ -71,6 +79,7 @@ def serve_csv_file(request, filename):
     except FileNotFoundError:
         raise Http404('‏‍فایل یافت نشد')
 
+@login_required
 def test_home_page(request):
     """نمایش صفحه تست Home Dashboard"""
     file_path = os.path.join(settings.BASE_DIR, 'dashboard', 'view', 'test_home_page.html')
@@ -81,6 +90,7 @@ def test_home_page(request):
     except FileNotFoundError:
         return HttpResponse('فایل تست Home یافت نشد', status=404)
 
+@login_required
 def test_transaction_manager(request):
     """نمایش صفحه تست مدیریت تراکنش‌ها"""
     file_path = os.path.join(settings.BASE_DIR, 'dashboard', 'view', 'test_transaction_manager.html')
@@ -91,6 +101,7 @@ def test_transaction_manager(request):
     except FileNotFoundError:
         return HttpResponse('فایل تست مدیریت تراکنش‌ها یافت نشد', status=404)
 
+@login_required
 def test_transaction_api(request):
     """نمایش صفحه تست API های مدیریت تراکنش‌ها"""
     file_path = os.path.join(settings.BASE_DIR, 'dashboard', 'view', 'test_transaction_manager_api.html')
@@ -101,6 +112,7 @@ def test_transaction_api(request):
     except FileNotFoundError:
         return HttpResponse('فایل تست API مدیریت تراکنش‌ها یافت نشد', status=404)
 
+@login_required
 def test_filters(request):
     """نمایش صفحه تست فیلترهای مدیریت تراکنش‌ها"""
     file_path = os.path.join(settings.BASE_DIR, 'dashboard', 'view', 'test_filters.html')
