@@ -1,0 +1,398 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extrahead %}
+<style>
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Tahoma', 'Vazir', sans-serif;
+        padding: 20px 0;
+    }
+    
+    .register-container {
+        background: rgba(255, 255, 255, 0.95);
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        width: 100%;
+        max-width: 500px;
+        text-align: center;
+    }
+    
+    .register-header {
+        margin-bottom: 30px;
+    }
+    
+    .register-header h1 {
+        color: #333;
+        font-size: 2rem;
+        margin-bottom: 10px;
+        font-weight: 300;
+    }
+    
+    .register-header p {
+        color: #666;
+        font-size: 1rem;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+        text-align: right;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #333;
+        font-weight: 500;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e1e5e9;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: #fff;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .form-control.is-invalid {
+        border-color: #dc3545;
+    }
+    
+    .invalid-feedback {
+        display: block;
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 5px;
+        text-align: right;
+    }
+    
+    .btn-register {
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 1.1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 10px;
+    }
+    
+    .btn-register:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
+    }
+    
+    .btn-register:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+    
+    .alert {
+        padding: 12px 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 0.9rem;
+    }
+    
+    .alert-danger {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+    
+    .alert-success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+    
+    .register-links {
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 1px solid #e1e5e9;
+    }
+    
+    .register-links a {
+        color: #667eea;
+        text-decoration: none;
+        font-size: 0.9rem;
+        margin: 0 10px;
+        transition: color 0.3s ease;
+    }
+    
+    .register-links a:hover {
+        color: #764ba2;
+        text-decoration: underline;
+    }
+    
+    .loading {
+        display: none;
+        margin-top: 15px;
+    }
+    
+    .spinner {
+        width: 20px;
+        height: 20px;
+        border: 2px solid #f3f3f3;
+        border-top: 2px solid #28a745;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .password-requirements {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 15px;
+        margin-top: 10px;
+        text-align: right;
+        font-size: 0.85rem;
+        color: #666;
+    }
+    
+    .password-requirements h6 {
+        margin-bottom: 8px;
+        color: #333;
+        font-weight: 600;
+    }
+    
+    .password-requirements ul {
+        margin: 0;
+        padding-right: 20px;
+    }
+    
+    .password-requirements li {
+        margin-bottom: 4px;
+    }
+    
+    .row {
+        display: flex;
+        gap: 15px;
+    }
+    
+    .col-6 {
+        flex: 1;
+    }
+    
+    @media (max-width: 768px) {
+        .row {
+            flex-direction: column;
+            gap: 0;
+        }
+        
+        .register-container {
+            margin: 10px;
+            padding: 30px 20px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="register-container">
+    <div class="register-header">
+        <h1>📝 ثبت نام</h1>
+        <p>حساب کاربری جدید ایجاد کنید</p>
+    </div>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    <form method="post" id="registerForm">
+        {% csrf_token %}
+        
+        <div class="row">
+            <div class="col-6">
+                <div class="form-group">
+                    <label for="id_first_name">نام:</label>
+                    {{ form.first_name }}
+                    {% if form.first_name.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.first_name.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="form-group">
+                    <label for="id_last_name">نام خانوادگی:</label>
+                    {{ form.last_name }}
+                    {% if form.last_name.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.last_name.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="id_username">نام کاربری:</label>
+            {{ form.username }}
+            {% if form.username.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.username.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            <label for="id_email">ایمیل:</label>
+            {{ form.email }}
+            {% if form.email.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.email.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            <label for="id_password1">رمز عبور:</label>
+            {{ form.password1 }}
+            {% if form.password1.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.password1.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <div class="password-requirements">
+                <h6>الزامات رمز عبور:</h6>
+                <ul>
+                    <li>حداقل 8 کاراکتر</li>
+                    <li>نباید شبیه نام کاربری باشد</li>
+                    <li>نباید رمز عبور رایج باشد</li>
+                    <li>نباید کاملاً عددی باشد</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="id_password2">تکرار رمز عبور:</label>
+            {{ form.password2 }}
+            {% if form.password2.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.password2.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        
+        <button type="submit" class="btn-register" id="registerBtn">
+            ثبت نام
+        </button>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>در حال ثبت نام...</p>
+        </div>
+    </form>
+    
+    <div class="register-links">
+        <a href="{% url 'user_login' %}">ورود به سیستم</a>
+        <a href="{% url 'index' %}">بازگشت به صفحه اصلی</a>
+    </div>
+</div>
+
+<script>
+document.getElementById('registerForm').addEventListener('submit', function(e) {
+    const registerBtn = document.getElementById('registerBtn');
+    const loading = document.getElementById('loading');
+    
+    // نمایش loading
+    registerBtn.disabled = true;
+    registerBtn.textContent = 'در حال ثبت نام...';
+    loading.style.display = 'block';
+    
+    // اگر فرم معتبر نباشد، loading را مخفی کن
+    setTimeout(() => {
+        if (!this.checkValidity()) {
+            registerBtn.disabled = false;
+            registerBtn.textContent = 'ثبت نام';
+            loading.style.display = 'none';
+        }
+    }, 100);
+});
+
+// اضافه کردن انیمیشن به input ها
+document.querySelectorAll('.form-control').forEach(input => {
+    input.addEventListener('focus', function() {
+        this.parentElement.style.transform = 'translateY(-2px)';
+    });
+    
+    input.addEventListener('blur', function() {
+        this.parentElement.style.transform = 'translateY(0)';
+    });
+    
+    // اضافه کردن کلاس invalid در صورت خطا
+    if (this.classList.contains('is-invalid')) {
+        this.addEventListener('input', function() {
+            if (this.value.trim() !== '') {
+                this.classList.remove('is-invalid');
+            }
+        });
+    }
+});
+
+// بررسی تطابق رمز عبور
+document.getElementById('id_password2').addEventListener('input', function() {
+    const password1 = document.getElementById('id_password1').value;
+    const password2 = this.value;
+    
+    if (password2 && password1 !== password2) {
+        this.classList.add('is-invalid');
+        if (!this.nextElementSibling || !this.nextElementSibling.classList.contains('invalid-feedback')) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'invalid-feedback';
+            errorDiv.textContent = 'رمز عبور و تکرار آن مطابقت ندارند.';
+            this.parentNode.appendChild(errorDiv);
+        }
+    } else {
+        this.classList.remove('is-invalid');
+        const errorDiv = this.nextElementSibling;
+        if (errorDiv && errorDiv.classList.contains('invalid-feedback')) {
+            errorDiv.remove();
+        }
+    }
+});
+</script>
+{% endblock %}

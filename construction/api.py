@@ -6,6 +6,7 @@ from django.db import connection
 
 from . import serializers
 from . import models
+from .api_security import APISecurityPermission, ReadOnlyPermission, AdminOnlyPermission
 
 
 class ExpenseViewSet(viewsets.ModelViewSet):
@@ -13,7 +14,7 @@ class ExpenseViewSet(viewsets.ModelViewSet):
 
     queryset = models.Expense.objects.all()
     serializer_class = serializers.ExpenseSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [APISecurityPermission]
 
 
 class InvestorViewSet(viewsets.ModelViewSet):
@@ -21,7 +22,7 @@ class InvestorViewSet(viewsets.ModelViewSet):
 
     queryset = models.Investor.objects.all()
     serializer_class = serializers.InvestorSerializer
-    permission_classes = [permissions.AllowAny]  # موقتاً برای داشبورد
+    permission_classes = [APISecurityPermission]
 
     @action(detail=False, methods=['get'])
     def summary(self, request):
@@ -88,8 +89,7 @@ class PeriodViewSet(viewsets.ModelViewSet):
 
     queryset = models.Period.objects.all()
     serializer_class = serializers.PeriodSerializer
-    # permission_classes = [permissions.IsAuthenticated]
-    permission_classes = [permissions.AllowAny]  # موقتاً برای داشبورد
+    permission_classes = [APISecurityPermission]
 
 
 
@@ -98,8 +98,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
     queryset = models.Project.objects.all()
     serializer_class = serializers.ProjectSerializer
-    # permission_classes = [permissions.IsAuthenticated]
-    permission_classes = [permissions.AllowAny]  # موقتاً برای داشبورد
+    permission_classes = [APISecurityPermission]
 
 
 class TransactionViewSet(viewsets.ModelViewSet):
@@ -107,7 +106,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
 
     queryset = models.Transaction.objects.all()
     serializer_class = serializers.TransactionSerializer
-    permission_classes = [permissions.AllowAny]  # موقتاً برای داشبورد
+    permission_classes = [APISecurityPermission]
     filterset_fields = ['investor', 'project', 'period', 'transaction_type']
 
     @action(detail=False, methods=['get'])
@@ -227,7 +226,7 @@ class InterestRateViewSet(viewsets.ModelViewSet):
 
     queryset = models.InterestRate.objects.all()
     serializer_class = serializers.InterestRateSerializer
-    permission_classes = [permissions.AllowAny]  # موقتاً برای داشبورد
+    permission_classes = [APISecurityPermission]
 
     @action(detail=False, methods=['get'])
     def current(self, request):
@@ -245,4 +244,4 @@ class UnitViewSet(viewsets.ModelViewSet):
 
     queryset = models.Unit.objects.all()
     serializer_class = serializers.UnitSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [APISecurityPermission]

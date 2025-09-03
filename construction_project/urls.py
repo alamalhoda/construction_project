@@ -26,4 +26,6 @@ urlpatterns = [
     path('backup/', include('backup.urls')),
     path('htmx/', views.htmx_home, name='htmx'),
     path('admin/', admin.site.urls),
+    # API URLs
+    path('api/', include('construction.urls')),
 ]

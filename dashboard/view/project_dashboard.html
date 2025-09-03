@@ -442,7 +442,7 @@
                 </h1>
                 <p class="subtitle">نمایش جامع وضعیت مالی و سرمایه‌گذاری</p>
                 <div class="navigation-links">
-                    <a href="/dashboard/" class="nav-link">
+                    <a href="/api/dashboard/" class="nav-link">
                         <i class="fas fa-home"></i>
                         صفحه اصلی
                     </a>
@@ -603,12 +603,20 @@
                 }
                 
                 // دریافت داده‌ها
-                const transactions = await transactionsResponse.json();
-                allInvestors = await investorsResponse.json();
+                const transactionsData = await transactionsResponse.json();
+                const investorsData = await investorsResponse.json();
+                
+                // بررسی ساختار داده‌ها
+                const transactions = Array.isArray(transactionsData) ? transactionsData : (transactionsData.results || []);
+                allInvestors = Array.isArray(investorsData) ? investorsData : (investorsData.results || []);
+                
+                console.log('ساختار تراکنش‌ها:', transactionsData);
+                console.log('تعداد تراکنش‌ها:', transactions.length);
                 
                 // اگر پروژه API دسترسی داشت، آن را بارگذاری کن
                 if (projectsResponse.ok) {
-                    allProjects = await projectsResponse.json();
+                    const projectsData = await projectsResponse.json();
+                    allProjects = Array.isArray(projectsData) ? projectsData : (projectsData.results || []);
                     console.log('پروژه‌ها بارگذاری شدند:', allProjects.length);
                 } else {
                     console.warn('API پروژه‌ها دسترسی ندارد، از تراکنش‌ها تاریخ استفاده می‌شود');
@@ -629,6 +637,12 @@
                     investors: allInvestors.length,
                     projects: allProjects.length
                 });
+                
+                // بررسی اینکه transactions یک array است
+                if (!Array.isArray(transactions)) {
+                    console.error('تراکنش‌ها یک array نیست:', transactions);
+                    throw new Error('فرمت داده‌های تراکنش‌ها نامعتبر است');
+                }
                 
                 // تبدیل تراکنش‌ها به فرمت سازگار
                 chartData = transactions.map(transaction => ({

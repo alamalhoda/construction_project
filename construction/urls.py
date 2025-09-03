@@ -4,6 +4,8 @@ from rest_framework import routers
 from . import api
 from . import views
 from . import htmx
+from . import api_auth
+from . import user_views
 
 
 router = routers.DefaultRouter()
@@ -15,7 +17,21 @@ router.register("Project", api.ProjectViewSet)
 router.register("Transaction", api.TransactionViewSet)
 router.register("Unit", api.UnitViewSet)
 
+
+
 urlpatterns = (
+    # API Login Page
+    path("api/login/", views.api_login_view, name="api_login_page"),
+    
+    # API Authentication URLs
+    path("api/v1/auth/login/", api_auth.api_login, name="api_login"),
+    path("api/v1/auth/logout/", api_auth.api_logout, name="api_logout"),
+    path("api/v1/auth/user/", api_auth.api_user_info, name="api_user_info"),
+    path("api/v1/auth/change-password/", api_auth.api_change_password, name="api_change_password"),
+    path("api/v1/auth/register/", api_auth.api_register, name="api_register"),
+    path("api/v1/status/", api_auth.api_status, name="api_status"),
+    
+    # API URLs
     path("api/v1/", include(router.urls)),
     path("construction/Expense/", views.ExpenseListView.as_view(), name="construction_Expense_list"),
     path("construction/Expense/create/", views.ExpenseCreateView.as_view(), name="construction_Expense_create"),
@@ -47,6 +63,22 @@ urlpatterns = (
     path("construction/Unit/detail/<int:pk>/", views.UnitDetailView.as_view(), name="construction_Unit_detail"),
     path("construction/Unit/update/<int:pk>/", views.UnitUpdateView.as_view(), name="construction_Unit_update"),
     path("construction/Unit/delete/<int:pk>/", views.UnitDeleteView.as_view(), name="construction_Unit_delete"),
+
+    # User Authentication URLs
+    path("login/", user_views.user_login_view, name="user_login"),
+    path("register/", user_views.user_register_view, name="user_register"),
+    path("logout/", user_views.user_logout_view, name="user_logout"),
+    path("dashboard/", user_views.user_dashboard_view, name="user_dashboard"),
+    path("profile/", user_views.user_profile_view, name="user_profile"),
+    path("change-password/", user_views.change_password_view, name="change_password"),
+    
+    # Protected Pages
+    path("protected/", user_views.ProtectedIndexView.as_view(), name="protected_index"),
+    path("protected/htmx/", user_views.ProtectedHTMXView.as_view(), name="protected_htmx"),
+    
+    # User API endpoints
+    path("api/user/info/", user_views.user_info_api, name="user_info_api"),
+    path("api/user/logout/", user_views.user_logout_api, name="user_logout_api"),
 
     path("construction/htmx/Expense/", htmx.HTMXExpenseListView.as_view(), name="construction_Expense_htmx_list"),
     path("construction/htmx/Expense/create/", htmx.HTMXExpenseCreateView.as_view(), name="construction_Expense_htmx_create"),

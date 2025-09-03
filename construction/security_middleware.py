@@ -111,25 +111,43 @@ class SecurityHeadersMiddleware(MiddlewareMixin):
     """
     
     def process_response(self, request, response):
-        # Content Security Policy
-        response['Content-Security-Policy'] = (
-            "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
-            "style-src 'self' 'unsafe-inline'; "
-            "img-src 'self' data: https:; "
-            "font-src 'self' data:; "
-            "connect-src 'self'; "
-            "frame-ancestors 'none';"
-        )
+        from django.conf import settings
+        
+        # Content Security Policy - نرم‌تر برای development
+        if settings.DEBUG:
+            response['Content-Security-Policy'] = (
+                "default-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://stackpath.bootstrapcdn.com https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
+                "style-src 'self' 'unsafe-inline' https://stackpath.bootstrapcdn.com https://unpkg.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://fonts.googleapis.com; "
+                "img-src 'self' data: https:; "
+                "font-src 'self' data: https://stackpath.bootstrapcdn.com https://cdnjs.cloudflare.com https://fonts.gstatic.com; "
+                "connect-src 'self'; "
+                "frame-ancestors 'self';"
+            )
+        else:
+            response['Content-Security-Policy'] = (
+                "default-src 'self'; "
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+                "style-src 'self' 'unsafe-inline'; "
+                "img-src 'self' data: https:; "
+                "font-src 'self' data:; "
+                "connect-src 'self'; "
+                "frame-ancestors 'none';"
+            )
         
         # X-Content-Type-Options
-        response['X-Content-Type-Options'] = 'nosniff'
+        if not settings.DEBUG:
+            response['X-Content-Type-Options'] = 'nosniff'
         
         # X-XSS-Protection
-        response['X-XSS-Protection'] = '1; mode=block'
+        if not settings.DEBUG:
+            response['X-XSS-Protection'] = '1; mode=block'
         
-        # Referrer Policy
-        response['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        # Referrer Policy - نرم‌تر برای development
+        if settings.DEBUG:
+            response['Referrer-Policy'] = 'no-referrer-when-downgrade'
+        else:
+            response['Referrer-Policy'] = 'strict-origin-when-cross-origin'
         
         # Permissions Policy
         response['Permissions-Policy'] = (

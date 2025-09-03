@@ -74,13 +74,18 @@ class EnhancedAuthenticationBackend(ModelBackend):
     
     def is_account_locked(self, user):
         """بررسی قفل بودن حساب"""
-        # بررسی تعداد تلاش‌های ناموفق
-        failed_attempts = getattr(user, 'failed_login_attempts', 0)
+        # استفاده از cache به جای فیلدهای مدل
+        from django.core.cache import cache
+        
+        cache_key = f"failed_attempts_{user.username}"
+        failed_data = cache.get(cache_key, {'count': 0, 'last_attempt': None})
+        
         max_attempts = 5  # حداکثر 5 تلاش
+        failed_attempts = failed_data.get('count', 0)
         
         if failed_attempts >= max_attempts:
             # بررسی زمان قفل
-            last_attempt = getattr(user, 'last_failed_login', None)
+            last_attempt = failed_data.get('last_attempt')
             if last_attempt:
                 lock_duration = timedelta(minutes=30)  # 30 دقیقه قفل
                 if timezone.now() - last_attempt < lock_duration:
@@ -93,15 +98,23 @@ class EnhancedAuthenticationBackend(ModelBackend):
     
     def increment_failed_attempts(self, user):
         """افزایش تعداد تلاش‌های ناموفق"""
-        user.failed_login_attempts = getattr(user, 'failed_login_attempts', 0) + 1
-        user.last_failed_login = timezone.now()
-        user.save(update_fields=['failed_login_attempts', 'last_failed_login'])
+        from django.core.cache import cache
+        
+        cache_key = f"failed_attempts_{user.username}"
+        failed_data = cache.get(cache_key, {'count': 0, 'last_attempt': None})
+        
+        failed_data['count'] = failed_data.get('count', 0) + 1
+        failed_data['last_attempt'] = timezone.now()
+        
+        # ذخیره در cache برای 1 ساعت
+        cache.set(cache_key, failed_data, 3600)
     
     def reset_failed_attempts(self, user):
         """بازنشانی تعداد تلاش‌های ناموفق"""
-        user.failed_login_attempts = 0
-        user.last_failed_login = None
-        user.save(update_fields=['failed_login_attempts', 'last_failed_login'])
+        from django.core.cache import cache
+        
+        cache_key = f"failed_attempts_{user.username}"
+        cache.delete(cache_key)
     
     def get_client_ip(self, request):
         """دریافت IP واقعی کاربر"""

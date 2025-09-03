@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse, Http404
 from django.conf import settings
 import os
@@ -6,8 +6,8 @@ import os
 # Create your views here.
 
 def dashboard_home(request):
-    """نمایش صفحه اصلی داشبورد"""
-    return render(request, 'dashboard/home.html')
+    """هدایت به داشبورد API"""
+    return redirect('/api/dashboard/')
 
 def project_dashboard(request):
     """نمایش صفحه داشبورد پروژه"""

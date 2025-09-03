@@ -1,17 +1,48 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="m-2"><h4>construction</h4></div>
-<div class="m-2"><a class="btn btn-light" href="{% url 'construction_Expense_list' %}">Expense Listing</a></div>
-<div class="m-2"><a class="btn btn-light" href="{% url 'construction_Investor_list' %}">Investor Listing</a></div>
-<div class="m-2"><a class="btn btn-light" href="{% url 'construction_Period_list' %}">Period Listing</a></div>
-<div class="m-2"><a class="btn btn-light" href="{% url 'construction_Project_list' %}">Project Listing</a></div>
-<div class="m-2"><a class="btn btn-light" href="{% url 'construction_Transaction_list' %}">Transaction Listing</a></div>
-<div class="m-2"><a class="btn btn-light" href="{% url 'construction_Unit_list' %}">Unit Listing</a></div>
-<div class='container'>
-<div class='card'>
-<div class='card-body'>
-<div><a href="{% url 'htmx' %}">HTMX UI</a></div>
-</div>
-</div>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg">
+                <div class="card-body text-center p-5">
+                    <h1 class="card-title mb-4">🏗️ سیستم مدیریت پروژه ساختمانی</h1>
+                    <p class="card-text mb-4">به سیستم مدیریت پروژه‌های ساختمانی خوش آمدید</p>
+                    
+                    {% if user.is_authenticated %}
+                        <div class="alert alert-success">
+                            <h5>سلام {{ user.first_name|default:user.username }}! 👋</h5>
+                            <p>شما با موفقیت وارد شده‌اید</p>
+                        </div>
+                        <div class="d-grid gap-2 d-md-block">
+                            <a href="{% url 'user_dashboard' %}" class="btn btn-primary btn-lg">🏠 داشبورد من</a>
+                            <a href="{% url 'user_logout' %}" class="btn btn-outline-secondary btn-lg">🚪 خروج</a>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <h5>برای استفاده از سیستم باید وارد شوید</h5>
+                            <p>لطفاً با نام کاربری و رمز عبور خود وارد شوید</p>
+                        </div>
+                        <div class="d-grid gap-2 d-md-block">
+                            <a href="{% url 'user_login' %}" class="btn btn-primary btn-lg">🔐 ورود به سیستم</a>
+                            <a href="{% url 'user_register' %}" class="btn btn-success btn-lg">📝 ثبت نام</a>
+                        </div>
+                    {% endif %}
+                    
+                    <hr class="my-4">
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>🔧 دسترسی ادمین</h6>
+                            <a href="{% url 'admin:index' %}" class="btn btn-outline-dark btn-sm">پنل ادمین</a>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>🔗 API</h6>
+                            <a href="{% url 'api_login_page' %}" class="btn btn-outline-info btn-sm">ورود API</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

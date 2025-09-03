@@ -50,9 +50,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     "django_jalali",  # Place this before your custom apps
     'rest_framework',
+    'rest_framework.authtoken',
     'django_filters',
     'django_htmx',
-    'construction',
+    'construction.apps.ConstructionConfig',  # استفاده از apps.py
     'dashboard',
     'backup',
     'django_extensions',
@@ -92,6 +93,9 @@ MIDDLEWARE = [
     'construction.security_middleware.AuditLogMiddleware',
     'construction.security_middleware.AdminSecurityMiddleware',
     'construction.security_middleware.LoginAttemptMiddleware',
+    # Middleware های کاربران (موقتاً غیرفعال)
+    # 'construction.user_middleware.UserAuthenticationMiddleware',
+    # 'construction.user_middleware.UserSessionMiddleware',
 ]
 
 ROOT_URLCONF = 'construction_project.urls'
@@ -174,7 +178,20 @@ LANGUAGE_CODE = 'fa-ir'
 
 # Django REST Framework settings
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend',
+    ],
+    # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    # 'PAGE_SIZE': 20,
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
     ],
 }

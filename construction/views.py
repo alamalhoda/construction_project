@@ -1,7 +1,15 @@
 from django.views import generic
 from django.urls import reverse_lazy
+from django.shortcuts import render
+from django.http import HttpResponse
+from django.template.response import TemplateResponse
+
 from . import models
 from . import forms
+
+def api_login_view(request):
+    """صفحه لاگین API"""
+    return render(request, 'construction/api_login.html')
 
 
 class ExpenseListView(generic.ListView):
