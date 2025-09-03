@@ -139,6 +139,88 @@ class TransactionViewSet(viewsets.ModelViewSet):
             'unique_investors': unique_investors
         })
 
+    # کدهای قبلی برای تغییر نرخ سود - کامنت شده برای مراجعه آینده
+    """
+    @action(detail=False, methods=['post'])
+    def update_interest_rate(self, request):
+        \"\"\"تغییر نرخ سود و محاسبه مجدد همه سودها\"\"\"
+        from decimal import Decimal
+        
+        new_interest_rate = request.data.get('new_interest_rate')
+        description = request.data.get('description', '')
+        
+        if not new_interest_rate:
+            return Response({'error': 'نرخ سود جدید الزامی است'}, status=400)
+        
+        try:
+            new_rate = Decimal(str(new_interest_rate))
+            if new_rate <= 0:
+                return Response({'error': 'نرخ سود باید مثبت باشد'}, status=400)
+        except (ValueError, TypeError):
+            return Response({'error': 'نرخ سود نامعتبر است'}, status=400)
+        
+        try:
+            # اجرای عملیات تغییر نرخ سود
+            result = models.Transaction.recalculate_all_profits_with_new_rate(new_rate)
+            
+            # ذخیره نرخ جدید در InterestRate
+            from django.utils import timezone
+            import jdatetime
+            
+            now_gregorian = timezone.now().date()
+            now_shamsi = jdatetime.date.fromgregorian(date=now_gregorian)
+            
+            models.InterestRate.objects.create(
+                rate=new_rate,
+                effective_date=now_shamsi,
+                effective_date_gregorian=now_gregorian,
+                description=description,
+                is_active=True
+            )
+            
+            return Response({
+                'success': True,
+                'message': 'نرخ سود با موفقیت تغییر کرد',
+                'deleted_count': result['deleted_count'],
+                'new_count': result['new_count'],
+                'total_affected': result['total_affected'],
+                'new_rate': float(new_rate)
+            })
+            
+        except Exception as e:
+            return Response({
+                'error': f'خطا در تغییر نرخ سود: {str(e)}'
+            }, status=500)
+    """
+
+    @action(detail=False, methods=['post'])
+    def recalculate_profits(self, request):
+        """محاسبه مجدد سودها با نرخ سود فعال فعلی"""
+        try:
+            # دریافت نرخ سود فعال فعلی
+            current_rate = models.InterestRate.get_current_rate()
+            if not current_rate:
+                return Response({
+                    'error': 'هیچ نرخ سود فعالی یافت نشد. لطفاً ابتدا نرخ سود را تنظیم کنید.'
+                }, status=400)
+            
+            # اجرای عملیات محاسبه مجدد
+            result = models.Transaction.recalculate_all_profits_with_new_rate(current_rate.rate)
+            
+            return Response({
+                'success': True,
+                'message': 'سودها با موفقیت محاسبه مجدد شدند',
+                'deleted_count': result['deleted_count'],
+                'new_count': result['new_count'],
+                'total_affected': result['total_affected'],
+                'used_rate': float(current_rate.rate)
+            })
+            
+        except Exception as e:
+            return Response({
+                'error': f'خطا در محاسبه مجدد سودها: {str(e)}'
+            }, status=500)
+
 
 class InterestRateViewSet(viewsets.ModelViewSet):
     """ViewSet for the InterestRate class"""

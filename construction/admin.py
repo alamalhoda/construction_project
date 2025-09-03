@@ -13,15 +13,24 @@ class ExpenseAdminForm(forms.ModelForm):
 class ExpenseAdmin(admin.ModelAdmin):
     form = ExpenseAdminForm
     list_display = [
+        "project",
+        "period",
         "expense_type",
         "amount",
-        "description",
         "created_at",
     ]
-    readonly_fields = [
+    list_filter = [
         "expense_type",
-        "amount",
+        "project",
+        "period",
+        "created_at",
+    ]
+    search_fields = [
         "description",
+        "project__name",
+        "period__label",
+    ]
+    readonly_fields = [
         "created_at",
     ]
 
@@ -42,11 +51,16 @@ class InvestorAdmin(admin.ModelAdmin):
         "email",
         "created_at",
     ]
-    readonly_fields = [
+    list_filter = [
+        "created_at",
+    ]
+    search_fields = [
         "first_name",
         "last_name",
         "phone",
         "email",
+    ]
+    readonly_fields = [
         "created_at",
     ]
 
@@ -61,6 +75,7 @@ class PeriodAdminForm(forms.ModelForm):
 class PeriodAdmin(admin.ModelAdmin):
     form = PeriodAdminForm
     list_display = [
+        "project",
         "label",
         "year",
         "month_number",
@@ -68,20 +83,19 @@ class PeriodAdmin(admin.ModelAdmin):
         "weight",
         "start_date_shamsi",
         "end_date_shamsi",
-        "start_date_gregorian",
-        "end_date_gregorian",
     ]
-    readonly_fields = [
-        "label",
+    list_filter = [
+        "project",
         "year",
         "month_number",
-        "month_name",
         "weight",
-        "start_date_shamsi",
-        "end_date_shamsi",
-        "start_date_gregorian",
-        "end_date_gregorian",
     ]
+    search_fields = [
+        "label",
+        "project__name",
+        "month_name",
+    ]
+    readonly_fields = []
 
 
 class ProjectAdminForm(forms.ModelForm):
@@ -97,17 +111,17 @@ class ProjectAdmin(admin.ModelAdmin):
         "name",
         "start_date_shamsi",
         "end_date_shamsi",
-        "start_date_gregorian",
-        "end_date_gregorian",
         "created_at",
         "updated_at",
     ]
-    readonly_fields = [
+    list_filter = [
+        "created_at",
+        "updated_at",
+    ]
+    search_fields = [
         "name",
-        "start_date_shamsi",
-        "end_date_shamsi",
-        "start_date_gregorian",
-        "end_date_gregorian",
+    ]
+    readonly_fields = [
         "created_at",
         "updated_at",
     ]
@@ -123,21 +137,33 @@ class TransactionAdminForm(forms.ModelForm):
 class TransactionAdmin(admin.ModelAdmin):
     form = TransactionAdminForm
     list_display = [
+        "project",
+        "investor",
+        "period",
         "date_shamsi",
-        "date_gregorian",
         "amount",
         "transaction_type",
-        "description",
         "day_remaining",
         "day_from_start",
+        "is_system_generated",
         "created_at",
     ]
-    readonly_fields = [
-        "date_shamsi",
-        "date_gregorian",
-        "amount",
+    list_filter = [
+        "project",
+        "investor",
+        "period",
         "transaction_type",
+        "is_system_generated",
+        "date_shamsi",
+        "created_at",
+    ]
+    search_fields = [
         "description",
+        "investor__first_name",
+        "investor__last_name",
+        "project__name",
+    ]
+    readonly_fields = [
         "day_remaining",
         "day_from_start",
         "created_at",
@@ -154,23 +180,63 @@ class UnitAdminForm(forms.ModelForm):
 class UnitAdmin(admin.ModelAdmin):
     form = UnitAdminForm
     list_display = [
+        "project",
         "name",
         "area",
         "price_per_meter",
         "total_price",
         "created_at",
+    ]
+    list_filter = [
+        "project",
+        "created_at",
+    ]
+    search_fields = [
+        "name",
+        "project__name",
     ]
     readonly_fields = [
-        "name",
-        "area",
-        "price_per_meter",
-        "total_price",
         "created_at",
     ]
+
+
+class InterestRateAdminForm(forms.ModelForm):
+
+    class Meta:
+        model = models.InterestRate
+        fields = "__all__"
+
+
+class InterestRateAdmin(admin.ModelAdmin):
+    form = InterestRateAdminForm
+    list_display = [
+        "rate",
+        "effective_date",
+        "effective_date_gregorian",
+        "is_active",
+        "description",
+        "created_at",
+        "updated_at",
+    ]
+    list_filter = [
+        "is_active",
+        "effective_date",
+        "created_at",
+        "updated_at",
+    ]
+    search_fields = [
+        "description",
+    ]
+    readonly_fields = [
+        "created_at",
+        "updated_at",
+    ]
+    ordering = ['-effective_date']
 
 
 admin.site.register(models.Expense, ExpenseAdmin)
 admin.site.register(models.Investor, InvestorAdmin)
+admin.site.register(models.InterestRate, InterestRateAdmin)
 admin.site.register(models.Period, PeriodAdmin)
 admin.site.register(models.Project, ProjectAdmin)
 admin.site.register(models.Transaction, TransactionAdmin)
