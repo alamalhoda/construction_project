@@ -52,7 +52,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'django_filters',
-    'django_htmx',
+
     'construction.apps.ConstructionConfig',  # استفاده از apps.py
     'dashboard',
     'backup',
@@ -87,7 +87,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django_htmx.middleware.HtmxMiddleware',
+
     # Middleware های امنیتی سفارشی
     'construction.security_middleware.SecurityHeadersMiddleware',
     'construction.security_middleware.AuditLogMiddleware',

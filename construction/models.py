@@ -30,12 +30,7 @@ class Project(models.Model):
     def get_update_url(self):
         return reverse('construction_Project_update', kwargs={'pk': self.pk})
     
-    @staticmethod
-    def get_htmx_create_url():
-        return reverse("construction_Project_htmx_create")
 
-    def get_htmx_delete_url(self):
-        return reverse("construction_Project_htmx_delete", args=(self.pk,))
 
 class Unit(models.Model):
     """
@@ -62,12 +57,7 @@ class Unit(models.Model):
     def get_update_url(self):
         return reverse('construction_Unit_update', kwargs={'pk': self.pk})
     
-    @staticmethod
-    def get_htmx_create_url():
-        return reverse("construction_Unit_htmx_create")
 
-    def get_htmx_delete_url(self):
-        return reverse("construction_Unit_htmx_delete", args=(self.pk,))
 
 class Investor(models.Model):
     """
@@ -94,12 +84,7 @@ class Investor(models.Model):
     def get_update_url(self):
         return reverse('construction_Investor_update', kwargs={'pk': self.pk})
     
-    @staticmethod
-    def get_htmx_create_url():
-        return reverse("construction_Investor_htmx_create")
 
-    def get_htmx_delete_url(self):
-        return reverse("construction_Investor_htmx_delete", args=(self.pk,))
 
 class Period(models.Model):
     """
@@ -131,12 +116,7 @@ class Period(models.Model):
     def get_update_url(self):
         return reverse('construction_Period_update', kwargs={'pk': self.pk})
     
-    @staticmethod
-    def get_htmx_create_url():
-        return reverse("construction_Period_htmx_create")
 
-    def get_htmx_delete_url(self):
-        return reverse("construction_Period_htmx_delete", args=(self.pk,))
 
 class InterestRate(models.Model):
     """
@@ -307,12 +287,7 @@ class Transaction(models.Model):
     def get_update_url(self):
         return reverse('construction_Transaction_update', kwargs={'pk': self.pk})
     
-    @staticmethod
-    def get_htmx_create_url():
-        return reverse("construction_Transaction_htmx_create")
 
-    def get_htmx_delete_url(self):
-        return reverse("construction_Transaction_htmx_delete", args=(self.pk,))
 
     def calculate_profit(self, interest_rate=None):
         """
@@ -483,12 +458,7 @@ class Expense(models.Model):
     def get_update_url(self):
         return reverse('construction_Expense_update', kwargs={'pk': self.pk})
     
-    @staticmethod
-    def get_htmx_create_url():
-        return reverse("construction_Expense_htmx_create")
 
-    def get_htmx_delete_url(self):
-        return reverse("construction_Expense_htmx_delete", args=(self.pk,))
 
 
 class UserProfile(models.Model):

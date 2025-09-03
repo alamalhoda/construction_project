@@ -3,7 +3,7 @@ from rest_framework import routers
 
 from . import api
 from . import views
-from . import htmx
+
 from . import api_auth
 from . import user_views
 
@@ -74,28 +74,10 @@ urlpatterns = (
     
     # Protected Pages
     path("protected/", user_views.ProtectedIndexView.as_view(), name="protected_index"),
-    path("protected/htmx/", user_views.ProtectedHTMXView.as_view(), name="protected_htmx"),
     
     # User API endpoints
     path("api/user/info/", user_views.user_info_api, name="user_info_api"),
     path("api/user/logout/", user_views.user_logout_api, name="user_logout_api"),
 
-    path("construction/htmx/Expense/", htmx.HTMXExpenseListView.as_view(), name="construction_Expense_htmx_list"),
-    path("construction/htmx/Expense/create/", htmx.HTMXExpenseCreateView.as_view(), name="construction_Expense_htmx_create"),
-    path("construction/htmx/Expense/delete/<int:pk>/", htmx.HTMXExpenseDeleteView.as_view(), name="construction_Expense_htmx_delete"),
-    path("construction/htmx/Investor/", htmx.HTMXInvestorListView.as_view(), name="construction_Investor_htmx_list"),
-    path("construction/htmx/Investor/create/", htmx.HTMXInvestorCreateView.as_view(), name="construction_Investor_htmx_create"),
-    path("construction/htmx/Investor/delete/<int:pk>/", htmx.HTMXInvestorDeleteView.as_view(), name="construction_Investor_htmx_delete"),
-    path("construction/htmx/Period/", htmx.HTMXPeriodListView.as_view(), name="construction_Period_htmx_list"),
-    path("construction/htmx/Period/create/", htmx.HTMXPeriodCreateView.as_view(), name="construction_Period_htmx_create"),
-    path("construction/htmx/Period/delete/<int:pk>/", htmx.HTMXPeriodDeleteView.as_view(), name="construction_Period_htmx_delete"),
-    path("construction/htmx/Project/", htmx.HTMXProjectListView.as_view(), name="construction_Project_htmx_list"),
-    path("construction/htmx/Project/create/", htmx.HTMXProjectCreateView.as_view(), name="construction_Project_htmx_create"),
-    path("construction/htmx/Project/delete/<int:pk>/", htmx.HTMXProjectDeleteView.as_view(), name="construction_Project_htmx_delete"),
-    path("construction/htmx/Transaction/", htmx.HTMXTransactionListView.as_view(), name="construction_Transaction_htmx_list"),
-    path("construction/htmx/Transaction/create/", htmx.HTMXTransactionCreateView.as_view(), name="construction_Transaction_htmx_create"),
-    path("construction/htmx/Transaction/delete/<int:pk>/", htmx.HTMXTransactionDeleteView.as_view(), name="construction_Transaction_htmx_delete"),
-    path("construction/htmx/Unit/", htmx.HTMXUnitListView.as_view(), name="construction_Unit_htmx_list"),
-    path("construction/htmx/Unit/create/", htmx.HTMXUnitCreateView.as_view(), name="construction_Unit_htmx_create"),
-    path("construction/htmx/Unit/delete/<int:pk>/", htmx.HTMXUnitDeleteView.as_view(), name="construction_Unit_htmx_delete"),
+
 )

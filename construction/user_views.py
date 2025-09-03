@@ -190,15 +190,7 @@ class ProtectedIndexView(TemplateView):
         context['user'] = self.request.user
         return context
 
-@method_decorator(technical_admin_required, name='dispatch')
-class ProtectedHTMXView(TemplateView):
-    """صفحه HTMX محافظت شده - فقط مدیر فنی"""
-    template_name = 'htmx/htmx.html'
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['user'] = self.request.user
-        return context
+
 
 # API endpoints برای JavaScript
 @login_required
