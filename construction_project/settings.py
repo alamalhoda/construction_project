@@ -7,6 +7,7 @@ https://docs.djangoproject.com/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,7 +22,23 @@ SECRET_KEY = '^l)7d*%h&db4uft@dk%h-w&nup#pu%)a!d)c7jwgoixo5_hm0$'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+
+# تنظیمات امنیتی
+from .security_settings import get_security_settings
+
+# تشخیص محیط (development/production)
+ENVIRONMENT = os.environ.get('DJANGO_ENVIRONMENT', 'development')
+
+# اعمال تنظیمات امنیتی
+security_config = get_security_settings(ENVIRONMENT)
+locals().update(security_config)
+
+# تنظیمات احراز هویت
+AUTHENTICATION_BACKENDS = [
+    'construction.authentication.EnhancedAuthenticationBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
 
 # Application definition
 INSTALLED_APPS = [
@@ -70,6 +87,11 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_htmx.middleware.HtmxMiddleware',
+    # Middleware های امنیتی سفارشی
+    'construction.security_middleware.SecurityHeadersMiddleware',
+    'construction.security_middleware.AuditLogMiddleware',
+    'construction.security_middleware.AdminSecurityMiddleware',
+    'construction.security_middleware.LoginAttemptMiddleware',
 ]
 
 ROOT_URLCONF = 'construction_project.urls'
