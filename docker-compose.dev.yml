@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  # دیتابیس PostgreSQL
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: construction_db_dev
+      POSTGRES_USER: construction_user
+      POSTGRES_PASSWORD: construction_password_dev
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+
+  # Redis برای Cache
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_dev_data:/data
+
+  # اپلیکیشن Django (Development)
+  web:
+    build: .
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+      - static_dev_volume:/app/staticfiles
+      - media_dev_volume:/app/media
+    ports:
+      - "8000:8000"
+    environment:
+      - DJANGO_ENVIRONMENT=development
+      - DB_NAME=construction_db_dev
+      - DB_USER=construction_user
+      - DB_PASSWORD=construction_password_dev
+      - DB_HOST=db
+      - DB_PORT=5432
+      - REDIS_URL=redis://redis:6379/1
+    depends_on:
+      - db
+      - redis
+    restart: unless-stopped
+
+volumes:
+  postgres_dev_data:
+  redis_dev_data:
+  static_dev_volume:
+  media_dev_volume:
