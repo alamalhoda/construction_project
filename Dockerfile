@@ -12,9 +12,9 @@ WORKDIR /app
 # نصب system dependencies
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-        postgresql-client \
-        build-essential \
-        libpq-dev \
+        # postgresql-client \
+        # build-essential \
+        # libpq-dev \
         gettext \
     && rm -rf /var/lib/apt/lists/*
 
@@ -26,7 +26,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . /app/
 
 # ایجاد دایرکتوری‌های مورد نیاز
-RUN mkdir -p /app/logs /app/staticfiles /app/media
+RUN mkdir -p /app/logs /app/staticfiles /app/media /app/database /app/backups
 
 # جمع‌آوری static files
 RUN python manage.py collectstatic --noinput --settings=construction_project.production_settings
