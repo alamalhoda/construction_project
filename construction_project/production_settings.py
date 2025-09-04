@@ -9,10 +9,10 @@ from .settings import *
 DEBUG = False
 ALLOWED_HOSTS = ['*']  # Render will provide the actual domain
 
-# تنظیمات امنیتی SSL
-SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+# تنظیمات امنیتی SSL (غیرفعال برای Codespaces)
+SECURE_SSL_REDIRECT = False  # Codespaces از HTTPS خودکار استفاده می‌کند
+SESSION_COOKIE_SECURE = False  # برای development
+CSRF_COOKIE_SECURE = False  # برای development
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
@@ -20,19 +20,32 @@ SECURE_HSTS_SECONDS = 31536000
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 
-# تنظیمات دیتابیس Production برای Render (PostgreSQL)
+# تنظیمات دیتابیس برای Codespaces (SQLite - Persistent)
 import os
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'construction_db'),
-        'USER': os.environ.get('DB_USER', 'construction_user'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
+# انتخاب دیتابیس بر اساس environment variable
+if os.environ.get('USE_SQLITE', 'true').lower() == 'true':
+    # SQLite برای Codespaces (persistent storage)
+    from pathlib import Path
+    BASE_DIR = Path(__file__).resolve().parent.parent
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'database' / 'db.sqlite3',
+        }
     }
-}
+else:
+    # PostgreSQL برای production
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('DB_NAME', 'construction_db'),
+            'USER': os.environ.get('DB_USER', 'construction_user'),
+            'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+            'HOST': os.environ.get('DB_HOST', 'localhost'),
+            'PORT': os.environ.get('DB_PORT', '5432'),
+        }
+    }
 
 # تنظیمات Static Files برای Render
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')

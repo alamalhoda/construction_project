@@ -1,0 +1,40 @@
+{
+  "name": "Construction Project",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+  "mounts": [
+    "source=construction-db,target=/workspaces/construction_project/database,type=volume",
+    "source=construction-logs,target=/workspaces/construction_project/logs,type=volume",
+    "source=construction-media,target=/workspaces/construction_project/media,type=volume",
+    "source=construction-backups,target=/workspaces/construction_project/backups,type=volume"
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.flake8",
+        "ms-python.black-formatter",
+        "ms-toolsai.jupyter",
+        "ms-vscode.vscode-json"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.linting.enabled": true,
+        "python.linting.flake8Enabled": true,
+        "python.formatting.provider": "black"
+      }
+    }
+  },
+  "forwardPorts": [8000],
+  "portsAttributes": {
+    "8000": {
+      "label": "Django App",
+      "onAutoForward": "notify"
+    }
+  },
+  "postCreateCommand": "cp .env.codespaces .env && pip install -r requirements.txt && python manage.py migrate && python manage.py collectstatic --noinput",
+  "remoteUser": "vscode",
+  "workspaceFolder": "/workspaces/construction_project"
+}
