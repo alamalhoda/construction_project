@@ -1631,7 +1631,19 @@
             const wordsDiv = document.getElementById('addAmountWords');
             
             if (amountInput && wordsDiv) {
-                const value = amountInput.value.replace(/,/g, '');
+                // Remove all non-digit characters including Persian digits and commas
+                let value = amountInput.value.replace(/[^\d۰-۹]/g, '');
+                
+                // Convert Persian digits to English digits
+                const persianToEnglish = {
+                    '۰': '0', '۱': '1', '۲': '2', '۳': '3', '۴': '4',
+                    '۵': '5', '۶': '6', '۷': '7', '۸': '8', '۹': '9'
+                };
+                
+                for (let persian in persianToEnglish) {
+                    value = value.replace(new RegExp(persian, 'g'), persianToEnglish[persian]);
+                }
+                
                 if (value && !isNaN(value) && parseFloat(value) > 0) {
                     wordsDiv.textContent = amountToPersianWords(value);
                 } else {
@@ -1646,7 +1658,19 @@
             const wordsDiv = document.getElementById('editAmountWords');
             
             if (amountInput && wordsDiv) {
-                const value = amountInput.value.replace(/,/g, '');
+                // Remove all non-digit characters including Persian digits and commas
+                let value = amountInput.value.replace(/[^\d۰-۹]/g, '');
+                
+                // Convert Persian digits to English digits
+                const persianToEnglish = {
+                    '۰': '0', '۱': '1', '۲': '2', '۳': '3', '۴': '4',
+                    '۵': '5', '۶': '6', '۷': '7', '۸': '8', '۹': '9'
+                };
+                
+                for (let persian in persianToEnglish) {
+                    value = value.replace(new RegExp(persian, 'g'), persianToEnglish[persian]);
+                }
+                
                 if (value && !isNaN(value) && parseFloat(value) > 0) {
                     wordsDiv.textContent = amountToPersianWords(value);
                 } else {
@@ -1743,8 +1767,8 @@
             
             // تبدیل مبلغ به ریال برای ارسال به سرور
             const displayAmount = $('#addAmountInput').val().replace(/,/g, '');
-            const rialAmount = currencySettings.unit === 'toman' ? 
-                parseFloat(displayAmount) * 10 : parseFloat(displayAmount);
+            // Since currencySettings is not defined, we'll use the amount as-is (assuming it's already in rial)
+            const rialAmount = parseFloat(displayAmount);
             
             const formData = {
                 investor: $('#addInvestorInput').val(),
@@ -1918,13 +1942,17 @@
             // Fill form
             document.getElementById('editTransactionId').value = id;
             
-            $('#editAmountInput').val(transaction.amount);
+            // Format amount as integer (remove decimal places if any)
+            const amountValue = Math.floor(parseFloat(transaction.amount));
+            $('#editAmountInput').val(amountValue.toLocaleString('fa-IR'));
             
             $('#editDateShamsiInput').val(transaction.date_shamsi);
             $('#editDescriptionInput').val(transaction.description || '');
             
-            // Update amount words display
-            updateAmountWordsInEditForm();
+            // Update amount words display after a short delay to ensure DOM is updated
+            setTimeout(() => {
+                updateAmountWordsInEditForm();
+            }, 100);
             
             // Set dropdown values and refresh
             if (transaction.investor_data?.id) {
@@ -2084,17 +2112,27 @@
         
         function updateTransaction() {
             const id = document.getElementById('editTransactionId').value;
-            // تبدیل مبلغ به ریال برای ارسال به سرور
-            const displayAmount = $('#editAmountInput').val().replace(/,/g, '');
-            const rialAmount = currencySettings.unit === 'toman' ? 
-                parseFloat(displayAmount) * 10 : parseFloat(displayAmount);
+            
+            // Get and clean the amount value - remove all non-digit characters including Persian digits and commas
+            const amountValue = $('#editAmountInput').val().replace(/[^\d۰-۹]/g, '');
+            
+            // Convert Persian digits to English digits
+            const persianToEnglish = {
+                '۰': '0', '۱': '1', '۲': '2', '۳': '3', '۴': '4',
+                '۵': '5', '۶': '6', '۷': '7', '۸': '8', '۹': '9'
+            };
+            
+            let cleanAmount = amountValue;
+            for (let persian in persianToEnglish) {
+                cleanAmount = cleanAmount.replace(new RegExp(persian, 'g'), persianToEnglish[persian]);
+            }
             
             const formData = {
                 investor: $('#editInvestorInput').val(),
                 project: $('#editProjectInput').val(),
                 period: $('#editPeriodInput').val(),
                 transaction_type: $('#editTransactionTypeInput').val(),
-                amount: $('#editAmountInput').val(),
+                amount: cleanAmount,
                 date_shamsi_raw: $('#editDateShamsiInput').val(),
                 description: $('#editDescriptionInput').val()
             };
@@ -2106,8 +2144,15 @@
                 return;
             }
             
-            if (parseFloat(formData.amount) <= 0) {
+            // Validate amount
+            const numericAmount = parseFloat(cleanAmount);
+            if (isNaN(numericAmount) || numericAmount <= 0) {
                 showError('مبلغ باید بزرگتر از صفر باشد');
+                return;
+            }
+            
+            if (numericAmount > 999999999999) {
+                showError('مبلغ نمی‌تواند بیشتر از 999,999,999,999 ریال باشد');
                 return;
             }
             
