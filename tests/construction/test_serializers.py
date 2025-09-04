@@ -80,7 +80,8 @@ class TransactionSerializerTestCase(TestCase):
         
         transaction = serializer.save()
         self.assertEqual(transaction.amount, 10000)
-        self.assertEqual(transaction.date_shamsi, date(1404, 6, 1))
+        from jdatetime import date as jdate
+        self.assertEqual(transaction.date_shamsi, jdate(1404, 6, 1))
     
     def test_date_conversion(self):
         """تست تبدیل تاریخ شمسی به میلادی"""
