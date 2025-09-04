@@ -7,7 +7,7 @@ from .settings import *
 
 # تنظیمات امنیتی برای محیط Production
 DEBUG = False
-ALLOWED_HOSTS = ['your-domain.com', 'www.your-domain.com']  # دامنه واقعی خود را وارد کنید
+ALLOWED_HOSTS = ['*']  # Render will provide the actual domain
 
 # تنظیمات امنیتی SSL
 SECURE_SSL_REDIRECT = True
@@ -20,45 +20,35 @@ SECURE_HSTS_SECONDS = 31536000
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 
-# تنظیمات دیتابیس Production (SQLite - ساده‌شده)
-# برای PostgreSQL، تنظیمات زیر را uncomment کنید:
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'construction_db',
-#         'USER': 'construction_user',
-#         'PASSWORD': 'your_secure_password',
-#         'HOST': 'localhost',
-#         'PORT': '5432',
-#     }
-# }
+# تنظیمات دیتابیس Production برای Render (PostgreSQL)
+import os
 
-# استفاده از SQLite در production (ساده‌تر)
-from pathlib import Path
-BASE_DIR = Path(__file__).resolve().parent.parent
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'database' / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('DB_NAME', 'construction_db'),
+        'USER': os.environ.get('DB_USER', 'construction_user'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
 
-# تنظیمات Static Files
-STATIC_ROOT = '/var/www/construction/static/'
-MEDIA_ROOT = '/var/www/construction/media/'
+# تنظیمات Static Files برای Render
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_URL = '/static/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
 
-# تنظیمات Cache (Redis پیشنهادی)
+# تنظیمات Cache برای Render (Local Memory)
 CACHES = {
     'default': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://127.0.0.1:6379/1',
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-        }
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
     }
 }
 
-# تنظیمات Logging
+# تنظیمات Logging برای Render
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -69,40 +59,35 @@ LOGGING = {
         },
     },
     'handlers': {
-        'file': {
+        'console': {
             'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': '/var/log/construction/django.log',
-            'formatter': 'verbose',
-        },
-        'security_file': {
-            'level': 'WARNING',
-            'class': 'logging.FileHandler',
-            'filename': '/var/log/construction/security.log',
+            'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
     },
     'loggers': {
         'django': {
-            'handlers': ['file'],
+            'handlers': ['console'],
             'level': 'INFO',
             'propagate': True,
         },
         'django.security': {
-            'handlers': ['security_file'],
+            'handlers': ['console'],
             'level': 'WARNING',
             'propagate': True,
         },
     },
 }
 
-# تنظیمات Email (برای ارسال ایمیل‌های امنیتی)
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'your-email@gmail.com'
-EMAIL_HOST_PASSWORD = 'your-app-password'
+# تنظیمات Email برای Render
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # برای تست
+# برای production واقعی، تنظیمات SMTP را فعال کنید:
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+# EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+# EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 
 # تنظیمات Session
 SESSION_COOKIE_AGE = 3600  # 1 ساعت

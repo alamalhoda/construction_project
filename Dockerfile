@@ -9,12 +9,12 @@ ENV DJANGO_ENVIRONMENT=production
 # تنظیم دایرکتوری کاری
 WORKDIR /app
 
-# نصب system dependencies
+# نصب system dependencies برای Render
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-        # postgresql-client \
-        # build-essential \
-        # libpq-dev \
+        postgresql-client \
+        build-essential \
+        libpq-dev \
         gettext \
     && rm -rf /var/lib/apt/lists/*
 

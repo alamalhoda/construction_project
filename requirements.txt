@@ -29,7 +29,9 @@ djangorestframework==3.16.1
 gunicorn>=21.2.0
 whitenoise>=6.6.0
 
-# Optional: برای PostgreSQL (در آینده)
-# psycopg2-binary>=2.9.7
-# django-redis>=5.4.0
+# PostgreSQL support for Render
+psycopg2-binary>=2.9.7
+
+# Redis for caching (optional)
+django-redis>=5.4.0
 
