@@ -1,4 +1,4 @@
-# 🐳 راهنمای Docker - پروژه ساخت‌وساز
+# 🐳 راهنمای Docker - پروژه ساخت‌وساز (ساده‌شده)
 
 ## 📋 پیش‌نیازها
 
@@ -22,7 +22,8 @@ http://localhost:8000
 docker-compose up --build
 
 # دسترسی به اپلیکیشن
-http://localhost:80
+http://localhost:8000 (مستقیماً)
+http://localhost:80 (از طریق Nginx)
 ```
 
 ## 🔧 دستورات مفید
@@ -69,20 +70,18 @@ docker-compose exec -T db psql -U construction_user construction_db < backup.sql
 - Django application
 - Gunicorn server
 - 3 workers
+- SQLite database (در پوشه database/)
 
-### Database (Port 5432)
-- PostgreSQL 15
-- Database: construction_db
-- User: construction_user
-
-### Redis (Port 6379)
-- Cache server
-- Session storage
-
-### Nginx (Port 80/443)
+### Nginx (Port 80) - اختیاری
 - Reverse proxy
 - Static files serving
-- SSL termination (production)
+
+### Volume ها
+- `database_volume`: فایل دیتابیس SQLite
+- `backups_volume`: فایل‌های backup
+- `static_volume`: فایل‌های static
+- `media_volume`: فایل‌های media
+- `logs_volume`: فایل‌های log
 
 ## 🔒 تنظیمات امنیتی
 
