@@ -1,0 +1,26 @@
+services:
+  # Web Service
+  - type: web
+    name: construction-project
+    env: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    buildCommand: ""
+    startCommand: "gunicorn --bind 0.0.0.0:$PORT --workers 3 construction_project.wsgi:application"
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: construction_project.production_settings
+      - key: PYTHONPATH
+        value: /app
+      - key: DJANGO_ENVIRONMENT
+        value: production
+    healthCheckPath: /admin/
+
+  # Database Service
+  - type: pserv
+    name: construction-db
+    plan: free
+    env: postgresql
+    region: oregon
+    databaseName: construction_db
+    databaseUser: construction_user
