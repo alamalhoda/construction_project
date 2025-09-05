@@ -47,4 +47,8 @@ else:
 "
 
 echo "✅ راه‌اندازی کامل شد!"
-echo "🚀 برای اجرای سرور: source venv/bin/activate && python manage.py runserver 0.0.0.0:8000"
+echo "🚀 شروع سرور Django..."
+
+# اجرای سرور در background
+nohup python manage.py runserver 0.0.0.0:8000 > /dev/null 2>&1 &
+echo "✅ سرور Django روی پورت 8000 شروع شد!"
