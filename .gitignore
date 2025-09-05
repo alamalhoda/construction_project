@@ -18,4 +18,4 @@ venv/
 staticfiles/
 temp_data/
 backups/
-database/db.sqlite3
+database/local.sqlite3

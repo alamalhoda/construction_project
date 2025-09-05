@@ -59,7 +59,7 @@ python manage.py collectstatic --noinput
 │   ├── devcontainer.json  # Volume mounts تعریف شده
 │   └── Dockerfile
 ├── database/              # 🔒 VOLUME - Persistent
-│   └── db.sqlite3
+│   └── online.sqlite3
 ├── logs/                  # 🔒 VOLUME - Persistent
 ├── media/                 # 🔒 VOLUME - Persistent
 ├── backups/               # 🔒 VOLUME - Persistent
@@ -98,7 +98,7 @@ python manage.py collectstatic --noinput
 # خودکار کپی می‌شود به .env
 DJANGO_SETTINGS_MODULE=construction_project.production_settings
 USE_SQLITE=true
-DB_NAME=database/db.sqlite3
+DB_NAME=database/online.sqlite3
 SECRET_KEY=codespaces-secret-key
 ```
 
