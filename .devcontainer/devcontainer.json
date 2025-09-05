@@ -34,7 +34,7 @@
       "onAutoForward": "notify"
     }
   },
-  "postCreateCommand": "cp .env.codespaces .env && pip install -r requirements.txt && (cp database/online.sqlite3 database/online.sqlite3 || python manage.py migrate) && python manage.py collectstatic --noinput",
+  "postCreateCommand": "cp .env.codespaces .env && pip install -r requirements.txt && (test -f database/online.sqlite3 && echo 'Database exists' || python manage.py migrate) && python manage.py collectstatic --noinput",
   "remoteUser": "vscode",
   "workspaceFolder": "/workspaces/construction_project"
 }
