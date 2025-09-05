@@ -1,11 +1,7 @@
 {
   "name": "Construction Project",
   "image": "mcr.microsoft.com/devcontainers/python:3.11",
-  "features": {
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {
-      "moby": false
-    }
-  },
+  "features": {},
   "mounts": [
     "source=construction-db,target=/workspaces/construction_project/database,type=volume",
     "source=construction-logs,target=/workspaces/construction_project/logs,type=volume",
