@@ -49,6 +49,41 @@ else:
 echo "✅ راه‌اندازی کامل شد!"
 echo "🚀 شروع سرور Django..."
 
-# اجرای سرور در background
-nohup python manage.py runserver 0.0.0.0:8000 > /dev/null 2>&1 &
-echo "✅ سرور Django روی پورت 8000 شروع شد!"
+# بررسی فعال بودن virtual environment
+echo "🔍 بررسی virtual environment..."
+if [ -n "$VIRTUAL_ENV" ]; then
+    echo "✅ Virtual environment فعال است: $VIRTUAL_ENV"
+else
+    echo "⚠️ Virtual environment فعال نیست، فعال‌سازی مجدد..."
+    . venv/bin/activate
+    echo "✅ Virtual environment فعال شد: $VIRTUAL_ENV"
+fi
+
+# بررسی Python و Django
+echo "🐍 بررسی Python و Django..."
+python --version
+python -c "import django; print(f'Django version: {django.get_version()}')"
+
+# تاخیر برای اطمینان
+echo "⏳ تاخیر 3 ثانیه برای اطمینان..."
+sleep 3
+
+# اجرای سرور در background با لاگ
+echo "🚀 شروع سرور Django در background..."
+nohup python manage.py runserver 0.0.0.0:8000 > server.log 2>&1 &
+SERVER_PID=$!
+
+# تاخیر برای شروع سرور
+echo "⏳ تاخیر 5 ثانیه برای شروع سرور..."
+sleep 5
+
+# بررسی وضعیت سرور
+echo "🔍 بررسی وضعیت سرور..."
+if ps -p $SERVER_PID > /dev/null; then
+    echo "✅ سرور Django با PID $SERVER_PID روی پورت 8000 شروع شد!"
+    echo "📝 لاگ سرور در فایل server.log ذخیره می‌شود"
+    echo "🌐 سرور در دسترس است: http://0.0.0.0:8000"
+else
+    echo "❌ خطا در شروع سرور! بررسی لاگ:"
+    cat server.log
+fi
