@@ -17,6 +17,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import TemplateView
+from django.conf import settings
+from django.conf.urls.static import static
 from . import views
 
 urlpatterns = [
@@ -29,3 +31,8 @@ urlpatterns = [
     # API URLs
     path('api/', include('construction.urls')),
 ]
+
+# اضافه کردن static files برای development و production
+if settings.DEBUG or settings.ENVIRONMENT == 'development':
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
