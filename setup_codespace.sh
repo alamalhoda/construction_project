@@ -22,6 +22,10 @@ mkdir -p logs database media backups staticfiles
 echo "📋 کپی فایل محیط..."
 cp .env.codespaces .env
 
+# Load کردن متغیرهای محیطی
+echo "🔧 Load کردن متغیرهای محیطی..."
+export $(cat .env | grep -v '^#' | xargs)
+
 # نصب dependencies
 echo "📚 نصب dependencies..."
 pip install -r requirements.txt
@@ -76,6 +80,17 @@ SERVER_PID=$!
 # تاخیر برای شروع سرور
 echo "⏳ تاخیر 5 ثانیه برای شروع سرور..."
 sleep 5
+
+# بررسی متغیرهای محیطی
+echo "🔍 بررسی متغیرهای محیطی..."
+echo "DB_NAME: $DB_NAME"
+echo "USE_SQLITE: $USE_SQLITE"
+echo "DJANGO_ENVIRONMENT: $DJANGO_ENVIRONMENT"
+echo "CODESPACES: $CODESPACES"
+
+# بررسی تنظیمات Django
+echo "🔍 بررسی تنظیمات Django..."
+python manage.py check_env
 
 # بررسی وضعیت سرور
 echo "🔍 بررسی وضعیت سرور..."
