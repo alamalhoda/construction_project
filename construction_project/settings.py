@@ -22,7 +22,13 @@ SECRET_KEY = '^l)7d*%h&db4uft@dk%h-w&nup#pu%)a!d)c7jwgoixo5_hm0$'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = [
+    'localhost', 
+    '127.0.0.1',
+    '.app.github.dev',
+    '.preview.app.github.dev',
+    '*'
+]
 
 # تنظیمات امنیتی
 from .security_settings import get_security_settings
@@ -122,12 +128,27 @@ WSGI_APPLICATION = 'construction_project.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'database' / 'db.sqlite3',
+# تنظیمات دیتابیس
+if os.environ.get('USE_SQLITE', 'true').lower() == 'true':
+    # استفاده از SQLite
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / os.environ.get('DB_NAME', 'database/db.sqlite3'),
+        }
     }
-}
+else:
+    # استفاده از PostgreSQL (برای production)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('DB_NAME', 'construction_db'),
+            'USER': os.environ.get('DB_USER', 'construction_user'),
+            'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+            'HOST': os.environ.get('DB_HOST', 'localhost'),
+            'PORT': os.environ.get('DB_PORT', '5432'),
+        }
+    }
 
 
 # Password validation

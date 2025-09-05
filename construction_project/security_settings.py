@@ -51,6 +51,15 @@ DEVELOPMENT_SECURITY_SETTINGS = {
     'SECURE_BROWSER_XSS_FILTER': False,  # برای development
     'X_FRAME_OPTIONS': 'SAMEORIGIN',  # نرم‌تر از DENY
     'SECURE_REFERRER_POLICY': 'no-referrer-when-downgrade',  # نرم‌تر
+    # تنظیمات CSRF برای Codespace
+    'CSRF_TRUSTED_ORIGINS': [
+        'https://*.app.github.dev',
+        'https://*.preview.app.github.dev',
+        'http://localhost:8000',
+        'http://127.0.0.1:8000',
+        'https://localhost:8000',
+        'https://127.0.0.1:8000',
+    ],
 }
 
 # تنظیمات امنیتی برای Production
