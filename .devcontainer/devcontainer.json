@@ -2,7 +2,9 @@
   "name": "Construction Project",
   "image": "mcr.microsoft.com/devcontainers/python:3.11",
   "features": {
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "moby": false
+    }
   },
   "mounts": [
     "source=construction-db,target=/workspaces/construction_project/database,type=volume",
@@ -34,7 +36,7 @@
       "onAutoForward": "notify"
     }
   },
-  "postCreateCommand": "mkdir -p logs database media backups staticfiles && python3 -m venv venv && source venv/bin/activate && cp .env.codespaces .env && pip install -r requirements.txt && python manage.py migrate && python manage.py collectstatic --noinput && echo 'Setup completed successfully!'",
+  "postCreateCommand": "mkdir -p logs database media backups staticfiles && chmod -R 755 logs database media backups staticfiles && python3 -m venv venv && source venv/bin/activate && cp .env.codespaces .env && pip install -r requirements.txt && python manage.py migrate && python manage.py collectstatic --noinput && echo 'Setup completed successfully!'",
   "remoteUser": "vscode",
   "workspaceFolder": "/workspaces/construction_project"
 }
