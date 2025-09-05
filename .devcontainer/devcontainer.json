@@ -32,7 +32,7 @@
       "onAutoForward": "notify"
     }
   },
-  "postCreateCommand": "mkdir -p logs database media backups staticfiles && chmod -R 755 logs database media backups staticfiles && python3 -m venv venv && source venv/bin/activate && cp .env.codespaces .env && pip install -r requirements.txt && python manage.py migrate && python manage.py collectstatic --noinput && echo 'Setup completed successfully!'",
+  "postCreateCommand": "mkdir -p logs database media backups staticfiles && chmod -R 755 logs database media backups staticfiles && python3 -m venv venv && . venv/bin/activate && cp .env.codespaces .env && pip install -r requirements.txt && python manage.py migrate && python manage.py collectstatic --noinput && echo 'Setup completed successfully!' && echo 'Starting Django server...' && python manage.py runserver 0.0.0.0:8000 &",
   "remoteUser": "vscode",
   "workspaceFolder": "/workspaces/construction_project"
 }
