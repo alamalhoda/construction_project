@@ -59,6 +59,7 @@ DEVELOPMENT_SECURITY_SETTINGS = {
         'http://127.0.0.1:8000',
         'https://localhost:8000',
         'https://127.0.0.1:8000',
+        'https://organic-winner-p649rx6xwxhr9r9-8000.app.github.dev',
     ],
 }
 
@@ -69,9 +70,22 @@ PRODUCTION_SECURITY_SETTINGS = {
     'ALLOWED_HOSTS': [
         'localhost',
         '127.0.0.1',
+        '.app.github.dev',
+        '.preview.app.github.dev',
+        'organic-winner-p649rx6xwxhr9r9-8000.app.github.dev',
+        '*',
         # اضافه کردن دامنه‌های واقعی در production
         # 'yourdomain.com',
         # 'www.yourdomain.com',
+    ],
+    'CSRF_TRUSTED_ORIGINS': [
+        'https://*.app.github.dev',
+        'https://*.preview.app.github.dev',
+        'https://organic-winner-p649rx6xwxhr9r9-8000.app.github.dev',
+        'http://localhost:8000',
+        'http://127.0.0.1:8000',
+        'https://localhost:8000',
+        'https://127.0.0.1:8000',
     ],
 }
 

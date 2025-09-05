@@ -27,6 +27,7 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     '.app.github.dev',
     '.preview.app.github.dev',
+    'organic-winner-p649rx6xwxhr9r9-8000.app.github.dev',
     '*'
 ]
 
