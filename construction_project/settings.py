@@ -141,9 +141,9 @@ MIDDLEWARE = [
 
     # Middleware های امنیتی سفارشی (موقتاً غیرفعال برای حل مشکل static files)
     # 'construction.security_middleware.SecurityHeadersMiddleware',
-    'construction.security_middleware.AuditLogMiddleware',
-    'construction.security_middleware.AdminSecurityMiddleware',
-    'construction.security_middleware.LoginAttemptMiddleware',
+    # 'construction.security_middleware.AuditLogMiddleware',
+    # 'construction.security_middleware.AdminSecurityMiddleware',
+    # 'construction.security_middleware.LoginAttemptMiddleware',
     # Middleware های کاربران (موقتاً غیرفعال)
     # 'construction.user_middleware.UserAuthenticationMiddleware',
     # 'construction.user_middleware.UserSessionMiddleware',
@@ -234,6 +234,11 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# اضافه کردن پوشه static به STATICFILES_DIRS
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
 
 # تنظیمات Whitenoise برای static files
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'

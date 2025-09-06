@@ -32,7 +32,6 @@ urlpatterns = [
     path('api/', include('construction.urls')),
 ]
 
-# اضافه کردن static files فقط برای development (Whitenoise در production استفاده می‌شود)
-if settings.DEBUG:
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# اضافه کردن static files برای همه حالات (development و production)
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
