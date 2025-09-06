@@ -32,7 +32,7 @@
       "onAutoForward": "notify"
     }
   },
-  "postCreateCommand": "./setup_codespace.sh",
+  "postCreateCommand": "./setup_codespace_product.sh",
   "remoteUser": "vscode",
   "workspaceFolder": "/workspaces/construction_project"
 }
