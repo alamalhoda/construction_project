@@ -59,10 +59,29 @@ def investor_profile(request):
 @login_required
 def transaction_manager(request):
     """نمایش صفحه مدیریت تراکنش‌های مالی"""
+    from django.middleware.csrf import get_token
+    import json
+    
     file_path = os.path.join(settings.BASE_DIR, 'dashboard', 'view', 'transaction_manager.html')
     try:
         with open(file_path, 'r', encoding='utf-8') as file:
             content = file.read()
+        
+        # دریافت CSRF token
+        csrf_token = get_token(request)
+        
+        # اضافه کردن CSRF token به JavaScript
+        csrf_script = f"""
+        <script>
+        // CSRF Token از سرور
+        window.csrfToken = '{csrf_token}';
+        console.log('CSRF Token from server:', window.csrfToken);
+        </script>
+        """
+        
+        # قرار دادن script قبل از closing body tag
+        content = content.replace('</body>', csrf_script + '</body>')
+        
         return HttpResponse(content)
     except FileNotFoundError:
         return HttpResponse('‏‍فایل یافت نشد', status=404)
