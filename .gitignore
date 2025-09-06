@@ -19,3 +19,4 @@ staticfiles/
 temp_data/
 backups/
 database/local.sqlite3
+database/online.sqlite3
