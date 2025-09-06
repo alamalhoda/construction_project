@@ -64,6 +64,15 @@ CSRF_TRUSTED_ORIGINS = [
     'http://*.preview.app.github.dev',
 ]
 
+# تنظیمات Content Security Policy (غیرفعال برای development)
+CSP_DEFAULT_SRC = None
+CSP_SCRIPT_SRC = None
+CSP_STYLE_SRC = None
+CSP_FONT_SRC = None
+CSP_IMG_SRC = None
+CSP_CONNECT_SRC = None
+CSP_FRAME_SRC = None
+
 # تنظیمات احراز هویت
 AUTHENTICATION_BACKENDS = [
     'construction.authentication.EnhancedAuthenticationBackend',
