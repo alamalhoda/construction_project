@@ -8,6 +8,10 @@ https://docs.djangoproject.com/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -139,7 +143,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
-    # Middleware های امنیتی سفارشی (فعال با تنظیمات نرم‌تر)
+    # Middleware های امنیتی سفارشی (فعال با تنظیمات نرم‌تر برای development)
     'construction.security_middleware.SecurityHeadersMiddleware',
     'construction.security_middleware.AuditLogMiddleware',
     'construction.security_middleware.AdminSecurityMiddleware',

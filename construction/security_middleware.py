@@ -113,15 +113,16 @@ class SecurityHeadersMiddleware(MiddlewareMixin):
     def process_response(self, request, response):
         from django.conf import settings
         
-        # Content Security Policy - فقط فایل‌های محلی
-        if settings.DEBUG or getattr(settings, 'DJANGO_ENVIRONMENT', 'development') == 'development':
-            # Development: CSP نرم‌تر
+        # Content Security Policy - نرم‌تر برای development
+        environment = getattr(settings, 'DJANGO_ENVIRONMENT', 'development')
+        if settings.DEBUG and environment == 'development':
+            # Development: CSP نرم‌تر با مجوز CDN ها
             response['Content-Security-Policy'] = (
                 "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; "
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
-                "style-src 'self' 'unsafe-inline'; "
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com; "
+                "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; "
                 "img-src 'self' data: https: http:; "
-                "font-src 'self'; "
+                "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
                 "connect-src 'self' https: http:; "
                 "frame-src 'self' https: http:;"
             )
@@ -151,7 +152,7 @@ class SecurityHeadersMiddleware(MiddlewareMixin):
         else:
             response['Referrer-Policy'] = 'strict-origin-when-cross-origin'
         
-        # Permissions Policy
+        # Permissions Policy (حذف speaker و vibrate که استاندارد نیستند)
         response['Permissions-Policy'] = (
             "geolocation=(), "
             "microphone=(), "
@@ -160,8 +161,6 @@ class SecurityHeadersMiddleware(MiddlewareMixin):
             "usb=(), "
             "magnetometer=(), "
             "gyroscope=(), "
-            "speaker=(), "
-            "vibrate=(), "
             "fullscreen=(self), "
             "sync-xhr=()"
         )
