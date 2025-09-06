@@ -75,11 +75,11 @@ if DEBUG:
     CSP_CONNECT_SRC = None
     CSP_FRAME_SRC = None
 else:
-    # Production: CSP سخت‌گیرانه
+    # Production: CSP سخت‌گیرانه (فقط فایل‌های محلی)
     CSP_DEFAULT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'", "data:", "blob:")
-    CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com", "https://unpkg.com", "https://code.jquery.com", "https://stackpath.bootstrapcdn.com")
-    CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com", "https://fonts.googleapis.com", "https://stackpath.bootstrapcdn.com", "https://unpkg.com")
-    CSP_FONT_SRC = ("'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com", "https://stackpath.bootstrapcdn.com")
+    CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'")
+    CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")
+    CSP_FONT_SRC = ("'self'")
     CSP_IMG_SRC = ("'self'", "data:", "https:", "http:")
     CSP_CONNECT_SRC = ("'self'", "https:", "http:")
     CSP_FRAME_SRC = ("'self'", "https:", "http:")
