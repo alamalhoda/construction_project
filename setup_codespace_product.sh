@@ -92,12 +92,24 @@ if ! python manage.py migrate; then
     exit 1
 fi
 
-# جمع‌آوری static files
-echo "📁 [PROD] جمع‌آوری static files... $(date)"
+# جمع‌آوری static files با Whitenoise
+echo "📁 [PROD] جمع‌آوری static files با Whitenoise... $(date)"
 if ! python manage.py collectstatic --noinput; then
     echo "❌ [PROD] خطا در جمع‌آوری static files!"
     exit 1
 fi
+
+# بررسی فایل‌های استاتیک
+echo "🔍 [PROD] بررسی فایل‌های استاتیک... $(date)"
+if [ -f "staticfiles/admin/css/base.css" ]; then
+    echo "✅ [PROD] فایل‌های استاتیک Django Admin موجود است"
+else
+    echo "⚠️ [PROD] فایل‌های استاتیک Django Admin یافت نشد!"
+fi
+
+# نمایش وضعیت static files
+echo "📊 [PROD] وضعیت static files:"
+ls -la staticfiles/ | head -10
 
 # بررسی superuser
 echo "👤 [PROD] بررسی superuser... $(date)"
