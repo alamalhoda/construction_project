@@ -61,11 +61,18 @@ DEVELOPMENT_SECURITY_SETTINGS = {
         'https://127.0.0.1:8000',
         'https://organic-winner-p649rx6xwxhr9r9-8000.app.github.dev',
     ],
+    # تنظیمات Content Security Policy برای CDN
+    'CSP_DEFAULT_SRC': ("'self'", "'unsafe-inline'", "'unsafe-eval'", "data:", "blob:"),
+    'CSP_SCRIPT_SRC': ("'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com", "https://unpkg.com"),
+    'CSP_STYLE_SRC': ("'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com", "https://fonts.googleapis.com"),
+    'CSP_FONT_SRC': ("'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"),
+    'CSP_IMG_SRC': ("'self'", "data:", "https:", "http:"),
+    'CSP_CONNECT_SRC': ("'self'", "https:", "http:"),
+    'CSP_FRAME_SRC': ("'self'", "https:", "http:"),
 }
 
 # تنظیمات امنیتی برای Production
 PRODUCTION_SECURITY_SETTINGS = {
-    **SECURITY_SETTINGS,
     'DEBUG': False,
     'ALLOWED_HOSTS': [
         'localhost',
@@ -87,6 +94,29 @@ PRODUCTION_SECURITY_SETTINGS = {
         'https://localhost:8000',
         'https://127.0.0.1:8000',
     ],
+    # تنظیمات امنیتی نرم‌تر برای Codespaces
+    'SECURE_SSL_REDIRECT': False,  # Codespaces خودش HTTPS دارد
+    'SESSION_COOKIE_SECURE': False,  # برای Codespaces
+    'CSRF_COOKIE_SECURE': False,  # برای Codespaces
+    'SECURE_HSTS_SECONDS': 0,  # غیرفعال برای Codespaces
+    'SECURE_HSTS_INCLUDE_SUBDOMAINS': False,
+    'SECURE_HSTS_PRELOAD': False,
+    'SESSION_COOKIE_HTTPONLY': True,
+    'SESSION_COOKIE_SAMESITE': 'Lax',
+    'CSRF_COOKIE_HTTPONLY': True,
+    'CSRF_COOKIE_SAMESITE': 'Lax',
+    'SECURE_CONTENT_TYPE_NOSNIFF': True,
+    'SECURE_BROWSER_XSS_FILTER': True,
+    'X_FRAME_OPTIONS': 'SAMEORIGIN',
+    'SECURE_REFERRER_POLICY': 'no-referrer-when-downgrade',
+    # تنظیمات Content Security Policy برای CDN
+    'CSP_DEFAULT_SRC': ("'self'", "'unsafe-inline'", "'unsafe-eval'", "data:", "blob:"),
+    'CSP_SCRIPT_SRC': ("'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com", "https://unpkg.com"),
+    'CSP_STYLE_SRC': ("'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com", "https://fonts.googleapis.com"),
+    'CSP_FONT_SRC': ("'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"),
+    'CSP_IMG_SRC': ("'self'", "data:", "https:", "http:"),
+    'CSP_CONNECT_SRC': ("'self'", "https:", "http:"),
+    'CSP_FRAME_SRC': ("'self'", "https:", "http:"),
 }
 
 # تنظیمات Password Security

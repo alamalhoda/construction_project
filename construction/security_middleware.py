@@ -113,26 +113,27 @@ class SecurityHeadersMiddleware(MiddlewareMixin):
     def process_response(self, request, response):
         from django.conf import settings
         
-        # Content Security Policy - نرم‌تر برای development
-        if settings.DEBUG:
+        # Content Security Policy - نرم‌تر برای development و production
+        if settings.DEBUG or getattr(settings, 'DJANGO_ENVIRONMENT', 'development') == 'development':
             response['Content-Security-Policy'] = (
-                "default-src 'self' 'unsafe-inline' 'unsafe-eval'; "
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://stackpath.bootstrapcdn.com https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
-                "style-src 'self' 'unsafe-inline' https://stackpath.bootstrapcdn.com https://unpkg.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://fonts.googleapis.com; "
-                "img-src 'self' data: https:; "
-                "font-src 'self' data: https://stackpath.bootstrapcdn.com https://cdnjs.cloudflare.com https://fonts.gstatic.com; "
-                "connect-src 'self'; "
-                "frame-ancestors 'self';"
+                "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; "
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com; "
+                "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; "
+                "img-src 'self' data: https: http:; "
+                "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
+                "connect-src 'self' https: http:; "
+                "frame-src 'self' https: http:;"
             )
         else:
+            # برای production هم نرم‌تر کنیم
             response['Content-Security-Policy'] = (
-                "default-src 'self'; "
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
-                "style-src 'self' 'unsafe-inline'; "
-                "img-src 'self' data: https:; "
-                "font-src 'self' data:; "
-                "connect-src 'self'; "
-                "frame-ancestors 'none';"
+                "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; "
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com; "
+                "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; "
+                "img-src 'self' data: https: http:; "
+                "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
+                "connect-src 'self' https: http:; "
+                "frame-src 'self' https: http:;"
             )
         
         # X-Content-Type-Options
