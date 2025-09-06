@@ -113,25 +113,26 @@ class SecurityHeadersMiddleware(MiddlewareMixin):
     def process_response(self, request, response):
         from django.conf import settings
         
-        # Content Security Policy - نرم‌تر برای development و production
+        # Content Security Policy - فقط فایل‌های محلی
         if settings.DEBUG or getattr(settings, 'DJANGO_ENVIRONMENT', 'development') == 'development':
+            # Development: CSP نرم‌تر
             response['Content-Security-Policy'] = (
                 "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; "
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com; "
-                "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; "
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+                "style-src 'self' 'unsafe-inline'; "
                 "img-src 'self' data: https: http:; "
-                "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
+                "font-src 'self'; "
                 "connect-src 'self' https: http:; "
                 "frame-src 'self' https: http:;"
             )
         else:
-            # برای production هم نرم‌تر کنیم
+            # Production: CSP سخت‌گیرانه (فقط فایل‌های محلی)
             response['Content-Security-Policy'] = (
                 "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; "
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com; "
-                "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; "
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+                "style-src 'self' 'unsafe-inline'; "
                 "img-src 'self' data: https: http:; "
-                "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
+                "font-src 'self'; "
                 "connect-src 'self' https: http:; "
                 "frame-src 'self' https: http:;"
             )

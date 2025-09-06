@@ -139,11 +139,11 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
-    # Middleware های امنیتی سفارشی (موقتاً غیرفعال برای حل مشکل static files)
-    # 'construction.security_middleware.SecurityHeadersMiddleware',
-    # 'construction.security_middleware.AuditLogMiddleware',
-    # 'construction.security_middleware.AdminSecurityMiddleware',
-    # 'construction.security_middleware.LoginAttemptMiddleware',
+    # Middleware های امنیتی سفارشی (فعال با تنظیمات نرم‌تر)
+    'construction.security_middleware.SecurityHeadersMiddleware',
+    'construction.security_middleware.AuditLogMiddleware',
+    'construction.security_middleware.AdminSecurityMiddleware',
+    'construction.security_middleware.LoginAttemptMiddleware',
     # Middleware های کاربران (موقتاً غیرفعال)
     # 'construction.user_middleware.UserAuthenticationMiddleware',
     # 'construction.user_middleware.UserSessionMiddleware',
