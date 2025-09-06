@@ -59,6 +59,12 @@ WHITENOISE_USE_FINDERS = True
 WHITENOISE_AUTOREFRESH = True
 WHITENOISE_MANIFEST_STRICT = False  # برای فایل‌های گمشده سخت‌گیر نباشد
 
+# تنظیمات زمان برای production
+TIME_ZONE = 'Asia/Tehran'
+USE_TZ = True
+USE_I18N = True
+USE_L10N = True
+
 # تنظیمات Cache برای Render (Local Memory)
 CACHES = {
     'default': {
@@ -74,6 +80,10 @@ LOGGING = {
     'formatters': {
         'verbose': {
             'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'tehran_time': {
+            'format': '{levelname} {asctime} [Tehran] {module} {process:d} {thread:d} {message}',
             'style': '{',
         },
     },

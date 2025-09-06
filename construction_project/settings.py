@@ -207,6 +207,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 LANGUAGE_CODE = 'fa-ir'
 
+# تنظیمات زمان
+TIME_ZONE = 'Asia/Tehran'
+USE_TZ = True
+USE_I18N = True
+USE_L10N = True
+
 # Django REST Framework settings
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
