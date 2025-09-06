@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
     <title>مدیریت تراکنش‌های مالی</title>
 
     <!-- Tabulator CSS -->
@@ -648,6 +649,11 @@
                             <i class="refresh icon"></i>
                             محاسبه مجدد سودها
                         </button>
+                        
+                        <button class="ui teal button" onclick="testCSRFToken()" title="تست CSRF Token">
+                            <i class="shield icon"></i>
+                            تست CSRF
+                        </button>
                     </div>
                 </div>
             </div>
@@ -677,6 +683,7 @@
         </div>
         <div class="content">
             <form class="ui form" id="addTransactionForm">
+                {% csrf_token %}
                 <div class="three fields">
                     <div class="field">
                         <label>سرمایه‌گذار</label>
@@ -777,6 +784,7 @@
         </div>
         <div class="content">
             <form class="ui form" id="editTransactionForm">
+                {% csrf_token %}
                 <input type="hidden" id="editTransactionId">
                 <div class="three fields">
                     <div class="field">
@@ -1601,6 +1609,19 @@
             alert('Test function works!');
         };
         
+        // Test CSRF token function
+        window.testCSRFToken = function() {
+            const token = getCSRFToken();
+            if (token) {
+                console.log('CSRF Token found:', token);
+                console.log('Token length:', token.length);
+                alert(`CSRF Token found! Length: ${token.length}`);
+            } else {
+                console.log('No CSRF Token found');
+                alert('No CSRF Token found!');
+            }
+        };
+        
         // تابع تست تبدیل اعداد به حروف
         window.testNumberToWords = function() {
             const testNumbers = [
@@ -1877,7 +1898,7 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
+                    'X-CSRFToken': getCSRFToken()
                 },
                 body: JSON.stringify(formData)
             })
@@ -2087,7 +2108,7 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
+                    'X-CSRFToken': getCSRFToken()
                 }
             })
             .then(response => {
@@ -2161,7 +2182,7 @@
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
+                    'X-CSRFToken': getCSRFToken()
                 },
                 body: JSON.stringify(formData)
             })
@@ -2197,7 +2218,7 @@
             fetch(API_BASE + ENDPOINTS.transactions + id + '/', {
                 method: 'DELETE',
                 headers: {
-                    'X-CSRFToken': getCookie('csrftoken')
+                    'X-CSRFToken': getCSRFToken()
                 }
             })
             .then(response => {
@@ -2300,6 +2321,32 @@
                 }
             }
             return cookieValue;
+        }
+        
+        // تابع بهبود یافته برای دریافت CSRF token
+        function getCSRFToken() {
+            // ابتدا از cookie دریافت کن
+            let token = getCookie('csrftoken');
+            
+            // اگر از cookie دریافت نشد، از meta tag دریافت کن
+            if (!token) {
+                const metaTag = document.querySelector('meta[name="csrf-token"]');
+                if (metaTag) {
+                    token = metaTag.getAttribute('content');
+                }
+            }
+            
+            // اگر هنوز دریافت نشد، از Django template tag دریافت کن
+            if (!token) {
+                // این روش نیاز به اضافه کردن {% csrf_token %} در template دارد
+                const csrfInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
+                if (csrfInput) {
+                    token = csrfInput.value;
+                }
+            }
+            
+            console.log('CSRF Token found:', token ? 'Yes' : 'No', token ? `Length: ${token.length}` : '');
+            return token;
         }
     </script>
 </body>

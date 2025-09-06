@@ -43,9 +43,9 @@ DEVELOPMENT_SECURITY_SETTINGS = {
     'SECURE_HSTS_SECONDS': 0,
     'SECURE_HSTS_INCLUDE_SUBDOMAINS': False,
     'SECURE_HSTS_PRELOAD': False,
-    'SESSION_COOKIE_HTTPONLY': False,  # برای development
+    'SESSION_COOKIE_HTTPONLY': True,  # برای امنیت
     'SESSION_COOKIE_SAMESITE': 'Lax',  # نرم‌تر از Strict
-    'CSRF_COOKIE_HTTPONLY': False,  # برای development
+    'CSRF_COOKIE_HTTPONLY': False,  # برای JavaScript access
     'CSRF_COOKIE_SAMESITE': 'Lax',  # نرم‌تر از Strict
     'SECURE_CONTENT_TYPE_NOSNIFF': False,  # برای development
     'SECURE_BROWSER_XSS_FILTER': False,  # برای development
