@@ -2325,8 +2325,13 @@
         
         // تابع بهبود یافته برای دریافت CSRF token
         function getCSRFToken() {
-            // ابتدا از cookie دریافت کن
-            let token = getCookie('csrftoken');
+            // ابتدا از window.csrfToken دریافت کن (از سرور)
+            let token = window.csrfToken;
+            
+            // اگر از window دریافت نشد، از cookie دریافت کن
+            if (!token) {
+                token = getCookie('csrftoken');
+            }
             
             // اگر از cookie دریافت نشد، از meta tag دریافت کن
             if (!token) {
@@ -2338,7 +2343,6 @@
             
             // اگر هنوز دریافت نشد، از Django template tag دریافت کن
             if (!token) {
-                // این روش نیاز به اضافه کردن {% csrf_token %} در template دارد
                 const csrfInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
                 if (csrfInput) {
                     token = csrfInput.value;
