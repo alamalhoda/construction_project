@@ -60,15 +60,19 @@ def investor_profile(request):
 def transaction_manager(request):
     """نمایش صفحه مدیریت تراکنش‌های مالی"""
     from django.middleware.csrf import get_token
-    import json
+    from django.utils.crypto import get_random_string
     
     file_path = os.path.join(settings.BASE_DIR, 'dashboard', 'view', 'transaction_manager.html')
     try:
         with open(file_path, 'r', encoding='utf-8') as file:
             content = file.read()
         
-        # دریافت CSRF token
+        # دریافت CSRF token از Django
         csrf_token = get_token(request)
+        
+        # اگر token خالی است، یک token جدید تولید کن
+        if not csrf_token:
+            csrf_token = get_random_string(64)
         
         # اضافه کردن CSRF token به JavaScript
         csrf_script = f"""
@@ -76,6 +80,7 @@ def transaction_manager(request):
         // CSRF Token از سرور
         window.csrfToken = '{csrf_token}';
         console.log('CSRF Token from server:', window.csrfToken);
+        console.log('CSRF Token length:', window.csrfToken.length);
         </script>
         """
         
