@@ -41,6 +41,29 @@ ENVIRONMENT = os.environ.get('DJANGO_ENVIRONMENT', 'development')
 security_config = get_security_settings(ENVIRONMENT)
 locals().update(security_config)
 
+# تنظیمات CSRF نرم‌تر برای development
+CSRF_COOKIE_AGE = 3600  # 1 ساعت
+CSRF_COOKIE_NAME = 'csrftoken'
+CSRF_HEADER_NAME = 'HTTP_X_CSRFTOKEN'
+CSRF_USE_SESSIONS = False
+CSRF_COOKIE_HTTPONLY = False  # برای JavaScript access
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SECURE = False  # برای development
+CSRF_COOKIE_DOMAIN = None
+CSRF_COOKIE_PATH = '/'
+CSRF_FAILURE_VIEW = 'django.views.csrf.csrf_failure'
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.app.github.dev',
+    'https://*.preview.app.github.dev',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+    'https://localhost:8000',
+    'https://127.0.0.1:8000',
+    'https://organic-winner-p649rx6xwxhr9r9-8000.app.github.dev',
+    'http://*.app.github.dev',
+    'http://*.preview.app.github.dev',
+]
+
 # تنظیمات احراز هویت
 AUTHENTICATION_BACKENDS = [
     'construction.authentication.EnhancedAuthenticationBackend',
