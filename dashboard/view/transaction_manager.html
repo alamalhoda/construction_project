@@ -312,11 +312,22 @@
         }
         
         .actions-row {
+            direction: ltr;
             display: flex;
             flex-wrap: wrap;
-            gap: 15px;
+            gap: 20px;
             justify-content: space-between;
             align-items: center;
+        }
+        
+        .actions-row .ui.buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .actions-row .ui.buttons .ui.button {
+            margin: 0;
         }
         
         .table-container {
@@ -494,6 +505,11 @@
             .actions-row {
                 flex-direction: column;
                 align-items: stretch;
+                gap: 15px;
+            }
+            
+            .actions-row .ui.buttons {
+                justify-content: center;
             }
         }
     </style>
@@ -607,11 +623,7 @@
                 
                 <!-- Search and Actions Row -->
                 <div class="actions-row">
-                    <div class="ui fluid input" style="max-width: 400px;">
-                        <input type="text" id="searchInput" placeholder="جستجو در تراکنش‌ها...">
-                        <i class="search icon"></i>
-                    </div>
-                    
+                    <!-- بخش اول: عملیات مدیریت داده‌ها -->
                     <div class="ui buttons">
                         <button class="ui green button" onclick="exportToCSV()">
                             <i class="download icon"></i>
@@ -627,32 +639,18 @@
                             <i class="refresh icon"></i>
                             پاک کردن فیلترها
                         </button>
-                        
-
-                        
-
-                        
+                    </div>
+                    
+                    <!-- بخش دوم: عملیات تراکنش‌ها -->
+                    <div class="ui buttons">
                         <button class="ui primary button" onclick="showAddTransactionModal()" title="افزودن تراکنش جدید">
                             <i class="plus icon"></i>
                             افزودن تراکنش جدید
                         </button>
                         
-                        <!-- کدهای قبلی برای تغییر نرخ سود - کامنت شده برای مراجعه آینده -->
-                        <!--
-                        <button class="ui teal button" onclick="showInterestRateModal()" title="تغییر نرخ سود و محاسبه مجدد">
-                            <i class="percent icon"></i>
-                            تغییر نرخ سود
-                        </button>
-                        -->
-                        
                         <button class="ui orange button" onclick="showRecalculateModal()" title="محاسبه مجدد سودها با نرخ فعلی">
                             <i class="refresh icon"></i>
                             محاسبه مجدد سودها
-                        </button>
-                        
-                        <button class="ui teal button" onclick="testCSRFToken()" title="تست CSRF Token">
-                            <i class="shield icon"></i>
-                            تست CSRF
                         </button>
                     </div>
                 </div>
@@ -1063,6 +1061,8 @@
             showLoading(true);
             hideError();
             
+            console.log('Starting to load initial data...');
+            
             // Load all data in parallel
             Promise.all([
                 fetchData(ENDPOINTS.transactions),
@@ -1071,10 +1071,17 @@
                 fetchData(ENDPOINTS.periods)
             ])
             .then(([transactions, investors, projects, periods]) => {
-                transactionsData = transactions;
-                investorsList = investors;
-                projectsList = projects;
-                periodsList = periods;
+                console.log('Data loaded successfully:', {
+                    transactions: transactions?.length || 0,
+                    investors: investors?.length || 0,
+                    projects: projects?.length || 0,
+                    periods: periods?.length || 0
+                });
+                
+                transactionsData = transactions || [];
+                investorsList = investors || [];
+                projectsList = projects || [];
+                periodsList = periods || [];
                 
                 updateDropdowns();
                 createTable();
@@ -1090,18 +1097,104 @@
             })
             .catch(error => {
                 console.error('Error loading data:', error);
-                showError('خطا در بارگذاری داده‌ها. لطفاً صفحه را مجدداً بارگذاری کنید.');
+                console.error('Error details:', {
+                    message: error.message,
+                    stack: error.stack,
+                    name: error.name
+                });
+                
+                // Try to load data individually to identify which endpoint is failing
+                loadDataIndividually();
+            });
+        }
+        
+        function loadDataIndividually() {
+            console.log('Loading data individually to identify failing endpoint...');
+            
+            // Initialize with empty arrays
+            transactionsData = [];
+            investorsList = [];
+            projectsList = [];
+            periodsList = [];
+            
+            // Load each endpoint individually
+            const promises = [
+                fetchData(ENDPOINTS.transactions).then(data => {
+                    transactionsData = data || [];
+                    console.log('Transactions loaded:', transactionsData.length);
+                }).catch(error => {
+                    console.error('Failed to load transactions:', error);
+                }),
+                
+                fetchData(ENDPOINTS.investors).then(data => {
+                    investorsList = data || [];
+                    console.log('Investors loaded:', investorsList.length);
+                }).catch(error => {
+                    console.error('Failed to load investors:', error);
+                }),
+                
+                fetchData(ENDPOINTS.projects).then(data => {
+                    projectsList = data || [];
+                    console.log('Projects loaded:', projectsList.length);
+                }).catch(error => {
+                    console.error('Failed to load projects:', error);
+                }),
+                
+                fetchData(ENDPOINTS.periods).then(data => {
+                    periodsList = data || [];
+                    console.log('Periods loaded:', periodsList.length);
+                }).catch(error => {
+                    console.error('Failed to load periods:', error);
+                })
+            ];
+            
+            Promise.allSettled(promises).then(() => {
+                console.log('Individual loading completed:', {
+                    transactions: transactionsData.length,
+                    investors: investorsList.length,
+                    projects: projectsList.length,
+                    periods: periodsList.length
+                });
+                
+                updateDropdowns();
+                createTable();
+                updateStats();
+                showStatsCards();
                 showLoading(false);
+                
+                // Show success message if at least some data was loaded
+                if (transactionsData.length > 0 || investorsList.length > 0 || projectsList.length > 0 || periodsList.length > 0) {
+                    showSuccessMessage('داده‌ها با موفقیت بارگذاری شدند (برخی endpoint ها ممکن است در دسترس نباشند)');
+                } else {
+                    showError('خطا در بارگذاری داده‌ها. لطفاً صفحه را مجدداً بارگذاری کنید.');
+                }
             });
         }
         
         function fetchData(endpoint) {
-            return fetch(API_BASE + endpoint)
+            const url = API_BASE + endpoint;
+            console.log(`Fetching data from: ${url}`);
+            
+            return fetch(url)
                 .then(response => {
+                    console.log(`Response from ${url}:`, {
+                        status: response.status,
+                        statusText: response.statusText,
+                        ok: response.ok
+                    });
+                    
                     if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
+                        throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
                     }
                     return response.json();
+                })
+                .then(data => {
+                    console.log(`Data received from ${url}:`, data);
+                    return data;
+                })
+                .catch(error => {
+                    console.error(`Error fetching data from ${url}:`, error);
+                    throw error;
                 });
         }
         
@@ -1146,6 +1239,14 @@
         }
         
         function createTable() {
+            console.log('Creating table with data:', transactionsData);
+            
+            if (!transactionsData || transactionsData.length === 0) {
+                console.warn('No transaction data available for table creation');
+                document.getElementById('transactionsTable').innerHTML = '<div class="ui message">هیچ تراکنشی یافت نشد</div>';
+                return;
+            }
+            
             const columns = [
                 {
                     title: 'عملیات',
@@ -1427,10 +1528,18 @@
         }
         
         function updateStats() {
-            if (!table) return;
+            if (!table) {
+                console.warn('Table not initialized, cannot update stats');
+                return;
+            }
             
             const filteredData = table.getData();
             const totalData = table.getData(true); // Get all data including filtered
+            
+            console.log('Updating stats with data:', {
+                filteredCount: filteredData.length,
+                totalCount: totalData.length
+            });
             
             // Calculate totals
             const deposits = filteredData
@@ -1609,18 +1718,6 @@
             alert('Test function works!');
         };
         
-        // Test CSRF token function
-        window.testCSRFToken = function() {
-            const token = getCSRFToken();
-            if (token) {
-                console.log('CSRF Token found:', token);
-                console.log('Token length:', token.length);
-                alert(`CSRF Token found! Length: ${token.length}`);
-            } else {
-                console.log('No CSRF Token found');
-                alert('No CSRF Token found!');
-            }
-        };
         
         // تابع تست تبدیل اعداد به حروف
         window.testNumberToWords = function() {
