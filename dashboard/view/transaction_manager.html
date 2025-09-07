@@ -1009,6 +1009,10 @@
             
             initializeTheme();
             initializeDropdowns();
+            
+            // Ensure loading is hidden initially
+            showLoading(false);
+            
             loadInitialData();
             
             // Add event listener for save button
@@ -1063,6 +1067,12 @@
             
             console.log('Starting to load initial data...');
             
+            // Set a timeout to hide loading after 30 seconds
+            const loadingTimeout = setTimeout(() => {
+                console.warn('Loading timeout reached, hiding loading indicator');
+                showLoading(false);
+            }, 30000);
+            
             // Load all data in parallel
             Promise.all([
                 fetchData(ENDPOINTS.transactions),
@@ -1083,11 +1093,14 @@
                 projectsList = projects || [];
                 periodsList = periods || [];
                 
+                // Clear timeout and hide loading
+                clearTimeout(loadingTimeout);
+                showLoading(false);
+                
                 updateDropdowns();
                 createTable();
                 updateStats();
                 showStatsCards();
-                showLoading(false);
                 
                 // Show last update time
                 const now = new Date();
@@ -1156,11 +1169,14 @@
                     periods: periodsList.length
                 });
                 
+                // Clear timeout and hide loading
+                clearTimeout(loadingTimeout);
+                showLoading(false);
+                
                 updateDropdowns();
                 createTable();
                 updateStats();
                 showStatsCards();
-                showLoading(false);
                 
                 // Show success message if at least some data was loaded
                 if (transactionsData.length > 0 || investorsList.length > 0 || projectsList.length > 0 || periodsList.length > 0) {
@@ -1622,10 +1638,18 @@
         }
         
         function showLoading(show) {
-            document.getElementById('loadingContainer').style.display = show ? 'flex' : 'none';
-            if (table) {
-                document.getElementById('transactionsTable').style.display = show ? 'none' : 'block';
+            const loadingContainer = document.getElementById('loadingContainer');
+            const transactionsTable = document.getElementById('transactionsTable');
+            
+            if (loadingContainer) {
+                loadingContainer.style.display = show ? 'flex' : 'none';
             }
+            
+            if (transactionsTable) {
+                transactionsTable.style.display = show ? 'none' : 'block';
+            }
+            
+            console.log('Loading state changed:', show);
         }
         
         function showError(message) {
