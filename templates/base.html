@@ -61,8 +61,9 @@
             $('input[name*="shamsi"]').each(function() {
                 var fieldName = $(this).attr('name');
                 
-                // تنظیم تاریخ امروز برای نمایش اولیه  
-                var todayForInit = new persianDate();
+                // تنظیم تاریخ امروز برای نمایش اولیه با اصلاح timezone
+                var today = new Date();
+                var todayForInit = new persianDate(today);
                 
                 $(this).pDatepicker({
                     format: 'YYYY-MM-DD',
@@ -108,36 +109,31 @@
                     defaultDate: todayForInit,
                     onSelect: function(unix) {
                         try {
-                            // استفاده از moment برای تاریخ امروز صحیح
-                            var today = new persianDate();
+                            // استفاده از persianDate برای تاریخ انتخابی
                             var selectedDate = new persianDate(unix);
                             
-                            console.log('تاریخ امروز:', today.format('YYYY-MM-DD'));
-                            console.log('تاریخ انتخابی:', selectedDate.format('YYYY-MM-DD'));
+                            console.log('تاریخ انتخابی شمسی:', selectedDate.format('YYYY-MM-DD'));
                             console.log('Unix timestamp:', unix);
                             
-                            // تبدیل به تاریخ میلادی
+                            // تبدیل به تاریخ میلادی با اصلاح timezone
                             var gregorianDate = selectedDate.toDate();
                             
-                            // دیباگ بیشتر
-                            console.log('میلادی قبل از تنظیم:', gregorianDate);
-                            console.log('Timezone offset:', gregorianDate.getTimezoneOffset());
+                            // اصلاح timezone offset برای جلوگیری از یک روز جلو بودن
+                            var timezoneOffset = gregorianDate.getTimezoneOffset();
+                            var correctedDate = new Date(gregorianDate.getTime() + (timezoneOffset * 60000));
+                            
+                            console.log('تاریخ میلادی قبل از اصلاح:', gregorianDate);
+                            console.log('Timezone offset:', timezoneOffset);
+                            console.log('تاریخ میلادی بعد از اصلاح:', correctedDate);
                             
                             // پیدا کردن فیلد میلادی مرتبط
                             var gregorianFieldName = fieldName.replace('_shamsi', '_gregorian');
                             var gregorianField = $("#id_" + gregorianFieldName);
                             
                             if (gregorianField.length) {
-                                // استفاده از UTC date برای جلوگیری از مشکلات timezone
-                                var utcDate = new Date(Date.UTC(
-                                    gregorianDate.getFullYear(),
-                                    gregorianDate.getMonth(),
-                                    gregorianDate.getDate()
-                                ));
-                                
-                                var year = utcDate.getUTCFullYear();
-                                var month = String(utcDate.getUTCMonth() + 1).padStart(2, '0');
-                                var day = String(utcDate.getUTCDate()).padStart(2, '0');
+                                var year = correctedDate.getFullYear();
+                                var month = String(correctedDate.getMonth() + 1).padStart(2, '0');
+                                var day = String(correctedDate.getDate()).padStart(2, '0');
                                 
                                 gregorianField.val(year + '-' + month + '-' + day);
                                 console.log('تاریخ میلادی نهایی:', year + '-' + month + '-' + day);
@@ -156,12 +152,13 @@
             });
             
             // نمایش تاریخ امروز در کنسول برای بررسی
-            var today = new persianDate();
+            var today = new Date();
+            var todayPersian = new persianDate(today);
             console.log('=== بررسی تاریخ امروز ===');
-            console.log('تاریخ شمسی امروز:', today.format('dddd، DD MMMM YYYY'));
-            console.log('تاریخ شمسی (فرمت کوتاه):', today.format('YYYY-MM-DD'));
-            console.log('تاریخ میلادی امروز:', today.toDate());
-            console.log('Unix timestamp امروز:', today.unix());
+            console.log('تاریخ میلادی امروز:', today);
+            console.log('تاریخ شمسی امروز:', todayPersian.format('dddd، DD MMMM YYYY'));
+            console.log('تاریخ شمسی (فرمت کوتاه):', todayPersian.format('YYYY-MM-DD'));
+            console.log('Unix timestamp امروز:', todayPersian.unix());
             
             // دیباگ: نمایش مقادیر فرم هنگام ارسال
             $('form').on('submit', function() {
