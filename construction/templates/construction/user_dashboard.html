@@ -346,6 +346,17 @@
                 </a>
             </div>
             
+            <div class="dashboard-card admin-card">
+                <span class="card-icon">🔄</span>
+                <h3 class="card-title">مدیریت بک‌آپ</h3>
+                <p class="card-description">
+                    ایجاد، مدیریت و نظارت بر بک‌آپ‌های سیستم
+                </p>
+                <a href="{% url 'backup:dashboard' %}" class="card-btn">
+                    داشبورد بک‌آپ
+                </a>
+            </div>
+            
             <!-- کارت‌های کاربر نهایی برای مدیر فنی -->
             <div class="section-header">
                 <h2>👥 ابزارهای کاربری</h2>
@@ -428,6 +439,17 @@
                 </p>
                 <a href="{% url 'construction_Investor_list' %}" class="card-btn">
                     مشاهده سرمایه‌گذاران
+                </a>
+            </div>
+            
+            <div class="dashboard-card">
+                <span class="card-icon">🔄</span>
+                <h3 class="card-title">مدیریت بک‌آپ</h3>
+                <p class="card-description">
+                    ایجاد، مدیریت و نظارت بر بک‌آپ‌های سیستم
+                </p>
+                <a href="{% url 'backup:dashboard' %}" class="card-btn">
+                    داشبورد بک‌آپ
                 </a>
             </div>
         {% endif %}

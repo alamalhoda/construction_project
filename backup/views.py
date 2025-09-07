@@ -54,7 +54,7 @@ def backup_dashboard(request):
         'backup_settings': backup_settings,
     }
     
-    return render(request, 'backup/dashboard.html', context)
+    return render(request, 'backup/backup_dashboard.html', context)
 
 
 def backup_list(request):
