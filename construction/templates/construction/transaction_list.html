@@ -1,20 +1,96 @@
 
 {% extends "base.html" %}
+{% load static %}
 {% block content %}
-{% for object in object_list %}
-  <div class="m-2">
-    <a href="{{object.get_absolute_url}}">{{object}}</a>
-    <small class="ml-5">
-      <a href="{% url 'construction_Transaction_delete' object.pk %}">
-        (Delete)
-      </a>
-    </small>
-  </div>
-{% endfor %}
-<div>
-  <a class="btn btn-primary"
-    href="{% url 'construction_Transaction_create' %}">
-  Create a new Transaction
-  </a>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title">
+                        <i class="fas fa-exchange-alt"></i>
+                        مدیریت تراکنش‌ها
+                    </h3>
+                    <a class="btn btn-primary" href="{% url 'construction_Transaction_create' %}">
+                        <i class="fas fa-plus"></i>
+                        افزودن تراکنش جدید
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if object_list %}
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="thead-dark">
+                                    <tr>
+                                        <th>سرمایه‌گذار</th>
+                                        <th>پروژه</th>
+                                        <th>دوره</th>
+                                        <th>تاریخ</th>
+                                        <th>مبلغ</th>
+                                        <th>نوع تراکنش</th>
+                                        <th>توضیحات</th>
+                                        <th>عملیات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for object in object_list %}
+                                    <tr>
+                                        <td>{{ object.investor.first_name }} {{ object.investor.last_name }}</td>
+                                        <td>
+                                            <span class="badge badge-info">{{ object.project.name }}</span>
+                                        </td>
+                                        <td>{{ object.period.label }}</td>
+                                        <td>{{ object.date_shamsi|jformat:"%Y/%m/%d" }}</td>
+                                        <td class="text-nowrap">
+                                            <span class="{% if object.transaction_type == 'principal_deposit' %}text-success{% elif object.transaction_type == 'principal_withdrawal' %}text-danger{% else %}text-warning{% endif %}">
+                                                {{ object.amount|floatformat:0 }} تومان
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge 
+                                                {% if object.transaction_type == 'principal_deposit' %}badge-success
+                                                {% elif object.transaction_type == 'principal_withdrawal' %}badge-danger
+                                                {% else %}badge-warning{% endif %}">
+                                                {{ object.get_transaction_type_display }}
+                                            </span>
+                                        </td>
+                                        <td>{{ object.description|truncatechars:30 }}</td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="{{ object.get_absolute_url }}" class="btn btn-sm btn-outline-info">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{{ object.get_update_url }}" class="btn btn-sm btn-outline-warning">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <a href="{% url 'construction_Transaction_delete' object.pk %}" 
+                                                   class="btn btn-sm btn-outline-danger"
+                                                   onclick="return confirm('آیا مطمئن هستید که می‌خواهید این تراکنش را حذف کنید؟')">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info text-center">
+                            <i class="fas fa-info-circle"></i>
+                            هیچ تراکنشی یافت نشد.
+                            <br>
+                            <a href="{% url 'construction_Transaction_create' %}" class="btn btn-primary mt-2">
+                                <i class="fas fa-plus"></i>
+                                افزودن اولین تراکنش
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
 {% endblock %}

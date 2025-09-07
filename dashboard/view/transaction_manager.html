@@ -680,6 +680,7 @@
             افزودن تراکنش جدید
         </div>
         <div class="content">
+            
             <form class="ui form" id="addTransactionForm">
                 {% csrf_token %}
                 <div class="three fields">
@@ -694,16 +695,7 @@
                         </div>
                     </div>
                     
-                    <div class="field">
-                        <label>پروژه</label>
-                        <div class="ui selection dropdown" id="addProjectDropdown">
-                            <input type="hidden" name="project" id="addProjectInput">
-                            <i class="dropdown icon"></i>
-                            <div class="default text">انتخاب پروژه</div>
-                            <div class="menu" id="addProjectMenu">
-                            </div>
-                        </div>
-                    </div>
+                    <!-- فیلد پروژه حذف شد - پروژه فعال به صورت خودکار استفاده می‌شود -->
                     
                     <div class="field">
                         <label>دوره</label>
@@ -726,14 +718,14 @@
                             <div class="default text">انتخاب نوع تراکنش</div>
                             <div class="menu">
                                 <div class="item" data-value="principal_deposit">
-                                    <i class="ui green circle icon"></i>واریز اصل
+                                    <i class="ui green circle icon"></i>آورده
                                 </div>
                                 <div class="item" data-value="principal_withdrawal">
-                                    <i class="ui red circle icon"></i>برداشت اصل
+                                    <i class="ui red circle icon"></i>خروج از سرمایه
                                 </div>
-                                <div class="item" data-value="profit_accrual">
+                                <!-- <div class="item" data-value="profit_accrual">
                                     <i class="ui blue circle icon"></i>سود
-                                </div>
+                                </div> -->
                             </div>
                         </div>
                     </div>
@@ -781,6 +773,7 @@
             ویرایش تراکنش
         </div>
         <div class="content">
+            
             <form class="ui form" id="editTransactionForm">
                 {% csrf_token %}
                 <input type="hidden" id="editTransactionId">
@@ -796,16 +789,7 @@
                         </div>
                     </div>
                     
-                    <div class="field">
-                        <label>پروژه</label>
-                        <div class="ui selection dropdown" id="editProjectDropdown">
-                            <input type="hidden" name="project" id="editProjectInput">
-                            <i class="dropdown icon"></i>
-                            <div class="default text">انتخاب پروژه</div>
-                            <div class="menu" id="editProjectMenu">
-                            </div>
-                        </div>
-                    </div>
+                    <!-- فیلد پروژه حذف شد - پروژه فعال به صورت خودکار استفاده می‌شود -->
                     
                     <div class="field">
                         <label>دوره</label>
@@ -828,14 +812,14 @@
                             <div class="default text">انتخاب نوع تراکنش</div>
                             <div class="menu">
                                 <div class="item" data-value="principal_deposit">
-                                    <i class="ui green circle icon"></i>واریز اصل
+                                    <i class="ui green circle icon"></i>آورده
                                 </div>
                                 <div class="item" data-value="principal_withdrawal">
-                                    <i class="ui red circle icon"></i>برداشت اصل
+                                    <i class="ui red circle icon"></i>خروج از سرمایه
                                 </div>
-                                <div class="item" data-value="profit_accrual">
+                                <!-- <div class="item" data-value="profit_accrual">
                                     <i class="ui blue circle icon"></i>سود
-                                </div>
+                                </div> -->
                             </div>
                         </div>
                     </div>
@@ -969,8 +953,8 @@
         
         // Transaction type mappings
         const TRANSACTION_TYPE_FORMATS = {
-            'principal_deposit': '<span class="ui green label">واریز اصل</span>',
-            'principal_withdrawal': '<span class="ui red label">برداشت اصل</span>',
+            'principal_deposit': '<span class="ui green label">آورده</span>',
+            'principal_withdrawal': '<span class="ui red label">خروج از سرمایه</span>',
             'profit_accrual': '<span class="ui blue label">سود</span>'
         };
         
@@ -1068,7 +1052,7 @@
             console.log('Starting to load initial data...');
             
             // Set a timeout to hide loading after 30 seconds
-            const loadingTimeout = setTimeout(() => {
+            let loadingTimeout = setTimeout(() => {
                 console.warn('Loading timeout reached, hiding loading indicator');
                 showLoading(false);
             }, 30000);
@@ -1221,11 +1205,11 @@
             
             // Update add/edit modal dropdowns
             updateDropdownMenu('addInvestorMenu', investorsList, 'id', 'first_name', 'last_name');
-            updateDropdownMenu('addProjectMenu', projectsList, 'id', 'name');
+            // updateDropdownMenu('addProjectMenu', projectsList, 'id', 'name'); // حذف شد - پروژه فعال خودکار
             updateDropdownMenu('addPeriodMenu', periodsList, 'id', 'label');
             
             updateDropdownMenu('editInvestorMenu', investorsList, 'id', 'first_name', 'last_name');
-            updateDropdownMenu('editProjectMenu', projectsList, 'id', 'name');
+            // updateDropdownMenu('editProjectMenu', projectsList, 'id', 'name'); // حذف شد - پروژه فعال خودکار
             updateDropdownMenu('editPeriodMenu', periodsList, 'id', 'label');
             
             // Refresh all dropdowns
@@ -1416,19 +1400,22 @@
             });
             
             // Add search functionality
-            document.getElementById('searchInput').addEventListener('input', function() {
-                const searchTerm = this.value;
-                table.setFilter([
-                    [
-                        {field: "investor_data.first_name", type: "like", value: searchTerm},
-                        {field: "investor_data.last_name", type: "like", value: searchTerm},
-                        {field: "project_data.name", type: "like", value: searchTerm},
-                        {field: "period_data.label", type: "like", value: searchTerm},
-                        {field: "transaction_type", type: "like", value: searchTerm},
-                        {field: "description", type: "like", value: searchTerm}
-                    ]
-                ]);
-            });
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    const searchTerm = this.value;
+                    table.setFilter([
+                        [
+                            {field: "investor_data.first_name", type: "like", value: searchTerm},
+                            {field: "investor_data.last_name", type: "like", value: searchTerm},
+                            {field: "project_data.name", type: "like", value: searchTerm},
+                            {field: "period_data.label", type: "like", value: searchTerm},
+                            {field: "transaction_type", type: "like", value: searchTerm},
+                            {field: "description", type: "like", value: searchTerm}
+                        ]
+                    ]);
+                });
+            }
             
             // Update stats when data is filtered
             table.on("dataFiltered", function(filteredData, filters) {
@@ -1487,7 +1474,10 @@
             $('#investorFilter').dropdown('clear');
             $('#transactionTypeFilter').dropdown('clear');
             $('#periodFilter').dropdown('clear');
-            $('#searchInput').val('');
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.value = '';
+            }
             
             if (table) {
                 table.clearFilter();
@@ -1719,7 +1709,7 @@
         window.resetAddTransactionForm = function() {
             document.getElementById('addTransactionForm').reset();
             $('#addInvestorDropdown').dropdown('clear');
-            $('#addProjectDropdown').dropdown('clear');
+            // $('#addProjectDropdown').dropdown('clear'); // حذف شد - پروژه فعال خودکار
             $('#addPeriodDropdown').dropdown('clear');
             $('#addTransactionTypeDropdown').dropdown('clear');
             
@@ -1914,7 +1904,7 @@
             
             const formData = {
                 investor: $('#addInvestorInput').val(),
-                project: $('#addProjectInput').val(),
+                // project: $('#addProjectInput').val(), // حذف شد - پروژه فعال خودکار
                 period: $('#addPeriodInput').val(),
                 transaction_type: $('#addTransactionTypeInput').val(),
                 amount: $('#addAmountInput').val(),
@@ -1931,9 +1921,9 @@
             if (!formData.investor) {
                 errors.push('سرمایه‌گذار انتخاب نشده است');
             }
-            if (!formData.project) {
-                errors.push('پروژه انتخاب نشده است');
-            }
+            // if (!formData.project) {
+            //     errors.push('پروژه انتخاب نشده است');
+            // } // حذف شد - پروژه فعال خودکار
             if (!formData.period) {
                 errors.push('دوره انتخاب نشده است');
             }
@@ -2101,9 +2091,9 @@
                 $('#editInvestorDropdown').dropdown('set selected', transaction.investor_data.id);
             }
             
-            if (transaction.project_data?.id) {
-                $('#editProjectDropdown').dropdown('set selected', transaction.project_data.id);
-            }
+            // if (transaction.project_data?.id) {
+            //     $('#editProjectDropdown').dropdown('set selected', transaction.project_data.id);
+            // } // حذف شد - پروژه فعال خودکار
             
             if (transaction.period_data?.id) {
                 $('#editPeriodDropdown').dropdown('set selected', transaction.period_data.id);
@@ -2115,7 +2105,7 @@
             
             // Refresh dropdowns to show selected values
             $('#editInvestorDropdown').dropdown('refresh');
-            $('#editProjectDropdown').dropdown('refresh');
+            // $('#editProjectDropdown').dropdown('refresh'); // حذف شد - پروژه فعال خودکار
             $('#editPeriodDropdown').dropdown('refresh');
             $('#editTransactionTypeDropdown').dropdown('refresh');
             
@@ -2271,7 +2261,7 @@
             
             const formData = {
                 investor: $('#editInvestorInput').val(),
-                project: $('#editProjectInput').val(),
+                // project: $('#editProjectInput').val(), // حذف شد - پروژه فعال خودکار
                 period: $('#editPeriodInput').val(),
                 transaction_type: $('#editTransactionTypeInput').val(),
                 amount: cleanAmount,
@@ -2280,7 +2270,7 @@
             };
             
             // Validation
-            if (!formData.investor || !formData.project || !formData.period || 
+            if (!formData.investor || /* !formData.project || */ !formData.period || 
                 !formData.transaction_type || !formData.amount || !formData.date_shamsi_raw) {
                 showError('لطفاً تمام فیلدهای اجباری را پر کنید');
                 return;

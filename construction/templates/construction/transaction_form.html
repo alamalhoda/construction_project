@@ -8,6 +8,24 @@
     ‏فهرست تراکنش‌ها
     </a>
 </p>
+
+{% if error_message %}
+    <div class="alert alert-danger">
+        <i class="fas fa-exclamation-triangle"></i>
+        {{ error_message }}
+        <br>
+        <a href="{% url 'construction_active_project' %}" class="btn btn-warning btn-sm mt-2">
+            <i class="fas fa-cog"></i>
+            تنظیم پروژه فعال
+        </a>
+    </div>
+{% elif active_project %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i>
+        <strong>پروژه فعال:</strong> {{ active_project.name }}
+        <small class="text-muted">(این تراکنش به صورت خودکار به این پروژه اضافه خواهد شد)</small>
+    </div>
+{% endif %}
     
 <form method="post" enctype="multipart/form-data">
   {% csrf_token %}

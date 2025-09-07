@@ -112,6 +112,14 @@ class ProjectForm(forms.ModelForm):
             'placeholder': 'انتخاب تاریخ شمسی...'
         })
     )
+    is_active = forms.BooleanField(
+        label="پروژه فعال",
+        required=False,
+        help_text="آیا این پروژه در حال حاضر فعال است؟ (فقط یک پروژه می‌تواند فعال باشد)",
+        widget=forms.CheckboxInput(attrs={
+            'class': 'form-check-input'
+        })
+    )
     
     class Meta:
         model = models.Project
@@ -121,6 +129,7 @@ class ProjectForm(forms.ModelForm):
             "end_date_shamsi",
             "start_date_gregorian",
             "end_date_gregorian",
+            "is_active",
         ]
 
 
@@ -142,6 +151,28 @@ class TransactionForm(forms.ModelForm):
             "transaction_type",
             "description",
         ]
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # حذف فیلد project از فرم چون خودکار تنظیم می‌شود
+        if 'project' in self.fields:
+            del self.fields['project']
+    
+    def save(self, commit=True):
+        """ذخیره تراکنش با تنظیم خودکار پروژه فعال"""
+        transaction = super().save(commit=False)
+        
+        # تنظیم پروژه فعال
+        active_project = models.Project.get_active_project()
+        if not active_project:
+            raise forms.ValidationError("هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید.")
+        
+        transaction.project = active_project
+        
+        if commit:
+            transaction.save()
+        
+        return transaction
 
 
 class UnitForm(forms.ModelForm):

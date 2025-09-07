@@ -55,6 +55,7 @@ class ProjectSerializer(serializers.ModelSerializer):
             "end_date_shamsi",
             "start_date_gregorian",
             "end_date_gregorian",
+            "is_active",
             "created_at",
             "updated_at",
         ]
@@ -76,12 +77,12 @@ class TransactionSerializer(serializers.ModelSerializer):
     
     # فیلدهای foreign key برای نوشتن
     investor_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
-    project_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
+    # project_id حذف شد چون خودکار از پروژه فعال تنظیم می‌شود
     period_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
     
     # فیلدهای alternative برای frontend (write_only)
     investor = serializers.IntegerField(write_only=True, required=False, allow_null=True)
-    project = serializers.IntegerField(write_only=True, required=False, allow_null=True)
+    # project حذف شد چون خودکار از پروژه فعال تنظیم می‌شود
     period = serializers.IntegerField(write_only=True, required=False, allow_null=True)
     
     # فیلدهای nested برای خواندن (read_only)
@@ -108,10 +109,8 @@ class TransactionSerializer(serializers.ModelSerializer):
             "day_from_start",
             "created_at",
             "investor",
-            "project", 
             "period",
             "investor_id",
-            "project_id",
             "period_id",
             "investor_data",
             "project_data",
@@ -174,12 +173,11 @@ class TransactionSerializer(serializers.ModelSerializer):
         elif 'investor' in validated_data:
             validated_data['investor_id'] = validated_data.pop('investor')
         
-        # اگر project_id وجود دارد، از آن استفاده کن
-        if 'project_id' in validated_data:
-            validated_data['project_id'] = validated_data.pop('project_id')
-        # اگر project وجود دارد، آن را به project_id تبدیل کن
-        elif 'project' in validated_data:
-            validated_data['project_id'] = validated_data.pop('project')
+        # تنظیم پروژه فعال خودکار
+        active_project = models.Project.get_active_project()
+        if not active_project:
+            raise serializers.ValidationError("هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید.")
+        validated_data['project_id'] = active_project.id
         
         # اگر period_id وجود دارد، از آن استفاده کن
         if 'period_id' in validated_data:
@@ -230,12 +228,12 @@ class TransactionSerializer(serializers.ModelSerializer):
         elif 'investor' in validated_data:
             validated_data['investor_id'] = validated_data.pop('investor')
         
-        # اگر project_id وجود دارد، از آن استفاده کن
-        if 'project_id' in validated_data:
-            validated_data['project_id'] = validated_data.pop('project_id')
-        # اگر project وجود دارد، آن را به project_id تبدیل کن
-        elif 'project' in validated_data:
-            validated_data['project_id'] = validated_data.pop('project')
+        # تنظیم پروژه فعال خودکار (فقط اگر پروژه تغییر کرده باشد)
+        if 'project_id' in validated_data or 'project' in validated_data:
+            active_project = models.Project.get_active_project()
+            if not active_project:
+                raise serializers.ValidationError("هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید.")
+            validated_data['project_id'] = active_project.id
         
         # اگر period_id وجود دارد، از آن استفاده کن
         if 'period_id' in validated_data:

@@ -1,10 +1,12 @@
 from django.views import generic
 from django.urls import reverse_lazy
-from django.shortcuts import render
-from django.http import HttpResponse
+from django.shortcuts import render, redirect
+from django.http import HttpResponse, JsonResponse
 from django.template.response import TemplateResponse
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from django.contrib import messages
+from django.views.decorators.http import require_http_methods
 
 from . import models
 from . import forms
@@ -148,6 +150,15 @@ class TransactionListView(generic.ListView):
 class TransactionCreateView(generic.CreateView):
     model = models.Transaction
     form_class = forms.TransactionForm
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # اضافه کردن اطلاعات پروژه فعال به context
+        active_project = models.Project.get_active_project()
+        context['active_project'] = active_project
+        if not active_project:
+            context['error_message'] = "هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید."
+        return context
 
 
 @method_decorator(login_required, name='dispatch')
@@ -161,6 +172,15 @@ class TransactionUpdateView(generic.UpdateView):
     model = models.Transaction
     form_class = forms.TransactionForm
     pk_url_kwarg = "pk"
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # اضافه کردن اطلاعات پروژه فعال به context
+        active_project = models.Project.get_active_project()
+        context['active_project'] = active_project
+        if not active_project:
+            context['error_message'] = "هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید."
+        return context
 
 
 @method_decorator(login_required, name='dispatch')
@@ -198,3 +218,93 @@ class UnitUpdateView(generic.UpdateView):
 class UnitDeleteView(generic.DeleteView):
     model = models.Unit
     success_url = reverse_lazy("construction_Unit_list")
+
+
+# View های مربوط به پروژه فعال
+@login_required
+def active_project_view(request):
+    """نمایش پروژه فعال"""
+    active_project = models.Project.get_active_project()
+    all_projects = models.Project.objects.all().order_by('-created_at')
+    context = {
+        'active_project': active_project,
+        'all_projects': all_projects,
+        'title': 'پروژه فعال'
+    }
+    return render(request, 'construction/active_project.html', context)
+
+
+@login_required
+@require_http_methods(["POST"])
+def set_active_project_view(request):
+    """تنظیم پروژه فعال"""
+    project_id = request.POST.get('project_id')
+    
+    if not project_id:
+        messages.error(request, 'شناسه پروژه الزامی است')
+        return redirect('construction_active_project')
+    
+    try:
+        project = models.Project.set_active_project(project_id)
+        if project:
+            messages.success(request, f'پروژه "{project.name}" به عنوان پروژه فعال تنظیم شد')
+        else:
+            messages.error(request, 'پروژه یافت نشد')
+    except Exception as e:
+        messages.error(request, f'خطا در تنظیم پروژه فعال: {str(e)}')
+    
+    return redirect('construction_active_project')
+
+
+@login_required
+def active_project_api(request):
+    """API برای دریافت پروژه فعال"""
+    active_project = models.Project.get_active_project()
+    if active_project:
+        data = {
+            'id': active_project.id,
+            'name': active_project.name,
+            'is_active': active_project.is_active,
+            'start_date_shamsi': active_project.start_date_shamsi,
+            'end_date_shamsi': active_project.end_date_shamsi,
+            'start_date_gregorian': active_project.start_date_gregorian,
+            'end_date_gregorian': active_project.end_date_gregorian,
+            'created_at': active_project.created_at,
+            'updated_at': active_project.updated_at,
+        }
+        return JsonResponse(data)
+    else:
+        return JsonResponse({'error': 'هیچ پروژه فعالی یافت نشد'}, status=404)
+
+
+@login_required
+@require_http_methods(["POST"])
+def set_active_project_api(request):
+    """API برای تنظیم پروژه فعال"""
+    import json
+    
+    try:
+        data = json.loads(request.body)
+        project_id = data.get('project_id')
+        
+        if not project_id:
+            return JsonResponse({'error': 'شناسه پروژه الزامی است'}, status=400)
+        
+        project = models.Project.set_active_project(project_id)
+        if project:
+            return JsonResponse({
+                'success': True,
+                'message': f'پروژه "{project.name}" به عنوان پروژه فعال تنظیم شد',
+                'project': {
+                    'id': project.id,
+                    'name': project.name,
+                    'is_active': project.is_active,
+                }
+            })
+        else:
+            return JsonResponse({'error': 'پروژه یافت نشد'}, status=404)
+            
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'داده‌های JSON نامعتبر است'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': f'خطا در تنظیم پروژه فعال: {str(e)}'}, status=500)

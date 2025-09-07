@@ -100,6 +100,37 @@ class ProjectViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.ProjectSerializer
     permission_classes = [APISecurityPermission]
 
+    @action(detail=False, methods=['get'])
+    def active(self, request):
+        """دریافت پروژه فعال"""
+        active_project = models.Project.get_active_project()
+        if active_project:
+            serializer = self.get_serializer(active_project)
+            return Response(serializer.data)
+        else:
+            return Response({'error': 'هیچ پروژه فعالی یافت نشد'}, status=404)
+
+    @action(detail=False, methods=['post'])
+    def set_active(self, request):
+        """تنظیم پروژه فعال"""
+        project_id = request.data.get('project_id')
+        if not project_id:
+            return Response({'error': 'شناسه پروژه الزامی است'}, status=400)
+        
+        try:
+            project = models.Project.set_active_project(project_id)
+            if project:
+                serializer = self.get_serializer(project)
+                return Response({
+                    'success': True,
+                    'message': f'پروژه "{project.name}" به عنوان پروژه فعال تنظیم شد',
+                    'project': serializer.data
+                })
+            else:
+                return Response({'error': 'پروژه یافت نشد'}, status=404)
+        except Exception as e:
+            return Response({'error': f'خطا در تنظیم پروژه فعال: {str(e)}'}, status=500)
+
 
 class TransactionViewSet(viewsets.ModelViewSet):
     """ViewSet for the Transaction class"""
