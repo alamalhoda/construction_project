@@ -1022,10 +1022,49 @@
             // Theme toggle event listener
             $('#themeToggle').on('click', toggleTheme);
             
-                    // Initialize Persian Datepicker
+                    // Initialize Persian Datepicker with timezone correction
         $("#addDateShamsiInput, #editDateShamsiInput").persianDatepicker({
             format: 'YYYY-MM-DD',
-            initialValue: false
+            initialValue: false,
+            calendar: {
+                persian: {
+                    locale: 'fa',
+                    leapYearMode: 'astronomical'
+                }
+            },
+            onSelect: function(unix) {
+                try {
+                    // استفاده از persianDate برای تاریخ انتخابی
+                    var selectedDate = new persianDate(unix);
+                    
+                    console.log('تاریخ انتخابی شمسی:', selectedDate.format('YYYY-MM-DD'));
+                    console.log('Unix timestamp:', unix);
+                    
+                    // تبدیل به تاریخ میلادی با اصلاح timezone
+                    var gregorianDate = selectedDate.toDate();
+                    
+                    // اصلاح timezone offset برای جلوگیری از یک روز جلو بودن
+                    var timezoneOffset = gregorianDate.getTimezoneOffset();
+                    var correctedDate = new Date(gregorianDate.getTime() + (timezoneOffset * 60000));
+                    
+                    console.log('تاریخ میلادی قبل از اصلاح:', gregorianDate);
+                    console.log('Timezone offset:', timezoneOffset);
+                    console.log('تاریخ میلادی بعد از اصلاح:', correctedDate);
+                    
+                    // تنظیم فیلد میلادی مرتبط
+                    var gregorianField = $(this).closest('.field').find('input[name*="gregorian"]');
+                    if (gregorianField.length) {
+                        var year = correctedDate.getFullYear();
+                        var month = String(correctedDate.getMonth() + 1).padStart(2, '0');
+                        var day = String(correctedDate.getDate()).padStart(2, '0');
+                        
+                        gregorianField.val(year + '-' + month + '-' + day);
+                        console.log('تاریخ میلادی نهایی:', year + '-' + month + '-' + day);
+                    }
+                } catch(e) {
+                    console.log('خطا در تبدیل تاریخ:', e);
+                }
+            }
         });
         
 
