@@ -127,13 +127,13 @@ class SecurityHeadersMiddleware(MiddlewareMixin):
                 "frame-src 'self' https: http:;"
             )
         else:
-            # Production: CSP سخت‌گیرانه (فقط فایل‌های محلی)
+            # Production: CSP با پشتیبانی از CDN ها
             response['Content-Security-Policy'] = (
-                "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; "
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
-                "style-src 'self' 'unsafe-inline'; "
-                "img-src 'self' data: https: http:; "
-                "font-src 'self'; "
+                "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https: http:; "
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://code.jquery.com https://stackpath.bootstrapcdn.com; "
+                "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com https://stackpath.bootstrapcdn.com https://unpkg.com https:; "
+                "img-src 'self' data: https: http: blob:; "
+                "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com https://stackpath.bootstrapcdn.com https: data:; "
                 "connect-src 'self' https: http:; "
                 "frame-src 'self' https: http:;"
             )

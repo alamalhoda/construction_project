@@ -167,9 +167,6 @@ else:
         'django.contrib.messages.middleware.MessageMiddleware',
         'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
-        # CSP Middleware برای امنیت محتوا
-        'csp.middleware.CSPMiddleware',
-
         # Middleware های امنیتی سفارشی (فعال با تنظیمات نرم‌تر برای development)
         'construction.security_middleware.SecurityHeadersMiddleware',
         'construction.security_middleware.AuditLogMiddleware',
