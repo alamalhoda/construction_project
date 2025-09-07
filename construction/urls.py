@@ -78,6 +78,12 @@ urlpatterns = (
     # User API endpoints
     path("api/user/info/", user_views.user_info_api, name="user_info_api"),
     path("api/user/logout/", user_views.user_logout_api, name="user_logout_api"),
+    
+    # Active Project URLs
+    path("construction/active-project/", views.active_project_view, name="construction_active_project"),
+    path("construction/active-project/set/", views.set_active_project_view, name="construction_set_active_project"),
+    path("api/active-project/", views.active_project_api, name="construction_active_project_api"),
+    path("api/active-project/set/", views.set_active_project_api, name="construction_set_active_project_api"),
 
 
 )

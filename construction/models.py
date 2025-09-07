@@ -14,6 +14,11 @@ class Project(models.Model):
     end_date_shamsi = jmodels.jDateField(verbose_name="تاریخ پایان (شمسی)")
     start_date_gregorian = models.DateField(verbose_name="تاریخ شروع (میلادی)")
     end_date_gregorian = models.DateField(verbose_name="تاریخ پایان (میلادی)")
+    is_active = models.BooleanField(
+        default=False, 
+        verbose_name="پروژه فعال",
+        help_text="آیا این پروژه در حال حاضر فعال است؟ (فقط یک پروژه می‌تواند فعال باشد)"
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="تاریخ به‌روزرسانی")
 
@@ -29,6 +34,36 @@ class Project(models.Model):
     
     def get_update_url(self):
         return reverse('construction_Project_update', kwargs={'pk': self.pk})
+    
+    def save(self, *args, **kwargs):
+        # اگر این پروژه فعال شود، همه پروژه‌های دیگر را غیرفعال کن
+        if self.is_active:
+            Project.objects.filter(is_active=True).exclude(pk=self.pk).update(is_active=False)
+        
+        super().save(*args, **kwargs)
+    
+    @classmethod
+    def get_active_project(cls):
+        """دریافت پروژه فعال (فقط یک پروژه می‌تواند فعال باشد)"""
+        try:
+            return cls.objects.filter(is_active=True).first()
+        except cls.DoesNotExist:
+            return None
+    
+    @classmethod
+    def set_active_project(cls, project_id):
+        """تنظیم پروژه فعال (همه پروژه‌های دیگر غیرفعال می‌شوند)"""
+        # غیرفعال کردن همه پروژه‌ها
+        cls.objects.filter(is_active=True).update(is_active=False)
+        
+        # فعال کردن پروژه انتخاب شده
+        try:
+            project = cls.objects.get(pk=project_id)
+            project.is_active = True
+            project.save()
+            return project
+        except cls.DoesNotExist:
+            return None
     
 
 

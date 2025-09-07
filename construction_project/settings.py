@@ -70,7 +70,7 @@ CSRF_TRUSTED_ORIGINS = [
 
 # تنظیمات Content Security Policy بر اساس محیط
 if DEBUG:
-    # Development: CSP نرم‌تر
+    # Development: CSP غیرفعال - همه فونت‌ها مجاز
     CSP_DEFAULT_SRC = None
     CSP_SCRIPT_SRC = None
     CSP_STYLE_SRC = None
@@ -79,11 +79,11 @@ if DEBUG:
     CSP_CONNECT_SRC = None
     CSP_FRAME_SRC = None
 else:
-    # Production: CSP سخت‌گیرانه (فقط فایل‌های محلی)
+    # Production: CSP فعال با تنظیمات مناسب برای فونت‌های base64
     CSP_DEFAULT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'", "data:", "blob:")
     CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'")
-    CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")
-    CSP_FONT_SRC = ("'self'")
+    CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https:", "http:")
+    CSP_FONT_SRC = ("'self'", "https:", "http:", "data:", "blob:")
     CSP_IMG_SRC = ("'self'", "data:", "https:", "http:")
     CSP_CONNECT_SRC = ("'self'", "https:", "http:")
     CSP_FRAME_SRC = ("'self'", "https:", "http:")
@@ -133,25 +133,52 @@ JALALI_SETTINGS = {
     },
 }
 
-MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',  # فعال برای امنیت
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Whitenoise برای static files
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+# تنظیمات Middleware بر اساس محیط
+if DEBUG:
+    # Development: CSP middleware غیرفعال
+    MIDDLEWARE = [
+        'django.middleware.security.SecurityMiddleware',  # فعال برای امنیت
+        'whitenoise.middleware.WhiteNoiseMiddleware',  # Whitenoise برای static files
+        'django.contrib.sessions.middleware.SessionMiddleware',
+        'django.middleware.common.CommonMiddleware',
+        'django.middleware.csrf.CsrfViewMiddleware',
+        'django.contrib.auth.middleware.AuthenticationMiddleware',
+        'django.contrib.messages.middleware.MessageMiddleware',
+        'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
-    # Middleware های امنیتی سفارشی (فعال با تنظیمات نرم‌تر برای development)
-    'construction.security_middleware.SecurityHeadersMiddleware',
-    'construction.security_middleware.AuditLogMiddleware',
-    'construction.security_middleware.AdminSecurityMiddleware',
-    'construction.security_middleware.LoginAttemptMiddleware',
-    # Middleware های کاربران (موقتاً غیرفعال)
-    # 'construction.user_middleware.UserAuthenticationMiddleware',
-    # 'construction.user_middleware.UserSessionMiddleware',
-]
+        # Middleware های امنیتی سفارشی (فعال با تنظیمات نرم‌تر برای development)
+        'construction.security_middleware.SecurityHeadersMiddleware',
+        'construction.security_middleware.AuditLogMiddleware',
+        'construction.security_middleware.AdminSecurityMiddleware',
+        'construction.security_middleware.LoginAttemptMiddleware',
+        # Middleware های کاربران (موقتاً غیرفعال)
+        # 'construction.user_middleware.UserAuthenticationMiddleware',
+        # 'construction.user_middleware.UserSessionMiddleware',
+    ]
+else:
+    # Production: CSP middleware فعال
+    MIDDLEWARE = [
+        'django.middleware.security.SecurityMiddleware',  # فعال برای امنیت
+        'whitenoise.middleware.WhiteNoiseMiddleware',  # Whitenoise برای static files
+        'django.contrib.sessions.middleware.SessionMiddleware',
+        'django.middleware.common.CommonMiddleware',
+        'django.middleware.csrf.CsrfViewMiddleware',
+        'django.contrib.auth.middleware.AuthenticationMiddleware',
+        'django.contrib.messages.middleware.MessageMiddleware',
+        'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+        # CSP Middleware برای امنیت محتوا
+        'csp.middleware.CSPMiddleware',
+
+        # Middleware های امنیتی سفارشی (فعال با تنظیمات نرم‌تر برای development)
+        'construction.security_middleware.SecurityHeadersMiddleware',
+        'construction.security_middleware.AuditLogMiddleware',
+        'construction.security_middleware.AdminSecurityMiddleware',
+        'construction.security_middleware.LoginAttemptMiddleware',
+        # Middleware های کاربران (موقتاً غیرفعال)
+        # 'construction.user_middleware.UserAuthenticationMiddleware',
+        # 'construction.user_middleware.UserSessionMiddleware',
+    ]
 
 ROOT_URLCONF = 'construction_project.urls'
 
