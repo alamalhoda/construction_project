@@ -351,7 +351,7 @@
                 <h2>👥 ابزارهای کاربری</h2>
                 <p>دسترسی به بخش‌های کاربران نهایی</p>
             </div>
-            
+
             <div class="dashboard-card user-card">
                 <span class="card-icon">📊</span>
                 <h3 class="card-title">خلاصه مالی</h3>
@@ -418,6 +418,16 @@
                 </p>
                 <a href="/dashboard/investor-profile/" class="card-btn">
                     پروفایل سرمایه‌گذاران
+                </a>
+            </div>
+            <div class="dashboard-card">
+                <span class="card-icon">👥</span>
+                <h3 class="card-title">مدیریت سرمایه‌گذاران</h3>
+                <p class="card-description">
+                    مدیریت اطلاعات سرمایه‌گذاران و پروفایل‌های مالی
+                </p>
+                <a href="{% url 'construction_Investor_list' %}" class="card-btn">
+                    مشاهده سرمایه‌گذاران
                 </a>
             </div>
         {% endif %}
