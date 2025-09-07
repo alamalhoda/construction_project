@@ -71,11 +71,11 @@ DEVELOPMENT_SECURITY_SETTINGS = {
         'https://organic-winner-p649rx6xwxhr9r9-8000.app.github.dev',
     ],
     # تنظیمات Content Security Policy برای CDN
-    'CSP_DEFAULT_SRC': ("'self'", "'unsafe-inline'", "'unsafe-eval'", "data:", "blob:"),
+    'CSP_DEFAULT_SRC': ("'self'", "'unsafe-inline'", "'unsafe-eval'", "data:", "blob:", "https:", "http:"),
     'CSP_SCRIPT_SRC': ("'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com", "https://unpkg.com", "https://code.jquery.com", "https://stackpath.bootstrapcdn.com"),
-    'CSP_STYLE_SRC': ("'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com", "https://fonts.googleapis.com", "https://stackpath.bootstrapcdn.com", "https://unpkg.com"),
-    'CSP_FONT_SRC': ("'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com", "https://stackpath.bootstrapcdn.com"),
-    'CSP_IMG_SRC': ("'self'", "data:", "https:", "http:"),
+    'CSP_STYLE_SRC': ("'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com", "https://fonts.googleapis.com", "https://stackpath.bootstrapcdn.com", "https://unpkg.com", "https:"),
+    'CSP_FONT_SRC': ("'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com", "https://stackpath.bootstrapcdn.com", "https:", "data:"),
+    'CSP_IMG_SRC': ("'self'", "data:", "https:", "http:", "blob:"),
     'CSP_CONNECT_SRC': ("'self'", "https:", "http:"),
     'CSP_FRAME_SRC': ("'self'", "https:", "http:"),
 }
@@ -119,11 +119,11 @@ PRODUCTION_SECURITY_SETTINGS = {
     'X_FRAME_OPTIONS': 'SAMEORIGIN',
     'SECURE_REFERRER_POLICY': 'no-referrer-when-downgrade',
     # تنظیمات Content Security Policy برای CDN
-    'CSP_DEFAULT_SRC': ("'self'", "'unsafe-inline'", "'unsafe-eval'", "data:", "blob:"),
+    'CSP_DEFAULT_SRC': ("'self'", "'unsafe-inline'", "'unsafe-eval'", "data:", "blob:", "https:", "http:"),
     'CSP_SCRIPT_SRC': ("'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com", "https://unpkg.com", "https://code.jquery.com", "https://stackpath.bootstrapcdn.com"),
-    'CSP_STYLE_SRC': ("'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com", "https://fonts.googleapis.com", "https://stackpath.bootstrapcdn.com", "https://unpkg.com"),
-    'CSP_FONT_SRC': ("'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com", "https://stackpath.bootstrapcdn.com"),
-    'CSP_IMG_SRC': ("'self'", "data:", "https:", "http:"),
+    'CSP_STYLE_SRC': ("'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com", "https://fonts.googleapis.com", "https://stackpath.bootstrapcdn.com", "https://unpkg.com", "https:"),
+    'CSP_FONT_SRC': ("'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com", "https://stackpath.bootstrapcdn.com", "https:", "data:"),
+    'CSP_IMG_SRC': ("'self'", "data:", "https:", "http:", "blob:"),
     'CSP_CONNECT_SRC': ("'self'", "https:", "http:"),
     'CSP_FRAME_SRC': ("'self'", "https:", "http:"),
 }
