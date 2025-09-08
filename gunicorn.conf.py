@@ -9,8 +9,9 @@ import os
 bind = f"0.0.0.0:{os.environ.get('PORT', '8000')}"
 backlog = 2048
 
-# Worker processes
-workers = multiprocessing.cpu_count() * 2 + 1
+# Worker processes (optimized for Chabokan.net)
+# Use environment variable or default to 3 workers
+workers = int(os.environ.get('GUNICORN_WORKERS', '3'))
 worker_class = 'sync'
 worker_connections = 1000
 timeout = 30
