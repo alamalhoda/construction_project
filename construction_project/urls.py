@@ -20,6 +20,7 @@ from django.views.generic import TemplateView
 from django.conf import settings
 from django.conf.urls.static import static
 from . import views
+from health_check import health_check, simple_health_check
 
 urlpatterns = [
     path('', TemplateView.as_view(template_name='index.html'), name='index'),
@@ -30,6 +31,10 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     # API URLs
     path('api/', include('construction.urls')),
+    
+    # Health check endpoints
+    path('health/', health_check, name='health_check'),
+    path('health/simple/', simple_health_check, name='simple_health_check'),
 ]
 
 # اضافه کردن static files برای همه حالات (development و production)
