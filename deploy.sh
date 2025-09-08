@@ -43,17 +43,14 @@ fi
 
 # Install requirements
 print_status "Installing requirements..."
-pip install -r requirements-chabokan.txt
+pip install -r requirements.txt
 
-# Copy environment file
+# Check if .env file exists
 if [ ! -f ".env" ]; then
-    print_status "Creating .env file from template..."
-    cp .env.chabokan .env
-    print_warning "Please update .env file with your actual values!"
+    print_warning ".env file not found. Please create one with your configuration!"
+    print_warning "You can copy from .env.chabokan template if available."
+    exit 1
 fi
-
-# Set Django settings
-export DJANGO_SETTINGS_MODULE=construction_project.settings_chabokan
 
 # Run database migrations
 print_status "Running database migrations..."
@@ -77,7 +74,7 @@ python manage.py collectstatic --noinput
 
 # Run security checks
 print_status "Running security checks..."
-python security_chabokan.py
+python security_check.py
 
 # Create necessary directories
 print_status "Creating necessary directories..."
@@ -103,5 +100,5 @@ echo "2. Configure your domain in Chabokan.net panel"
 echo "3. Upload your code to Chabokan.net"
 echo "4. Set up PostgreSQL database in Chabokan.net"
 echo "5. Configure Nginx settings"
-echo "6. Start your application with: gunicorn --config gunicorn.conf.py wsgi_chabokan:application"
+echo "6. Start your application with: gunicorn --config gunicorn.conf.py"
 echo "=================================="

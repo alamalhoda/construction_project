@@ -37,10 +37,6 @@ if [ ! -f "manage.py" ]; then
     exit 1
 fi
 
-# Set Django settings
-export DJANGO_SETTINGS_MODULE=construction_project.settings_chabokan
-print_info "Django settings module: $DJANGO_SETTINGS_MODULE"
-
 # Check if .env file exists
 if [ ! -f ".env" ]; then
     print_warning ".env file not found. Creating from template..."
@@ -73,7 +69,7 @@ python manage.py collectstatic --noinput
 
 # Check security settings
 print_info "Running security checks..."
-python security_chabokan.py
+python security_check.py
 
 # Get port from environment or use default
 PORT=${PORT:-8000}
@@ -89,4 +85,4 @@ if ! command -v gunicorn &> /dev/null; then
 fi
 
 # Start with Gunicorn
-exec gunicorn --config gunicorn.conf.py wsgi_chabokan:application
+exec gunicorn --config gunicorn.conf.py
