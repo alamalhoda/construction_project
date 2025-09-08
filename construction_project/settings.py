@@ -55,9 +55,9 @@ CSRF_COOKIE_PATH = '/'
 CSRF_FAILURE_VIEW = 'django.views.csrf.csrf_failure'
 CSRF_TRUSTED_ORIGINS = [
     'https://*.chabokan.net',
-    'https://*.chabokan.ir',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
+    'https://django-arash.chbk.app/',
     os.environ.get('TRUSTED_ORIGIN', ''),
 ]
 
