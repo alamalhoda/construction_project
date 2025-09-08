@@ -85,4 +85,24 @@ if ! command -v gunicorn &> /dev/null; then
 fi
 
 # Start with Gunicorn
-exec gunicorn --config gunicorn.conf.py
+print_info "Starting with Gunicorn..."
+print_info "WSGI module: construction_project.wsgi:application"
+print_info "Port: $PORT"
+
+# Try different ways to start Gunicorn
+if [ -f "gunicorn.conf.py" ]; then
+    print_info "Using gunicorn.conf.py configuration..."
+    exec gunicorn --config gunicorn.conf.py construction_project.wsgi:application
+else
+    print_info "Using direct Gunicorn command..."
+    exec gunicorn \
+        --bind 0.0.0.0:$PORT \
+        --workers 3 \
+        --timeout 30 \
+        --keep-alive 2 \
+        --max-requests 1000 \
+        --access-logfile - \
+        --error-logfile - \
+        --log-level info \
+        construction_project.wsgi:application
+fi
