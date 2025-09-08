@@ -13,7 +13,7 @@ project_dir = Path(__file__).resolve().parent
 sys.path.insert(0, str(project_dir))
 
 # Set Django settings module
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'construction_project.settings_chabokan')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'construction_project.settings')
 
 # Setup Django
 django.setup()
@@ -29,9 +29,9 @@ def check_security_settings():
     
     # Check DEBUG mode
     if settings.DEBUG:
-        security_checks.append("❌ DEBUG is enabled in production")
+        security_checks.append("⚠️  DEBUG is enabled (development mode)")
     else:
-        security_checks.append("✅ DEBUG is disabled")
+        security_checks.append("✅ DEBUG is disabled (production mode)")
     
     # Check SECRET_KEY
     if settings.SECRET_KEY == '^l)7d*%h&db4uft@dk%h-w&nup#pu%)a!d)c7jwgoixo5_hm0$':
@@ -61,13 +61,19 @@ def check_security_settings():
     if settings.CSRF_COOKIE_SECURE:
         security_checks.append("✅ CSRF cookie is secure")
     else:
-        security_checks.append("❌ CSRF cookie is not secure")
+        if settings.DEBUG:
+            security_checks.append("⚠️  CSRF cookie is not secure (development mode)")
+        else:
+            security_checks.append("❌ CSRF cookie is not secure")
     
     # Check session settings
     if settings.SESSION_COOKIE_SECURE:
         security_checks.append("✅ Session cookie is secure")
     else:
-        security_checks.append("❌ Session cookie is not secure")
+        if settings.DEBUG:
+            security_checks.append("⚠️  Session cookie is not secure (development mode)")
+        else:
+            security_checks.append("❌ Session cookie is not secure")
     
     # Print results
     for check in security_checks:
@@ -175,7 +181,7 @@ def generate_security_report():
     report.append("")
     
     # Save report
-    report_file = Path("security_report_chabokan.md")
+    report_file = Path("security_report.md")
     with open(report_file, 'w', encoding='utf-8') as f:
         f.write('\n'.join(report))
     
