@@ -16,6 +16,157 @@ class ExpenseViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.ExpenseSerializer
     permission_classes = [APISecurityPermission]
 
+    @action(detail=False, methods=['get'])
+    def dashboard_data(self, request):
+        """دریافت داده‌های داشبورد هزینه‌ها"""
+        try:
+            # دریافت پروژه فعال
+            active_project = models.Project.get_active_project()
+            if not active_project:
+                return Response({
+                    'error': 'هیچ پروژه فعالی یافت نشد'
+                }, status=400)
+
+            # دریافت تمام دوره‌ها از مرداد 1402 تا مرداد 1405
+            periods = models.Period.objects.filter(
+                project=active_project,
+                year__gte=1402,
+                year__lte=1405
+            ).order_by('year', 'month_number')
+
+            # دریافت تمام هزینه‌ها برای پروژه فعال
+            expenses = models.Expense.objects.filter(project=active_project)
+
+            # ساختار داده‌ها
+            expense_types = [
+                ('project_manager', 'مدیر پروژه'),
+                ('facilities_manager', 'مسئول تأسیسات'),
+                ('procurement', 'کارپرداز'),
+                ('warehouse', 'انباردار'),
+                ('construction_contractor', 'پیمان ساختمان'),
+                ('other', 'سایر'),
+            ]
+
+            # ایجاد ماتریس داده‌ها
+            dashboard_data = []
+            cumulative_total = 0
+
+            for period in periods:
+                period_data = {
+                    'period_id': period.id,
+                    'period_label': period.label,
+                    'year': period.year,
+                    'month_name': period.month_name,
+                    'expenses': {},
+                    'period_total': 0,
+                    'cumulative_total': 0
+                }
+
+                # محاسبه هزینه‌های هر نوع برای این دوره
+                for expense_type, expense_label in expense_types:
+                    expense_amount = expenses.filter(
+                        period=period,
+                        expense_type=expense_type
+                    ).aggregate(total=Sum('amount'))['total'] or 0
+
+                    period_data['expenses'][expense_type] = {
+                        'amount': float(expense_amount),
+                        'label': expense_label
+                    }
+                    period_data['period_total'] += float(expense_amount)
+
+                # محاسبه مجموع تجمیعی
+                cumulative_total += period_data['period_total']
+                period_data['cumulative_total'] = cumulative_total
+
+                dashboard_data.append(period_data)
+
+            # محاسبه مجموع ستون‌ها
+            column_totals = {}
+            for expense_type, _ in expense_types:
+                column_totals[expense_type] = sum(
+                    period['expenses'][expense_type]['amount'] 
+                    for period in dashboard_data
+                )
+
+            # مجموع کل
+            grand_total = sum(period['period_total'] for period in dashboard_data)
+
+            return Response({
+                'success': True,
+                'data': {
+                    'periods': dashboard_data,
+                    'expense_types': expense_types,
+                    'column_totals': column_totals,
+                    'grand_total': grand_total,
+                    'project_name': active_project.name
+                }
+            })
+
+        except Exception as e:
+            return Response({
+                'error': f'خطا در دریافت داده‌ها: {str(e)}'
+            }, status=500)
+
+    @action(detail=False, methods=['post'])
+    def update_expense(self, request):
+        """به‌روزرسانی هزینه"""
+        try:
+            period_id = request.data.get('period_id')
+            expense_type = request.data.get('expense_type')
+            amount = request.data.get('amount')
+
+            if not all([period_id, expense_type, amount is not None]):
+                return Response({
+                    'error': 'پارامترهای مورد نیاز ارسال نشده است'
+                }, status=400)
+
+            # دریافت پروژه فعال
+            active_project = models.Project.get_active_project()
+            if not active_project:
+                return Response({
+                    'error': 'هیچ پروژه فعالی یافت نشد'
+                }, status=400)
+
+            # دریافت دوره
+            try:
+                period = models.Period.objects.get(id=period_id, project=active_project)
+            except models.Period.DoesNotExist:
+                return Response({
+                    'error': 'دوره مورد نظر یافت نشد'
+                }, status=404)
+
+            # تبدیل amount به Decimal
+            from decimal import Decimal
+            amount = Decimal(str(amount))
+
+            # یافتن یا ایجاد هزینه
+            expense, created = models.Expense.objects.get_or_create(
+                project=active_project,
+                period=period,
+                expense_type=expense_type,
+                defaults={'amount': amount}
+            )
+
+            if not created:
+                expense.amount = amount
+                expense.save()
+
+            return Response({
+                'success': True,
+                'message': 'هزینه با موفقیت به‌روزرسانی شد',
+                'data': {
+                    'expense_id': expense.id,
+                    'amount': float(expense.amount),
+                    'created': created
+                }
+            })
+
+        except Exception as e:
+            return Response({
+                'error': f'خطا در به‌روزرسانی هزینه: {str(e)}'
+            }, status=500)
+
 
 class InvestorViewSet(viewsets.ModelViewSet):
     """ViewSet for the Investor class"""
