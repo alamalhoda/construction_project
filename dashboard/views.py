@@ -147,4 +147,15 @@ def test_filters(request):
     except FileNotFoundError:
         return HttpResponse('فایل تست فیلترها یافت نشد', status=404)
 
+@login_required
+def expense_dashboard(request):
+    """نمایش صفحه داشبورد هزینه‌ها"""
+    file_path = os.path.join(settings.BASE_DIR, 'dashboard', 'view', 'expense_dashboard.html')
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            content = file.read()
+        return HttpResponse(content)
+    except FileNotFoundError:
+        return HttpResponse('‏‍فایل داشبورد هزینه‌ها یافت نشد', status=404)
+
 
