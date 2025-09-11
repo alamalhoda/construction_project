@@ -94,11 +94,12 @@
             border-radius: 15px;
             overflow: hidden;
             box-shadow: var(--shadow-md);
+            position: relative;
         }
 
         .expense-table th,
         .expense-table td {
-            padding: 15px 12px;
+            padding: 8px 6px;
             text-align: center;
             border: 1px solid var(--border-color);
             vertical-align: middle;
@@ -108,10 +109,9 @@
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             color: var(--text-white);
             font-weight: 600;
-            font-size: 0.9rem;
-            position: sticky;
-            top: 0;
-            z-index: 10;
+            font-size: 0.85rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-bottom: 2px solid var(--primary-color);
         }
 
         .expense-table td {
@@ -128,26 +128,29 @@
             color: var(--text-white);
             font-weight: 600;
             text-align: right;
-            padding-right: 20px;
+            padding-right: 10px;
+            font-size: 0.85rem;
         }
 
         .expense-table .total-cell {
             background: linear-gradient(135deg, var(--success-color) 0%, #20c997 100%);
             color: var(--text-white);
             font-weight: 600;
+            font-size: 0.9rem;
         }
 
         .expense-table .cumulative-cell {
             background: linear-gradient(135deg, var(--warning-color) 0%, #fd7e14 100%);
             color: var(--text-white);
             font-weight: 600;
+            font-size: 0.9rem;
         }
 
         .expense-table .grand-total-row td {
             background: linear-gradient(135deg, var(--danger-color) 0%, #e83e8c 100%);
             color: var(--text-white);
             font-weight: 700;
-            font-size: 1.1rem;
+            font-size: 1rem;
         }
 
         .editable-cell {
@@ -172,8 +175,8 @@
             border: none;
             background: transparent;
             text-align: center;
-            font-size: 1rem;
-            padding: 15px 12px;
+            font-size: 0.85rem;
+            padding: 8px 6px;
             outline: none;
             border-radius: 5px;
         }
@@ -322,13 +325,18 @@
             
             .expense-table th,
             .expense-table td {
-                padding: 8px 6px;
-                font-size: 0.8rem;
+                padding: 5px 3px;
+                font-size: 0.7rem;
+            }
+            
+            .expense-table th {
+                font-size: 0.7rem;
             }
             
             .dashboard-header h1 {
                 font-size: 2rem;
             }
+            
         }
     </style>
 </head>
