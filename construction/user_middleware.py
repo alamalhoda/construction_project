@@ -20,7 +20,7 @@ class UserAuthenticationMiddleware:
     # صفحاتی که نیاز به احراز هویت دارند
     PROTECTED_PATHS = [
         '/construction/',
-        '/api/dashboard/',
+        '/user-dashboard/',
         '/protected/',
     ]
     

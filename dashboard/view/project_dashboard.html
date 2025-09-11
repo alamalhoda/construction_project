@@ -281,6 +281,29 @@
             font-size: 1.1rem;
         }
 
+        .stat-card.timeline-card {
+            background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 12px 40px rgba(78, 205, 196, 0.3);
+        }
+
+        .stat-card.timeline-card i {
+            color: white;
+            font-size: 3rem;
+        }
+
+        .stat-card.timeline-card h3 {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+
+        .stat-card.timeline-card p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+        }
+
         .stat-card {
             background: var(--bg-card);
             padding: 20px;
@@ -459,6 +482,19 @@
             .stat-card.expenses-card h3 {
                 font-size: 2rem;
             }
+
+            .stat-card.timeline-card {
+                grid-column: span 1;
+                transform: scale(1);
+            }
+
+            .stat-card.timeline-card i {
+                font-size: 2.5rem;
+            }
+
+            .stat-card.timeline-card h3 {
+                font-size: 2rem;
+            }
         }
     </style>
 </head>
@@ -478,7 +514,7 @@
                 </h1>
                 <p class="subtitle">نمایش جامع وضعیت مالی و سرمایه‌گذاری</p>
                 <div class="navigation-links">
-                    <a href="/api/dashboard/" class="nav-link">
+                    <a href="/user-dashboard/" class="nav-link">
                         <i class="fas fa-home"></i>
                         صفحه اصلی
                     </a>
@@ -544,6 +580,16 @@
                     <h3 id="totalExpenses">-</h3>
                     <p>مجموع کل هزینه‌ها (میلیون تومان)</p>
                 </div>
+                <div class="stat-card timeline-card">
+                    <i class="fas fa-clock"></i>
+                    <h3 id="daysRemaining">-</h3>
+                    <p>روز مانده تا پایان پروژه</p>
+                </div>
+                <div class="stat-card timeline-card">
+                    <i class="fas fa-history"></i>
+                    <h3 id="daysFromStart">-</h3>
+                    <p>روز گذشته از ابتدای پروژه</p>
+                </div>
             </div>
 
             <!-- نمودارها -->
@@ -561,13 +607,6 @@
 
 
 
-                <!-- ROI Chart -->
-                <div class="chart-container">
-                    <h3><i class="fas fa-percentage"></i> نرخ بازدهی کل پروژه (ROI)</h3>
-                    <div class="chart-wrapper">
-                        <canvas id="projectROIChart"></canvas>
-                    </div>
-                </div>
 
                 <!-- Principal Transaction Chart -->
                 <div class="chart-container">
@@ -617,6 +656,7 @@
         let allProjects = [];
         let expensesData = null;
         let currentInterestRate = null;
+        let timelineData = null;
 
         // متغیر برای تبدیل مبالغ (10 میلیون)
         const BASE_AMOUNT = 10000000;
@@ -627,7 +667,7 @@
                 console.log('شروع بارگذاری داده‌ها از API...');
                 
                 // بارگذاری موازی همه داده‌ها
-                const [transactionsResponse, investorsResponse, projectsResponse, interestRateResponse, expensesResponse] = await Promise.all([
+                const [transactionsResponse, investorsResponse, projectsResponse, interestRateResponse, expensesResponse, timelineResponse] = await Promise.all([
                     fetch('/construction/api/v1/Transaction/'),
                     fetch('/construction/api/v1/Investor/'),
                     fetch('/construction/api/v1/Project/').catch(err => {
@@ -640,6 +680,10 @@
                     }),
                     fetch('/construction/api/v1/Expense/total_expenses/').catch(err => {
                         console.warn('خطا در دسترسی به API هزینه‌ها:', err);
+                        return { ok: false, status: 404 }; // fallback response
+                    }),
+                    fetch('/construction/api/v1/Project/project_timeline/').catch(err => {
+                        console.warn('خطا در دسترسی به API زمان‌بندی پروژه:', err);
                         return { ok: false, status: 404 }; // fallback response
                     })
                 ]);
@@ -689,6 +733,15 @@
                 } else {
                     console.warn('API هزینه‌ها دسترسی ندارد');
                     expensesData = null;
+                }
+                
+                // اگر timeline API دسترسی داشت، آن را بارگذاری کن
+                if (timelineResponse.ok) {
+                    timelineData = await timelineResponse.json();
+                    console.log('داده‌های زمان‌بندی پروژه بارگذاری شدند:', timelineData);
+                } else {
+                    console.warn('API زمان‌بندی پروژه دسترسی ندارد');
+                    timelineData = null;
                 }
                 
                 console.log('داده‌ها بارگذاری شدند:', {
@@ -747,7 +800,6 @@
             createInvestorDistributionChart();
             
             // نمودارهای جدید از investor_profile
-            createProjectROIChart();
             createProjectPrincipalTransactionChart();
             createProjectMonthlyComparisonChart();
             createProjectPrincipalTrendChart();
@@ -813,6 +865,28 @@
             document.getElementById('totalDays').textContent = projectDuration.toLocaleString('fa-IR');
             document.getElementById('startDate').textContent = projectStartDate;
             document.getElementById('endDate').textContent = projectEndDate === '-' ? 'ادامه دارد' : projectEndDate;
+            
+            // به‌روزرسانی timeline data اگر موجود باشد
+            if (timelineData && timelineData.success && timelineData.timeline) {
+                const daysRemaining = timelineData.timeline.days_remaining;
+                const daysFromStart = timelineData.timeline.days_from_start;
+                
+                document.getElementById('daysRemaining').textContent = daysRemaining.toLocaleString('fa-IR');
+                document.getElementById('daysFromStart').textContent = daysFromStart.toLocaleString('fa-IR');
+                
+                // تغییر رنگ کارت روزهای مانده بر اساس مقدار
+                const daysRemainingCard = document.querySelector('#daysRemaining').closest('.stat-card');
+                if (daysRemaining > 30) {
+                    daysRemainingCard.style.borderColor = '#28a745'; // سبز
+                } else if (daysRemaining > 0) {
+                    daysRemainingCard.style.borderColor = '#ffc107'; // زرد
+                } else {
+                    daysRemainingCard.style.borderColor = '#dc3545'; // قرمز
+                }
+            } else {
+                document.getElementById('daysRemaining').textContent = '-';
+                document.getElementById('daysFromStart').textContent = '-';
+            }
             
             // نمایش نرخ سود روزانه فعال با دقت کامل
             if (currentInterestRate && currentInterestRate.rate) {
@@ -969,8 +1043,8 @@
                                 <th>نام سرمایه‌گذار</th>
                                 <th>آورده (تومان)</th>
                                 <th>برداشت (تومان)</th>
-                                <th>آورده خالص (تومان)</th>
-                                <th>سود (تومان)</th>
+                                <th>سرمایه موجود (تومان)</th>
+                                <th>سود مشارکت (تومان)</th>
                                 <th>مجموع (تومان)</th>
                                 <th>نسبت سود به آورده خالص</th>
                             </tr>
@@ -1009,95 +1083,6 @@
 
         // نمودارهای جدید برای کل پروژه (مشابه investor_profile)
         
-        function createProjectROIChart() {
-            // گروه‌بندی تراکنش‌ها بر اساس ماه برای کل پروژه
-            const monthlyData = {};
-            chartData.forEach(row => {
-                if (row.date_shamsi) {
-                    const month = row.date_shamsi.substring(0, 7); // YYYY-MM
-                    if (!monthlyData[month]) {
-                        monthlyData[month] = { principal: 0, profit: 0 };
-                    }
-                    
-                    const amount = parseFloat(row.amount || 0);
-                    if (row.entry_type === 'principal_deposit') {
-                        monthlyData[month].principal += amount;
-                    } else if (row.entry_type === 'principal_withdrawal') {
-                        monthlyData[month].principal += amount; // withdrawal معمولاً منفی است
-                    } else if (row.entry_type === 'profit_accrual') {
-                        monthlyData[month].profit += amount;
-                    }
-                }
-            });
-
-            const months = Object.keys(monthlyData).sort();
-            
-            // محاسبه ROI تجمعی برای هر ماه
-            const roiData = [];
-            const monthLabels = [];
-            let cumulativePrincipal = 0;
-            let cumulativeProfit = 0;
-            
-            months.forEach(month => {
-                cumulativePrincipal += monthlyData[month].principal;
-                cumulativeProfit += monthlyData[month].profit;
-                
-                // محاسبه ROI فقط اگر سرمایه مثبت باشد
-                let roi = 0;
-                if (cumulativePrincipal > 0) {
-                    roi = (cumulativeProfit / cumulativePrincipal) * 100;
-                }
-                
-                roiData.push(roi);
-                monthLabels.push(month);
-            });
-
-            const ctx = document.getElementById('projectROIChart').getContext('2d');
-            charts.projectROIChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: monthLabels,
-                    datasets: [
-                        {
-                            label: 'نرخ بازدهی تجمعی (%)',
-                            data: roiData,
-                            borderColor: 'rgba(75, 192, 192, 1)',
-                            backgroundColor: 'rgba(75, 192, 192, 0.1)',
-                            fill: true,
-                            tension: 0.4
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'نرخ بازدهی کل پروژه در طول زمان'
-                        },
-                        legend: {
-                            display: true
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'نرخ بازدهی (%)'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'ماه'
-                            }
-                        }
-                    }
-                }
-            });
-        }
 
         function createProjectPrincipalTransactionChart() {
             // فیلتر تراکنش‌های آورده و برداشت
@@ -1234,8 +1219,8 @@
                             type: 'bar',
                             label: 'آورده (میلیون تومان)',
                             data: principalData,
-                            backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                            borderColor: 'rgba(75, 192, 192, 1)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
                             borderWidth: 1
                         },
                         {
@@ -1250,8 +1235,8 @@
                             type: 'bar',
                             label: 'سود (میلیون تومان)',
                             data: profitData,
-                            backgroundColor: 'rgba(255, 206, 86, 0.6)',
-                            borderColor: 'rgba(255, 206, 86, 1)',
+                            backgroundColor: 'rgba(40, 167, 69, 0.6)',
+                            borderColor: 'rgba(40, 167, 69, 1)',
                             borderWidth: 1
                         },
                         {
@@ -1329,8 +1314,8 @@
                     datasets: [{
                         label: 'مجموع تجمعی آورده (میلیون تومان)',
                         data: data,
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                        borderColor: 'rgba(128, 0, 128, 1)',
+                        backgroundColor: 'rgba(128, 0, 128, 0.1)',
                         fill: true,
                         tension: 0.4
                     }]
@@ -1400,8 +1385,8 @@
                             type: 'bar',
                             label: 'آورده ماهانه (میلیون تومان)',
                             data: principalData,
-                            backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                            borderColor: 'rgba(75, 192, 192, 1)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
                             borderWidth: 1
                         },
                         {
@@ -1416,8 +1401,8 @@
                             type: 'line',
                             label: 'ترند تجمعی آورده (میلیون تومان)',
                             data: cumulativeData,
-                            borderColor: 'rgba(54, 162, 235, 1)',
-                            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                            borderColor: 'rgba(128, 0, 128, 1)',
+                            backgroundColor: 'rgba(128, 0, 128, 0.1)',
                             fill: false,
                             tension: 0.4,
                             yAxisID: 'y1'

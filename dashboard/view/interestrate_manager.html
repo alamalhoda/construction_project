@@ -71,6 +71,40 @@
             margin-bottom: 20px;
         }
 
+        .navigation-menu {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .nav-btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            color: white;
+            text-decoration: none;
+        }
+
+        .nav-btn i {
+            font-size: 1rem;
+        }
+
         .main-content {
             background: var(--bg-overlay);
             padding: 30px;
@@ -358,6 +392,25 @@
         <div class="dashboard-header">
             <h1><i class="fas fa-percentage"></i> مدیریت نرخ سود</h1>
             <p>مشاهده و مدیریت نرخ‌های سود روزانه پروژه</p>
+            
+            <!-- Navigation Menu -->
+            <div class="navigation-menu" style="margin-top: 20px;">
+                <a href="/user-dashboard/" class="nav-btn">
+                    <i class="fas fa-home"></i> صفحه اصلی
+                </a>
+                <a href="/dashboard/project/" class="nav-btn">
+                    <i class="fas fa-chart-line"></i> داشبورد پروژه
+                </a>
+                <a href="/dashboard/transaction-manager/" class="nav-btn">
+                    <i class="fas fa-money-bill-wave"></i> مدیریت تراکنش‌ها
+                </a>
+                <a href="/dashboard/investor-profile/" class="nav-btn">
+                    <i class="fas fa-user-tie"></i> پروفایل سرمایه‌گذاران
+                </a>
+                <a href="/dashboard/expense-dashboard/" class="nav-btn">
+                    <i class="fas fa-chart-pie"></i> داشبورد هزینه‌ها
+                </a>
+            </div>
         </div>
 
         <!-- Current Rate Display -->
