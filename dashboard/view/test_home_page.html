@@ -104,29 +104,29 @@
         
         <div class="test-item">
             <h3>1. تست دسترسی به صفحه Home</h3>
-            <a href="/api/dashboard/" class="test-button" target="_blank">باز کردن صفحه Home</a>
+            <a href="/user-dashboard/" class="test-button" target="_blank">باز کردن صفحه Home</a>
             <div class="result">برای تست، روی دکمه بالا کلیک کنید و صفحه را بررسی کنید.</div>
         </div>
         
         <div class="test-item">
             <h3>2. تست منوهای موجود</h3>
             <div class="menu-preview">
-                <a href="/api/dashboard/" class="menu-item" target="_blank">
+                <a href="/user-dashboard/" class="menu-item" target="_blank">
                     <h4>📊 نمایشگر CSV ساده</h4>
                     <p>مشاهده داده‌های CSV به صورت ساده</p>
                 </a>
                 
-                <a href="/api/dashboard/" class="menu-item" target="_blank">
+                <a href="/user-dashboard/" class="menu-item" target="_blank">
                     <h4>📈 نمایشگر CSV پیشرفته</h4>
                     <p>مشاهده داده‌های CSV با Tabulator</p>
                 </a>
                 
-                <a href="/api/dashboard/" class="menu-item" target="_blank">
+                <a href="/user-dashboard/" class="menu-item" target="_blank">
                     <h4>👥 پروفایل سرمایه‌گذاران</h4>
                     <p>اطلاعات کامل سرمایه‌گذاران</p>
                 </a>
                 
-                <a href="/api/dashboard/" class="menu-item" target="_blank">
+                <a href="/user-dashboard/" class="menu-item" target="_blank">
                     <h4>💰 مدیریت تراکنش‌ها</h4>
                     <p>مدیریت کامل تراکنش‌های مالی</p>
                 </a>
@@ -181,11 +181,11 @@
             resultDiv.textContent = 'در حال تست URL ها...';
             
             const urls = [
-                '/api/dashboard/',
-                '/api/dashboard/',
-                '/api/dashboard/',
-                '/api/dashboard/',
-                '/api/dashboard/'
+                '/user-dashboard/',
+                '/user-dashboard/',
+                '/user-dashboard/',
+                '/user-dashboard/',
+                '/user-dashboard/'
             ];
             
             const results = [];
@@ -240,7 +240,7 @@
             resultDiv.textContent = 'در حال تست اتصال به سرور...';
             
             try {
-                const response = await fetch('/api/dashboard/');
+                const response = await fetch('/user-dashboard/');
                 const status = response.status;
                 const statusText = response.statusText;
                 
