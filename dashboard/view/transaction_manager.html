@@ -630,6 +630,15 @@
                             دانلود CSV
                         </button>
                         
+                        <button class="ui teal button" onclick="exportToExcelAdvanced()">
+                            <i class="file excel icon"></i>
+                            دانلود Excel
+                        </button>
+                        
+                        <button class="ui teal button" onclick="exportFilteredToCSV()">
+                            <i class="filter icon"></i>
+                            دانلود فیلترشده
+                        </button>
                         
                         <button class="ui orange button" onclick="clearFilters()">
                             <i class="refresh icon"></i>
@@ -659,6 +668,9 @@
                     <span id="filterInfo" style="margin-right: 10px; color: #1976d2;"></span>
                 </div>
                 <div id="transactionsTable"></div>
+                
+                <!-- Hidden table for temporary operations -->
+                <div id="tempTable" style="display: none;"></div>
                 
                 <div id="loadingContainer" class="loading-container">
                     <i class="fas fa-spinner icon"></i>
@@ -928,6 +940,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/js/tabulator.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/persian-datepicker/dist/js/persian-datepicker.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/persian-date/dist/persian-date.min.js"></script>
     
@@ -1718,6 +1731,26 @@
             $('#errorMessage').transition('fade out');
         }
         
+        function showLoadingState(show) {
+            if (show) {
+                // نمایش loading indicator
+                const loadingDiv = document.createElement('div');
+                loadingDiv.id = 'loadingIndicator';
+                loadingDiv.className = 'ui active inverted dimmer';
+                loadingDiv.innerHTML = `
+                    <div class="ui text loader">در حال پردازش...</div>
+                `;
+                loadingDiv.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;';
+                document.body.appendChild(loadingDiv);
+            } else {
+                // حذف loading indicator
+                const loadingDiv = document.getElementById('loadingIndicator');
+                if (loadingDiv) {
+                    loadingDiv.remove();
+                }
+            }
+        }
+        
         function showSuccessMessage(message) {
             // حذف پیام‌های قبلی
             const existingMessages = document.querySelectorAll('.ui.positive.message');
@@ -1761,8 +1794,348 @@
                 showError('هیچ داده‌ای برای دانلود موجود نیست');
                 return;
             }
-            table.download("csv", "transactions.csv");
+            
+            // نمایش پیام در حال پردازش
+            showLoadingState(true);
+            
+            try {
+                // دریافت داده‌های فعلی جدول
+                const tableData = table.getData();
+                
+                if (!tableData || tableData.length === 0) {
+                    showError('هیچ داده‌ای برای دانلود موجود نیست');
+                    showLoadingState(false);
+                    return;
+                }
+                
+                // ایجاد نام فایل با تاریخ و زمان
+                const now = new Date();
+                const timestamp = now.toISOString().slice(0, 19).replace(/:/g, '-');
+                const filename = `transactions_${timestamp}.csv`;
+                
+                // دانلود فایل
+                table.download("csv", filename, {
+                    bom: true, // اضافه کردن BOM برای پشتیبانی از UTF-8
+                    delimiter: ",", // جداکننده کاما
+                    quote: '"', // علامت نقل قول
+                    escape: '"', // escape character
+                });
+                
+                // نمایش پیام موفقیت
+                showSuccessMessage(`فایل CSV با ${tableData.length} رکورد با موفقیت دانلود شد`);
+                
+            } catch (error) {
+                console.error('Error exporting CSV:', error);
+                showError('خطا در دانلود فایل CSV: ' + error.message);
+            } finally {
+                showLoadingState(false);
+            }
         }
+        
+        // توابع کمکی برای تبدیل و دانلود CSV
+        function convertToCSV(data) {
+            if (!data || data.length === 0) return '';
+            
+            // پردازش داده‌ها برای نمایش بهتر
+            const processedData = data.map(row => {
+                const processedRow = { ...row };
+                
+                // ترکیب نام و نام خانوادگی سرمایه‌گذار
+                if (processedRow.investor_data) {
+                    const firstName = processedRow.investor_data.first_name || '';
+                    const lastName = processedRow.investor_data.last_name || '';
+                    processedRow.investor_name = `${firstName} ${lastName}`.trim();
+                }
+                
+                // ترکیب نام پروژه
+                if (processedRow.project_data) {
+                    processedRow.project_name = processedRow.project_data.name || '';
+                }
+                
+                // ترکیب نام دوره
+                if (processedRow.period_data) {
+                    processedRow.period_name = processedRow.period_data.label || '';
+                }
+                
+                // تبدیل نوع تراکنش به فارسی
+                if (processedRow.transaction_type) {
+                    const typeMapping = {
+                        'principal_deposit': 'آورده',
+                        'principal_withdrawal': 'خروج از سرمایه',
+                        'profit_accrual': 'سود تعلق گرفته'
+                    };
+                    processedRow.transaction_type_fa = typeMapping[processedRow.transaction_type] || processedRow.transaction_type;
+                }
+                
+                return processedRow;
+            });
+            
+            // دریافت کلیدهای اولین رکورد به عنوان هدر
+            const headers = Object.keys(processedData[0]);
+            
+            // حذف فیلدهای اضافی از هدر
+            const excludedFields = ['created_at', 'investor_data', 'project_data', 'period_data', 'parent_transaction_data'];
+            const filteredHeaders = headers.filter(header => !excludedFields.includes(header));
+            
+            // ایجاد هدر CSV
+            const csvHeaders = filteredHeaders.map(header => `"${header}"`).join(',');
+            
+            // تبدیل داده‌ها به ردیف‌های CSV
+            const csvRows = processedData.map(row => {
+                return filteredHeaders.map(header => {
+                    const value = row[header];
+                    // escape کردن مقادیر
+                    if (value === null || value === undefined) return '""';
+                    const stringValue = String(value);
+                    // escape کردن کاما و نقل قول
+                    const escapedValue = stringValue.replace(/"/g, '""');
+                    return `"${escapedValue}"`;
+                }).join(',');
+            });
+            
+            // ترکیب هدر و ردیف‌ها
+            return [csvHeaders, ...csvRows].join('\n');
+        }
+        
+        // تابع کمکی برای حذف فیلدهای اضافی
+        function removeExcludedFields(data) {
+            const excludedFields = ['created_at', 'investor_data', 'project_data', 'period_data', 'parent_transaction_data'];
+            return data.map(row => {
+                const filteredRow = {};
+                Object.keys(row).forEach(key => {
+                    if (!excludedFields.includes(key)) {
+                        filteredRow[key] = row[key];
+                    }
+                });
+                return filteredRow;
+            });
+        }
+        
+        function downloadCSV(csvContent, filename) {
+            // اضافه کردن BOM برای پشتیبانی از UTF-8
+            const BOM = '\uFEFF';
+            const csvWithBOM = BOM + csvContent;
+            
+            // ایجاد blob
+            const blob = new Blob([csvWithBOM], { type: 'text/csv;charset=utf-8;' });
+            
+            // ایجاد لینک دانلود
+            const link = document.createElement('a');
+            if (link.download !== undefined) {
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', filename);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            }
+        }
+        
+        
+        // تابع پیشرفته برای دانلود Excel با قابلیت‌های بیشتر
+        function exportToExcelAdvanced() {
+            if (!table) {
+                showError('هیچ داده‌ای برای دانلود موجود نیست');
+                return;
+            }
+            
+            showLoadingState(true);
+            
+            try {
+                // دریافت داده‌های فعلی جدول
+                const tableData = table.getData();
+                
+                if (!tableData || tableData.length === 0) {
+                    showError('هیچ داده‌ای برای دانلود موجود نیست');
+                    showLoadingState(false);
+                    return;
+                }
+                
+                // ایجاد نام فایل با تاریخ فارسی
+                const now = new Date();
+                const jalaliDate = new Intl.DateTimeFormat('fa-IR', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                }).format(now);
+                
+                const filename = `تراکنش‌ها_${jalaliDate.replace(/[\/\s:]/g, '_')}.xlsx`;
+                
+                // پردازش داده‌ها برای نمایش بهتر
+                const processedData = tableData.map(row => {
+                    const processedRow = { ...row };
+                    
+                    // ترکیب نام و نام خانوادگی سرمایه‌گذار
+                    if (processedRow.investor_data) {
+                        const firstName = processedRow.investor_data.first_name || '';
+                        const lastName = processedRow.investor_data.last_name || '';
+                        processedRow.investor_name = `${firstName} ${lastName}`.trim();
+                    }
+                    
+                    // ترکیب نام پروژه
+                    if (processedRow.project_data) {
+                        processedRow.project_name = processedRow.project_data.name || '';
+                    }
+                    
+                    // ترکیب نام دوره
+                    if (processedRow.period_data) {
+                        processedRow.period_name = processedRow.period_data.label || '';
+                    }
+                    
+                    // تبدیل نوع تراکنش به فارسی
+                    if (processedRow.transaction_type) {
+                        const typeMapping = {
+                            'principal_deposit': 'آورده',
+                            'principal_withdrawal': 'خروج از سرمایه',
+                            'profit_accrual': 'سود تعلق گرفته'
+                        };
+                        processedRow.transaction_type_fa = typeMapping[processedRow.transaction_type] || processedRow.transaction_type;
+                    }
+                    
+                    return processedRow;
+                });
+                
+                // حذف فیلدهای اضافی از داده‌ها
+                const filteredData = removeExcludedFields(processedData);
+                
+                // تبدیل داده‌ها به فرمت Excel
+                const worksheet = XLSX.utils.json_to_sheet(filteredData);
+                
+                // تنظیم عرض ستون‌ها
+                const colWidths = [
+                    { wch: 15 }, // ID
+                    { wch: 25 }, // سرمایه‌گذار
+                    { wch: 20 }, // پروژه
+                    { wch: 15 }, // دوره
+                    { wch: 20 }, // تاریخ
+                    { wch: 15 }, // مبلغ
+                    { wch: 20 }, // نوع تراکنش
+                    { wch: 30 }  // توضیحات
+                ];
+                worksheet['!cols'] = colWidths;
+                
+                // تنظیم محدوده فیلتر
+                const range = XLSX.utils.decode_range(worksheet['!ref']);
+                worksheet['!autofilter'] = { ref: XLSX.utils.encode_range(range) };
+                
+                // ایجاد workbook
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "تراکنش‌ها");
+                
+                // تنظیمات متا داده پیشرفته
+                workbook.Props = {
+                    Title: "گزارش تراکنش‌های پروژه",
+                    Subject: "گزارش تفصیلی تراکنش‌ها",
+                    Author: "Construction Project",
+                    Manager: "سیستم مدیریت پروژه",
+                    Company: "پروژه ساختمانی",
+                    CreatedDate: new Date(),
+                    ModifiedDate: new Date(),
+                    Keywords: "تراکنش, پروژه, ساختمان, سرمایه‌گذاری"
+                };
+                
+                // دانلود فایل
+                XLSX.writeFile(workbook, filename);
+                
+                // نمایش پیام موفقیت با جزئیات
+                const successMessage = `فایل Excel با موفقیت دانلود شد:
+                📁 نام فایل: ${filename}
+                📊 تعداد رکوردها: ${tableData.length}
+                📅 تاریخ: ${jalaliDate}`;
+                
+                showSuccessMessage(successMessage);
+                
+            } catch (error) {
+                console.error('Error exporting Excel:', error);
+                showError('خطا در دانلود فایل Excel: ' + error.message);
+            } finally {
+                showLoadingState(false);
+            }
+        }
+        
+        
+        // تابع برای دانلود CSV با فیلترهای اعمال شده
+        function exportFilteredToCSV() {
+            if (!table) {
+                showError('هیچ داده‌ای برای دانلود موجود نیست');
+                return;
+            }
+            
+            showLoadingState(true);
+            
+            try {
+                // دریافت داده‌های فیلتر شده
+                const filteredData = table.getData();
+                
+                if (!filteredData || filteredData.length === 0) {
+                    showError('هیچ داده‌ای با فیلترهای اعمال شده برای دانلود موجود نیست');
+                    showLoadingState(false);
+                    return;
+                }
+                
+                // ایجاد نام فایل
+                const now = new Date();
+                const timestamp = now.toISOString().slice(0, 19).replace(/:/g, '-');
+                const filename = `تراکنش‌های_فیلترشده_${timestamp}.csv`;
+                
+                // پردازش داده‌های فیلترشده برای نمایش بهتر
+                const processedFilteredData = filteredData.map(row => {
+                    const processedRow = { ...row };
+                    
+                    // ترکیب نام و نام خانوادگی سرمایه‌گذار
+                    if (processedRow.investor_data) {
+                        const firstName = processedRow.investor_data.first_name || '';
+                        const lastName = processedRow.investor_data.last_name || '';
+                        processedRow.investor_name = `${firstName} ${lastName}`.trim();
+                    }
+                    
+                    // ترکیب نام پروژه
+                    if (processedRow.project_data) {
+                        processedRow.project_name = processedRow.project_data.name || '';
+                    }
+                    
+                    // ترکیب نام دوره
+                    if (processedRow.period_data) {
+                        processedRow.period_name = processedRow.period_data.label || '';
+                    }
+                    
+                    // تبدیل نوع تراکنش به فارسی
+                    if (processedRow.transaction_type) {
+                        const typeMapping = {
+                            'principal_deposit': 'آورده',
+                            'principal_withdrawal': 'خروج از سرمایه',
+                            'profit_accrual': 'سود تعلق گرفته'
+                        };
+                        processedRow.transaction_type_fa = typeMapping[processedRow.transaction_type] || processedRow.transaction_type;
+                    }
+                    
+                    return processedRow;
+                });
+                
+                // حذف فیلدهای اضافی از داده‌های فیلترشده
+                const finalFilteredData = removeExcludedFields(processedFilteredData);
+                
+                // تبدیل داده‌ها به CSV
+                const csvContent = convertToCSV(finalFilteredData);
+                
+                // دانلود فایل
+                downloadCSV(csvContent, filename);
+                
+                showSuccessMessage(`فایل CSV فیلترشده با ${filteredData.length} رکورد با موفقیت دانلود شد`);
+                
+            } catch (error) {
+                console.error('Error exporting filtered CSV:', error);
+                showError('خطا در دانلود فایل CSV فیلترشده: ' + error.message);
+            } finally {
+                showLoadingState(false);
+            }
+        }
+        
         
         
         // Modal functions
