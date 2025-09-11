@@ -66,7 +66,7 @@
     
     .dashboard-card {
         background: rgba(255, 255, 255, 0.95);
-        padding: 30px;
+        padding: 10px;
         border-radius: 20px;
         box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
         backdrop-filter: blur(10px);
@@ -222,7 +222,7 @@
     .welcome-message {
         background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
         color: white;
-        padding: 20px;
+        padding: 10px;
         border-radius: 15px;
         margin-bottom: 25px;
         text-align: center;
@@ -275,14 +275,11 @@
 
 {% block content %}
 <div class="dashboard-container">
-    <div class="dashboard-header">
 
         <div class="welcome-message">
             <h2>سلام {{ user_full_name }}! 👋</h2>
         </div>
 
-    </div>
-    
     <div class="dashboard-grid">
         {% if is_technical_admin %}
             <!-- کارت‌های مدیر فنی -->

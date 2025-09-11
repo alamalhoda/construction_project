@@ -561,13 +561,6 @@
 
 
 
-                <!-- ROI Chart -->
-                <div class="chart-container">
-                    <h3><i class="fas fa-percentage"></i> نرخ بازدهی کل پروژه (ROI)</h3>
-                    <div class="chart-wrapper">
-                        <canvas id="projectROIChart"></canvas>
-                    </div>
-                </div>
 
                 <!-- Principal Transaction Chart -->
                 <div class="chart-container">
@@ -747,7 +740,6 @@
             createInvestorDistributionChart();
             
             // نمودارهای جدید از investor_profile
-            createProjectROIChart();
             createProjectPrincipalTransactionChart();
             createProjectMonthlyComparisonChart();
             createProjectPrincipalTrendChart();
@@ -969,8 +961,8 @@
                                 <th>نام سرمایه‌گذار</th>
                                 <th>آورده (تومان)</th>
                                 <th>برداشت (تومان)</th>
-                                <th>آورده خالص (تومان)</th>
-                                <th>سود (تومان)</th>
+                                <th>سرمایه موجود (تومان)</th>
+                                <th>سود مشارکت (تومان)</th>
                                 <th>مجموع (تومان)</th>
                                 <th>نسبت سود به آورده خالص</th>
                             </tr>
@@ -1009,95 +1001,6 @@
 
         // نمودارهای جدید برای کل پروژه (مشابه investor_profile)
         
-        function createProjectROIChart() {
-            // گروه‌بندی تراکنش‌ها بر اساس ماه برای کل پروژه
-            const monthlyData = {};
-            chartData.forEach(row => {
-                if (row.date_shamsi) {
-                    const month = row.date_shamsi.substring(0, 7); // YYYY-MM
-                    if (!monthlyData[month]) {
-                        monthlyData[month] = { principal: 0, profit: 0 };
-                    }
-                    
-                    const amount = parseFloat(row.amount || 0);
-                    if (row.entry_type === 'principal_deposit') {
-                        monthlyData[month].principal += amount;
-                    } else if (row.entry_type === 'principal_withdrawal') {
-                        monthlyData[month].principal += amount; // withdrawal معمولاً منفی است
-                    } else if (row.entry_type === 'profit_accrual') {
-                        monthlyData[month].profit += amount;
-                    }
-                }
-            });
-
-            const months = Object.keys(monthlyData).sort();
-            
-            // محاسبه ROI تجمعی برای هر ماه
-            const roiData = [];
-            const monthLabels = [];
-            let cumulativePrincipal = 0;
-            let cumulativeProfit = 0;
-            
-            months.forEach(month => {
-                cumulativePrincipal += monthlyData[month].principal;
-                cumulativeProfit += monthlyData[month].profit;
-                
-                // محاسبه ROI فقط اگر سرمایه مثبت باشد
-                let roi = 0;
-                if (cumulativePrincipal > 0) {
-                    roi = (cumulativeProfit / cumulativePrincipal) * 100;
-                }
-                
-                roiData.push(roi);
-                monthLabels.push(month);
-            });
-
-            const ctx = document.getElementById('projectROIChart').getContext('2d');
-            charts.projectROIChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: monthLabels,
-                    datasets: [
-                        {
-                            label: 'نرخ بازدهی تجمعی (%)',
-                            data: roiData,
-                            borderColor: 'rgba(75, 192, 192, 1)',
-                            backgroundColor: 'rgba(75, 192, 192, 0.1)',
-                            fill: true,
-                            tension: 0.4
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'نرخ بازدهی کل پروژه در طول زمان'
-                        },
-                        legend: {
-                            display: true
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'نرخ بازدهی (%)'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'ماه'
-                            }
-                        }
-                    }
-                }
-            });
-        }
 
         function createProjectPrincipalTransactionChart() {
             // فیلتر تراکنش‌های آورده و برداشت
