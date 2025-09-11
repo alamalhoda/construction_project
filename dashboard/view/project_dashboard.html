@@ -281,6 +281,29 @@
             font-size: 1.1rem;
         }
 
+        .stat-card.timeline-card {
+            background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 12px 40px rgba(78, 205, 196, 0.3);
+        }
+
+        .stat-card.timeline-card i {
+            color: white;
+            font-size: 3rem;
+        }
+
+        .stat-card.timeline-card h3 {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+
+        .stat-card.timeline-card p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+        }
+
         .stat-card {
             background: var(--bg-card);
             padding: 20px;
@@ -459,6 +482,19 @@
             .stat-card.expenses-card h3 {
                 font-size: 2rem;
             }
+
+            .stat-card.timeline-card {
+                grid-column: span 1;
+                transform: scale(1);
+            }
+
+            .stat-card.timeline-card i {
+                font-size: 2.5rem;
+            }
+
+            .stat-card.timeline-card h3 {
+                font-size: 2rem;
+            }
         }
     </style>
 </head>
@@ -544,6 +580,16 @@
                     <h3 id="totalExpenses">-</h3>
                     <p>مجموع کل هزینه‌ها (میلیون تومان)</p>
                 </div>
+                <div class="stat-card timeline-card">
+                    <i class="fas fa-clock"></i>
+                    <h3 id="daysRemaining">-</h3>
+                    <p>روز مانده تا پایان پروژه</p>
+                </div>
+                <div class="stat-card timeline-card">
+                    <i class="fas fa-history"></i>
+                    <h3 id="daysFromStart">-</h3>
+                    <p>روز گذشته از ابتدای پروژه</p>
+                </div>
             </div>
 
             <!-- نمودارها -->
@@ -610,6 +656,7 @@
         let allProjects = [];
         let expensesData = null;
         let currentInterestRate = null;
+        let timelineData = null;
 
         // متغیر برای تبدیل مبالغ (10 میلیون)
         const BASE_AMOUNT = 10000000;
@@ -620,7 +667,7 @@
                 console.log('شروع بارگذاری داده‌ها از API...');
                 
                 // بارگذاری موازی همه داده‌ها
-                const [transactionsResponse, investorsResponse, projectsResponse, interestRateResponse, expensesResponse] = await Promise.all([
+                const [transactionsResponse, investorsResponse, projectsResponse, interestRateResponse, expensesResponse, timelineResponse] = await Promise.all([
                     fetch('/construction/api/v1/Transaction/'),
                     fetch('/construction/api/v1/Investor/'),
                     fetch('/construction/api/v1/Project/').catch(err => {
@@ -633,6 +680,10 @@
                     }),
                     fetch('/construction/api/v1/Expense/total_expenses/').catch(err => {
                         console.warn('خطا در دسترسی به API هزینه‌ها:', err);
+                        return { ok: false, status: 404 }; // fallback response
+                    }),
+                    fetch('/construction/api/v1/Project/project_timeline/').catch(err => {
+                        console.warn('خطا در دسترسی به API زمان‌بندی پروژه:', err);
                         return { ok: false, status: 404 }; // fallback response
                     })
                 ]);
@@ -682,6 +733,15 @@
                 } else {
                     console.warn('API هزینه‌ها دسترسی ندارد');
                     expensesData = null;
+                }
+                
+                // اگر timeline API دسترسی داشت، آن را بارگذاری کن
+                if (timelineResponse.ok) {
+                    timelineData = await timelineResponse.json();
+                    console.log('داده‌های زمان‌بندی پروژه بارگذاری شدند:', timelineData);
+                } else {
+                    console.warn('API زمان‌بندی پروژه دسترسی ندارد');
+                    timelineData = null;
                 }
                 
                 console.log('داده‌ها بارگذاری شدند:', {
@@ -805,6 +865,28 @@
             document.getElementById('totalDays').textContent = projectDuration.toLocaleString('fa-IR');
             document.getElementById('startDate').textContent = projectStartDate;
             document.getElementById('endDate').textContent = projectEndDate === '-' ? 'ادامه دارد' : projectEndDate;
+            
+            // به‌روزرسانی timeline data اگر موجود باشد
+            if (timelineData && timelineData.success && timelineData.timeline) {
+                const daysRemaining = timelineData.timeline.days_remaining;
+                const daysFromStart = timelineData.timeline.days_from_start;
+                
+                document.getElementById('daysRemaining').textContent = daysRemaining.toLocaleString('fa-IR');
+                document.getElementById('daysFromStart').textContent = daysFromStart.toLocaleString('fa-IR');
+                
+                // تغییر رنگ کارت روزهای مانده بر اساس مقدار
+                const daysRemainingCard = document.querySelector('#daysRemaining').closest('.stat-card');
+                if (daysRemaining > 30) {
+                    daysRemainingCard.style.borderColor = '#28a745'; // سبز
+                } else if (daysRemaining > 0) {
+                    daysRemainingCard.style.borderColor = '#ffc107'; // زرد
+                } else {
+                    daysRemainingCard.style.borderColor = '#dc3545'; // قرمز
+                }
+            } else {
+                document.getElementById('daysRemaining').textContent = '-';
+                document.getElementById('daysFromStart').textContent = '-';
+            }
             
             // نمایش نرخ سود روزانه فعال با دقت کامل
             if (currentInterestRate && currentInterestRate.rate) {

@@ -344,6 +344,78 @@ class ProjectViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'error': f'خطا در تنظیم پروژه فعال: {str(e)}'}, status=500)
 
+    @action(detail=False, methods=['get'])
+    def project_timeline(self, request):
+        """محاسبه روزهای مانده و گذشته پروژه بر اساس تاریخ امروز"""
+        from datetime import date
+        
+        try:
+            # دریافت پروژه فعال
+            active_project = models.Project.get_active_project()
+            if not active_project:
+                return Response({
+                    'error': 'هیچ پروژه فعالی یافت نشد'
+                }, status=400)
+
+            # تاریخ امروز
+            today = date.today()
+            
+            # محاسبه روزهای مانده تا پایان پروژه
+            days_remaining = 0
+            if active_project.end_date_gregorian:
+                end_date = active_project.end_date_gregorian
+                if isinstance(end_date, str):
+                    from datetime import datetime
+                    end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+                days_remaining = (end_date - today).days
+            
+            # محاسبه روزهای گذشته از ابتدای پروژه
+            days_from_start = 0
+            if active_project.start_date_gregorian:
+                start_date = active_project.start_date_gregorian
+                if isinstance(start_date, str):
+                    from datetime import datetime
+                    start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+                days_from_start = (today - start_date).days
+            
+            # محاسبه مدت کل پروژه
+            total_project_days = 0
+            if (active_project.start_date_gregorian and 
+                active_project.end_date_gregorian):
+                start_date = active_project.start_date_gregorian
+                end_date = active_project.end_date_gregorian
+                if isinstance(start_date, str):
+                    from datetime import datetime
+                    start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+                if isinstance(end_date, str):
+                    from datetime import datetime
+                    end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+                total_project_days = (end_date - start_date).days
+
+            return Response({
+                'success': True,
+                'project': {
+                    'id': active_project.id,
+                    'name': active_project.name,
+                    'start_date_shamsi': str(active_project.start_date_shamsi),
+                    'end_date_shamsi': str(active_project.end_date_shamsi),
+                    'start_date_gregorian': str(active_project.start_date_gregorian),
+                    'end_date_gregorian': str(active_project.end_date_gregorian)
+                },
+                'today': str(today),
+                'timeline': {
+                    'days_remaining': days_remaining,
+                    'days_from_start': days_from_start,
+                    'total_project_days': total_project_days,
+                    'progress_percentage': round((days_from_start / total_project_days * 100), 2) if total_project_days > 0 else 0
+                }
+            })
+
+        except Exception as e:
+            return Response({
+                'error': f'خطا در محاسبه زمان‌بندی پروژه: {str(e)}'
+            }, status=500)
+
 
 class TransactionViewSet(viewsets.ModelViewSet):
     """ViewSet for the Transaction class"""
