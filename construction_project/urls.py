@@ -39,7 +39,7 @@ urlpatterns = [
 
     path('admin/', admin.site.urls),
     # API URLs
-    path('api/', include('construction.urls')),
+    path('', include('construction.urls')),
     
     # Health check endpoints
     path('health/', health_check, name='health_check'),
