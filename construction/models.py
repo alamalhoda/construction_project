@@ -203,9 +203,9 @@ class InterestRate(models.Model):
                 jdate = self.effective_date
             self.effective_date_gregorian = jdate.togregorian().date()
         
-        # غیرفعال کردن نرخ‌های قبلی
+        # غیرفعال کردن نرخ‌های قبلی (به جز خود این instance)
         if self.is_active:
-            InterestRate.objects.filter(is_active=True).update(is_active=False)
+            InterestRate.objects.filter(is_active=True).exclude(pk=self.pk).update(is_active=False)
         
         super().save(*args, **kwargs)
 

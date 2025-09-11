@@ -38,7 +38,7 @@ urlpatterns = [
 
     path('admin/', admin.site.urls),
     # API URLs
-    path('api/', include('construction.urls')),
+    path('', include('construction.urls')),
 ]
 
 # اضافه کردن static files برای همه حالات (development و production)
