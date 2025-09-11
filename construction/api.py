@@ -16,6 +16,219 @@ class ExpenseViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.ExpenseSerializer
     permission_classes = [APISecurityPermission]
 
+    @action(detail=False, methods=['get'])
+    def dashboard_data(self, request):
+        """دریافت داده‌های داشبورد هزینه‌ها"""
+        try:
+            # دریافت پروژه فعال
+            active_project = models.Project.get_active_project()
+            if not active_project:
+                return Response({
+                    'error': 'هیچ پروژه فعالی یافت نشد'
+                }, status=400)
+
+            # دریافت تمام دوره‌ها از مرداد 1402 تا مرداد 1405
+            periods = models.Period.objects.filter(
+                project=active_project,
+                year__gte=1402,
+                year__lte=1405
+            ).order_by('year', 'month_number')
+
+            # دریافت تمام هزینه‌ها برای پروژه فعال
+            expenses = models.Expense.objects.filter(project=active_project)
+
+            # ساختار داده‌ها
+            expense_types = [
+                ('project_manager', 'مدیر پروژه'),
+                ('facilities_manager', 'مسئول تأسیسات'),
+                ('procurement', 'کارپرداز'),
+                ('warehouse', 'انباردار'),
+                ('construction_contractor', 'پیمان ساختمان'),
+                ('other', 'سایر'),
+            ]
+
+            # ایجاد ماتریس داده‌ها
+            dashboard_data = []
+            cumulative_total = 0
+
+            for period in periods:
+                period_data = {
+                    'period_id': period.id,
+                    'period_label': period.label,
+                    'year': period.year,
+                    'month_name': period.month_name,
+                    'expenses': {},
+                    'period_total': 0,
+                    'cumulative_total': 0
+                }
+
+                # محاسبه هزینه‌های هر نوع برای این دوره
+                for expense_type, expense_label in expense_types:
+                    expense_amount = expenses.filter(
+                        period=period,
+                        expense_type=expense_type
+                    ).aggregate(total=Sum('amount'))['total'] or 0
+
+                    period_data['expenses'][expense_type] = {
+                        'amount': float(expense_amount),
+                        'label': expense_label
+                    }
+                    period_data['period_total'] += float(expense_amount)
+
+                # محاسبه مجموع تجمیعی
+                cumulative_total += period_data['period_total']
+                period_data['cumulative_total'] = cumulative_total
+
+                dashboard_data.append(period_data)
+
+            # محاسبه مجموع ستون‌ها
+            column_totals = {}
+            for expense_type, _ in expense_types:
+                column_totals[expense_type] = sum(
+                    period['expenses'][expense_type]['amount'] 
+                    for period in dashboard_data
+                )
+
+            # مجموع کل
+            grand_total = sum(period['period_total'] for period in dashboard_data)
+
+            return Response({
+                'success': True,
+                'data': {
+                    'periods': dashboard_data,
+                    'expense_types': expense_types,
+                    'column_totals': column_totals,
+                    'grand_total': grand_total,
+                    'project_name': active_project.name
+                }
+            })
+
+        except Exception as e:
+            return Response({
+                'error': f'خطا در دریافت داده‌ها: {str(e)}'
+            }, status=500)
+
+    @action(detail=False, methods=['post'])
+    def update_expense(self, request):
+        """به‌روزرسانی هزینه"""
+        try:
+            period_id = request.data.get('period_id')
+            expense_type = request.data.get('expense_type')
+            amount = request.data.get('amount')
+
+            if not all([period_id, expense_type, amount is not None]):
+                return Response({
+                    'error': 'پارامترهای مورد نیاز ارسال نشده است'
+                }, status=400)
+
+            # دریافت پروژه فعال
+            active_project = models.Project.get_active_project()
+            if not active_project:
+                return Response({
+                    'error': 'هیچ پروژه فعالی یافت نشد'
+                }, status=400)
+
+            # دریافت دوره
+            try:
+                period = models.Period.objects.get(id=period_id, project=active_project)
+            except models.Period.DoesNotExist:
+                return Response({
+                    'error': 'دوره مورد نظر یافت نشد'
+                }, status=404)
+
+            # تبدیل amount به Decimal
+            from decimal import Decimal
+            amount = Decimal(str(amount))
+
+            # یافتن یا ایجاد هزینه
+            expense, created = models.Expense.objects.get_or_create(
+                project=active_project,
+                period=period,
+                expense_type=expense_type,
+                defaults={'amount': amount}
+            )
+
+            if not created:
+                expense.amount = amount
+                expense.save()
+
+            return Response({
+                'success': True,
+                'message': 'هزینه با موفقیت به‌روزرسانی شد',
+                'data': {
+                    'expense_id': expense.id,
+                    'amount': float(expense.amount),
+                    'created': created
+                }
+            })
+
+        except Exception as e:
+            return Response({
+                'error': f'خطا در به‌روزرسانی هزینه: {str(e)}'
+            }, status=500)
+    
+    @action(detail=False, methods=['get'])
+    def total_expenses(self, request):
+        """دریافت مجموع کل هزینه‌های پروژه"""
+        try:
+            project_id = request.query_params.get('project_id')
+            
+            if project_id:
+                try:
+                    project = models.Project.objects.get(id=project_id)
+                    expenses = models.Expense.objects.filter(project=project)
+                except models.Project.DoesNotExist:
+                    return Response({
+                        'error': f'پروژه با شناسه {project_id} یافت نشد'
+                    }, status=404)
+            else:
+                # اگر project_id مشخص نشده، از پروژه فعال استفاده کن
+                active_project = models.Project.get_active_project()
+                if not active_project:
+                    return Response({
+                        'error': 'هیچ پروژه فعالی یافت نشد'
+                    }, status=404)
+                expenses = models.Expense.objects.filter(project=active_project)
+                project = active_project
+            
+            # محاسبه مجموع کل هزینه‌ها
+            total_amount = sum(expense.amount for expense in expenses)
+            
+            # محاسبه تعداد هزینه‌ها
+            total_count = expenses.count()
+            
+            # محاسبه مجموع هزینه‌ها بر اساس نوع
+            expenses_by_type = {}
+            for expense_type, display_name in models.Expense.EXPENSE_TYPES:
+                type_expenses = expenses.filter(expense_type=expense_type)
+                type_total = sum(expense.amount for expense in type_expenses)
+                type_count = type_expenses.count()
+                
+                if type_total > 0 or type_count > 0:
+                    expenses_by_type[expense_type] = {
+                        'display_name': display_name,
+                        'total_amount': float(type_total),
+                        'count': type_count
+                    }
+            
+            return Response({
+                'success': True,
+                'project': {
+                    'id': project.id,
+                    'name': project.name
+                },
+                'total_expenses': {
+                    'total_amount': float(total_amount),
+                    'total_count': total_count
+                },
+                'expenses_by_type': expenses_by_type
+            })
+                
+        except Exception as e:
+            return Response({
+                'error': f'خطا در دریافت مجموع هزینه‌ها: {str(e)}'
+            }, status=500)
+
 
 class InvestorViewSet(viewsets.ModelViewSet):
     """ViewSet for the Investor class"""
@@ -235,7 +448,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
                 }, status=400)
             
             # اجرای عملیات محاسبه مجدد
-            result = models.Transaction.recalculate_all_profits_with_new_rate(current_rate.rate)
+            result = models.Transaction.recalculate_all_profits_with_new_rate(current_rate)
             
             return Response({
                 'success': True,
@@ -250,6 +463,39 @@ class TransactionViewSet(viewsets.ModelViewSet):
             return Response({
                 'error': f'خطا در محاسبه مجدد سودها: {str(e)}'
             }, status=500)
+    
+    @action(detail=False, methods=['post'])
+    def recalculate_construction_contractor(self, request):
+        """محاسبه مجدد همه هزینه‌های پیمان ساختمان"""
+        try:
+            project_id = request.data.get('project_id')
+            
+            if project_id:
+                try:
+                    project = models.Project.objects.get(id=project_id)
+                    updated_count = models.Expense.recalculate_all_construction_contractor_expenses(project)
+                    return Response({
+                        'success': True,
+                        'message': f'محاسبه مجدد برای پروژه "{project.name}" با موفقیت انجام شد',
+                        'updated_periods': updated_count
+                    })
+                except models.Project.DoesNotExist:
+                    return Response({
+                        'error': f'پروژه با شناسه {project_id} یافت نشد'
+                    }, status=404)
+            else:
+                updated_count = models.Expense.recalculate_all_construction_contractor_expenses()
+                return Response({
+                    'success': True,
+                    'message': 'محاسبه مجدد برای همه پروژه‌ها با موفقیت انجام شد',
+                    'updated_periods': updated_count
+                })
+                
+        except Exception as e:
+            return Response({
+                'error': f'خطا در محاسبه مجدد هزینه‌های پیمان ساختمان: {str(e)}'
+            }, status=500)
+    
 
 
 class InterestRateViewSet(viewsets.ModelViewSet):
