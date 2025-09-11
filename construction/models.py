@@ -493,6 +493,74 @@ class Expense(models.Model):
     def get_update_url(self):
         return reverse('construction_Expense_update', kwargs={'pk': self.pk})
     
+    def calculate_construction_contractor_amount(self):
+        """
+        محاسبه مبلغ هزینه پیمان ساختمان بر اساس 10% مجموع سایر هزینه‌های همان دوره
+        """
+        if self.expense_type != 'construction_contractor':
+            return Decimal('0')
+        
+        # دریافت همه هزینه‌های همان دوره به جز construction_contractor
+        other_expenses = Expense.objects.filter(
+            period=self.period,
+            project=self.project
+        ).exclude(expense_type='construction_contractor')
+        
+        # محاسبه مجموع سایر هزینه‌ها
+        total_other_expenses = sum(expense.amount for expense in other_expenses)
+        
+        # محاسبه 10% مجموع
+        construction_contractor_amount = total_other_expenses * Decimal('0.1')
+        
+        return construction_contractor_amount.quantize(Decimal('0.01'))
+    
+    @classmethod
+    def update_construction_contractor_for_period(cls, period, project):
+        """
+        به‌روزرسانی یا ایجاد هزینه پیمان ساختمان برای یک دوره مشخص
+        """
+        # حذف هزینه‌های پیمان ساختمان قبلی برای این دوره
+        cls.objects.filter(
+            period=period,
+            project=project,
+            expense_type='construction_contractor'
+        ).delete()
+        
+        # محاسبه مبلغ جدید
+        temp_expense = cls(period=period, project=project, expense_type='construction_contractor')
+        new_amount = temp_expense.calculate_construction_contractor_amount()
+        
+        # اگر مبلغ محاسبه شده بیشتر از صفر باشد، رکورد جدید ایجاد کن
+        if new_amount > 0:
+            cls.objects.create(
+                period=period,
+                project=project,
+                expense_type='construction_contractor',
+                amount=new_amount,
+                description='محاسبه خودکار: 10% مجموع سایر هزینه‌های دوره'
+            )
+            return new_amount
+        
+        return Decimal('0')
+    
+    @classmethod
+    def recalculate_all_construction_contractor_expenses(cls, project=None):
+        """
+        محاسبه مجدد همه هزینه‌های پیمان ساختمان برای یک پروژه یا همه پروژه‌ها
+        """
+        if project:
+            periods = Period.objects.filter(project=project)
+        else:
+            periods = Period.objects.all()
+        
+        total_updated = 0
+        for period in periods:
+            amount = cls.update_construction_contractor_for_period(period, period.project)
+            if amount > 0:
+                total_updated += 1
+        
+        return total_updated
+    
 
 
 

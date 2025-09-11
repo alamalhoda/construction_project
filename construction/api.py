@@ -401,6 +401,38 @@ class TransactionViewSet(viewsets.ModelViewSet):
             return Response({
                 'error': f'خطا در محاسبه مجدد سودها: {str(e)}'
             }, status=500)
+    
+    @action(detail=False, methods=['post'])
+    def recalculate_construction_contractor(self, request):
+        """محاسبه مجدد همه هزینه‌های پیمان ساختمان"""
+        try:
+            project_id = request.data.get('project_id')
+            
+            if project_id:
+                try:
+                    project = models.Project.objects.get(id=project_id)
+                    updated_count = models.Expense.recalculate_all_construction_contractor_expenses(project)
+                    return Response({
+                        'success': True,
+                        'message': f'محاسبه مجدد برای پروژه "{project.name}" با موفقیت انجام شد',
+                        'updated_periods': updated_count
+                    })
+                except models.Project.DoesNotExist:
+                    return Response({
+                        'error': f'پروژه با شناسه {project_id} یافت نشد'
+                    }, status=404)
+            else:
+                updated_count = models.Expense.recalculate_all_construction_contractor_expenses()
+                return Response({
+                    'success': True,
+                    'message': 'محاسبه مجدد برای همه پروژه‌ها با موفقیت انجام شد',
+                    'updated_periods': updated_count
+                })
+                
+        except Exception as e:
+            return Response({
+                'error': f'خطا در محاسبه مجدد هزینه‌های پیمان ساختمان: {str(e)}'
+            }, status=500)
 
 
 class InterestRateViewSet(viewsets.ModelViewSet):
