@@ -256,6 +256,14 @@ class TransactionSerializer(serializers.ModelSerializer):
         return transaction
 
 class InterestRateSerializer(serializers.ModelSerializer):
+    effective_date = serializers.CharField(
+        write_only=True,
+        help_text="تاریخ شمسی به فرمت YYYY-MM-DD"
+    )
+    effective_date_display = serializers.SerializerMethodField(
+        read_only=True,
+        help_text="تاریخ شمسی برای نمایش"
+    )
 
     class Meta:
         model = models.InterestRate
@@ -263,12 +271,63 @@ class InterestRateSerializer(serializers.ModelSerializer):
             "id",
             "rate",
             "effective_date",
+            "effective_date_display",
             "effective_date_gregorian",
             "description",
             "is_active",
             "created_at",
             "updated_at",
         ]
+
+    def create(self, validated_data):
+        # تبدیل تاریخ شمسی به میلادی
+        effective_date_str = validated_data.pop('effective_date')
+        
+        # Parse تاریخ شمسی
+        from jdatetime import datetime as jdatetime
+        jdate = jdatetime.strptime(effective_date_str, '%Y-%m-%d')
+        
+        # تبدیل به میلادی
+        gregorian_date = jdate.togregorian().date()
+        
+        # ایجاد instance با save() method
+        instance = models.InterestRate(
+            effective_date=jdate.date(),
+            effective_date_gregorian=gregorian_date,
+            **validated_data
+        )
+        instance.save()  # این save() method مدل را فراخوانی می‌کند
+        
+        return instance
+
+    def update(self, instance, validated_data):
+        # تبدیل تاریخ شمسی به میلادی اگر ارائه شده باشد
+        if 'effective_date' in validated_data:
+            effective_date_str = validated_data.pop('effective_date')
+            
+            # Parse تاریخ شمسی
+            from jdatetime import datetime as jdatetime
+            jdate = jdatetime.strptime(effective_date_str, '%Y-%m-%d')
+            
+            # تبدیل به میلادی
+            gregorian_date = jdate.togregorian().date()
+            
+            # به‌روزرسانی فیلدها
+            instance.effective_date = jdate.date()
+            instance.effective_date_gregorian = gregorian_date
+        
+        # به‌روزرسانی سایر فیلدها
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        
+        instance.save()
+        return instance
+
+    def get_effective_date_display(self, obj):
+        """نمایش تاریخ شمسی برای frontend"""
+        if obj.effective_date:
+            return str(obj.effective_date)
+        return None
 
 class UnitSerializer(serializers.ModelSerializer):
 

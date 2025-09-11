@@ -21,12 +21,21 @@ from django.conf import settings
 from django.conf.urls.static import static
 from . import views
 from health_check import health_check, simple_health_check
+from construction import user_views
 
 urlpatterns = [
     path('', TemplateView.as_view(template_name='index.html'), name='index'),
     path('construction/', include('construction.urls')),
     path('dashboard/', include('dashboard.urls')),
     path('backup/', include('backup.urls')),
+    
+    # Authentication URLs - moved to root level
+    path('login/', user_views.user_login_view, name='user_login'),
+    path('register/', user_views.user_register_view, name='user_register'),
+    path('logout/', user_views.user_logout_view, name='user_logout'),
+    path('user-dashboard/', user_views.user_dashboard_view, name='user_dashboard'),
+    path('profile/', user_views.user_profile_view, name='user_profile'),
+    path('change-password/', user_views.change_password_view, name='change_password'),
 
     path('admin/', admin.site.urls),
     # API URLs
