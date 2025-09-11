@@ -72,7 +72,11 @@ def user_login_view(request):
                     
                     # هدایت به صفحه بعد از لاگین
                     next_url = request.GET.get('next', 'user_dashboard')
-                    return redirect(next_url)
+                    # اگر next_url با / شروع می‌شود، آن را مستقیماً استفاده کن
+                    if next_url.startswith('/'):
+                        return redirect(next_url)
+                    else:
+                        return redirect(next_url)
                 else:
                     messages.error(request, 'حساب کاربری شما غیرفعال است.')
                     logger.warning(f"Login attempt for inactive user: {username}")

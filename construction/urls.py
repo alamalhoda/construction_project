@@ -64,13 +64,13 @@ urlpatterns = (
     path("construction/Unit/update/<int:pk>/", views.UnitUpdateView.as_view(), name="construction_Unit_update"),
     path("construction/Unit/delete/<int:pk>/", views.UnitDeleteView.as_view(), name="construction_Unit_delete"),
 
-    # User Authentication URLs
-    path("login/", user_views.user_login_view, name="user_login"),
-    path("register/", user_views.user_register_view, name="user_register"),
-    path("logout/", user_views.user_logout_view, name="user_logout"),
-    path("dashboard/", user_views.user_dashboard_view, name="user_dashboard"),
-    path("profile/", user_views.user_profile_view, name="user_profile"),
-    path("change-password/", user_views.change_password_view, name="change_password"),
+    # User Authentication URLs - moved to root level in main urls.py
+    # path("login/", user_views.user_login_view, name="user_login"),
+    # path("register/", user_views.user_register_view, name="user_register"),
+    # path("logout/", user_views.user_logout_view, name="user_logout"),
+    # path("dashboard/", user_views.user_dashboard_view, name="user_dashboard"),
+    # path("profile/", user_views.user_profile_view, name="user_profile"),
+    # path("change-password/", user_views.change_password_view, name="change_password"),
     
     # Protected Pages
     path("protected/", user_views.ProtectedIndexView.as_view(), name="protected_index"),
