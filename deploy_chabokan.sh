@@ -56,6 +56,7 @@ PROTECTED_FILES=(
     "database/online.sqlite3"
     "logs/"
     "media/"
+    "backups/"
 )
 
 for file in "${PROTECTED_FILES[@]}"; do
