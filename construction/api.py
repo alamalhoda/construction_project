@@ -166,6 +166,68 @@ class ExpenseViewSet(viewsets.ModelViewSet):
             return Response({
                 'error': f'خطا در به‌روزرسانی هزینه: {str(e)}'
             }, status=500)
+    
+    @action(detail=False, methods=['get'])
+    def total_expenses(self, request):
+        """دریافت مجموع کل هزینه‌های پروژه"""
+        try:
+            project_id = request.query_params.get('project_id')
+            
+            if project_id:
+                try:
+                    project = models.Project.objects.get(id=project_id)
+                    expenses = models.Expense.objects.filter(project=project)
+                except models.Project.DoesNotExist:
+                    return Response({
+                        'error': f'پروژه با شناسه {project_id} یافت نشد'
+                    }, status=404)
+            else:
+                # اگر project_id مشخص نشده، از پروژه فعال استفاده کن
+                active_project = models.Project.get_active_project()
+                if not active_project:
+                    return Response({
+                        'error': 'هیچ پروژه فعالی یافت نشد'
+                    }, status=404)
+                expenses = models.Expense.objects.filter(project=active_project)
+                project = active_project
+            
+            # محاسبه مجموع کل هزینه‌ها
+            total_amount = sum(expense.amount for expense in expenses)
+            
+            # محاسبه تعداد هزینه‌ها
+            total_count = expenses.count()
+            
+            # محاسبه مجموع هزینه‌ها بر اساس نوع
+            expenses_by_type = {}
+            for expense_type, display_name in models.Expense.EXPENSE_TYPES:
+                type_expenses = expenses.filter(expense_type=expense_type)
+                type_total = sum(expense.amount for expense in type_expenses)
+                type_count = type_expenses.count()
+                
+                if type_total > 0 or type_count > 0:
+                    expenses_by_type[expense_type] = {
+                        'display_name': display_name,
+                        'total_amount': float(type_total),
+                        'count': type_count
+                    }
+            
+            return Response({
+                'success': True,
+                'project': {
+                    'id': project.id,
+                    'name': project.name
+                },
+                'total_expenses': {
+                    'total_amount': float(total_amount),
+                    'total_count': total_count
+                },
+                'expenses_by_type': expenses_by_type
+            })
+                
+        except Exception as e:
+            return Response({
+                'error': f'خطا در دریافت مجموع هزینه‌ها: {str(e)}'
+            }, status=500)
 
 
 class InvestorViewSet(viewsets.ModelViewSet):
@@ -433,6 +495,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
             return Response({
                 'error': f'خطا در محاسبه مجدد هزینه‌های پیمان ساختمان: {str(e)}'
             }, status=500)
+    
 
 
 class InterestRateViewSet(viewsets.ModelViewSet):
