@@ -95,6 +95,40 @@
         .menu-item:hover {
             background: #764ba2;
         }
+
+        .navigation-menu {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .nav-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            color: white;
+            text-decoration: none;
+        }
+
+        .nav-btn i {
+            font-size: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -102,31 +136,53 @@
         <h1>🧪 تست صفحه Home Dashboard</h1>
         <p>این صفحه برای تست عملکرد صفحه home و منوهای آن طراحی شده است.</p>
         
+        <!-- Navigation Menu -->
+        <div class="navigation-menu" style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px; text-align: center;">
+            <a href="/user-dashboard/" class="nav-btn">
+                <i class="fas fa-home"></i> صفحه اصلی
+            </a>
+            <a href="/dashboard/project/" class="nav-btn">
+                <i class="fas fa-chart-line"></i> داشبورد پروژه
+            </a>
+            <a href="/dashboard/transaction-manager/" class="nav-btn">
+                <i class="fas fa-money-bill-wave"></i> مدیریت تراکنش‌ها
+            </a>
+            <a href="/dashboard/investor-profile/" class="nav-btn">
+                <i class="fas fa-user-tie"></i> پروفایل سرمایه‌گذاران
+            </a>
+            <a href="/dashboard/expense-dashboard/" class="nav-btn">
+                <i class="fas fa-chart-pie"></i> داشبورد هزینه‌ها
+            </a>
+            <a href="/dashboard/interest-rate-manager/" class="nav-btn">
+                <i class="fas fa-percentage"></i> مدیریت نرخ سود
+            </a>
+        </div>
+        
         <div class="test-item">
             <h3>1. تست دسترسی به صفحه Home</h3>
-            <a href="/api/dashboard/" class="test-button" target="_blank">باز کردن صفحه Home</a>
+            <a href="/user-dashboard/" class="test-button" target="_blank">باز کردن صفحه Home</a>
             <div class="result">برای تست، روی دکمه بالا کلیک کنید و صفحه را بررسی کنید.</div>
         </div>
         
         <div class="test-item">
             <h3>2. تست منوهای موجود</h3>
             <div class="menu-preview">
-                <a href="/api/dashboard/" class="menu-item" target="_blank">
+                <a href="/user-dashboard/" class="menu-item" target="_blank">
                     <h4>📊 نمایشگر CSV ساده</h4>
                     <p>مشاهده داده‌های CSV به صورت ساده</p>
                 </a>
                 
-                <a href="/api/dashboard/" class="menu-item" target="_blank">
+                <a href="/user-dashboard/" class="menu-item" target="_blank">
                     <h4>📈 نمایشگر CSV پیشرفته</h4>
                     <p>مشاهده داده‌های CSV با Tabulator</p>
                 </a>
                 
-                <a href="/api/dashboard/" class="menu-item" target="_blank">
+                <a href="/user-dashboard/" class="menu-item" target="_blank">
                     <h4>👥 پروفایل سرمایه‌گذاران</h4>
                     <p>اطلاعات کامل سرمایه‌گذاران</p>
                 </a>
                 
-                <a href="/api/dashboard/" class="menu-item" target="_blank">
+                <a href="/user-dashboard/" class="menu-item" target="_blank">
                     <h4>💰 مدیریت تراکنش‌ها</h4>
                     <p>مدیریت کامل تراکنش‌های مالی</p>
                 </a>
@@ -181,11 +237,11 @@
             resultDiv.textContent = 'در حال تست URL ها...';
             
             const urls = [
-                '/api/dashboard/',
-                '/api/dashboard/',
-                '/api/dashboard/',
-                '/api/dashboard/',
-                '/api/dashboard/'
+                '/user-dashboard/',
+                '/user-dashboard/',
+                '/user-dashboard/',
+                '/user-dashboard/',
+                '/user-dashboard/'
             ];
             
             const results = [];
@@ -240,7 +296,7 @@
             resultDiv.textContent = 'در حال تست اتصال به سرور...';
             
             try {
-                const response = await fetch('/api/dashboard/');
+                const response = await fetch('/user-dashboard/');
                 const status = response.status;
                 const statusText = response.statusText;
                 

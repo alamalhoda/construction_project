@@ -269,6 +269,7 @@
             margin-bottom: 15px;
             word-break: break-all;
             line-height: 1.2;
+            direction: ltr;
         }
         
         .stat-card.large .stat-number {
@@ -347,6 +348,8 @@
         .tabulator-cell {
             padding: 8px 12px !important;
             vertical-align: middle !important;
+            direction: ltr;
+            text-align: right;
         }
         
         /* بهبود نمایش اعداد بزرگ */
@@ -429,7 +432,7 @@
         
         /* Transaction type colors */
         .transaction-principal_deposit {
-            background-color: rgba(33, 186, 69, 0.1) !important;
+            background-color: rgba(33, 133, 208, 0.1) !important;
         }
         
         .transaction-principal_withdrawal {
@@ -437,7 +440,7 @@
         }
         
         .transaction-profit_accrual {
-            background-color: rgba(33, 133, 208, 0.1) !important;
+            background-color: rgba(33, 186, 69, 0.1) !important;
         }
         
         /* Modal styles */
@@ -529,9 +532,9 @@
                     <i class="money bill alternate outline icon"></i>
                     مدیریت تراکنش‌های مالی
                 </h1>
-                <p class="subtitle">مدیریت کامل تراکنش‌های سرمایه‌گذاران</p>
+                <p class="subtitle">مدیریت کامل تراکنش‌های مشارکت کنندگان</p>
                 <div class="navigation-links">
-                    <a href="/api/dashboard/" class="nav-link">
+                    <a href="/user-dashboard/" class="nav-link">
                         <i class="fas fa-home"></i>
                         صفحه اصلی
                     </a>
@@ -541,7 +544,7 @@
                     </a>
                     <a href="/dashboard/investor-profile/" class="nav-link">
                         <i class="fas fa-user-tie"></i>
-                        پروفایل سرمایه‌گذاران
+                        پروفایل مشارکت کنندگان
                     </a>
                 </div>
             </div>
@@ -559,7 +562,7 @@
             <div class="stats-cards" id="statsCards" style="display: none;">
                 <div class="stat-card large">
                     <div class="stat-number" id="totalDeposits">0</div>
-                    <div class="stat-label">مجموع واریزها (ریال)</div>
+                    <div class="stat-label">مجموع آورده‌ها (ریال)</div>
                     <div class="stat-words" id="totalDepositsWords" style="font-size: 0.9rem; margin-top: 10px; opacity: 0.8;"></div>
                 </div>
                 
@@ -571,7 +574,7 @@
                 
                 <div class="stat-card large">
                     <div class="stat-number" id="totalProfits">0</div>
-                    <div class="stat-label">مجموع سود (ریال)</div>
+                    <div class="stat-label">مجموع سود مشارکت (ریال)</div>
                     <div class="stat-words" id="totalProfitsWords" style="font-size: 0.9rem; margin-top: 10px; opacity: 0.8;"></div>
                 </div>
                 
@@ -589,7 +592,7 @@
                     <div class="ui fluid search selection dropdown" id="investorFilter">
                         <input type="hidden" name="investor">
                         <i class="dropdown icon"></i>
-                        <div class="default text">همه سرمایه‌گذاران</div>
+                        <div class="default text">همه مشارکت کنندگان</div>
                         <div class="menu" id="investorFilterMenu">
                         </div>
                     </div>
@@ -693,11 +696,11 @@
                 {% csrf_token %}
                 <div class="three fields">
                     <div class="field">
-                        <label>سرمایه‌گذار</label>
+                        <label>مشارکت کننده</label>
                         <div class="ui selection dropdown" id="addInvestorDropdown">
                             <input type="hidden" name="investor" id="addInvestorInput">
                             <i class="dropdown icon"></i>
-                            <div class="default text">انتخاب سرمایه‌گذار</div>
+                            <div class="default text">انتخاب مشارکت کننده</div>
                             <div class="menu" id="addInvestorMenu">
                             </div>
                         </div>
@@ -787,11 +790,11 @@
                 <input type="hidden" id="editTransactionId">
                 <div class="three fields">
                     <div class="field">
-                        <label>سرمایه‌گذار</label>
+                        <label>مشارکت کننده</label>
                         <div class="ui selection dropdown" id="editInvestorDropdown">
                             <input type="hidden" name="investor" id="editInvestorInput">
                             <i class="dropdown icon"></i>
-                            <div class="default text">انتخاب سرمایه‌گذار</div>
+                            <div class="default text">انتخاب مشارکت کننده</div>
                             <div class="menu" id="editInvestorMenu">
                             </div>
                         </div>
@@ -962,9 +965,9 @@
         
         // Transaction type mappings
         const TRANSACTION_TYPE_FORMATS = {
-            'principal_deposit': '<span class="ui green label">آورده</span>',
+            'principal_deposit': '<span class="ui blue label">آورده</span>',
             'principal_withdrawal': '<span class="ui red label">خروج از سرمایه</span>',
-            'profit_accrual': '<span class="ui blue label">سود</span>'
+            'profit_accrual': '<span class="ui green label">سود</span>'
         };
         
         // Theme Management
@@ -1321,7 +1324,7 @@
                     sorter: 'number'
                 },
                 {
-                    title: 'سرمایه‌گذار',
+                    title: 'مشارکت کننده',
                     field: 'investor_data.first_name',
                     width: 150,
                     formatter: function(cell) {
@@ -1658,7 +1661,7 @@
                 
                 if (investorFilter && investorFilter !== '') {
                     const investorName = $('#investorFilter .text').text();
-                    activeFilters.push(`سرمایه‌گذار: ${investorName}`);
+                    activeFilters.push(`مشارکت کننده: ${investorName}`);
                 }
                 if (transactionTypeFilter && transactionTypeFilter !== '') {
                     const typeName = $('#transactionTypeFilter .text').text();
@@ -1840,7 +1843,7 @@
             const processedData = data.map(row => {
                 const processedRow = { ...row };
                 
-                // ترکیب نام و نام خانوادگی سرمایه‌گذار
+                // ترکیب نام و نام خانوادگی مشارکت کننده
                 if (processedRow.investor_data) {
                     const firstName = processedRow.investor_data.first_name || '';
                     const lastName = processedRow.investor_data.last_name || '';
@@ -1970,7 +1973,7 @@
                 const processedData = tableData.map(row => {
                     const processedRow = { ...row };
                     
-                    // ترکیب نام و نام خانوادگی سرمایه‌گذار
+                    // ترکیب نام و نام خانوادگی مشارکت کننده
                     if (processedRow.investor_data) {
                         const firstName = processedRow.investor_data.first_name || '';
                         const lastName = processedRow.investor_data.last_name || '';
@@ -2009,7 +2012,7 @@
                 // تنظیم عرض ستون‌ها
                 const colWidths = [
                     { wch: 15 }, // ID
-                    { wch: 25 }, // سرمایه‌گذار
+                    { wch: 25 }, // مشارکت کننده
                     { wch: 20 }, // پروژه
                     { wch: 15 }, // دوره
                     { wch: 20 }, // تاریخ
@@ -2036,7 +2039,7 @@
                     Company: "پروژه ساختمانی",
                     CreatedDate: new Date(),
                     ModifiedDate: new Date(),
-                    Keywords: "تراکنش, پروژه, ساختمان, سرمایه‌گذاری"
+                    Keywords: "تراکنش, پروژه, ساختمان, مشارکت کنندهی"
                 };
                 
                 // دانلود فایل
@@ -2087,7 +2090,7 @@
                 const processedFilteredData = filteredData.map(row => {
                     const processedRow = { ...row };
                     
-                    // ترکیب نام و نام خانوادگی سرمایه‌گذار
+                    // ترکیب نام و نام خانوادگی مشارکت کننده
                     if (processedRow.investor_data) {
                         const firstName = processedRow.investor_data.first_name || '';
                         const lastName = processedRow.investor_data.last_name || '';
@@ -2368,7 +2371,7 @@
             const errors = [];
             
             if (!formData.investor) {
-                errors.push('سرمایه‌گذار انتخاب نشده است');
+                errors.push('مشارکت کننده انتخاب نشده است');
             }
             // if (!formData.project) {
             //     errors.push('پروژه انتخاب نشده است');
