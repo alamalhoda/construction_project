@@ -1355,13 +1355,13 @@
                     formatter: function(cell) {
                         const value = cell.getValue();
                         if (value === null || value === undefined) return '0';
-                        return parseFloat(value).toLocaleString('fa-IR');
+                        return parseFloat(value).toLocaleString('en-US');
                     },
                     sorter: 'number',
                     bottomCalc: 'sum',
                     bottomCalcFormatter: function(cell) {
                         const value = cell.getValue();
-                        return '<strong>' + parseFloat(value).toLocaleString('fa-IR') + '</strong>';
+                        return '<strong>' + parseFloat(value).toLocaleString('en-US') + '</strong>';
                     }
                 },
                 {
@@ -1613,22 +1613,22 @@
             
             // Update display
             document.getElementById('totalDeposits').textContent = 
-                deposits.toLocaleString('fa-IR');
+                deposits.toLocaleString('en-US');
             document.getElementById('totalDepositsWords').textContent = 
                 amountToPersianWords(deposits);
                 
             document.getElementById('totalWithdrawals').textContent = 
-                withdrawals.toLocaleString('fa-IR');
+                withdrawals.toLocaleString('en-US');
             document.getElementById('totalWithdrawalsWords').textContent = 
                 amountToPersianWords(withdrawals);
                 
             document.getElementById('totalProfits').textContent = 
-                profits.toLocaleString('fa-IR');
+                profits.toLocaleString('en-US');
             document.getElementById('totalProfitsWords').textContent = 
                 amountToPersianWords(profits);
                 
             document.getElementById('netCapital').textContent = 
-                netCapital.toLocaleString('fa-IR');
+                netCapital.toLocaleString('en-US');
             document.getElementById('netCapitalWords').textContent = 
                 amountToPersianWords(netCapital);
             
@@ -1645,10 +1645,10 @@
             const filterInfoElement = document.getElementById('filterInfo');
             
             if (filteredCount === totalCount) {
-                resultsCountElement.textContent = `نمایش تمام ${totalCount.toLocaleString('fa-IR')} تراکنش`;
+                resultsCountElement.textContent = `نمایش تمام ${totalCount.toLocaleString('en-US')} تراکنش`;
                 filterInfoElement.textContent = '';
             } else {
-                resultsCountElement.textContent = `نمایش ${filteredCount.toLocaleString('fa-IR')} از ${totalCount.toLocaleString('fa-IR')} تراکنش`;
+                resultsCountElement.textContent = `نمایش ${filteredCount.toLocaleString('en-US')} از ${totalCount.toLocaleString('en-US')} تراکنش`;
                 
                 // Show active filters
                 const activeFilters = [];
@@ -2197,7 +2197,7 @@
             
             testNumbers.forEach(num => {
                 const words = amountToPersianWords(num);
-                result += num.toLocaleString('fa-IR') + ' = ' + words + '\\n';
+                result += num.toLocaleString('en-US') + ' = ' + words + '\\n';
             });
             
             console.log(result);
@@ -2525,7 +2525,7 @@
             
             // Format amount as integer (remove decimal places if any)
             const amountValue = Math.floor(parseFloat(transaction.amount));
-            $('#editAmountInput').val(amountValue.toLocaleString('fa-IR'));
+            $('#editAmountInput').val(amountValue.toLocaleString('en-US'));
             
             $('#editDateShamsiInput').val(transaction.date_shamsi);
             $('#editDescriptionInput').val(transaction.description || '');
@@ -2845,7 +2845,7 @@
             
             // Format with commas
             if (value) {
-                const formatted = parseInt(value).toLocaleString('fa-IR');
+                const formatted = parseInt(value).toLocaleString('en-US');
                 input.value = formatted;
             }
         }
