@@ -448,7 +448,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
                 }, status=400)
             
             # اجرای عملیات محاسبه مجدد
-            result = models.Transaction.recalculate_all_profits_with_new_rate(current_rate.rate)
+            result = models.Transaction.recalculate_all_profits_with_new_rate(current_rate)
             
             return Response({
                 'success': True,
