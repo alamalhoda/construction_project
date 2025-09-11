@@ -630,10 +630,6 @@
                             دانلود CSV
                         </button>
                         
-                        <button class="ui blue button" onclick="exportToJSON()">
-                            <i class="file code icon"></i>
-                            دانلود JSON
-                        </button>
                         
                         <button class="ui orange button" onclick="clearFilters()">
                             <i class="refresh icon"></i>
@@ -1682,8 +1678,40 @@
         }
         
         function showError(message) {
-            document.getElementById('errorText').textContent = message;
-            $('#errorMessage').transition('fade in');
+            // حذف پیام‌های قبلی
+            const existingMessages = document.querySelectorAll('.ui.negative.message');
+            existingMessages.forEach(msg => msg.remove());
+            
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'ui negative message';
+            errorDiv.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);';
+            errorDiv.innerHTML = `
+                <i class="close icon"></i>
+                <div class="header">
+                    <i class="exclamation triangle icon"></i>
+                    خطا
+                </div>
+                <p>${message}</p>
+            `;
+            
+            document.body.appendChild(errorDiv);
+            
+            // انیمیشن ورود
+            $(errorDiv).transition('fade in');
+            
+            // حذف خودکار بعد از 8 ثانیه
+            setTimeout(() => {
+                $(errorDiv).transition('fade out', function() {
+                    errorDiv.remove();
+                });
+            }, 8000);
+            
+            // حذف با کلیک روی X
+            errorDiv.querySelector('.close.icon').addEventListener('click', () => {
+                $(errorDiv).transition('fade out', function() {
+                    errorDiv.remove();
+                });
+            });
         }
         
         function hideError() {
@@ -1691,23 +1719,39 @@
         }
         
         function showSuccessMessage(message) {
+            // حذف پیام‌های قبلی
+            const existingMessages = document.querySelectorAll('.ui.positive.message');
+            existingMessages.forEach(msg => msg.remove());
+            
             const successDiv = document.createElement('div');
             successDiv.className = 'ui positive message';
+            successDiv.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);';
             successDiv.innerHTML = `
                 <i class="close icon"></i>
-                <div class="header">موفقیت</div>
+                <div class="header">
+                    <i class="check circle icon"></i>
+                    موفقیت
+                </div>
                 <p>${message}</p>
             `;
             
-            const contentSection = document.querySelector('.content-section');
-            contentSection.insertBefore(successDiv, contentSection.firstChild);
+            document.body.appendChild(successDiv);
             
+            // انیمیشن ورود
+            $(successDiv).transition('fade in');
+            
+            // حذف خودکار بعد از 6 ثانیه
             setTimeout(() => {
-                successDiv.remove();
-            }, 5000);
+                $(successDiv).transition('fade out', function() {
+                    successDiv.remove();
+                });
+            }, 6000);
             
+            // حذف با کلیک روی X
             successDiv.querySelector('.close.icon').addEventListener('click', () => {
-                successDiv.remove();
+                $(successDiv).transition('fade out', function() {
+                    successDiv.remove();
+                });
             });
         }
         
@@ -1720,13 +1764,6 @@
             table.download("csv", "transactions.csv");
         }
         
-        function exportToJSON() {
-            if (!table) {
-                showError('هیچ داده‌ای برای دانلود موجود نیست');
-                return;
-            }
-            table.download("json", "transactions.json");
-        }
         
         // Modal functions
         window.showAddTransactionModal = function() {
@@ -2268,9 +2305,13 @@
                 return response.json();
             })
             .then(data => {
-                showSuccess(`عملیات با موفقیت انجام شد. ${data.deleted_count} رکورد حذف شد و ${data.new_count} رکورد جدید ایجاد شد.`);
+                showSuccessMessage(`عملیات با موفقیت انجام شد. ${data.deleted_count} رکورد حذف شد و ${data.new_count} رکورد جدید ایجاد شد.`);
                 closeRecalculateModal();
-                loadInitialData(); // Refresh the table
+                
+                // تأخیر 2 ثانیه قبل از refresh کردن جدول
+                setTimeout(() => {
+                    loadInitialData(); // Refresh the table
+                }, 2000);
             })
             .catch(error => {
                 console.error('Error recalculating profits:', error);
