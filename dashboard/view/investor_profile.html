@@ -1533,7 +1533,7 @@
                     labels: ['آورده', 'برداشت', 'سود'],
                     datasets: [{
                         data: [totalPrincipal, totalWithdrawal, totalProfit].map(amount => amount / BASE_AMOUNT),
-                        backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56']
+                        backgroundColor: ['#36A2EB', '#FF6384', '#28a745']
                     }]
                 },
                 options: {
@@ -1585,7 +1585,7 @@
             const withdrawals = months.map(month => Math.abs(monthlyData[month].withdrawal) / BASE_AMOUNT);
             const profits = months.map(month => monthlyData[month].profit / BASE_AMOUNT);
             
-            // محاسبه مجموع تجمعی ماهانه
+            // محاسبه سرمایه موجود ماهانه
             const cumulativeTotals = [];
             let cumulativeSum = 0;
             months.forEach(month => {
@@ -1602,16 +1602,16 @@
                     datasets: [
                         {
                             type: 'bar',
-                            label: 'آورده (کرور تومان)',
+                            label: 'آورده (میلیون تومان)',
                             data: principals,
-                            backgroundColor: 'rgba(0, 99, 132, 0.8)',
-                            borderColor: 'rgba(0, 99, 132, 1)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
                             borderWidth: 1,
                             yAxisID: 'y'
                         },
                         {
                             type: 'bar',
-                            label: 'برداشت (کرور تومان)',
+                            label: 'برداشت (میلیون تومان)',
                             data: withdrawals,
                             backgroundColor: 'rgba(255, 99, 132, 0.8)',
                             borderColor: 'rgba(255, 99, 132, 1)',
@@ -1620,19 +1620,19 @@
                         },
                         {
                             type: 'bar',
-                            label: 'سود (کرور تومان)',
+                            label: 'سود (میلیون تومان)',
                             data: profits,
-                            backgroundColor: 'rgba(255, 206, 86, 0.8)',
-                            borderColor: 'rgba(255, 206, 86, 1)',
+                            backgroundColor: 'rgba(40, 167, 69, 0.8)',
+                            borderColor: 'rgba(40, 167, 69, 1)',
                             borderWidth: 1,
                             yAxisID: 'y'
                         },
                         {
                             type: 'line',
-                            label: 'مجموع تجمعی (کرور تومان)',
+                            label: 'سرمایه موجود (میلیون تومان)',
                             data: cumulativeTotals,
-                            borderColor: 'rgba(75, 192, 192, 1)',
-                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(128, 0, 128, 1)',
+                            backgroundColor: 'rgba(128, 0, 128, 0.2)',
                             borderWidth: 3,
                             fill: false,
                             tension: 0.1,
@@ -1664,7 +1664,7 @@
                             beginAtZero: true,
                             title: { 
                                 display: true, 
-                                text: 'مبلغ ماهانه (کرور تومان)' 
+                                text: 'مبلغ ماهانه (میلیون تومان)' 
                             }
                         },
                         y1: {
@@ -1674,7 +1674,7 @@
                             beginAtZero: false,
                             title: { 
                                 display: true, 
-                                text: 'مجموع تجمعی (کرور تومان)' 
+                                text: 'سرمایه موجود (میلیون تومان)' 
                             },
                             grid: {
                                 drawOnChartArea: false,
@@ -1704,7 +1704,7 @@
             const labels = [];
             const depositAmounts = [];
             const withdrawalAmounts = [];
-            const cumulativeAmounts = []; // مجموع تجمعی
+            const cumulativeAmounts = []; // سرمایه موجود
             
             let cumulative = 0;
             
@@ -1753,10 +1753,10 @@
                         },
                         {
                             type: 'line',
-                            label: 'مجموع تجمعی',
+                            label: 'سرمایه موجود',
                             data: cumulativeAmounts,
-                            borderColor: 'rgba(75, 192, 192, 1)',
-                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(128, 0, 128, 1)',
+                            backgroundColor: 'rgba(128, 0, 128, 0.2)',
                             borderWidth: 3,
                             fill: false,
                             tension: 0.1,
@@ -1791,7 +1791,7 @@
                             beginAtZero: true,
                             title: { 
                                 display: true, 
-                                text: 'مبلغ تراکنش (کرور تومان)' 
+                                text: 'مبلغ تراکنش (میلیون تومان)' 
                             }
                         },
                         y1: {
@@ -1801,7 +1801,7 @@
                             beginAtZero: false,
                             title: { 
                                 display: true, 
-                                text: 'مجموع تجمعی (کرور تومان)' 
+                                text: 'سرمایه موجود (میلیون تومان)' 
                             },
                             grid: {
                                 drawOnChartArea: false,
@@ -1840,7 +1840,7 @@
             const principals = months.map(month => monthlyData[month].principal / BASE_AMOUNT);
             const withdrawals = months.map(month => Math.abs(monthlyData[month].withdrawal) / BASE_AMOUNT);
             
-            // محاسبه مجموع تجمعی فقط آورده و برداشت
+            // محاسبه سرمایه موجود فقط آورده و برداشت
             const cumulativePrincipalTotals = [];
             let cumulativeSum = 0;
             months.forEach(month => {
@@ -1857,7 +1857,7 @@
                     datasets: [
                         {
                             type: 'bar',
-                            label: 'آورده (کرور تومان)',
+                            label: 'آورده (میلیون تومان)',
                             data: principals,
                             backgroundColor: 'rgba(54, 162, 235, 0.8)',
                             borderColor: 'rgba(54, 162, 235, 1)',
@@ -1866,7 +1866,7 @@
                         },
                         {
                             type: 'bar',
-                            label: 'برداشت (کرور تومان)',
+                            label: 'برداشت (میلیون تومان)',
                             data: withdrawals,
                             backgroundColor: 'rgba(255, 99, 132, 0.8)',
                             borderColor: 'rgba(255, 99, 132, 1)',
@@ -1875,10 +1875,10 @@
                         },
                         {
                             type: 'line',
-                            label: 'مجموع تجمعی (کرور تومان)',
+                            label: 'سرمایه موجود (میلیون تومان)',
                             data: cumulativePrincipalTotals,
-                            borderColor: 'rgba(75, 192, 192, 1)',
-                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(128, 0, 128, 1)',
+                            backgroundColor: 'rgba(128, 0, 128, 0.2)',
                             borderWidth: 3,
                             fill: false,
                             tension: 0.1,
@@ -1910,7 +1910,7 @@
                             beginAtZero: true,
                             title: { 
                                 display: true, 
-                                text: 'مبلغ ماهانه (کرور تومان)' 
+                                text: 'مبلغ ماهانه (میلیون تومان)' 
                             }
                         },
                         y1: {
@@ -1920,7 +1920,7 @@
                             beginAtZero: false,
                             title: { 
                                 display: true, 
-                                text: 'مجموع تجمعی آورده (کرور تومان)' 
+                                text: 'سرمایه موجود آورده (میلیون تومان)' 
                             },
                             grid: {
                                 drawOnChartArea: false,
