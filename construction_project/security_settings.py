@@ -161,7 +161,7 @@ PASSWORD_SECURITY_SETTINGS = {
     'SESSION_SAVE_EVERY_REQUEST': True,
     
     # تنظیمات Login
-    'LOGIN_REDIRECT_URL': '/api/dashboard/',
+    'LOGIN_REDIRECT_URL': '/user-dashboard/',
     'LOGIN_URL': '/login/',
     'LOGOUT_REDIRECT_URL': '/',
     

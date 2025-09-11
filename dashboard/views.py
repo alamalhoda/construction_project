@@ -8,8 +8,8 @@ import os
 
 @login_required
 def dashboard_home(request):
-    """هدایت به داشبورد API"""
-    return redirect('/api/dashboard/')
+    """هدایت به داشبورد کاربری"""
+    return redirect('/user-dashboard/')
 
 @login_required
 def project_dashboard(request):
