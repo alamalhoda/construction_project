@@ -63,6 +63,8 @@ class InvestorForm(forms.ModelForm):
             "last_name",
             "phone",
             "email",
+            "participation_type",
+            "units",
         ]
 
 
