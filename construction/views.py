@@ -309,3 +309,36 @@ def set_active_project_api(request):
         return JsonResponse({'error': 'داده‌های JSON نامعتبر است'}, status=400)
     except Exception as e:
         return JsonResponse({'error': f'خطا در تنظیم پروژه فعال: {str(e)}'}, status=500)
+
+
+# InterestRate Views
+@method_decorator(login_required, name='dispatch')
+class InterestRateListView(generic.ListView):
+    model = models.InterestRate
+    form_class = forms.InterestRateForm
+    ordering = ['-effective_date']
+
+
+@method_decorator(login_required, name='dispatch')
+class InterestRateCreateView(generic.CreateView):
+    model = models.InterestRate
+    form_class = forms.InterestRateForm
+
+
+@method_decorator(login_required, name='dispatch')
+class InterestRateDetailView(generic.DetailView):
+    model = models.InterestRate
+    form_class = forms.InterestRateForm
+
+
+@method_decorator(login_required, name='dispatch')
+class InterestRateUpdateView(generic.UpdateView):
+    model = models.InterestRate
+    form_class = forms.InterestRateForm
+    pk_url_kwarg = "pk"
+
+
+@method_decorator(login_required, name='dispatch')
+class InterestRateDeleteView(generic.DeleteView):
+    model = models.InterestRate
+    success_url = reverse_lazy("construction_InterestRate_list")

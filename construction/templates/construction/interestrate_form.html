@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load static %}
+{% load jformat %}
+{% block content %}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        {% if object %}
+                            ویرایش نرخ سود
+                        {% else %}
+                            افزودن نرخ سود جدید
+                        {% endif %}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="mb-3">
+                        <a class="btn btn-outline-secondary" href="{% url 'construction_InterestRate_list' %}">
+                            <i class="fas fa-arrow-right"></i> بازگشت به لیست نرخ‌های سود
+                        </a>
+                    </p>
+                    
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {% if form.errors %}
+                            <div class="alert alert-danger">
+                                <strong>خطا:</strong> لطفاً موارد زیر را بررسی کنید:
+                                <ul class="mb-0 mt-2">
+                                    {% for field, errors in form.errors.items %}
+                                        {% for error in errors %}
+                                            <li>{{ error }}</li>
+                                        {% endfor %}
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.rate.id_for_label }}" class="form-label">نرخ سود روزانه <span class="text-danger">*</span></label>
+                                    {{ form.rate }}
+                                    <small class="form-text text-muted">مثال: 0.000481925679775</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.effective_date.id_for_label }}" class="form-label">تاریخ اعمال (شمسی) <span class="text-danger">*</span></label>
+                                    {{ form.effective_date }}
+                                    <small class="form-text text-muted">فرمت: YYYY-MM-DD</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.effective_date_gregorian.id_for_label }}" class="form-label">تاریخ اعمال (میلادی)</label>
+                                    {{ form.effective_date_gregorian }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">توضیحات</label>
+                            {{ form.description }}
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="form-check">
+                                {{ form.is_active }}
+                                <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                    {{ form.is_active.label }}
+                                </label>
+                                <small class="form-text text-muted">فقط یک نرخ می‌تواند فعال باشد</small>
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> ذخیره
+                            </button>
+                            <a href="{% url 'construction_InterestRate_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> انصراف
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
