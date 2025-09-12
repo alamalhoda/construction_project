@@ -446,11 +446,21 @@ class TransactionViewSet(viewsets.ModelViewSet):
         
         unique_investors = models.Transaction.objects.values('investor').distinct().count()
         
+        # محاسبه مجموع سرمایه (آورده منهای برداشت)
+        # total_withdrawals منفی است پس به جای تفریق باید جمع بشه
+        # net_principal = float(total_deposits) - float(total_withdrawals)
+        net_principal = float(total_deposits) + float(total_withdrawals)
+        
+        # محاسبه مجموع سرمایه + سود
+        grand_total = net_principal + float(total_profits)
+        
         return Response({
             'total_transactions': total_transactions,
             'total_deposits': float(total_deposits),
             'total_withdrawals': float(total_withdrawals),
             'total_profits': float(total_profits),
+            'net_principal': net_principal,
+            'grand_total': grand_total,
             'unique_investors': unique_investors
         })
 

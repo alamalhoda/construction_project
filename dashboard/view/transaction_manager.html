@@ -1696,8 +1696,9 @@
                 .reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
             
             // محاسبه سرمایه موجود (بدون سود) = مجموع واریزها - مجموع برداشت‌ها
-            const netCapital = deposits - withdrawals;
-            
+            // const netCapital = deposits - withdrawals; //withdrawals منفی است پس به جای تفریق باید جمع بشه
+            const netCapital = deposits + withdrawals; //withdrawals منفی است پس به جای تفریق باید جمع بشه
+
             // Update display
             document.getElementById('totalDeposits').textContent = 
                 deposits.toLocaleString('en-US');
