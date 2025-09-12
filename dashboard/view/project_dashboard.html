@@ -597,7 +597,7 @@
 
 
                 <div class="chart-container">
-                    <h3><i class="fas fa-chart-pie"></i> توزیع سرمایه‌گذاران</h3>
+                    <h3><i class="fas fa-chart-pie"></i> توزیع مشارکت کنندگان</h3>
                     <div class="chart-wrapper">
                         <canvas id="investorDistributionChart"></canvas>
                     </div>
@@ -1002,12 +1002,22 @@
 
             const labels = Object.keys(validInvestors);
             const data = Object.values(validInvestors).map(amount => amount / BASE_AMOUNT); // تبدیل به میلیون تومان
+            
+            // محاسبه مجموع کل برای محاسبه درصد
+            const totalAmount = Object.values(validInvestors).reduce((sum, amount) => sum + amount, 0);
+            
+            // ایجاد لیبل‌های جدید شامل درصد
+            const labelsWithPercentage = labels.map((label, index) => {
+                const amount = Object.values(validInvestors)[index];
+                const percentage = totalAmount > 0 ? ((amount / totalAmount) * 100).toFixed(1) : '0.0';
+                return `${label} (${percentage}%)`;
+            });
 
             const ctx = document.getElementById('investorDistributionChart').getContext('2d');
             new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: labels,
+                    labels: labelsWithPercentage,
                     datasets: [{
                         data: data,
                         backgroundColor: [
@@ -1026,7 +1036,10 @@
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    return context.label + ': ' + context.parsed.toFixed(1) + ' میلیون تومان';
+                                    const originalLabel = labels[context.dataIndex];
+                                    const amount = Object.values(validInvestors)[context.dataIndex];
+                                    const percentage = totalAmount > 0 ? ((amount / totalAmount) * 100).toFixed(1) : '0.0';
+                                    return `${originalLabel}: ${context.parsed.toFixed(1)} میلیون تومان (${percentage}%)`;
                                 }
                             }
                         }
