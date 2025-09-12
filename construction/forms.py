@@ -49,6 +49,7 @@ class ExpenseForm(forms.ModelForm):
     class Meta:
         model = models.Expense
         fields = [
+            "period",
             "expense_type",
             "amount",
             "description",
