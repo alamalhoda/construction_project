@@ -388,7 +388,7 @@
         th, td {
             padding: 12px;
             text-align: right;
-            border-bottom: 1px solid var(--border-color);
+            border: 1px solid var(--border-color);
             color: var(--text-primary);
         }
 
@@ -643,7 +643,7 @@
 
             <!-- جدول خلاصه -->
             <div class="table-container">
-                <h3><i class="fas fa-table"></i> خلاصه سرمایه‌گذاران</h3>
+                <h3><i class="fas fa-table"></i>خلاصه سرمایه‌گذاران (تومان)</h3>
                 <div id="summaryTable"></div>
             </div>
         </div>
@@ -661,13 +661,16 @@
         // متغیر برای تبدیل مبالغ (10 میلیون)
         const BASE_AMOUNT = 10000000;
 
+        // متغیر سراسری برای ذخیره آمار کلی
+        let globalStatistics = null;
+        
         // بارگذاری همه داده‌ها از API های مختلف
         async function loadData() {
             try {
                 console.log('شروع بارگذاری داده‌ها از API...');
                 
                 // بارگذاری موازی همه داده‌ها
-                const [transactionsResponse, investorsResponse, projectsResponse, interestRateResponse, expensesResponse, timelineResponse] = await Promise.all([
+                const [transactionsResponse, investorsResponse, projectsResponse, interestRateResponse, expensesResponse, timelineResponse, statisticsResponse] = await Promise.all([
                     fetch('/construction/api/v1/Transaction/'),
                     fetch('/construction/api/v1/Investor/'),
                     fetch('/construction/api/v1/Project/').catch(err => {
@@ -684,6 +687,10 @@
                     }),
                     fetch('/construction/api/v1/Project/project_timeline/').catch(err => {
                         console.warn('خطا در دسترسی به API زمان‌بندی پروژه:', err);
+                        return { ok: false, status: 404 }; // fallback response
+                    }),
+                    fetch('/construction/api/v1/Transaction/statistics/').catch(err => {
+                        console.warn('خطا در دسترسی به API آمار کلی:', err);
                         return { ok: false, status: 404 }; // fallback response
                     })
                 ]);
@@ -742,6 +749,15 @@
                 } else {
                     console.warn('API زمان‌بندی پروژه دسترسی ندارد');
                     timelineData = null;
+                }
+                
+                // اگر آمار کلی API دسترسی داشت، آن را بارگذاری کن
+                if (statisticsResponse.ok) {
+                    globalStatistics = await statisticsResponse.json();
+                    console.log('آمار کلی بارگذاری شدند:', globalStatistics);
+                } else {
+                    console.warn('API آمار کلی دسترسی ندارد');
+                    globalStatistics = null;
                 }
                 
                 console.log('داده‌ها بارگذاری شدند:', {
@@ -1041,12 +1057,13 @@
                         <thead>
                             <tr>
                                 <th>نام سرمایه‌گذار</th>
-                                <th>آورده (تومان)</th>
-                                <th>برداشت (تومان)</th>
-                                <th>سرمایه موجود (تومان)</th>
-                                <th>سود مشارکت (تومان)</th>
-                                <th>مجموع (تومان)</th>
+                                <th>آورده</th>
+                                <th>برداشت</th>
+                                <th>سرمایه موجود</th>
+                                <th>سود مشارکت</th>
+                                <th>مجموع (سرمایه+سود)</th>
                                 <th>نسبت سود به آورده خالص</th>
+                                <th>نسبت سرمایه به سرمایه کل</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1055,6 +1072,13 @@
                 summaryData.forEach(investor => {
                     const profitRatio = investor.net_principal > 0 ? 
                         ((investor.total_profit / investor.net_principal) * 100).toFixed(2) : '0.00';
+                    
+                    // محاسبه نسبت سرمایه فرد به سرمایه کل (از API آمار کلی)
+                    let capitalRatio = '0.00%';
+                    if (globalStatistics && globalStatistics.net_principal > 0) {
+                        const ratio = (investor.net_principal / globalStatistics.net_principal) * 100;
+                        capitalRatio = ratio.toFixed(2) + '%';
+                    }
                     
                     tableHTML += `
                         <tr>
@@ -1065,9 +1089,24 @@
                             <td>${investor.total_profit.toLocaleString('fa-IR')}</td>
                             <td>${investor.grand_total.toLocaleString('fa-IR')}</td>
                             <td>${profitRatio}%</td>
+                            <td style="color: #667eea; font-weight: bold;">${capitalRatio}</td>
                         </tr>
                     `;
                 });
+
+                // اضافه کردن ردیف خلاصه در انتهای جدول
+                tableHTML += `
+                    <tr style="background-color: #f8f9fa; font-weight: bold; border-top: 2px solid #667eea;">
+                        <td>مجموع / میانگین</td>
+                        <td>${summaryData.reduce((sum, inv) => sum + inv.total_deposits, 0).toLocaleString('fa-IR')}</td>
+                        <td>${summaryData.reduce((sum, inv) => sum + inv.total_withdrawals, 0).toLocaleString('fa-IR')}</td>
+                        <td>${summaryData.reduce((sum, inv) => sum + inv.net_principal, 0).toLocaleString('fa-IR')}</td>
+                        <td>${summaryData.reduce((sum, inv) => sum + inv.total_profit, 0).toLocaleString('fa-IR')}</td>
+                        <td>${summaryData.reduce((sum, inv) => sum + inv.grand_total, 0).toLocaleString('fa-IR')}</td>
+                        <td>-</td>
+                        <td style="color: #28a745; font-weight: bold;">100.00%</td>
+                    </tr>
+                `;
 
                 tableHTML += '</tbody></table>';
                 document.getElementById('summaryTable').innerHTML = tableHTML;

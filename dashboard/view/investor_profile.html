@@ -846,19 +846,19 @@
             </div>
 
             <div class="stats-grid">
-                <div class="stat-card">
+                <div class="stat-card" style="border: 2px solid #007bff; background: linear-gradient(135deg, rgba(0, 123, 255, 0.1), rgba(0, 86, 179, 0.1));">
                     <h4 id="totalPrincipal">-</h4>
                     <p>کل آورده (میلیون تومان)</p>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card" style="border: 2px solid #dc3545; background: linear-gradient(135deg, rgba(220, 53, 69, 0.1), rgba(200, 35, 51, 0.1));">
                     <h4 id="totalWithdrawal">-</h4>
                     <p>کل برداشت (میلیون تومان)</p>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card" style="border: 2px solid #6f42c1; background: linear-gradient(135deg, rgba(111, 66, 193, 0.1), rgba(95, 39, 205, 0.1));">
                     <h4 id="netPrincipal">-</h4>
                     <p>سرمایه موجود (میلیون تومان)</p>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card" style="border: 2px solid #28a745; background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(25, 135, 84, 0.1));">
                     <h4 id="totalProfit">-</h4>
                     <p>کل سود (میلیون تومان)</p>
                 </div>
@@ -869,6 +869,18 @@
                 <div class="stat-card">
                     <h4 id="profitRatio">-</h4>
                     <p>نسبت سود به آورده</p>
+                </div>
+                <div class="stat-card" style="border: 2px solid #667eea; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));">
+                    <h4 id="capitalRatio">-</h4>
+                    <p>نسبت سرمایه به سرمایه کل</p>
+                </div>
+                <div class="stat-card" style="border: 2px solid #28a745; background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(25, 135, 84, 0.1));">
+                    <h4 id="profitRatioToTotal">-</h4>
+                    <p>نسبت سود به سود کل</p>
+                </div>
+                <div class="stat-card" style="border: 2px solid #ffc107; background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(255, 152, 0, 0.1));">
+                    <h4 id="totalRatioToGrandTotal">-</h4>
+                    <p>نسبت (سرمایه+سود) به (سرمایه کل+سود کل)</p>
                 </div>
             </div>
 
@@ -989,10 +1001,29 @@
     <script>
         let selectedInvestor = null;
         let charts = {}; // نگهداری نمودارها
+        let globalStatistics = null; // آمار کلی از API
 
         // متغیر برای تبدیل مبالغ (10 میلیون)
         const BASE_AMOUNT = 10000000;
         // const BASE_AMOUNT = 1;
+        
+        // تابع فراخوانی API آمار کلی
+        async function fetchGlobalStatistics() {
+            try {
+                const response = await fetch('/construction/api/v1/Transaction/statistics/');
+                if (response.ok) {
+                    globalStatistics = await response.json();
+                    console.log('آمار کلی دریافت شد:', globalStatistics);
+                    return globalStatistics;
+                } else {
+                    console.warn('خطا در دریافت آمار کلی:', response.status);
+                    return null;
+                }
+            } catch (error) {
+                console.error('خطا در فراخوانی API آمار کلی:', error);
+                return null;
+            }
+        }
 
         // Theme Management
         function initializeTheme() {
@@ -1196,14 +1227,17 @@
 
         // پر کردن select سرمایه‌گذاران
         function populateInvestorSelectFromAPI() {
-            // خواندن لیست سرمایه‌گذاران از REST API موجود در construction
-            fetch('/construction/api/v1/Investor/')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.json();
-                })
+            // بارگذاری موازی لیست سرمایه‌گذاران و آمار کلی
+            Promise.all([
+                fetch('/construction/api/v1/Investor/'),
+                fetchGlobalStatistics()
+            ])
+            .then(([investorsResponse, statsResponse]) => {
+                if (!investorsResponse.ok) {
+                    throw new Error(`HTTP error! status: ${investorsResponse.status}`);
+                }
+                return investorsResponse.json();
+            })
                 .then(data => {
                     // Django REST Framework returns a 'results' array for list views
                     const investors = data.results || data;
@@ -1426,6 +1460,27 @@
             const netPrincipal = totalPrincipal + totalWithdrawal; // withdrawal معمولاً منفی است
             const totalBalance = netPrincipal + totalProfit;
             const profitRatio = netPrincipal > 0 ? ((totalProfit / netPrincipal) * 100).toFixed(2) : '0.00';
+            
+            // محاسبه نسبت سرمایه فرد به سرمایه کل (از API آمار کلی)
+            let capitalRatio = '0.00%';
+            if (globalStatistics && globalStatistics.net_principal > 0) {
+                const ratio = (netPrincipal / globalStatistics.net_principal) * 100;
+                capitalRatio = ratio.toFixed(2) + '%';
+            }
+            
+            // محاسبه نسبت سود فرد به سود کل (از API آمار کلی)
+            let profitRatioToTotal = '0.00%';
+            if (globalStatistics && globalStatistics.total_profits > 0) {
+                const ratio = (totalProfit / globalStatistics.total_profits) * 100;
+                profitRatioToTotal = ratio.toFixed(2) + '%';
+            }
+            
+            // محاسبه نسبت (سرمایه+سود) فرد به (سرمایه+سود) کل (از API آمار کلی)
+            let totalRatioToGrandTotal = '0.00%';
+            if (globalStatistics && globalStatistics.grand_total > 0) {
+                const ratio = (totalBalance / globalStatistics.grand_total) * 100;
+                totalRatioToGrandTotal = ratio.toFixed(2) + '%';
+            }
 
             // نمایش اطلاعات
             document.getElementById('totalPrincipal').textContent = (totalPrincipal / BASE_AMOUNT).toFixed(1);
@@ -1434,6 +1489,9 @@
             document.getElementById('totalProfit').textContent = (totalProfit / BASE_AMOUNT).toFixed(1);
             document.getElementById('totalBalance').textContent = (totalBalance / BASE_AMOUNT).toFixed(1);
             document.getElementById('profitRatio').textContent = profitRatio + '%';
+            document.getElementById('capitalRatio').textContent = capitalRatio;
+            document.getElementById('profitRatioToTotal').textContent = profitRatioToTotal;
+            document.getElementById('totalRatioToGrandTotal').textContent = totalRatioToGrandTotal;
 
             // تعیین وضعیت
             const statusElement = document.getElementById('investorStatus');
@@ -1451,6 +1509,9 @@
                 totalPrincipal: totalPrincipal / BASE_AMOUNT,
                 totalWithdrawal: totalWithdrawal / BASE_AMOUNT,
                 netPrincipal: netPrincipal / BASE_AMOUNT,
+                capitalRatio: capitalRatio,
+                profitRatioToTotal: profitRatioToTotal,
+                totalRatioToGrandTotal: totalRatioToGrandTotal,
                 totalProfit: totalProfit / BASE_AMOUNT,
                 totalBalance: totalBalance / BASE_AMOUNT,
                 profitRatio: profitRatio
