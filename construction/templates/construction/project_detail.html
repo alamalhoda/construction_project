@@ -3,22 +3,113 @@
 {% load static %}
 {% load jformat %}
 {% block content %}
-    
-<p>
-    <a class="btn btn-light" href="{% url 'construction_Project_list' %}">
-    Project Listing...
-    </a>
-</p>
-    
-<table class="table">
-    <tr><td>نام پروژه</td><td>{{ object.name }}</td></tr>
-    <tr><td>تاریخ شروع (شمسی)</td><td>{{ object.start_date_shamsi|jformat:"%Y/%m/%d" }}</td></tr>
-    <tr><td>تاریخ پایان (شمسی)</td><td>{{ object.end_date_shamsi|jformat:"%Y/%m/%d" }}</td></tr>
-    <tr><td>تاریخ شروع (میلادی)</td><td>{{ object.start_date_gregorian }}</td></tr>
-    <tr><td>تاریخ پایان (میلادی)</td><td>{{ object.end_date_gregorian }}</td></tr>
-    <tr><td>تاریخ ایجاد</td><td>{{ object.created_at|jformat:"%Y/%m/%d - %H:%M" }}</td></tr>
-    <tr><td>تاریخ به‌روزرسانی</td><td>{{ object.updated_at|jformat:"%Y/%m/%d - %H:%M" }}</td></tr>
-</table>
-<a class="btn btn-primary" href="{{object.get_update_url}}">Edit</a>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">جزئیات پروژه</h4>
+                    <a class="btn btn-outline-secondary" href="{% url 'construction_Project_list' %}">
+                        <i class="fas fa-arrow-right"></i> بازگشت به لیست
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-item mb-3">
+                                <label class="info-label">نام پروژه:</label>
+                                <span class="info-value">{{ object.name }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item mb-3">
+                                <label class="info-label">وضعیت:</label>
+                                <span class="info-value">
+                                    {% if object.is_active %}
+                                        <span class="badge badge-success">فعال</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">غیرفعال</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-item mb-3">
+                                <label class="info-label">تاریخ شروع (شمسی):</label>
+                                <span class="info-value">{{ object.start_date_shamsi|jformat:"%Y/%m/%d" }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item mb-3">
+                                <label class="info-label">تاریخ پایان (شمسی):</label>
+                                <span class="info-value">{{ object.end_date_shamsi|jformat:"%Y/%m/%d" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-item mb-3">
+                                <label class="info-label">تاریخ شروع (میلادی):</label>
+                                <span class="info-value">{{ object.start_date_gregorian }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item mb-3">
+                                <label class="info-label">تاریخ پایان (میلادی):</label>
+                                <span class="info-value">{{ object.end_date_gregorian }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-item mb-3">
+                                <label class="info-label">تاریخ ایجاد:</label>
+                                <span class="info-value">{{ object.created_at|jformat:"%Y/%m/%d - %H:%M" }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item mb-3">
+                                <label class="info-label">تاریخ به‌روزرسانی:</label>
+                                <span class="info-value">{{ object.updated_at|jformat:"%Y/%m/%d - %H:%M" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions mt-4 pt-3 border-top">
+                        <a class="btn btn-primary" href="{{object.get_update_url}}">
+                            <i class="fas fa-edit"></i> ویرایش
+                        </a>
+                        <a class="btn btn-danger" href="{% url 'construction_Project_delete' object.pk %}">
+                            <i class="fas fa-trash"></i> حذف
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.info-item {
+    display: flex;
+    flex-direction: column;
+}
+.info-label {
+    font-weight: bold;
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+.info-value {
+    font-size: 1rem;
+    color: #212529;
+}
+</style>
 
 {% endblock %}

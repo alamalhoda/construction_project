@@ -1,20 +1,80 @@
 
 {% extends "base.html" %}
+{% load static %}
 {% block content %}
-{% for object in object_list %}
-  <div class="m-2">
-    <a href="{{object.get_absolute_url}}">{{object}}</a>
-    <small class="ml-5">
-      <a href="{% url 'construction_Unit_delete' object.pk %}">
-        (Delete)
-      </a>
-    </small>
-  </div>
-{% endfor %}
-<div>
-  <a class="btn btn-primary"
-    href="{% url 'construction_Unit_create' %}">
-  Create a new Unit
-  </a>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">لیست واحدها</h4>
+                    <a class="btn btn-primary" href="{% url 'construction_Unit_create' %}">
+                        <i class="fas fa-plus"></i> افزودن واحد جدید
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if object_list %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>نام واحد</th>
+                                        <th>مساحت</th>
+                                        <th>قیمت هر متر</th>
+                                        <th>قیمت کل</th>
+                                        <th>تاریخ ثبت</th>
+                                        <th>عملیات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for unit in object_list %}
+                                        <tr>
+                                            <td>
+                                                <a href="{{ unit.get_absolute_url }}" class="text-decoration-none">
+                                                    {{ unit.name }}
+                                                </a>
+                                            </td>
+                                            <td>{{ unit.area }} متر مربع</td>
+                                            <td>{{ unit.price_per_meter|floatformat:0 }} ریال</td>
+                                            <td>
+                                                <strong class="text-success">{{ unit.total_price|floatformat:0 }} ریال</strong>
+                                            </td>
+                                            <td>{{ unit.created_at|date:"Y/m/d" }}</td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="{{ unit.get_absolute_url }}" class="btn btn-sm btn-outline-primary">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <a href="{{ unit.get_update_url }}" class="btn btn-sm btn-outline-warning">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <a href="{% url 'construction_Unit_delete' unit.pk %}" 
+                                                       class="btn btn-sm btn-outline-danger"
+                                                       onclick="return confirm('آیا از حذف این واحد اطمینان دارید؟')">
+                                                        <i class="fas fa-trash"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-building fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">هیچ واحدی یافت نشد</h5>
+                            <p class="text-muted">برای شروع، یک واحد جدید اضافه کنید.</p>
+                            <a class="btn btn-primary" href="{% url 'construction_Unit_create' %}">
+                                <i class="fas fa-plus"></i> افزودن اولین واحد
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
 {% endblock %}

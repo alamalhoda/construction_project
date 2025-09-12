@@ -2,41 +2,98 @@
 {% extends "base.html" %}
 {% load static %}
 {% block content %}
-    
-<p>
-    <a class="btn btn-light" href="{% url 'construction_Expense_list' %}">
-    Expense Listing
-    </a>
-</p>
-    
-<form method="post" enctype="multipart/form-data">
-  {% csrf_token %}
-  {{form.errors}}
-  <div class="form-group row">
-      <label class="col-sm-2 col-form-label" for="expense_type">expense_type: </label>
-      <input class="form-control col-sm-10"
-         id="expense_type" type="text"
-         name="expense_type" value="{{ object.expense_type }}">
-  </div>
-  <div class="form-group row">
-      <label class="col-sm-2 col-form-label" for="amount">amount: </label>
-      <input class="form-control col-sm-10"
-         id="amount" type="text"
-         name="amount" value="{{ object.amount }}">
-  </div>
-  <div class="form-group row">
-      <label class="col-sm-2 col-form-label" for="description">description: </label>
-      <input class="form-control col-sm-10"
-         id="description" type="text"
-         name="description" value="{{ object.description }}">
-  </div>
-  <div class="form-group row">
-      <label class="col-sm-2 col-form-label" for="created_at">created_at: </label>
-      <input class="form-control col-sm-10"
-         id="created_at" type="datetime-local"
-         name="created_at" value="{{ object.created_at }}">
-  </div>
-  <input type="submit" value="Save" class="btn btn-primary">
-</form>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        {% if object %}
+                            ویرایش هزینه
+                        {% else %}
+                            افزودن هزینه جدید
+                        {% endif %}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="mb-3">
+                        <a class="btn btn-outline-secondary" href="{% url 'construction_Expense_list' %}">
+                            <i class="fas fa-arrow-right"></i> بازگشت به لیست هزینه‌ها
+                        </a>
+                    </p>
+                    
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {% if form.errors %}
+                            <div class="alert alert-danger">
+                                <strong>خطا:</strong> لطفاً موارد زیر را بررسی کنید:
+                                <ul class="mb-0 mt-2">
+                                    {% for field, errors in form.errors.items %}
+                                        {% for error in errors %}
+                                            <li>{{ error }}</li>
+                                        {% endfor %}
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="period" class="form-label">دوره <span class="text-danger">*</span></label>
+                                    <select class="form-control" id="period" name="period" required>
+                                        <option value="">انتخاب کنید...</option>
+                                        {% for period in form.period.field.queryset %}
+                                            <option value="{{ period.id }}" {% if object.period.id == period.id %}selected{% endif %}>{{ period.label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="expense_type" class="form-label">نوع هزینه <span class="text-danger">*</span></label>
+                                    <select class="form-control" id="expense_type" name="expense_type" required>
+                                        <option value="">انتخاب کنید...</option>
+                                        <option value="project_manager" {% if object.expense_type == 'project_manager' %}selected{% endif %}>مدیر پروژه</option>
+                                        <option value="facilities_manager" {% if object.expense_type == 'facilities_manager' %}selected{% endif %}>مسئول تأسیسات</option>
+                                        <option value="procurement" {% if object.expense_type == 'procurement' %}selected{% endif %}>کارپرداز</option>
+                                        <option value="warehouse" {% if object.expense_type == 'warehouse' %}selected{% endif %}>انباردار</option>
+                                        <option value="construction_contractor" {% if object.expense_type == 'construction_contractor' %}selected{% endif %}>پیمان ساختمان</option>
+                                        <option value="other" {% if object.expense_type == 'other' %}selected{% endif %}>سایر</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="amount" class="form-label">مبلغ (ریال) <span class="text-danger">*</span></label>
+                                    <input class="form-control" id="amount" type="number" name="amount" 
+                                           value="{{ object.amount|default:'' }}" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="description" class="form-label">توضیحات</label>
+                            <textarea class="form-control" id="description" name="description" rows="3">{{ object.description|default:'' }}</textarea>
+                        </div>
+                        
+                        <div class="form-actions mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> ذخیره
+                            </button>
+                            <a href="{% url 'construction_Expense_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> انصراف
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 {% endblock %}

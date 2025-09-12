@@ -2,47 +2,101 @@
 {% extends "base.html" %}
 {% load static %}
 {% block content %}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        {% if object %}
+                            ویرایش واحد
+                        {% else %}
+                            افزودن واحد جدید
+                        {% endif %}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="mb-3">
+                        <a class="btn btn-outline-secondary" href="{% url 'construction_Unit_list' %}">
+                            <i class="fas fa-arrow-right"></i> بازگشت به لیست واحدها
+                        </a>
+                    </p>
+                    
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {% if form.errors %}
+                            <div class="alert alert-danger">
+                                <strong>خطا:</strong> لطفاً موارد زیر را بررسی کنید:
+                                <ul class="mb-0 mt-2">
+                                    {% for field, errors in form.errors.items %}
+                                        {% for error in errors %}
+                                            <li>{{ error }}</li>
+                                        {% endfor %}
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="form-group">
+                            <label for="name" class="form-label">نام واحد <span class="text-danger">*</span></label>
+                            <input class="form-control" id="name" type="text" name="name" 
+                                   value="{{ object.name|default:'' }}" required>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="area" class="form-label">مساحت (متر مربع) <span class="text-danger">*</span></label>
+                                    <input class="form-control" id="area" type="number" step="0.01" name="area" 
+                                           value="{{ object.area|default:'' }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="price_per_meter" class="form-label">قیمت هر متر (ریال) <span class="text-danger">*</span></label>
+                                    <input class="form-control" id="price_per_meter" type="number" name="price_per_meter" 
+                                           value="{{ object.price_per_meter|default:'' }}" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="total_price" class="form-label">قیمت کل (ریال) <span class="text-danger">*</span></label>
+                            <input class="form-control" id="total_price" type="number" name="total_price" 
+                                   value="{{ object.total_price|default:'' }}" required>
+                            <small class="form-text text-muted">قیمت کل = مساحت × قیمت هر متر</small>
+                        </div>
+                        
+                        <div class="form-actions mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> ذخیره
+                            </button>
+                            <a href="{% url 'construction_Unit_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> انصراف
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// محاسبه خودکار قیمت کل
+document.getElementById('area').addEventListener('input', calculateTotal);
+document.getElementById('price_per_meter').addEventListener('input', calculateTotal);
+
+function calculateTotal() {
+    const area = parseFloat(document.getElementById('area').value) || 0;
+    const pricePerMeter = parseFloat(document.getElementById('price_per_meter').value) || 0;
+    const totalPrice = area * pricePerMeter;
     
-<p>
-    <a class="btn btn-light" href="{% url 'construction_Unit_list' %}">
-    Unit Listing
-    </a>
-</p>
-    
-<form method="post" enctype="multipart/form-data">
-  {% csrf_token %}
-  {{form.errors}}
-  <div class="form-group row">
-      <label class="col-sm-2 col-form-label" for="name">name: </label>
-      <input class="form-control col-sm-10"
-         id="name" type="text"
-         name="name" value="{{ object.name }}">
-  </div>
-  <div class="form-group row">
-      <label class="col-sm-2 col-form-label" for="area">area: </label>
-      <input class="form-control col-sm-10"
-         id="area" type="text"
-         name="area" value="{{ object.area }}">
-  </div>
-  <div class="form-group row">
-      <label class="col-sm-2 col-form-label" for="price_per_meter">price_per_meter: </label>
-      <input class="form-control col-sm-10"
-         id="price_per_meter" type="text"
-         name="price_per_meter" value="{{ object.price_per_meter }}">
-  </div>
-  <div class="form-group row">
-      <label class="col-sm-2 col-form-label" for="total_price">total_price: </label>
-      <input class="form-control col-sm-10"
-         id="total_price" type="text"
-         name="total_price" value="{{ object.total_price }}">
-  </div>
-  <div class="form-group row">
-      <label class="col-sm-2 col-form-label" for="created_at">created_at: </label>
-      <input class="form-control col-sm-10"
-         id="created_at" type="datetime-local"
-         name="created_at" value="{{ object.created_at }}">
-  </div>
-  <input type="submit" value="Save" class="btn btn-primary">
-</form>
+    if (totalPrice > 0) {
+        document.getElementById('total_price').value = Math.round(totalPrice);
+    }
+}
+</script>
 
 {% endblock %}
