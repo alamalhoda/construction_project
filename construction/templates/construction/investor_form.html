@@ -37,6 +37,22 @@
          name="email" value="{{ object.email }}">
   </div>
   <div class="form-group row">
+      <label class="col-sm-2 col-form-label" for="participation_type">نوع مشارکت: </label>
+      <select class="form-control col-sm-10" id="participation_type" name="participation_type">
+          <option value="owner" {% if object.participation_type == 'owner' %}selected{% endif %}>مالک</option>
+          <option value="investor" {% if object.participation_type == 'investor' %}selected{% endif %}>سرمایه‌گذار</option>
+      </select>
+  </div>
+  <div class="form-group row">
+      <label class="col-sm-2 col-form-label" for="units">واحدها: </label>
+      <select class="form-control col-sm-10" id="units" name="units" multiple>
+          {% for unit in form.units.field.queryset %}
+              <option value="{{ unit.id }}" {% if unit in object.units.all %}selected{% endif %}>{{ unit.name }}</option>
+          {% endfor %}
+      </select>
+      <small class="form-text text-muted">می‌توانید چندین واحد را انتخاب کنید (Ctrl+Click)</small>
+  </div>
+  <div class="form-group row">
       <label class="col-sm-2 col-form-label" for="created_at">created_at: </label>
       <input class="form-control col-sm-10"
          id="created_at" type="datetime-local"

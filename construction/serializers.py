@@ -24,6 +24,8 @@ class InvestorSerializer(serializers.ModelSerializer):
             "last_name",
             "phone",
             "email",
+            "participation_type",
+            "units",
             "created_at",
         ]
 

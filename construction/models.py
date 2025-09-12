@@ -114,7 +114,7 @@ class Investor(models.Model):
         default='owner',
         verbose_name="نوع مشارکت"
     )
-    units = models.ManyToManyField(Unit, verbose_name="واحدها")
+    units = models.ManyToManyField(Unit, blank=True, verbose_name="واحدها")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
 
     class Meta:
