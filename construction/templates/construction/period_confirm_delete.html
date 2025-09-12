@@ -1,11 +1,51 @@
 
 {% extends "base.html" %}
+{% load static %}
+{% load jformat %}
 {% block content %}
-<form method="post">
-  {% csrf_token %}
-  <p>Are you sure you want to delete "{{ object }}"?</p>
-  <div>
-    <input class="btn btn-danger" value="Delete Period" type="submit">
-  </div>
-</form>
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle"></i> تأیید حذف
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-warning"></i>
+                        <strong>هشدار:</strong> این عمل قابل بازگشت نیست!
+                    </div>
+                    
+                    <p class="mb-4">
+                        آیا از حذف دوره زیر اطمینان دارید؟
+                    </p>
+                    
+                    <div class="period-info p-3 bg-light rounded">
+                        <h5>{{ object.label }}</h5>
+                        <p class="mb-1"><strong>سال:</strong> {{ object.year }}</p>
+                        <p class="mb-1"><strong>ماه:</strong> {{ object.month_name }}</p>
+                        <p class="mb-1"><strong>وزن دوره:</strong> {{ object.weight }}</p>
+                        <p class="mb-0"><strong>تاریخ شروع:</strong> {{ object.start_date_shamsi|jformat:"%Y/%m/%d" }}</p>
+                    </div>
+                    
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'construction_Period_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-right"></i> انصراف
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> حذف دوره
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}

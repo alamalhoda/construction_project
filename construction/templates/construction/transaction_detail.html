@@ -3,25 +3,142 @@
 {% load static %}
 {% load jformat %}
 {% block content %}
-    
-<p>
-    <a class="btn btn-light" href="{% url 'construction_Transaction_list' %}">
-    Transaction Listing
-    </a>
-</p>
-    
-<table class="table">
-    <tr><td>سرمایه‌گذار</td><td>{{ object.investor }}</td></tr>
-    <tr><td>دوره</td><td>{{ object.period }}</td></tr>
-    <tr><td>تاریخ (شمسی)</td><td>{{ object.date_shamsi|jformat:"%Y/%m/%d" }}</td></tr>
-    <tr><td>تاریخ (میلادی)</td><td>{{ object.date_gregorian }}</td></tr>
-    <tr><td>مبلغ</td><td>{{ object.amount|floatformat:0 }} ریال</td></tr>
-    <tr><td>نوع تراکنش</td><td>{{ object.get_transaction_type_display }}</td></tr>
-    <tr><td>توضیحات</td><td>{{ object.description }}</td></tr>
-    <tr><td>روزهای باقی‌مانده</td><td>{{ object.day_remaining }} روز</td></tr>
-    <tr><td>روز از شروع</td><td>{{ object.day_from_start }} روز</td></tr>
-    <tr><td>تاریخ ایجاد</td><td>{{ object.created_at|jformat:"%Y/%m/%d - %H:%M" }}</td></tr>
-</table>
-<a class="btn btn-primary" href="{{object.get_update_url}}">Edit</a>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">جزئیات تراکنش</h4>
+                    <a class="btn btn-outline-secondary" href="{% url 'construction_Transaction_list' %}">
+                        <i class="fas fa-arrow-right"></i> بازگشت به لیست
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-item mb-3">
+                                <label class="info-label">سرمایه‌گذار:</label>
+                                <span class="info-value">{{ object.investor.first_name }} {{ object.investor.last_name }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item mb-3">
+                                <label class="info-label">دوره:</label>
+                                <span class="info-value">{{ object.period.label }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-item mb-3">
+                                <label class="info-label">تاریخ (شمسی):</label>
+                                <span class="info-value">{{ object.date_shamsi|jformat:"%Y/%m/%d" }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item mb-3">
+                                <label class="info-label">تاریخ (میلادی):</label>
+                                <span class="info-value">{{ object.date_gregorian }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-item mb-3">
+                                <label class="info-label">مبلغ:</label>
+                                <span class="info-value">
+                                    <strong class="{% if object.transaction_type == 'principal_deposit' %}text-success{% elif object.transaction_type == 'principal_withdrawal' %}text-danger{% else %}text-warning{% endif %}">
+                                        {{ object.amount|floatformat:0 }} ریال
+                                    </strong>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item mb-3">
+                                <label class="info-label">نوع تراکنش:</label>
+                                <span class="info-value">
+                                    <span class="badge 
+                                        {% if object.transaction_type == 'principal_deposit' %}badge-success
+                                        {% elif object.transaction_type == 'principal_withdrawal' %}badge-danger
+                                        {% else %}badge-warning{% endif %}">
+                                        {{ object.get_transaction_type_display }}
+                                    </span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-item mb-3">
+                                <label class="info-label">روزهای باقی‌مانده:</label>
+                                <span class="info-value">{{ object.day_remaining }} روز</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item mb-3">
+                                <label class="info-label">روز از شروع:</label>
+                                <span class="info-value">{{ object.day_from_start }} روز</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="info-item mb-3">
+                                <label class="info-label">توضیحات:</label>
+                                <div class="info-value">
+                                    {% if object.description %}
+                                        {{ object.description }}
+                                    {% else %}
+                                        <span class="text-muted">توضیحاتی وارد نشده</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-item mb-3">
+                                <label class="info-label">تاریخ ایجاد:</label>
+                                <span class="info-value">{{ object.created_at|jformat:"%Y/%m/%d - %H:%M" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions mt-4 pt-3 border-top">
+                        <a class="btn btn-primary" href="{{object.get_update_url}}">
+                            <i class="fas fa-edit"></i> ویرایش
+                        </a>
+                        <a class="btn btn-danger" href="{% url 'construction_Transaction_delete' object.pk %}">
+                            <i class="fas fa-trash"></i> حذف
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.info-item {
+    display: flex;
+    flex-direction: column;
+}
+.info-label {
+    font-weight: bold;
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+.info-value {
+    font-size: 1rem;
+    color: #212529;
+}
+</style>
 
 {% endblock %}

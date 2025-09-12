@@ -1,20 +1,94 @@
 
 {% extends "base.html" %}
+{% load static %}
 {% block content %}
-{% for object in object_list %}
-  <div class="m-2">
-    <a href="{{object.get_absolute_url}}">{{object}}</a>
-    <small class="ml-5">
-      <a href="{% url 'construction_Investor_delete' object.pk %}">
-        (Delete)
-      </a>
-    </small>
-  </div>
-{% endfor %}
-<div>
-  <a class="btn btn-primary"
-    href="{% url 'construction_Investor_create' %}">
-  Create a new Investor
-  </a>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">لیست سرمایه‌گذاران</h4>
+                    <a class="btn btn-primary" href="{% url 'construction_Investor_create' %}">
+                        <i class="fas fa-plus"></i> افزودن سرمایه‌گذار جدید
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if object_list %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>نام و نام خانوادگی</th>
+                                        <th>شماره تماس</th>
+                                        <th>ایمیل</th>
+                                        <th>نوع مشارکت</th>
+                                        <th>تعداد واحدها</th>
+                                        <th>تاریخ ثبت</th>
+                                        <th>عملیات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for investor in object_list %}
+                                        <tr>
+                                            <td>
+                                                <a href="{{ investor.get_absolute_url }}" class="text-decoration-none">
+                                                    {{ investor.first_name }} {{ investor.last_name }}
+                                                </a>
+                                            </td>
+                                            <td>{{ investor.phone }}</td>
+                                            <td>
+                                                {% if investor.email %}
+                                                    {{ investor.email }}
+                                                {% else %}
+                                                    <span class="text-muted">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <span class="badge badge-{% if investor.participation_type == 'owner' %}primary{% else %}info{% endif %}">
+                                                    {{ investor.get_participation_type_display }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge badge-secondary">
+                                                    {{ investor.units.count }} واحد
+                                                </span>
+                                            </td>
+                                            <td>{{ investor.created_at|date:"Y/m/d" }}</td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="{{ investor.get_absolute_url }}" class="btn btn-sm btn-outline-primary">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <a href="{{ investor.get_update_url }}" class="btn btn-sm btn-outline-warning">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <a href="{% url 'construction_Investor_delete' investor.pk %}" 
+                                                       class="btn btn-sm btn-outline-danger"
+                                                       onclick="return confirm('آیا از حذف این سرمایه‌گذار اطمینان دارید؟')">
+                                                        <i class="fas fa-trash"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">هیچ سرمایه‌گذاری یافت نشد</h5>
+                            <p class="text-muted">برای شروع، یک سرمایه‌گذار جدید اضافه کنید.</p>
+                            <a class="btn btn-primary" href="{% url 'construction_Investor_create' %}">
+                                <i class="fas fa-plus"></i> افزودن اولین سرمایه‌گذار
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
 {% endblock %}
