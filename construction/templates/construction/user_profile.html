@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+{% load static %}
+{% load jformat %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user"></i> پروفایل کاربری
+                    </h4>
+                    <a class="btn btn-outline-primary" href="{% url 'change_password' %}">
+                        <i class="fas fa-key"></i> تغییر رمز عبور
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            <div class="profile-avatar mb-3">
+                                <i class="fas fa-user-circle fa-5x text-primary"></i>
+                            </div>
+                            <h5>{{ user.get_full_name|default:user.username }}</h5>
+                            <p class="text-muted">{{ user.email|default:"ایمیل وارد نشده" }}</p>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="profile-info">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="info-item mb-3">
+                                            <label class="info-label">نام کاربری:</label>
+                                            <span class="info-value">{{ user.username }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="info-item mb-3">
+                                            <label class="info-label">ایمیل:</label>
+                                            <span class="info-value">
+                                                {% if user.email %}
+                                                    {{ user.email }}
+                                                {% else %}
+                                                    <span class="text-muted">وارد نشده</span>
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="info-item mb-3">
+                                            <label class="info-label">نام:</label>
+                                            <span class="info-value">
+                                                {% if user.first_name %}
+                                                    {{ user.first_name }}
+                                                {% else %}
+                                                    <span class="text-muted">وارد نشده</span>
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="info-item mb-3">
+                                            <label class="info-label">نام خانوادگی:</label>
+                                            <span class="info-value">
+                                                {% if user.last_name %}
+                                                    {{ user.last_name }}
+                                                {% else %}
+                                                    <span class="text-muted">وارد نشده</span>
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="info-item mb-3">
+                                            <label class="info-label">تاریخ عضویت:</label>
+                                            <span class="info-value">{{ user.date_joined|jformat:"%Y/%m/%d - %H:%M" }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="info-item mb-3">
+                                            <label class="info-label">آخرین ورود:</label>
+                                            <span class="info-value">
+                                                {% if user.last_login %}
+                                                    {{ user.last_login|jformat:"%Y/%m/%d - %H:%M" }}
+                                                {% else %}
+                                                    <span class="text-muted">هرگز</span>
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="info-item mb-3">
+                                            <label class="info-label">وضعیت حساب:</label>
+                                            <span class="info-value">
+                                                {% if user.is_active %}
+                                                    <span class="badge badge-success">فعال</span>
+                                                {% else %}
+                                                    <span class="badge badge-danger">غیرفعال</span>
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="info-item mb-3">
+                                            <label class="info-label">دسترسی ادمین:</label>
+                                            <span class="info-value">
+                                                {% if user.is_staff %}
+                                                    <span class="badge badge-warning">بله</span>
+                                                {% else %}
+                                                    <span class="badge badge-secondary">خیر</span>
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            <h6 class="mb-3">عملیات کاربری</h6>
+                            <div class="d-flex flex-wrap gap-2">
+                                <a href="{% url 'change_password' %}" class="btn btn-outline-primary">
+                                    <i class="fas fa-key"></i> تغییر رمز عبور
+                                </a>
+                                <a href="{% url 'user_dashboard' %}" class="btn btn-outline-info">
+                                    <i class="fas fa-tachometer-alt"></i> داشبورد
+                                </a>
+                                {% if user.is_staff %}
+                                    <a href="{% url 'admin:index' %}" class="btn btn-outline-warning">
+                                        <i class="fas fa-cog"></i> پنل ادمین
+                                    </a>
+                                {% endif %}
+                                <a href="{% url 'user_logout' %}" class="btn btn-outline-danger">
+                                    <i class="fas fa-sign-out-alt"></i> خروج از سیستم
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle"></i> اطلاعات سیستم
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="info-item mb-3">
+                        <label class="info-label">نسخه سیستم:</label>
+                        <span class="info-value">1.0.0</span>
+                    </div>
+                    <div class="info-item mb-3">
+                        <label class="info-label">آخرین به‌روزرسانی:</label>
+                        <span class="info-value">{{ "now"|jformat:"%Y/%m/%d" }}</span>
+                    </div>
+                    <div class="info-item mb-3">
+                        <label class="info-label">وضعیت سرور:</label>
+                        <span class="info-value">
+                            <span class="badge badge-success">آنلاین</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar"></i> آمار کاربری
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="info-item mb-3">
+                        <label class="info-label">تعداد ورود:</label>
+                        <span class="info-value">{{ user.last_login|default:"نامشخص" }}</span>
+                    </div>
+                    <div class="info-item mb-3">
+                        <label class="info-label">مدت عضویت:</label>
+                        <span class="info-value">
+                            {% now "Y-m-d" as today %}
+                            {{ user.date_joined|timesince }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.profile-avatar {
+    border: 3px solid #e9ecef;
+    border-radius: 50%;
+    padding: 20px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.info-label {
+    font-weight: bold;
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.info-value {
+    font-size: 1rem;
+    color: #212529;
+}
+
+.gap-2 {
+    gap: 0.5rem;
+}
+
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    color: #212529;
+}
+
+.card-header h4,
+.card-header h5 {
+    color: #212529 !important;
+    font-weight: 600;
+}
+</style>
+
+{% endblock %}
