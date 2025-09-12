@@ -1,6 +1,6 @@
-
 {% extends "base.html" %}
 {% load static %}
+{% load jformat %}
 {% block content %}
 
 <div class="container mt-4">
@@ -19,24 +19,32 @@
                     </div>
                     
                     <p class="mb-4">
-                        آیا از حذف واحد زیر اطمینان دارید؟
+                        آیا از حذف نرخ سود زیر اطمینان دارید؟
                     </p>
                     
-                    <div class="unit-info p-3 bg-light rounded">
-                        <h5>{{ object.name }}</h5>
-                        <p class="mb-1"><strong>مساحت:</strong> {{ object.area }} متر مربع</p>
-                        <p class="mb-1"><strong>قیمت هر متر:</strong> {{ object.price_per_meter|floatformat:0 }} ریال</p>
-                        <p class="mb-0"><strong>قیمت کل:</strong> {{ object.total_price|floatformat:0 }} ریال</p>
+                    <div class="interestrate-info p-3 bg-light rounded">
+                        <h5>نرخ {{ object.rate|floatformat:6 }}%</h5>
+                        <p class="mb-1"><strong>تاریخ اعمال:</strong> {{ object.effective_date|jformat:"%Y/%m/%d" }}</p>
+                        <p class="mb-1"><strong>وضعیت:</strong> 
+                            {% if object.is_active %}
+                                <span class="badge badge-success">فعال</span>
+                            {% else %}
+                                <span class="badge badge-secondary">غیرفعال</span>
+                            {% endif %}
+                        </p>
+                        {% if object.description %}
+                            <p class="mb-0"><strong>توضیحات:</strong> {{ object.description }}</p>
+                        {% endif %}
                     </div>
                     
                     <form method="post" class="mt-4">
                         {% csrf_token %}
                         <div class="d-flex justify-content-between">
-                            <a href="{% url 'construction_Unit_list' %}" class="btn btn-secondary">
+                            <a href="{% url 'construction_InterestRate_list' %}" class="btn btn-secondary">
                                 <i class="fas fa-arrow-right"></i> انصراف
                             </a>
                             <button type="submit" class="btn btn-danger">
-                                <i class="fas fa-trash"></i> حذف واحد
+                                <i class="fas fa-trash"></i> حذف نرخ سود
                             </button>
                         </div>
                     </form>

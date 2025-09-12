@@ -99,11 +99,22 @@ class Investor(models.Model):
     مدل سرمایه‌گذار
     افرادی که در پروژه سرمایه‌گذاری می‌کنند و می‌توانند مالک چندین واحد باشند
     """
+    PARTICIPATION_TYPE_CHOICES = [
+        ('owner', 'مالک'),
+        ('investor', 'سرمایه‌گذار'),
+    ]
+    
     first_name = models.CharField(max_length=100, verbose_name="نام")
     last_name = models.CharField(max_length=100, verbose_name="نام خانوادگی")
     phone = models.CharField(max_length=20, verbose_name="شماره تماس")
-    email = models.EmailField(verbose_name="ایمیل")
-    units = models.ManyToManyField(Unit, verbose_name="واحدها")
+    email = models.EmailField(blank=True, null=True, verbose_name="ایمیل")
+    participation_type = models.CharField(
+        max_length=20, 
+        choices=PARTICIPATION_TYPE_CHOICES, 
+        default='owner',
+        verbose_name="نوع مشارکت"
+    )
+    units = models.ManyToManyField(Unit, blank=True, verbose_name="واحدها")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
 
     class Meta:
@@ -227,6 +238,16 @@ class InterestRate(models.Model):
             ).order_by('-effective_date').first()
         except cls.DoesNotExist:
             return None
+
+    def get_absolute_url(self):
+        """URL برای نمایش جزئیات نرخ سود"""
+        from django.urls import reverse
+        return reverse('construction_InterestRate_detail', kwargs={'pk': self.pk})
+
+    def get_update_url(self):
+        """URL برای ویرایش نرخ سود"""
+        from django.urls import reverse
+        return reverse('construction_InterestRate_update', kwargs={'pk': self.pk})
 
 class Transaction(models.Model):
     """
