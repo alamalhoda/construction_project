@@ -594,6 +594,7 @@
                         <i class="dropdown icon"></i>
                         <div class="default text">همه مشارکت کنندگان</div>
                         <div class="menu" id="investorFilterMenu">
+                            <div class="item" data-value="">همه مشارکت کنندگان</div>
                         </div>
                     </div>
                     
@@ -620,6 +621,7 @@
                         <i class="dropdown icon"></i>
                         <div class="default text">همه دوره‌ها</div>
                         <div class="menu" id="periodFilterMenu">
+                            <div class="item" data-value="">همه دوره‌ها</div>
                         </div>
                     </div>
                     
@@ -1269,6 +1271,10 @@
             updateDropdownMenu('investorFilterMenu', investorsList, 'id', 'first_name', 'last_name');
             updateDropdownMenu('periodFilterMenu', periodsList, 'id', 'label');
             
+            // Add "همه" options to existing dropdowns
+            addDefaultOption('investorFilterMenu', '', 'همه مشارکت کنندگان');
+            addDefaultOption('periodFilterMenu', '', 'همه دوره‌ها');
+            
             // Update add/edit modal dropdowns
             updateDropdownMenu('addInvestorMenu', investorsList, 'id', 'first_name', 'last_name');
             // updateDropdownMenu('addProjectMenu', projectsList, 'id', 'name'); // حذف شد - پروژه فعال خودکار
@@ -1304,6 +1310,29 @@
             }
         }
         
+        function addDefaultOption(menuId, value, text) {
+            const menu = document.getElementById(menuId);
+            if (!menu) {
+                console.warn(`Menu ${menuId} not found`);
+                return;
+            }
+            
+            // Check if default option already exists
+            const existingDefault = menu.querySelector(`[data-value="${value}"]`);
+            if (existingDefault) {
+                return; // Already exists
+            }
+            
+            // Create default option
+            const defaultElement = document.createElement('div');
+            defaultElement.className = 'item';
+            defaultElement.setAttribute('data-value', value);
+            defaultElement.textContent = text;
+            
+            // Insert at the beginning
+            menu.insertBefore(defaultElement, menu.firstChild);
+        }
+        
         function createTable() {
             console.log('Creating table with data:', transactionsData);
             
@@ -1312,6 +1341,14 @@
                 document.getElementById('transactionsTable').innerHTML = '<div class="ui message">هیچ تراکنشی یافت نشد</div>';
                 return;
             }
+            
+            // Show stats cards first
+            document.getElementById('statsCards').style.display = 'block';
+            
+            // Calculate initial stats after a short delay to ensure DOM is ready
+            setTimeout(() => {
+                updateStatsWithData(transactionsData, transactionsData);
+            }, 100);
             
             const columns = [
                 {
@@ -1514,6 +1551,12 @@
             if (!hasFilters) {
                 table.clearFilter();
                 console.log('No filters applied, showing all data');
+                
+                // Update stats when no filters are applied
+                const totalData = table.getData(true);
+                updateStatsWithData(totalData, totalData);
+                updateResultsCount(totalData.length, totalData.length);
+                updateAppliedFiltersDisplay();
                 return;
             }
             
@@ -1549,6 +1592,11 @@
             
             // Filter applied successfully
             
+            // Update stats immediately after applying filters
+            const filteredData = table.getData();
+            const totalData = table.getData(true);
+            updateStatsWithData(filteredData, totalData);
+            
             // Results count and stats will be updated by dataFiltered event
         }
         
@@ -1570,7 +1618,7 @@
             if (table) {
                 const totalData = table.getData(true);
                 updateResultsCount(totalData.length, totalData.length);
-                updateStats();
+                updateStatsWithData(totalData, totalData);
                 updateAppliedFiltersDisplay();
             }
             
