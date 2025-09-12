@@ -2,47 +2,113 @@
 {% extends "base.html" %}
 {% load static %}
 {% block content %}
-    
-<p>
-    <a class="btn btn-light" href="{% url 'construction_Investor_list' %}">
-    Investor Listing
-    </a>
-</p>
-    
-<form method="post" enctype="multipart/form-data">
-  {% csrf_token %}
-  {{form.errors}}
-  <div class="form-group row">
-      <label class="col-sm-2 col-form-label" for="first_name">first_name: </label>
-      <input class="form-control col-sm-10"
-         id="first_name" type="text"
-         name="first_name" value="{{ object.first_name }}">
-  </div>
-  <div class="form-group row">
-      <label class="col-sm-2 col-form-label" for="last_name">last_name: </label>
-      <input class="form-control col-sm-10"
-         id="last_name" type="text"
-         name="last_name" value="{{ object.last_name }}">
-  </div>
-  <div class="form-group row">
-      <label class="col-sm-2 col-form-label" for="phone">phone: </label>
-      <input class="form-control col-sm-10"
-         id="phone" type="text"
-         name="phone" value="{{ object.phone }}">
-  </div>
-  <div class="form-group row">
-      <label class="col-sm-2 col-form-label" for="email">email: </label>
-      <input class="form-control col-sm-10"
-         id="email" type="text"
-         name="email" value="{{ object.email }}">
-  </div>
-  <div class="form-group row">
-      <label class="col-sm-2 col-form-label" for="created_at">created_at: </label>
-      <input class="form-control col-sm-10"
-         id="created_at" type="datetime-local"
-         name="created_at" value="{{ object.created_at }}">
-  </div>
-  <input type="submit" value="Save" class="btn btn-primary">
-</form>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        {% if object %}
+                            ویرایش سرمایه‌گذار
+                        {% else %}
+                            افزودن سرمایه‌گذار جدید
+                        {% endif %}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="mb-3">
+                        <a class="btn btn-outline-secondary" href="{% url 'construction_Investor_list' %}">
+                            <i class="fas fa-arrow-right"></i> بازگشت به لیست سرمایه‌گذاران
+                        </a>
+                    </p>
+                    
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {% if form.errors %}
+                            <div class="alert alert-danger">
+                                <strong>خطا:</strong> لطفاً موارد زیر را بررسی کنید:
+                                <ul class="mb-0 mt-2">
+                                    {% for field, errors in form.errors.items %}
+                                        {% for error in errors %}
+                                            <li>{{ error }}</li>
+                                        {% endfor %}
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="first_name" class="form-label">نام <span class="text-danger">*</span></label>
+                                    <input class="form-control" id="first_name" type="text" name="first_name" 
+                                           value="{{ object.first_name|default:'' }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="last_name" class="form-label">نام خانوادگی <span class="text-danger">*</span></label>
+                                    <input class="form-control" id="last_name" type="text" name="last_name" 
+                                           value="{{ object.last_name|default:'' }}" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="phone" class="form-label">شماره تماس <span class="text-danger">*</span></label>
+                                    <input class="form-control" id="phone" type="text" name="phone" 
+                                           value="{{ object.phone|default:'' }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="email" class="form-label">ایمیل</label>
+                                    <input class="form-control" id="email" type="email" name="email" 
+                                           value="{{ object.email|default:'' }}">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="participation_type" class="form-label">نوع مشارکت <span class="text-danger">*</span></label>
+                                    <select class="form-control" id="participation_type" name="participation_type" required>
+                                        <option value="">انتخاب کنید...</option>
+                                        <option value="owner" {% if object.participation_type == 'owner' %}selected{% endif %}>مالک</option>
+                                        <option value="investor" {% if object.participation_type == 'investor' %}selected{% endif %}>سرمایه‌گذار</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="units" class="form-label">واحدها</label>
+                                    <select class="form-control" id="units" name="units" multiple size="3">
+                                        {% for unit in form.units.field.queryset %}
+                                            <option value="{{ unit.id }}" {% if unit in object.units.all %}selected{% endif %}>{{ unit.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <small class="form-text text-muted">می‌توانید چندین واحد را انتخاب کنید (Ctrl+Click)</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> ذخیره
+                            </button>
+                            <a href="{% url 'construction_Investor_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> انصراف
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 {% endblock %}

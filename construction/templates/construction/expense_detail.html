@@ -2,19 +2,97 @@
 {% extends "base.html" %}
 {% load static %}
 {% block content %}
-    
-<p>
-    <a class="btn btn-light" href="{% url 'construction_Expense_list' %}">
-    Expense Listing
-    </a>
-</p>
-    
-<table class="table">
-    <tr><td>expense_type</td><td>{{ object.expense_type }}</td></tr>
-    <tr><td>amount</td><td>{{ object.amount }}</td></tr>
-    <tr><td>description</td><td>{{ object.description }}</td></tr>
-    <tr><td>created_at</td><td>{{ object.created_at }}</td></tr>
-</table>
-<a class="btn btn-primary" href="{{object.get_update_url}}">Edit</a>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">جزئیات هزینه</h4>
+                    <a class="btn btn-outline-secondary" href="{% url 'construction_Expense_list' %}">
+                        <i class="fas fa-arrow-right"></i> بازگشت به لیست
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-item mb-3">
+                                <label class="info-label">دوره:</label>
+                                <span class="info-value">{{ object.period.label }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item mb-3">
+                                <label class="info-label">نوع هزینه:</label>
+                                <span class="info-value">
+                                    <span class="badge badge-primary">{{ object.get_expense_type_display }}</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-item mb-3">
+                                <label class="info-label">مبلغ:</label>
+                                <span class="info-value">{{ object.amount|floatformat:0 }} ریال</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="info-item mb-3">
+                                <label class="info-label">توضیحات:</label>
+                                <div class="info-value">
+                                    {% if object.description %}
+                                        {{ object.description }}
+                                    {% else %}
+                                        <span class="text-muted">توضیحاتی وارد نشده</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-item mb-3">
+                                <label class="info-label">تاریخ ثبت:</label>
+                                <span class="info-value">{{ object.created_at|date:"Y/m/d H:i" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions mt-4 pt-3 border-top">
+                        <a class="btn btn-primary" href="{{object.get_update_url}}">
+                            <i class="fas fa-edit"></i> ویرایش
+                        </a>
+                        <a class="btn btn-danger" href="{% url 'construction_Expense_delete' object.pk %}">
+                            <i class="fas fa-trash"></i> حذف
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.info-item {
+    display: flex;
+    flex-direction: column;
+}
+.info-label {
+    font-weight: bold;
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+.info-value {
+    font-size: 1rem;
+    color: #212529;
+}
+</style>
 
 {% endblock %}

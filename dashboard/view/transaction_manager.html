@@ -594,6 +594,7 @@
                         <i class="dropdown icon"></i>
                         <div class="default text">همه مشارکت کنندگان</div>
                         <div class="menu" id="investorFilterMenu">
+                            <div class="item" data-value="">همه مشارکت کنندگان</div>
                         </div>
                     </div>
                     
@@ -620,6 +621,22 @@
                         <i class="dropdown icon"></i>
                         <div class="default text">همه دوره‌ها</div>
                         <div class="menu" id="periodFilterMenu">
+                            <div class="item" data-value="">همه دوره‌ها</div>
+                        </div>
+                    </div>
+                    
+                    <div class="ui fluid search selection dropdown" id="participationTypeFilter">
+                        <input type="hidden" name="participation_type">
+                        <i class="dropdown icon"></i>
+                        <div class="default text">همه انواع مشارکت</div>
+                        <div class="menu">
+                            <div class="item" data-value="">همه انواع مشارکت</div>
+                            <div class="item" data-value="owner">
+                                <i class="ui green circle icon"></i>مالک
+                            </div>
+                            <div class="item" data-value="investor">
+                                <i class="ui blue circle icon"></i>سرمایه‌گذار
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1084,7 +1101,7 @@
         
         function initializeDropdowns() {
             // Initialize filter dropdowns with onChange event
-            $('#investorFilter, #transactionTypeFilter, #periodFilter').dropdown({
+            $('#investorFilter, #transactionTypeFilter, #periodFilter, #participationTypeFilter').dropdown({
                 onChange: function(value, text, $selectedItem) {
                     if (table) {
                         applyFilters();
@@ -1093,7 +1110,7 @@
             });
             
             // Initialize other dropdowns without onChange event
-            $('.ui.dropdown:not(#investorFilter):not(#transactionTypeFilter):not(#periodFilter)').dropdown();
+            $('.ui.dropdown:not(#investorFilter):not(#transactionTypeFilter):not(#periodFilter):not(#participationTypeFilter)').dropdown();
         }
         
         function loadInitialData() {
@@ -1254,6 +1271,10 @@
             updateDropdownMenu('investorFilterMenu', investorsList, 'id', 'first_name', 'last_name');
             updateDropdownMenu('periodFilterMenu', periodsList, 'id', 'label');
             
+            // Add "همه" options to existing dropdowns
+            addDefaultOption('investorFilterMenu', '', 'همه مشارکت کنندگان');
+            addDefaultOption('periodFilterMenu', '', 'همه دوره‌ها');
+            
             // Update add/edit modal dropdowns
             updateDropdownMenu('addInvestorMenu', investorsList, 'id', 'first_name', 'last_name');
             // updateDropdownMenu('addProjectMenu', projectsList, 'id', 'name'); // حذف شد - پروژه فعال خودکار
@@ -1289,6 +1310,29 @@
             }
         }
         
+        function addDefaultOption(menuId, value, text) {
+            const menu = document.getElementById(menuId);
+            if (!menu) {
+                console.warn(`Menu ${menuId} not found`);
+                return;
+            }
+            
+            // Check if default option already exists
+            const existingDefault = menu.querySelector(`[data-value="${value}"]`);
+            if (existingDefault) {
+                return; // Already exists
+            }
+            
+            // Create default option
+            const defaultElement = document.createElement('div');
+            defaultElement.className = 'item';
+            defaultElement.setAttribute('data-value', value);
+            defaultElement.textContent = text;
+            
+            // Insert at the beginning
+            menu.insertBefore(defaultElement, menu.firstChild);
+        }
+        
         function createTable() {
             console.log('Creating table with data:', transactionsData);
             
@@ -1297,6 +1341,14 @@
                 document.getElementById('transactionsTable').innerHTML = '<div class="ui message">هیچ تراکنشی یافت نشد</div>';
                 return;
             }
+            
+            // Show stats cards first
+            document.getElementById('statsCards').style.display = 'block';
+            
+            // Calculate initial stats after a short delay to ensure DOM is ready
+            setTimeout(() => {
+                updateStatsWithData(transactionsData, transactionsData);
+            }, 100);
             
             const columns = [
                 {
@@ -1470,9 +1522,17 @@
             
             // Update stats when data is filtered
             table.on("dataFiltered", function(filteredData, filters) {
-                console.log('Data filtered:', filteredData.length, 'records');
-                console.log('Applied filters:', filters);
-                updateStats();
+                // Get total data count
+                const totalData = table.getData(true);
+                
+                // Update results count with filters.length (this is the correct count)
+                updateResultsCount(filters.length, totalData.length);
+                
+                // Update stats with correct filtered data
+                updateStatsWithData(filteredData, totalData);
+                
+                // Update applied filters display
+                updateAppliedFiltersDisplay();
             });
         }
         
@@ -1480,15 +1540,23 @@
             const investorFilter = $('#investorFilter').dropdown('get value');
             const transactionTypeFilter = $('#transactionTypeFilter').dropdown('get value');
             const periodFilter = $('#periodFilter').dropdown('get value');
+            const participationTypeFilter = $('#participationTypeFilter').dropdown('get value');
             
             // Check if any filter is applied
             const hasFilters = (investorFilter && investorFilter !== '') ||
                               (transactionTypeFilter && transactionTypeFilter !== '') ||
-                              (periodFilter && periodFilter !== '');
+                              (periodFilter && periodFilter !== '') ||
+                              (participationTypeFilter && participationTypeFilter !== '');
             
             if (!hasFilters) {
                 table.clearFilter();
                 console.log('No filters applied, showing all data');
+                
+                // Update stats when no filters are applied
+                const totalData = table.getData(true);
+                updateStatsWithData(totalData, totalData);
+                updateResultsCount(totalData.length, totalData.length);
+                updateAppliedFiltersDisplay();
                 return;
             }
             
@@ -1511,20 +1579,32 @@
                     passes = passes && (data.period_data && data.period_data.id && data.period_data.id == periodFilter);
                 }
                 
+                // Participation type filter
+                if (participationTypeFilter && participationTypeFilter !== '') {
+                    const investorParticipationType = data.investor_data?.participation_type;
+                    passes = passes && (investorParticipationType === participationTypeFilter);
+                }
+                
+                // Debug removed to reduce console spam
+                
                 return passes;
             });
             
-            console.log('Applied combined filter with values:', {
-                investor: investorFilter,
-                transactionType: transactionTypeFilter,
-                period: periodFilter
-            });
+            // Filter applied successfully
+            
+            // Update stats immediately after applying filters
+            const filteredData = table.getData();
+            const totalData = table.getData(true);
+            updateStatsWithData(filteredData, totalData);
+            
+            // Results count and stats will be updated by dataFiltered event
         }
         
         function clearFilters() {
             $('#investorFilter').dropdown('clear');
             $('#transactionTypeFilter').dropdown('clear');
             $('#periodFilter').dropdown('clear');
+            $('#participationTypeFilter').dropdown('clear');
             const searchInput = document.getElementById('searchInput');
             if (searchInput) {
                 searchInput.value = '';
@@ -1538,6 +1618,8 @@
             if (table) {
                 const totalData = table.getData(true);
                 updateResultsCount(totalData.length, totalData.length);
+                updateStatsWithData(totalData, totalData);
+                updateAppliedFiltersDisplay();
             }
             
             console.log('Filters cleared');
@@ -1548,11 +1630,13 @@
             const investorFilter = $('#investorFilter').dropdown('get value');
             const transactionTypeFilter = $('#transactionTypeFilter').dropdown('get value');
             const periodFilter = $('#periodFilter').dropdown('get value');
+            const participationTypeFilter = $('#participationTypeFilter').dropdown('get value');
             
             console.log('Current filter values:', {
                 investor: investorFilter,
                 transactionType: transactionTypeFilter,
-                period: periodFilter
+                period: periodFilter,
+                participationType: participationTypeFilter
             });
             
             if (table && table.getData().length > 0) {
@@ -1593,10 +1677,10 @@
             const filteredData = table.getData();
             const totalData = table.getData(true); // Get all data including filtered
             
-            console.log('Updating stats with data:', {
-                filteredCount: filteredData.length,
-                totalCount: totalData.length
-            });
+            updateStatsWithData(filteredData, totalData);
+        }
+        
+        function updateStatsWithData(filteredData, totalData) {
             
             // Calculate totals
             const deposits = filteredData
@@ -1612,8 +1696,9 @@
                 .reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
             
             // محاسبه سرمایه موجود (بدون سود) = مجموع واریزها - مجموع برداشت‌ها
-            const netCapital = deposits - withdrawals;
-            
+            // const netCapital = deposits - withdrawals; //withdrawals منفی است پس به جای تفریق باید جمع بشه
+            const netCapital = deposits + withdrawals; //withdrawals منفی است پس به جای تفریق باید جمع بشه
+
             // Update display
             document.getElementById('totalDeposits').textContent = 
                 deposits.toLocaleString('en-US');
@@ -1634,13 +1719,45 @@
                 netCapital.toLocaleString('en-US');
             document.getElementById('netCapitalWords').textContent = 
                 amountToPersianWords(netCapital);
-            
-            // Update results count display
-            updateResultsCount(filteredData.length, totalData.length);
         }
         
         function showStatsCards() {
             document.getElementById('statsCards').style.display = 'grid';
+        }
+        
+        function updateAppliedFiltersDisplay() {
+            const investorFilter = $('#investorFilter').dropdown('get value');
+            const transactionTypeFilter = $('#transactionTypeFilter').dropdown('get value');
+            const periodFilter = $('#periodFilter').dropdown('get value');
+            const participationTypeFilter = $('#participationTypeFilter').dropdown('get value');
+            
+            const activeFilters = [];
+            
+            if (investorFilter && investorFilter !== '') {
+                const investorName = $('#investorFilter .text').text();
+                activeFilters.push(`مشارکت کننده: ${investorName}`);
+            }
+            if (transactionTypeFilter && transactionTypeFilter !== '') {
+                const typeName = $('#transactionTypeFilter .text').text();
+                activeFilters.push(`نوع: ${typeName}`);
+            }
+            if (periodFilter && periodFilter !== '') {
+                const periodName = $('#periodFilter .text').text();
+                activeFilters.push(`دوره: ${periodName}`);
+            }
+            if (participationTypeFilter && participationTypeFilter !== '') {
+                const participationTypeName = $('#participationTypeFilter .text').text();
+                activeFilters.push(`نوع مشارکت: ${participationTypeName}`);
+            }
+            
+            const filterInfoElement = document.getElementById('filterInfo');
+            if (activeFilters.length > 0) {
+                filterInfoElement.textContent = `فیلترهای فعال: ${activeFilters.join(' | ')}`;
+            } else {
+                filterInfoElement.textContent = '';
+            }
+            
+            // Applied filters display updated
         }
         
         function updateResultsCount(filteredCount, totalCount) {
@@ -1658,6 +1775,7 @@
                 const investorFilter = $('#investorFilter').dropdown('get value');
                 const transactionTypeFilter = $('#transactionTypeFilter').dropdown('get value');
                 const periodFilter = $('#periodFilter').dropdown('get value');
+                const participationTypeFilter = $('#participationTypeFilter').dropdown('get value');
                 
                 if (investorFilter && investorFilter !== '') {
                     const investorName = $('#investorFilter .text').text();
@@ -1670,6 +1788,10 @@
                 if (periodFilter && periodFilter !== '') {
                     const periodName = $('#periodFilter .text').text();
                     activeFilters.push(`دوره: ${periodName}`);
+                }
+                if (participationTypeFilter && participationTypeFilter !== '') {
+                    const participationTypeName = $('#participationTypeFilter .text').text();
+                    activeFilters.push(`نوع مشارکت: ${participationTypeName}`);
                 }
                 
                 if (activeFilters.length > 0) {

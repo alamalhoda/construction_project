@@ -2,20 +2,88 @@
 {% extends "base.html" %}
 {% load static %}
 {% block content %}
-    
-<p>
-    <a class="btn btn-light" href="{% url 'construction_Unit_list' %}">
-    Unit Listing
-    </a>
-</p>
-    
-<table class="table">
-    <tr><td>name</td><td>{{ object.name }}</td></tr>
-    <tr><td>area</td><td>{{ object.area }}</td></tr>
-    <tr><td>price_per_meter</td><td>{{ object.price_per_meter }}</td></tr>
-    <tr><td>total_price</td><td>{{ object.total_price }}</td></tr>
-    <tr><td>created_at</td><td>{{ object.created_at }}</td></tr>
-</table>
-<a class="btn btn-primary" href="{{object.get_update_url}}">Edit</a>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">جزئیات واحد</h4>
+                    <a class="btn btn-outline-secondary" href="{% url 'construction_Unit_list' %}">
+                        <i class="fas fa-arrow-right"></i> بازگشت به لیست
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-item mb-3">
+                                <label class="info-label">نام واحد:</label>
+                                <span class="info-value">{{ object.name }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item mb-3">
+                                <label class="info-label">مساحت:</label>
+                                <span class="info-value">{{ object.area }} متر مربع</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-item mb-3">
+                                <label class="info-label">قیمت هر متر:</label>
+                                <span class="info-value">{{ object.price_per_meter|floatformat:0 }} ریال</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item mb-3">
+                                <label class="info-label">قیمت کل:</label>
+                                <span class="info-value">
+                                    <strong class="text-success">{{ object.total_price|floatformat:0 }} ریال</strong>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-item mb-3">
+                                <label class="info-label">تاریخ ثبت:</label>
+                                <span class="info-value">{{ object.created_at|date:"Y/m/d H:i" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions mt-4 pt-3 border-top">
+                        <a class="btn btn-primary" href="{{object.get_update_url}}">
+                            <i class="fas fa-edit"></i> ویرایش
+                        </a>
+                        <a class="btn btn-danger" href="{% url 'construction_Unit_delete' object.pk %}">
+                            <i class="fas fa-trash"></i> حذف
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.info-item {
+    display: flex;
+    flex-direction: column;
+}
+.info-label {
+    font-weight: bold;
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+.info-value {
+    font-size: 1rem;
+    color: #212529;
+}
+</style>
 
 {% endblock %}
