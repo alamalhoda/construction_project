@@ -239,6 +239,16 @@ class InterestRate(models.Model):
         except cls.DoesNotExist:
             return None
 
+    def get_absolute_url(self):
+        """URL برای نمایش جزئیات نرخ سود"""
+        from django.urls import reverse
+        return reverse('construction_InterestRate_detail', kwargs={'pk': self.pk})
+
+    def get_update_url(self):
+        """URL برای ویرایش نرخ سود"""
+        from django.urls import reverse
+        return reverse('construction_InterestRate_update', kwargs={'pk': self.pk})
+
 class Transaction(models.Model):
     """
     مدل تراکنش مالی

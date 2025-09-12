@@ -187,3 +187,31 @@ class UnitForm(forms.ModelForm):
             "price_per_meter",
             "total_price",
         ]
+
+
+class InterestRateForm(forms.ModelForm):
+    effective_date = CustomJDateField(
+        label="تاریخ اعمال (شمسی)",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'انتخاب تاریخ شمسی...'
+        })
+    )
+    is_active = forms.BooleanField(
+        label="فعال",
+        required=False,
+        help_text="آیا این نرخ در حال حاضر فعال است؟ (فقط یک نرخ می‌تواند فعال باشد)",
+        widget=forms.CheckboxInput(attrs={
+            'class': 'form-check-input'
+        })
+    )
+    
+    class Meta:
+        model = models.InterestRate
+        fields = [
+            "rate",
+            "effective_date",
+            "effective_date_gregorian",
+            "description",
+            "is_active",
+        ]

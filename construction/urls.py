@@ -63,6 +63,11 @@ urlpatterns = (
     path("construction/Unit/detail/<int:pk>/", views.UnitDetailView.as_view(), name="construction_Unit_detail"),
     path("construction/Unit/update/<int:pk>/", views.UnitUpdateView.as_view(), name="construction_Unit_update"),
     path("construction/Unit/delete/<int:pk>/", views.UnitDeleteView.as_view(), name="construction_Unit_delete"),
+    path("construction/InterestRate/", views.InterestRateListView.as_view(), name="construction_InterestRate_list"),
+    path("construction/InterestRate/create/", views.InterestRateCreateView.as_view(), name="construction_InterestRate_create"),
+    path("construction/InterestRate/detail/<int:pk>/", views.InterestRateDetailView.as_view(), name="construction_InterestRate_detail"),
+    path("construction/InterestRate/update/<int:pk>/", views.InterestRateUpdateView.as_view(), name="construction_InterestRate_update"),
+    path("construction/InterestRate/delete/<int:pk>/", views.InterestRateDeleteView.as_view(), name="construction_InterestRate_delete"),
 
     # User Authentication URLs - moved to root level in main urls.py
     # path("login/", user_views.user_login_view, name="user_login"),
