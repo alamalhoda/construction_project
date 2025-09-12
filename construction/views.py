@@ -20,6 +20,7 @@ def api_login_view(request):
 class ExpenseListView(generic.ListView):
     model = models.Expense
     form_class = forms.ExpenseForm
+    ordering = ['period__id', 'created_at']
 
 
 @method_decorator(login_required, name='dispatch')

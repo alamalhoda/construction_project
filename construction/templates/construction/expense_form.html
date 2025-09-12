@@ -41,27 +41,14 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="period" class="form-label">دوره <span class="text-danger">*</span></label>
-                                    <select class="form-control" id="period" name="period" required>
-                                        <option value="">انتخاب کنید...</option>
-                                        {% for period in form.period.field.queryset %}
-                                            <option value="{{ period.id }}" {% if object.period.id == period.id %}selected{% endif %}>{{ period.label }}</option>
-                                        {% endfor %}
-                                    </select>
+                                    <label for="{{ form.period.id_for_label }}" class="form-label">دوره <span class="text-danger">*</span></label>
+                                    {{ form.period }}
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="expense_type" class="form-label">نوع هزینه <span class="text-danger">*</span></label>
-                                    <select class="form-control" id="expense_type" name="expense_type" required>
-                                        <option value="">انتخاب کنید...</option>
-                                        <option value="project_manager" {% if object.expense_type == 'project_manager' %}selected{% endif %}>مدیر پروژه</option>
-                                        <option value="facilities_manager" {% if object.expense_type == 'facilities_manager' %}selected{% endif %}>مسئول تأسیسات</option>
-                                        <option value="procurement" {% if object.expense_type == 'procurement' %}selected{% endif %}>کارپرداز</option>
-                                        <option value="warehouse" {% if object.expense_type == 'warehouse' %}selected{% endif %}>انباردار</option>
-                                        <option value="construction_contractor" {% if object.expense_type == 'construction_contractor' %}selected{% endif %}>پیمان ساختمان</option>
-                                        <option value="other" {% if object.expense_type == 'other' %}selected{% endif %}>سایر</option>
-                                    </select>
+                                    <label for="{{ form.expense_type.id_for_label }}" class="form-label">نوع هزینه <span class="text-danger">*</span></label>
+                                    {{ form.expense_type }}
                                 </div>
                             </div>
                         </div>
@@ -69,16 +56,15 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="amount" class="form-label">مبلغ (ریال) <span class="text-danger">*</span></label>
-                                    <input class="form-control" id="amount" type="number" name="amount" 
-                                           value="{{ object.amount|default:'' }}" required>
+                                    <label for="{{ form.amount.id_for_label }}" class="form-label">مبلغ (ریال) <span class="text-danger">*</span></label>
+                                    {{ form.amount }}
                                 </div>
                             </div>
                         </div>
                         
                         <div class="form-group">
-                            <label for="description" class="form-label">توضیحات</label>
-                            <textarea class="form-control" id="description" name="description" rows="3">{{ object.description|default:'' }}</textarea>
+                            <label for="{{ form.description.id_for_label }}" class="form-label">توضیحات</label>
+                            {{ form.description }}
                         </div>
                         
                         <div class="form-actions mt-4">
