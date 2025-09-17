@@ -21,6 +21,33 @@
             --warning-color: #ffc107;
             --info-color: #17a2b8;
             
+            /* 
+            =======================================================
+            Project Standard Colors - Financial Categories
+            =======================================================
+            این رنگ‌ها به عنوان استاندارد پروژه تعریف شده‌اند و در تمام صفحات باید از آن‌ها استفاده شود:
+            
+            آبی (#2185d0) - آورده و واریزی
+            قرمز (#db2828) - برداشت و خروجی
+            سبز (#21ba45) - سود مشارکت و درآمد
+            بنفش (#667eea) - سرمایه موجود و موجودی
+            قرمز تیره (#dc3545) - هزینه‌ها و خرجی
+            خاکستری (#6c757d) - مجموع و کل
+            =======================================================
+            */
+            --deposit-color: #2185d0;           /* آبی - آورده */
+            --deposit-color-light: rgba(33, 133, 208, 0.1);
+            --withdrawal-color: #db2828;        /* قرمز - برداشت */
+            --withdrawal-color-light: rgba(219, 40, 40, 0.1);
+            --profit-color: #21ba45;            /* سبز - سود مشارکت */
+            --profit-color-light: rgba(33, 186, 69, 0.1);
+            --capital-color: #667eea;           /* بنفش - سرمایه موجود */
+            --capital-color-light: rgba(102, 126, 234, 0.1);
+            --expense-color: #dc3545;           /* قرمز تیره - هزینه‌ها */
+            --expense-color-light: rgba(220, 53, 69, 0.1);
+            --total-color: #6c757d;             /* خاکستری - مجموع */
+            --total-color-light: rgba(108, 117, 125, 0.1);
+            
             /* Background Colors */
             --bg-primary: #f8f9fa;
             --bg-secondary: #ffffff;
@@ -54,6 +81,20 @@
             --danger-color: #dc3545;
             --warning-color: #ffc107;
             --info-color: #17a2b8;
+            
+            /* Project Standard Colors - Financial Categories (Dark Theme) */
+            --deposit-color: #4fc3f7;           /* آبی روشن‌تر - آورده */
+            --deposit-color-light: rgba(79, 195, 247, 0.2);
+            --withdrawal-color: #f48fb1;        /* قرمز روشن‌تر - برداشت */
+            --withdrawal-color-light: rgba(244, 143, 177, 0.2);
+            --profit-color: #81c784;            /* سبز روشن‌تر - سود مشارکت */
+            --profit-color-light: rgba(129, 199, 132, 0.2);
+            --capital-color: #9575cd;           /* بنفش روشن‌تر - سرمایه موجود */
+            --capital-color-light: rgba(149, 117, 205, 0.2);
+            --expense-color: #f48fb1;           /* قرمز روشن‌تر - هزینه‌ها */
+            --expense-color-light: rgba(244, 143, 177, 0.2);
+            --total-color: #b0bec5;             /* خاکستری روشن‌تر - مجموع */
+            --total-color-light: rgba(176, 190, 197, 0.2);
             
             /* Dark Background Colors */
             --bg-primary: #121212;
@@ -258,11 +299,76 @@
             font-size: 1.1rem;
         }
 
-        .stat-card.expenses-card {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        .stat-card.principal-card {
+            grid-column: span 2;
+            background: linear-gradient(135deg, var(--capital-color) 0%, var(--secondary-color) 100%);
             color: white;
-            transform: scale(1.05);
-            box-shadow: 0 12px 40px rgba(255, 107, 107, 0.3);
+            box-shadow: 0 12px 40px var(--capital-color-light);
+            margin: 10px;
+        }
+
+        .stat-card.principal-card i {
+            color: white;
+            font-size: 3rem;
+        }
+
+        .stat-card.principal-card h3 {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+
+        .stat-card.principal-card p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+        }
+
+        .stat-card.profit-card {
+            grid-column: span 2;
+            background: linear-gradient(135deg, var(--profit-color) 0%, #20c997 100%);
+            color: white;
+            box-shadow: 0 12px 40px var(--profit-color-light);
+            margin: 10px;
+        }
+
+        .stat-card.profit-card i {
+            color: white;
+            font-size: 3rem;
+        }
+
+        .stat-card.profit-card h3 {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+
+        .stat-card.profit-card p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+        }
+
+        .stat-card.expenses-card {
+            grid-column: span 2;
+            background: linear-gradient(135deg, var(--expense-color) 0%, #c82333 100%);
+            color: white;
+            box-shadow: 0 12px 40px var(--expense-color-light);
+            margin: 10px;
+        }
+
+        .stat-card.expenses-card i {
+            color: white;
+            font-size: 3rem;
+        }
+
+        .stat-card.expenses-card h3 {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+
+        .stat-card.expenses-card p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
         }
 
         .stat-card.expenses-card i {
@@ -402,6 +508,76 @@
             background-color: var(--bg-primary);
         }
 
+        /* رنگ‌بندی ستون‌های جدول خلاصه */
+        .summary-table th:nth-child(2), /* آورده */
+        .summary-table td:nth-child(2) {
+            background-color: var(--deposit-color-light);
+            border-left: 3px solid var(--deposit-color);
+        }
+
+        .summary-table th:nth-child(3), /* برداشت */
+        .summary-table td:nth-child(3) {
+            background-color: var(--withdrawal-color-light);
+            border-left: 3px solid var(--withdrawal-color);
+        }
+
+        .summary-table th:nth-child(4), /* سرمایه موجود */
+        .summary-table td:nth-child(4) {
+            background-color: var(--capital-color-light);
+            border-left: 3px solid var(--capital-color);
+        }
+
+        .summary-table th:nth-child(5), /* سود مشارکت */
+        .summary-table td:nth-child(5) {
+            background-color: var(--profit-color-light);
+            border-left: 3px solid var(--profit-color);
+        }
+
+        .summary-table th:nth-child(6), /* مجموع */
+        .summary-table td:nth-child(6) {
+            background-color: var(--total-color-light);
+            border-left: 3px solid var(--total-color);
+            font-weight: bold;
+        }
+
+        .summary-table th:nth-child(7), /* نسبت سود به سود کل */
+        .summary-table td:nth-child(7) {
+            background-color: var(--profit-color-light);
+            border-left: 3px solid var(--profit-color);
+        }
+
+        /* رنگ‌بندی ردیف خلاصه */
+        .summary-table tr.summary-row {
+            background-color: #0f101029;
+            border-top: 2px solid var(--primary-color);
+        }
+
+        .summary-table tr.summary-row td {
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+
+        /* کلاس‌های هدر جدول */
+        .summary-table .deposit-header {
+            color: var(--deposit-color) !important;
+        }
+
+        .summary-table .withdrawal-header {
+            color: var(--withdrawal-color) !important;
+        }
+
+        .summary-table .capital-header {
+            color: var(--capital-color) !important;
+        }
+
+        .summary-table .profit-header {
+            color: var(--profit-color) !important;
+        }
+
+        .summary-table .total-header {
+            color: var(--total-color) !important;
+        }
+
         .loading {
             text-align: center;
             color: white;
@@ -470,9 +646,35 @@
                 font-size: 2rem;
             }
 
+            .stat-card.principal-card {
+                grid-column: span 1;
+                margin: 5px;
+            }
+
+            .stat-card.principal-card i {
+                font-size: 2.5rem;
+            }
+
+            .stat-card.principal-card h3 {
+                font-size: 2rem;
+            }
+
+            .stat-card.profit-card {
+                grid-column: span 1;
+                margin: 5px;
+            }
+
+            .stat-card.profit-card i {
+                font-size: 2.5rem;
+            }
+
+            .stat-card.profit-card h3 {
+                font-size: 2rem;
+            }
+
             .stat-card.expenses-card {
                 grid-column: span 1;
-                transform: scale(1);
+                margin: 5px;
             }
 
             .stat-card.expenses-card i {
@@ -545,26 +747,40 @@
         <div id="content" style="display: none;">
             <!-- آمار کلی -->
             <div class="stats-grid">
-                <div class="stat-card">
+                <!-- ردیف اول: سرمایه موجود -->
+                <div class="stat-card principal-card">
                     <i class="fas fa-money-bill-wave"></i>
                     <h3 id="totalPrincipal">-</h3>
-                    <p>سرمایه موجود (میلیون تومان)</p>
+                    <p>سرمایه موجود (تومان)</p>
                 </div>
-                <div class="stat-card">
+                
+                <!-- ردیف دوم: کل سود مشارکت -->
+                <div class="stat-card profit-card">
                     <i class="fas fa-chart-pie"></i>
                     <h3 id="totalProfit">-</h3>
-                    <p>کل سود (میلیون تومان)</p>
+                    <p>کل سود مشارکت (تومان)</p>
                 </div>
+                
+                <!-- ردیف سوم: مجموع کل هزینه‌ها -->
+                <div class="stat-card expenses-card">
+                    <i class="fas fa-receipt"></i>
+                    <h3 id="totalExpenses">-</h3>
+                    <p>مجموع کل هزینه‌ها (تومان)</p>
+                </div>
+                
+                <!-- ردیف چهارم: نرخ سود و مدت پروژه -->
                 <div class="stat-card interest-rate-card">
                     <i class="fas fa-percentage"></i>
                     <h3 id="currentInterestRate">-</h3>
-                    <p>نرخ سود روزانه  (%)</p>
+                    <p>نرخ سود مشارکت روزانه  (%)</p>
                 </div>
                 <div class="stat-card">
                     <i class="fas fa-calendar-alt"></i>
                     <h3 id="totalDays">-</h3>
                     <p>مدت زمان پروژه (روز)</p>
                 </div>
+                
+                <!-- ردیف پنجم: تاریخ‌های پروژه -->
                 <div class="stat-card">
                     <i class="fas fa-play-circle"></i>
                     <h3 id="startDate">-</h3>
@@ -575,11 +791,8 @@
                     <h3 id="endDate">-</h3>
                     <p>تاریخ پایان پروژه</p>
                 </div>
-                <div class="stat-card expenses-card">
-                    <i class="fas fa-receipt"></i>
-                    <h3 id="totalExpenses">-</h3>
-                    <p>مجموع کل هزینه‌ها (میلیون تومان)</p>
-                </div>
+                
+                <!-- ردیف ششم: زمان‌بندی پروژه -->
                 <div class="stat-card timeline-card">
                     <i class="fas fa-clock"></i>
                     <h3 id="daysRemaining">-</h3>
@@ -616,13 +829,6 @@
                     </div>
                 </div>
 
-                <!-- Monthly Comparison Chart -->
-                <div class="chart-container">
-                    <h3><i class="fas fa-chart-bar"></i> مقایسه ماهانه کامل</h3>
-                    <div class="chart-wrapper">
-                        <canvas id="monthlyComparisonChart"></canvas>
-                    </div>
-                </div>
 
                 <!-- Principal Trend Chart -->
                 <div class="chart-container">
@@ -643,7 +849,7 @@
 
             <!-- جدول خلاصه -->
             <div class="table-container">
-                <h3><i class="fas fa-table"></i>خلاصه سرمایه‌گذاران (تومان)</h3>
+                <h3><i class="fas fa-table"></i>خلاصه مشارکت کنندگان (تومان)</h3>
                 <div id="summaryTable"></div>
             </div>
         </div>
@@ -817,7 +1023,6 @@
             
             // نمودارهای جدید از investor_profile
             createProjectPrincipalTransactionChart();
-            createProjectMonthlyComparisonChart();
             createProjectPrincipalTrendChart();
             createProjectMonthlyPrincipalChart();
             
@@ -876,9 +1081,9 @@
             }
 
             // به‌روزرسانی المان‌های HTML
-            document.getElementById('totalPrincipal').textContent = (currentCapital / BASE_AMOUNT).toFixed(1);
-            document.getElementById('totalProfit').textContent = (totalProfit / BASE_AMOUNT).toFixed(1);
-            document.getElementById('totalDays').textContent = projectDuration.toLocaleString('fa-IR');
+            document.getElementById('totalPrincipal').textContent = currentCapital.toLocaleString('en-US');
+            document.getElementById('totalProfit').textContent = Math.round(totalProfit).toLocaleString('en-US');
+            document.getElementById('totalDays').textContent = projectDuration.toLocaleString('en-US');
             document.getElementById('startDate').textContent = projectStartDate;
             document.getElementById('endDate').textContent = projectEndDate === '-' ? 'ادامه دارد' : projectEndDate;
             
@@ -887,8 +1092,8 @@
                 const daysRemaining = timelineData.timeline.days_remaining;
                 const daysFromStart = timelineData.timeline.days_from_start;
                 
-                document.getElementById('daysRemaining').textContent = daysRemaining.toLocaleString('fa-IR');
-                document.getElementById('daysFromStart').textContent = daysFromStart.toLocaleString('fa-IR');
+                document.getElementById('daysRemaining').textContent = daysRemaining.toLocaleString('en-US');
+                document.getElementById('daysFromStart').textContent = daysFromStart.toLocaleString('en-US');
                 
                 // تغییر رنگ کارت روزهای مانده بر اساس مقدار
                 const daysRemainingCard = document.querySelector('#daysRemaining').closest('.stat-card');
@@ -916,17 +1121,17 @@
             // نمایش مجموع کل هزینه‌ها
             if (expensesData && expensesData.success && expensesData.total_expenses) {
                 const totalExpenses = expensesData.total_expenses.total_amount;
-                document.getElementById('totalExpenses').textContent = (totalExpenses / BASE_AMOUNT).toFixed(1);
+                document.getElementById('totalExpenses').textContent = totalExpenses.toLocaleString('en-US');
             } else {
                 document.getElementById('totalExpenses').textContent = '-';
             }
 
             console.log('آمار محاسبه شده:', {
-                totalDeposits: (totalDeposits / BASE_AMOUNT).toFixed(1) + ' میلیون',
-                totalWithdrawals: (totalWithdrawals / BASE_AMOUNT).toFixed(1) + ' میلیون',
-                currentCapital: (currentCapital / BASE_AMOUNT).toFixed(1) + ' میلیون',
-                totalProfit: (totalProfit / BASE_AMOUNT).toFixed(1) + ' میلیون',
-                totalExpenses: expensesData && expensesData.success ? (expensesData.total_expenses.total_amount / BASE_AMOUNT).toFixed(1) + ' میلیون' : 'نامشخص',
+                totalDeposits: totalDeposits.toLocaleString('en-US') + ' تومان',
+                totalWithdrawals: totalWithdrawals.toLocaleString('en-US') + ' تومان',
+                currentCapital: currentCapital.toLocaleString('en-US') + ' تومان',
+                totalProfit: Math.round(totalProfit).toLocaleString('en-US') + ' تومان',
+                totalExpenses: expensesData && expensesData.success ? expensesData.total_expenses.total_amount.toLocaleString('en-US') + ' تومان' : 'نامشخص',
                 currentInterestRate: currentInterestRate ? (parseFloat(currentInterestRate.rate) * 100).toFixed(15) + '%' : 'تعریف نشده',
                 projectDuration: projectDuration + ' روز',
                 projectStartDate: projectStartDate,
@@ -1001,7 +1206,7 @@
                 }, {});
 
             const labels = Object.keys(validInvestors);
-            const data = Object.values(validInvestors).map(amount => amount / BASE_AMOUNT); // تبدیل به میلیون تومان
+            const data = Object.values(validInvestors).map(amount => amount / BASE_AMOUNT); // تبدیل به میلیون تومان برای نمودار
             
             // محاسبه مجموع کل برای محاسبه درصد
             const totalAmount = Object.values(validInvestors).reduce((sum, amount) => sum + amount, 0);
@@ -1064,18 +1269,23 @@
                 
                 const summaryData = await response.json();
                 console.log('✅ داده‌های خلاصه دریافت شد:', summaryData);
+                console.log('📊 آمار کلی:', globalStatistics);
+                
+                // محاسبه مجموع کل سود از داده‌های خلاصه
+                const totalProfitFromSummary = summaryData.reduce((sum, inv) => sum + inv.total_profit, 0);
+                console.log('💰 مجموع سود از خلاصه:', totalProfitFromSummary);
 
                 let tableHTML = `
-                    <table>
+                    <table class="summary-table">
                         <thead>
                             <tr>
-                                <th>نام سرمایه‌گذار</th>
-                                <th>آورده</th>
-                                <th>برداشت</th>
-                                <th>سرمایه موجود</th>
-                                <th>سود مشارکت</th>
-                                <th>مجموع (سرمایه+سود)</th>
-                                <th>نسبت سود به آورده خالص</th>
+                                <th>نام مشارکت کننده</th>
+                                <th class="deposit-header"><i class="fas fa-plus-circle"></i> آورده</th>
+                                <th class="withdrawal-header"><i class="fas fa-minus-circle"></i> برداشت</th>
+                                <th class="capital-header"><i class="fas fa-wallet"></i> سرمایه موجود</th>
+                                <th class="profit-header"><i class="fas fa-chart-line"></i> سود مشارکت</th>
+                                <th class="total-header"><i class="fas fa-calculator"></i> مجموع (سرمایه+سود)</th>
+                                <th>نسبت سود به سود کل</th>
                                 <th>نسبت سرمایه به سرمایه کل</th>
                             </tr>
                         </thead>
@@ -1083,8 +1293,25 @@
                 `;
 
                 summaryData.forEach(investor => {
-                    const profitRatio = investor.net_principal > 0 ? 
-                        ((investor.total_profit / investor.net_principal) * 100).toFixed(2) : '0.00';
+                    // محاسبه نسبت سود فرد به سود کل
+                    let profitToTotalRatio = '0.00';
+                    
+                    // اول از API آمار کلی استفاده کن
+                    let totalProfit = 0;
+                    if (globalStatistics && globalStatistics.total_profit > 0) {
+                        totalProfit = globalStatistics.total_profit;
+                        console.log('🔄 از API آمار کلی:', totalProfit);
+                    } else {
+                        // اگر API در دسترس نبود، از مجموع محلی استفاده کن
+                        totalProfit = totalProfitFromSummary;
+                        console.log('🔄 از مجموع محلی:', totalProfit);
+                    }
+                    
+                    if (totalProfit > 0) {
+                        const ratio = (investor.total_profit / totalProfit) * 100;
+                        profitToTotalRatio = ratio.toFixed(2);
+                        console.log(`📊 ${investor.name}: ${investor.total_profit} / ${totalProfit} = ${profitToTotalRatio}%`);
+                    }
                     
                     // محاسبه نسبت سرمایه فرد به سرمایه کل (از API آمار کلی)
                     let capitalRatio = '0.00%';
@@ -1096,12 +1323,12 @@
                     tableHTML += `
                         <tr>
                             <td>${investor.name}</td>
-                            <td>${investor.total_deposits.toLocaleString('fa-IR')}</td>
-                            <td>${investor.total_withdrawals.toLocaleString('fa-IR')}</td>
-                            <td>${investor.net_principal.toLocaleString('fa-IR')}</td>
-                            <td>${investor.total_profit.toLocaleString('fa-IR')}</td>
-                            <td>${investor.grand_total.toLocaleString('fa-IR')}</td>
-                            <td>${profitRatio}%</td>
+                            <td>${investor.total_deposits.toLocaleString('en-US')}</td>
+                            <td>${investor.total_withdrawals.toLocaleString('en-US')}</td>
+                            <td>${investor.net_principal.toLocaleString('en-US')}</td>
+                            <td>${Math.round(investor.total_profit).toLocaleString('en-US')}</td>
+                            <td>${Math.round(investor.grand_total).toLocaleString('en-US')}</td>
+                            <td style="color: #21ba45; font-weight: bold;">${profitToTotalRatio}%</td>
                             <td style="color: #667eea; font-weight: bold;">${capitalRatio}</td>
                         </tr>
                     `;
@@ -1109,14 +1336,14 @@
 
                 // اضافه کردن ردیف خلاصه در انتهای جدول
                 tableHTML += `
-                    <tr style="background-color: #f8f9fa; font-weight: bold; border-top: 2px solid #667eea;">
-                        <td>مجموع / میانگین</td>
-                        <td>${summaryData.reduce((sum, inv) => sum + inv.total_deposits, 0).toLocaleString('fa-IR')}</td>
-                        <td>${summaryData.reduce((sum, inv) => sum + inv.total_withdrawals, 0).toLocaleString('fa-IR')}</td>
-                        <td>${summaryData.reduce((sum, inv) => sum + inv.net_principal, 0).toLocaleString('fa-IR')}</td>
-                        <td>${summaryData.reduce((sum, inv) => sum + inv.total_profit, 0).toLocaleString('fa-IR')}</td>
-                        <td>${summaryData.reduce((sum, inv) => sum + inv.grand_total, 0).toLocaleString('fa-IR')}</td>
-                        <td>-</td>
+                    <tr class="summary-row">
+                        <td><i class="fas fa-sum"></i> مجموع</td>
+                        <td>${summaryData.reduce((sum, inv) => sum + inv.total_deposits, 0).toLocaleString('en-US')}</td>
+                        <td>${summaryData.reduce((sum, inv) => sum + inv.total_withdrawals, 0).toLocaleString('en-US')}</td>
+                        <td>${summaryData.reduce((sum, inv) => sum + inv.net_principal, 0).toLocaleString('en-US')}</td>
+                        <td>${Math.round(summaryData.reduce((sum, inv) => sum + inv.total_profit, 0)).toLocaleString('en-US')}</td>
+                        <td>${Math.round(summaryData.reduce((sum, inv) => sum + inv.grand_total, 0)).toLocaleString('en-US')}</td>
+                        <td style="color: #21ba45; font-weight: bold;">100.00%</td>
                         <td style="color: #28a745; font-weight: bold;">100.00%</td>
                     </tr>
                 `;
@@ -1225,117 +1452,6 @@
             });
         }
 
-        function createProjectMonthlyComparisonChart() {
-            // گروه‌بندی بر اساس ماه
-            const monthlyData = {};
-            
-            chartData.forEach(row => {
-                if (row.date_shamsi) {
-                    const month = row.date_shamsi.substring(0, 7); // YYYY-MM
-                    if (!monthlyData[month]) {
-                        monthlyData[month] = { principal: 0, withdrawal: 0, profit: 0 };
-                    }
-                    
-                    const amount = parseFloat(row.amount || 0);
-                    if (row.entry_type === 'principal_deposit') {
-                        monthlyData[month].principal += amount;
-                    } else if (row.entry_type === 'principal_withdrawal') {
-                        monthlyData[month].withdrawal += Math.abs(amount);
-                    } else if (row.entry_type === 'profit_accrual') {
-                        monthlyData[month].profit += amount;
-                    }
-                }
-            });
-
-            const months = Object.keys(monthlyData).sort();
-            const principalData = months.map(month => monthlyData[month].principal / BASE_AMOUNT);
-            const withdrawalData = months.map(month => -monthlyData[month].withdrawal / BASE_AMOUNT);
-            const profitData = months.map(month => monthlyData[month].profit / BASE_AMOUNT);
-            
-            // محاسبه خط ترند تجمعی
-            const cumulativeData = [];
-            let cumulative = 0;
-            months.forEach(month => {
-                const netMonthly = monthlyData[month].principal - monthlyData[month].withdrawal + monthlyData[month].profit;
-                cumulative += netMonthly;
-                cumulativeData.push(cumulative / BASE_AMOUNT);
-            });
-
-            const ctx = document.getElementById('monthlyComparisonChart').getContext('2d');
-            charts.monthlyComparisonChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: months,
-                    datasets: [
-                        {
-                            type: 'bar',
-                            label: 'آورده (میلیون تومان)',
-                            data: principalData,
-                            backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                            borderColor: 'rgba(54, 162, 235, 1)',
-                            borderWidth: 1
-                        },
-                        {
-                            type: 'bar',
-                            label: 'برداشت (میلیون تومان)',
-                            data: withdrawalData,
-                            backgroundColor: 'rgba(255, 99, 132, 0.6)',
-                            borderColor: 'rgba(255, 99, 132, 1)',
-                            borderWidth: 1
-                        },
-                        {
-                            type: 'bar',
-                            label: 'سود (میلیون تومان)',
-                            data: profitData,
-                            backgroundColor: 'rgba(40, 167, 69, 0.6)',
-                            borderColor: 'rgba(40, 167, 69, 1)',
-                            borderWidth: 1
-                        },
-                        {
-                            type: 'line',
-                            label: 'ترند تجمعی (میلیون تومان)',
-                            data: cumulativeData,
-                            borderColor: 'rgba(54, 162, 235, 1)',
-                            backgroundColor: 'rgba(54, 162, 235, 0.1)',
-                            fill: false,
-                            tension: 0.4,
-                            yAxisID: 'y1'
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'مقایسه ماهانه کل پروژه با ترند تجمعی'
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'مبلغ ماهانه (میلیون تومان)'
-                            }
-                        },
-                        y1: {
-                            type: 'linear',
-                            display: true,
-                            position: 'right',
-                            title: {
-                                display: true,
-                                text: 'مجموع تجمعی (میلیون تومان)'
-                            },
-                            grid: {
-                                drawOnChartArea: false,
-                            },
-                        }
-                    }
-                }
-            });
-        }
 
         function createProjectPrincipalTrendChart() {
             // فیلتر تراکنش‌های آورده و برداشت
@@ -1451,7 +1567,7 @@
                         },
                         {
                             type: 'line',
-                            label: 'ترند تجمعی آورده (میلیون تومان)',
+                            label: 'تجمعی سرمایه موجود (میلیون تومان)',
                             data: cumulativeData,
                             borderColor: 'rgba(128, 0, 128, 1)',
                             backgroundColor: 'rgba(128, 0, 128, 0.1)',
