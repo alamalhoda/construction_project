@@ -829,13 +829,6 @@
                     </div>
                 </div>
 
-                <!-- Monthly Comparison Chart -->
-                <div class="chart-container">
-                    <h3><i class="fas fa-chart-bar"></i> مقایسه ماهانه کامل</h3>
-                    <div class="chart-wrapper">
-                        <canvas id="monthlyComparisonChart"></canvas>
-                    </div>
-                </div>
 
                 <!-- Principal Trend Chart -->
                 <div class="chart-container">
@@ -1030,7 +1023,6 @@
             
             // نمودارهای جدید از investor_profile
             createProjectPrincipalTransactionChart();
-            createProjectMonthlyComparisonChart();
             createProjectPrincipalTrendChart();
             createProjectMonthlyPrincipalChart();
             
@@ -1214,7 +1206,7 @@
                 }, {});
 
             const labels = Object.keys(validInvestors);
-            const data = Object.values(validInvestors); // مبلغ به تومان
+            const data = Object.values(validInvestors).map(amount => amount / BASE_AMOUNT); // تبدیل به میلیون تومان برای نمودار
             
             // محاسبه مجموع کل برای محاسبه درصد
             const totalAmount = Object.values(validInvestors).reduce((sum, amount) => sum + amount, 0);
@@ -1460,117 +1452,6 @@
             });
         }
 
-        function createProjectMonthlyComparisonChart() {
-            // گروه‌بندی بر اساس ماه
-            const monthlyData = {};
-            
-            chartData.forEach(row => {
-                if (row.date_shamsi) {
-                    const month = row.date_shamsi.substring(0, 7); // YYYY-MM
-                    if (!monthlyData[month]) {
-                        monthlyData[month] = { principal: 0, withdrawal: 0, profit: 0 };
-                    }
-                    
-                    const amount = parseFloat(row.amount || 0);
-                    if (row.entry_type === 'principal_deposit') {
-                        monthlyData[month].principal += amount;
-                    } else if (row.entry_type === 'principal_withdrawal') {
-                        monthlyData[month].withdrawal += Math.abs(amount);
-                    } else if (row.entry_type === 'profit_accrual') {
-                        monthlyData[month].profit += amount;
-                    }
-                }
-            });
-
-            const months = Object.keys(monthlyData).sort();
-            const principalData = months.map(month => monthlyData[month].principal / BASE_AMOUNT);
-            const withdrawalData = months.map(month => -monthlyData[month].withdrawal / BASE_AMOUNT);
-            const profitData = months.map(month => monthlyData[month].profit / BASE_AMOUNT);
-            
-            // محاسبه خط ترند تجمعی
-            const cumulativeData = [];
-            let cumulative = 0;
-            months.forEach(month => {
-                const netMonthly = monthlyData[month].principal - monthlyData[month].withdrawal + monthlyData[month].profit;
-                cumulative += netMonthly;
-                cumulativeData.push(cumulative / BASE_AMOUNT);
-            });
-
-            const ctx = document.getElementById('monthlyComparisonChart').getContext('2d');
-            charts.monthlyComparisonChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: months,
-                    datasets: [
-                        {
-                            type: 'bar',
-                            label: 'آورده (میلیون تومان)',
-                            data: principalData,
-                            backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                            borderColor: 'rgba(54, 162, 235, 1)',
-                            borderWidth: 1
-                        },
-                        {
-                            type: 'bar',
-                            label: 'برداشت (میلیون تومان)',
-                            data: withdrawalData,
-                            backgroundColor: 'rgba(255, 99, 132, 0.6)',
-                            borderColor: 'rgba(255, 99, 132, 1)',
-                            borderWidth: 1
-                        },
-                        {
-                            type: 'bar',
-                            label: 'سود (میلیون تومان)',
-                            data: profitData,
-                            backgroundColor: 'rgba(40, 167, 69, 0.6)',
-                            borderColor: 'rgba(40, 167, 69, 1)',
-                            borderWidth: 1
-                        },
-                        {
-                            type: 'line',
-                            label: 'ترند تجمعی (میلیون تومان)',
-                            data: cumulativeData,
-                            borderColor: 'rgba(54, 162, 235, 1)',
-                            backgroundColor: 'rgba(54, 162, 235, 0.1)',
-                            fill: false,
-                            tension: 0.4,
-                            yAxisID: 'y1'
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'مقایسه ماهانه کل پروژه با ترند تجمعی'
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'مبلغ ماهانه (میلیون تومان)'
-                            }
-                        },
-                        y1: {
-                            type: 'linear',
-                            display: true,
-                            position: 'right',
-                            title: {
-                                display: true,
-                                text: 'مجموع تجمعی (میلیون تومان)'
-                            },
-                            grid: {
-                                drawOnChartArea: false,
-                            },
-                        }
-                    }
-                }
-            });
-        }
 
         function createProjectPrincipalTrendChart() {
             // فیلتر تراکنش‌های آورده و برداشت
@@ -1686,7 +1567,7 @@
                         },
                         {
                             type: 'line',
-                            label: 'ترند تجمعی آورده (میلیون تومان)',
+                            label: 'تجمعی سرمایه موجود (میلیون تومان)',
                             data: cumulativeData,
                             borderColor: 'rgba(128, 0, 128, 1)',
                             backgroundColor: 'rgba(128, 0, 128, 0.1)',
