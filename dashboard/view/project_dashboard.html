@@ -21,6 +21,33 @@
             --warning-color: #ffc107;
             --info-color: #17a2b8;
             
+            /* 
+            =======================================================
+            Project Standard Colors - Financial Categories
+            =======================================================
+            این رنگ‌ها به عنوان استاندارد پروژه تعریف شده‌اند و در تمام صفحات باید از آن‌ها استفاده شود:
+            
+            آبی (#2185d0) - آورده و واریزی
+            قرمز (#db2828) - برداشت و خروجی
+            سبز (#21ba45) - سود مشارکت و درآمد
+            بنفش (#667eea) - سرمایه موجود و موجودی
+            قرمز تیره (#dc3545) - هزینه‌ها و خرجی
+            خاکستری (#6c757d) - مجموع و کل
+            =======================================================
+            */
+            --deposit-color: #2185d0;           /* آبی - آورده */
+            --deposit-color-light: rgba(33, 133, 208, 0.1);
+            --withdrawal-color: #db2828;        /* قرمز - برداشت */
+            --withdrawal-color-light: rgba(219, 40, 40, 0.1);
+            --profit-color: #21ba45;            /* سبز - سود مشارکت */
+            --profit-color-light: rgba(33, 186, 69, 0.1);
+            --capital-color: #667eea;           /* بنفش - سرمایه موجود */
+            --capital-color-light: rgba(102, 126, 234, 0.1);
+            --expense-color: #dc3545;           /* قرمز تیره - هزینه‌ها */
+            --expense-color-light: rgba(220, 53, 69, 0.1);
+            --total-color: #6c757d;             /* خاکستری - مجموع */
+            --total-color-light: rgba(108, 117, 125, 0.1);
+            
             /* Background Colors */
             --bg-primary: #f8f9fa;
             --bg-secondary: #ffffff;
@@ -54,6 +81,20 @@
             --danger-color: #dc3545;
             --warning-color: #ffc107;
             --info-color: #17a2b8;
+            
+            /* Project Standard Colors - Financial Categories (Dark Theme) */
+            --deposit-color: #4fc3f7;           /* آبی روشن‌تر - آورده */
+            --deposit-color-light: rgba(79, 195, 247, 0.2);
+            --withdrawal-color: #f48fb1;        /* قرمز روشن‌تر - برداشت */
+            --withdrawal-color-light: rgba(244, 143, 177, 0.2);
+            --profit-color: #81c784;            /* سبز روشن‌تر - سود مشارکت */
+            --profit-color-light: rgba(129, 199, 132, 0.2);
+            --capital-color: #9575cd;           /* بنفش روشن‌تر - سرمایه موجود */
+            --capital-color-light: rgba(149, 117, 205, 0.2);
+            --expense-color: #f48fb1;           /* قرمز روشن‌تر - هزینه‌ها */
+            --expense-color-light: rgba(244, 143, 177, 0.2);
+            --total-color: #b0bec5;             /* خاکستری روشن‌تر - مجموع */
+            --total-color-light: rgba(176, 190, 197, 0.2);
             
             /* Dark Background Colors */
             --bg-primary: #121212;
@@ -260,9 +301,9 @@
 
         .stat-card.principal-card {
             grid-column: span 2;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--capital-color) 0%, var(--secondary-color) 100%);
             color: white;
-            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 12px 40px var(--capital-color-light);
             margin: 10px;
         }
 
@@ -284,9 +325,9 @@
 
         .stat-card.profit-card {
             grid-column: span 2;
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            background: linear-gradient(135deg, var(--profit-color) 0%, #20c997 100%);
             color: white;
-            box-shadow: 0 12px 40px rgba(40, 167, 69, 0.3);
+            box-shadow: 0 12px 40px var(--profit-color-light);
             margin: 10px;
         }
 
@@ -308,9 +349,9 @@
 
         .stat-card.expenses-card {
             grid-column: span 2;
-            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            background: linear-gradient(135deg, var(--expense-color) 0%, #c82333 100%);
             color: white;
-            box-shadow: 0 12px 40px rgba(220, 53, 69, 0.3);
+            box-shadow: 0 12px 40px var(--expense-color-light);
             margin: 10px;
         }
 
@@ -465,6 +506,76 @@
 
         tr:hover {
             background-color: var(--bg-primary);
+        }
+
+        /* رنگ‌بندی ستون‌های جدول خلاصه */
+        .summary-table th:nth-child(2), /* آورده */
+        .summary-table td:nth-child(2) {
+            background-color: var(--deposit-color-light);
+            border-left: 3px solid var(--deposit-color);
+        }
+
+        .summary-table th:nth-child(3), /* برداشت */
+        .summary-table td:nth-child(3) {
+            background-color: var(--withdrawal-color-light);
+            border-left: 3px solid var(--withdrawal-color);
+        }
+
+        .summary-table th:nth-child(4), /* سرمایه موجود */
+        .summary-table td:nth-child(4) {
+            background-color: var(--capital-color-light);
+            border-left: 3px solid var(--capital-color);
+        }
+
+        .summary-table th:nth-child(5), /* سود مشارکت */
+        .summary-table td:nth-child(5) {
+            background-color: var(--profit-color-light);
+            border-left: 3px solid var(--profit-color);
+        }
+
+        .summary-table th:nth-child(6), /* مجموع */
+        .summary-table td:nth-child(6) {
+            background-color: var(--total-color-light);
+            border-left: 3px solid var(--total-color);
+            font-weight: bold;
+        }
+
+        .summary-table th:nth-child(7), /* نسبت سود به سود کل */
+        .summary-table td:nth-child(7) {
+            background-color: var(--profit-color-light);
+            border-left: 3px solid var(--profit-color);
+        }
+
+        /* رنگ‌بندی ردیف خلاصه */
+        .summary-table tr.summary-row {
+            background-color: #0f101029;
+            border-top: 2px solid var(--primary-color);
+        }
+
+        .summary-table tr.summary-row td {
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+
+        /* کلاس‌های هدر جدول */
+        .summary-table .deposit-header {
+            color: var(--deposit-color) !important;
+        }
+
+        .summary-table .withdrawal-header {
+            color: var(--withdrawal-color) !important;
+        }
+
+        .summary-table .capital-header {
+            color: var(--capital-color) !important;
+        }
+
+        .summary-table .profit-header {
+            color: var(--profit-color) !important;
+        }
+
+        .summary-table .total-header {
+            color: var(--total-color) !important;
         }
 
         .loading {
@@ -745,7 +856,7 @@
 
             <!-- جدول خلاصه -->
             <div class="table-container">
-                <h3><i class="fas fa-table"></i>خلاصه سرمایه‌گذاران (تومان)</h3>
+                <h3><i class="fas fa-table"></i>خلاصه مشارکت کنندگان (تومان)</h3>
                 <div id="summaryTable"></div>
             </div>
         </div>
@@ -1166,18 +1277,23 @@
                 
                 const summaryData = await response.json();
                 console.log('✅ داده‌های خلاصه دریافت شد:', summaryData);
+                console.log('📊 آمار کلی:', globalStatistics);
+                
+                // محاسبه مجموع کل سود از داده‌های خلاصه
+                const totalProfitFromSummary = summaryData.reduce((sum, inv) => sum + inv.total_profit, 0);
+                console.log('💰 مجموع سود از خلاصه:', totalProfitFromSummary);
 
                 let tableHTML = `
-                    <table>
+                    <table class="summary-table">
                         <thead>
                             <tr>
-                                <th>نام سرمایه‌گذار</th>
-                                <th>آورده</th>
-                                <th>برداشت</th>
-                                <th>سرمایه موجود</th>
-                                <th>سود مشارکت</th>
-                                <th>مجموع (سرمایه+سود)</th>
-                                <th>نسبت سود به آورده خالص</th>
+                                <th>نام مشارکت کننده</th>
+                                <th class="deposit-header"><i class="fas fa-plus-circle"></i> آورده</th>
+                                <th class="withdrawal-header"><i class="fas fa-minus-circle"></i> برداشت</th>
+                                <th class="capital-header"><i class="fas fa-wallet"></i> سرمایه موجود</th>
+                                <th class="profit-header"><i class="fas fa-chart-line"></i> سود مشارکت</th>
+                                <th class="total-header"><i class="fas fa-calculator"></i> مجموع (سرمایه+سود)</th>
+                                <th>نسبت سود به سود کل</th>
                                 <th>نسبت سرمایه به سرمایه کل</th>
                             </tr>
                         </thead>
@@ -1185,8 +1301,25 @@
                 `;
 
                 summaryData.forEach(investor => {
-                    const profitRatio = investor.net_principal > 0 ? 
-                        ((investor.total_profit / investor.net_principal) * 100).toFixed(2) : '0.00';
+                    // محاسبه نسبت سود فرد به سود کل
+                    let profitToTotalRatio = '0.00';
+                    
+                    // اول از API آمار کلی استفاده کن
+                    let totalProfit = 0;
+                    if (globalStatistics && globalStatistics.total_profit > 0) {
+                        totalProfit = globalStatistics.total_profit;
+                        console.log('🔄 از API آمار کلی:', totalProfit);
+                    } else {
+                        // اگر API در دسترس نبود، از مجموع محلی استفاده کن
+                        totalProfit = totalProfitFromSummary;
+                        console.log('🔄 از مجموع محلی:', totalProfit);
+                    }
+                    
+                    if (totalProfit > 0) {
+                        const ratio = (investor.total_profit / totalProfit) * 100;
+                        profitToTotalRatio = ratio.toFixed(2);
+                        console.log(`📊 ${investor.name}: ${investor.total_profit} / ${totalProfit} = ${profitToTotalRatio}%`);
+                    }
                     
                     // محاسبه نسبت سرمایه فرد به سرمایه کل (از API آمار کلی)
                     let capitalRatio = '0.00%';
@@ -1202,8 +1335,8 @@
                             <td>${investor.total_withdrawals.toLocaleString('en-US')}</td>
                             <td>${investor.net_principal.toLocaleString('en-US')}</td>
                             <td>${Math.round(investor.total_profit).toLocaleString('en-US')}</td>
-                            <td>${investor.grand_total.toLocaleString('en-US')}</td>
-                            <td>${profitRatio}%</td>
+                            <td>${Math.round(investor.grand_total).toLocaleString('en-US')}</td>
+                            <td style="color: #21ba45; font-weight: bold;">${profitToTotalRatio}%</td>
                             <td style="color: #667eea; font-weight: bold;">${capitalRatio}</td>
                         </tr>
                     `;
@@ -1211,14 +1344,14 @@
 
                 // اضافه کردن ردیف خلاصه در انتهای جدول
                 tableHTML += `
-                    <tr style="background-color: #f8f9fa; font-weight: bold; border-top: 2px solid #667eea;">
-                        <td>مجموع / میانگین</td>
+                    <tr class="summary-row">
+                        <td><i class="fas fa-sum"></i> مجموع</td>
                         <td>${summaryData.reduce((sum, inv) => sum + inv.total_deposits, 0).toLocaleString('en-US')}</td>
                         <td>${summaryData.reduce((sum, inv) => sum + inv.total_withdrawals, 0).toLocaleString('en-US')}</td>
                         <td>${summaryData.reduce((sum, inv) => sum + inv.net_principal, 0).toLocaleString('en-US')}</td>
                         <td>${Math.round(summaryData.reduce((sum, inv) => sum + inv.total_profit, 0)).toLocaleString('en-US')}</td>
-                        <td>${summaryData.reduce((sum, inv) => sum + inv.grand_total, 0).toLocaleString('en-US')}</td>
-                        <td>-</td>
+                        <td>${Math.round(summaryData.reduce((sum, inv) => sum + inv.grand_total, 0)).toLocaleString('en-US')}</td>
+                        <td style="color: #21ba45; font-weight: bold;">100.00%</td>
                         <td style="color: #28a745; font-weight: bold;">100.00%</td>
                     </tr>
                 `;
