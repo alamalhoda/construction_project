@@ -122,22 +122,13 @@ def user_logout_view(request):
     messages.success(request, 'با موفقیت از سیستم خارج شدید.')
     return redirect('user_login')
 
-@dashboard_access_required
-def user_dashboard_view(request):
-    """داشبورد کاربران - ساده شده"""
-    user = request.user
-    
-    # آمار کلی کاربر
-    context = {
-        'user': user,
-        'user_full_name': f"{user.first_name} {user.last_name}".strip() or user.username,
-        'last_login': user.last_login,
-        'date_joined': user.date_joined,
-        'is_technical_admin': user.is_staff or user.is_superuser,
-        'is_end_user': not (user.is_staff or user.is_superuser),
-    }
-    
-    return render(request, 'construction/user_dashboard.html', context)
+# user_dashboard_view منتقل شده به dashboard/views.py
+# @dashboard_access_required
+# def user_dashboard_view(request):
+#     """داشبورد کاربران - منتقل شده به dashboard app"""
+#     # این view به dashboard/views.py منتقل شده است
+#     from dashboard.views import user_dashboard
+#     return user_dashboard(request)
 
 @login_required
 def user_profile_view(request):

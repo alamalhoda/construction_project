@@ -1,7 +1,9 @@
-
-{% load static %}
-
-{% block extrahead %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>داشبورد کاربری</title>
 <style>
     body {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -271,13 +273,12 @@
         }
     }
 </style>
-{% endblock %}
-
-{% block content %}
+</head>
+<body>
 <div class="dashboard-container">
 
         <div class="welcome-message">
-            <h2>سلام {{ user_full_name }}! 👋</h2>
+            <h2>سلام {{ user_full_name }}</h2>
         </div>
 
     <div class="dashboard-grid">
@@ -294,7 +295,7 @@
                 <p class="card-description">
                     مشاهده، ایجاد و مدیریت پروژه‌های ساختمانی
                 </p>
-                <a href="{% url 'construction_Project_list' %}" class="card-btn">
+                <a href="/construction/Project/" class="card-btn">
                     مشاهده پروژه‌ها
                 </a>
             </div>
@@ -305,7 +306,7 @@
                 <p class="card-description">
                     مدیریت اطلاعات سرمایه‌گذاران و پروفایل‌های مالی
                 </p>
-                <a href="{% url 'construction_Investor_list' %}" class="card-btn">
+                <a href="/construction/Investor/" class="card-btn">
                     مشاهده سرمایه‌گذاران
                 </a>
             </div>
@@ -316,7 +317,7 @@
                 <p class="card-description">
                     ثبت و مدیریت تراکنش‌های مالی و سود
                 </p>
-                <a href="{% url 'construction_Transaction_list' %}" class="card-btn">
+                <a href="/construction/Transaction/" class="card-btn">
                     مشاهده تراکنش‌ها
                 </a>
             </div>
@@ -327,7 +328,7 @@
                 <p class="card-description">
                     مدیریت واحدهای ساختمانی و اطلاعات آن‌ها
                 </p>
-                <a href="{% url 'construction_Unit_list' %}" class="card-btn">
+                <a href="/construction/Unit/" class="card-btn">
                     مشاهده واحدها
                 </a>
             </div>
@@ -338,7 +339,7 @@
                 <p class="card-description">
                     دسترسی به پنل مدیریت سیستم
                 </p>
-                <a href="{% url 'admin:index' %}" class="card-btn danger">
+                <a href="/admin/" class="card-btn danger">
                     ورود به ادمین
                 </a>
             </div>
@@ -349,7 +350,7 @@
                 <p class="card-description">
                     ایجاد، مدیریت و نظارت بر بک‌آپ‌های سیستم
                 </p>
-                <a href="{% url 'backup:dashboard' %}" class="card-btn">
+                <a href="/backup/" class="card-btn">
                     داشبورد بک‌آپ
                 </a>
             </div>
@@ -479,7 +480,7 @@
                 <p class="card-description">
                     مدیریت اطلاعات سرمایه‌گذاران و پروفایل‌های مالی
                 </p>
-                <a href="{% url 'construction_Investor_list' %}" class="card-btn">
+                <a href="/construction/Investor/" class="card-btn">
                     مشاهده سرمایه‌گذاران
                 </a>
             </div>
@@ -490,7 +491,7 @@
                 <p class="card-description">
                     ایجاد، مدیریت و نظارت بر بک‌آپ‌های سیستم
                 </p>
-                <a href="{% url 'backup:dashboard' %}" class="card-btn">
+                <a href="/backup/" class="card-btn">
                     داشبورد بک‌آپ
                 </a>
             </div>
@@ -501,17 +502,17 @@
         <h3>🔧 عملیات کاربری</h3>
         <div class="action-buttons">
             {% if is_technical_admin %}
-                <a href="{% url 'admin:index' %}" class="action-btn danger">
+                <a href="/admin/" class="action-btn danger">
                     🔧 پنل ادمین
                 </a>
             {% endif %}
-            <a href="{% url 'user_profile' %}" class="action-btn">
+            <a href="/profile/" class="action-btn">
                 👤 پروفایل من
             </a>
-            <a href="{% url 'change_password' %}" class="action-btn">
+            <a href="/change-password/" class="action-btn">
                 🔒 تغییر رمز عبور
             </a>
-            <a href="{% url 'user_logout' %}" class="action-btn logout">
+            <a href="/logout/" class="action-btn logout">
                 🚪 خروج از سیستم
             </a>
         </div>
@@ -565,4 +566,5 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 </script>
-{% endblock %}
+</body>
+</html>
