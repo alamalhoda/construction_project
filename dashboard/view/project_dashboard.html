@@ -258,11 +258,76 @@
             font-size: 1.1rem;
         }
 
-        .stat-card.expenses-card {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        .stat-card.principal-card {
+            grid-column: span 2;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            transform: scale(1.05);
-            box-shadow: 0 12px 40px rgba(255, 107, 107, 0.3);
+            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.3);
+            margin: 10px;
+        }
+
+        .stat-card.principal-card i {
+            color: white;
+            font-size: 3rem;
+        }
+
+        .stat-card.principal-card h3 {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+
+        .stat-card.principal-card p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+        }
+
+        .stat-card.profit-card {
+            grid-column: span 2;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            box-shadow: 0 12px 40px rgba(40, 167, 69, 0.3);
+            margin: 10px;
+        }
+
+        .stat-card.profit-card i {
+            color: white;
+            font-size: 3rem;
+        }
+
+        .stat-card.profit-card h3 {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+
+        .stat-card.profit-card p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+        }
+
+        .stat-card.expenses-card {
+            grid-column: span 2;
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            box-shadow: 0 12px 40px rgba(220, 53, 69, 0.3);
+            margin: 10px;
+        }
+
+        .stat-card.expenses-card i {
+            color: white;
+            font-size: 3rem;
+        }
+
+        .stat-card.expenses-card h3 {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+
+        .stat-card.expenses-card p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
         }
 
         .stat-card.expenses-card i {
@@ -470,9 +535,35 @@
                 font-size: 2rem;
             }
 
+            .stat-card.principal-card {
+                grid-column: span 1;
+                margin: 5px;
+            }
+
+            .stat-card.principal-card i {
+                font-size: 2.5rem;
+            }
+
+            .stat-card.principal-card h3 {
+                font-size: 2rem;
+            }
+
+            .stat-card.profit-card {
+                grid-column: span 1;
+                margin: 5px;
+            }
+
+            .stat-card.profit-card i {
+                font-size: 2.5rem;
+            }
+
+            .stat-card.profit-card h3 {
+                font-size: 2rem;
+            }
+
             .stat-card.expenses-card {
                 grid-column: span 1;
-                transform: scale(1);
+                margin: 5px;
             }
 
             .stat-card.expenses-card i {
@@ -545,26 +636,40 @@
         <div id="content" style="display: none;">
             <!-- آمار کلی -->
             <div class="stats-grid">
-                <div class="stat-card">
+                <!-- ردیف اول: سرمایه موجود -->
+                <div class="stat-card principal-card">
                     <i class="fas fa-money-bill-wave"></i>
                     <h3 id="totalPrincipal">-</h3>
-                    <p>سرمایه موجود (میلیون تومان)</p>
+                    <p>سرمایه موجود (تومان)</p>
                 </div>
-                <div class="stat-card">
+                
+                <!-- ردیف دوم: کل سود مشارکت -->
+                <div class="stat-card profit-card">
                     <i class="fas fa-chart-pie"></i>
                     <h3 id="totalProfit">-</h3>
-                    <p>کل سود (میلیون تومان)</p>
+                    <p>کل سود مشارکت (تومان)</p>
                 </div>
+                
+                <!-- ردیف سوم: مجموع کل هزینه‌ها -->
+                <div class="stat-card expenses-card">
+                    <i class="fas fa-receipt"></i>
+                    <h3 id="totalExpenses">-</h3>
+                    <p>مجموع کل هزینه‌ها (تومان)</p>
+                </div>
+                
+                <!-- ردیف چهارم: نرخ سود و مدت پروژه -->
                 <div class="stat-card interest-rate-card">
                     <i class="fas fa-percentage"></i>
                     <h3 id="currentInterestRate">-</h3>
-                    <p>نرخ سود روزانه  (%)</p>
+                    <p>نرخ سود مشارکت روزانه  (%)</p>
                 </div>
                 <div class="stat-card">
                     <i class="fas fa-calendar-alt"></i>
                     <h3 id="totalDays">-</h3>
                     <p>مدت زمان پروژه (روز)</p>
                 </div>
+                
+                <!-- ردیف پنجم: تاریخ‌های پروژه -->
                 <div class="stat-card">
                     <i class="fas fa-play-circle"></i>
                     <h3 id="startDate">-</h3>
@@ -575,11 +680,8 @@
                     <h3 id="endDate">-</h3>
                     <p>تاریخ پایان پروژه</p>
                 </div>
-                <div class="stat-card expenses-card">
-                    <i class="fas fa-receipt"></i>
-                    <h3 id="totalExpenses">-</h3>
-                    <p>مجموع کل هزینه‌ها (میلیون تومان)</p>
-                </div>
+                
+                <!-- ردیف ششم: زمان‌بندی پروژه -->
                 <div class="stat-card timeline-card">
                     <i class="fas fa-clock"></i>
                     <h3 id="daysRemaining">-</h3>
@@ -876,9 +978,9 @@
             }
 
             // به‌روزرسانی المان‌های HTML
-            document.getElementById('totalPrincipal').textContent = (currentCapital / BASE_AMOUNT).toFixed(1);
-            document.getElementById('totalProfit').textContent = (totalProfit / BASE_AMOUNT).toFixed(1);
-            document.getElementById('totalDays').textContent = projectDuration.toLocaleString('fa-IR');
+            document.getElementById('totalPrincipal').textContent = currentCapital.toLocaleString('en-US');
+            document.getElementById('totalProfit').textContent = Math.round(totalProfit).toLocaleString('en-US');
+            document.getElementById('totalDays').textContent = projectDuration.toLocaleString('en-US');
             document.getElementById('startDate').textContent = projectStartDate;
             document.getElementById('endDate').textContent = projectEndDate === '-' ? 'ادامه دارد' : projectEndDate;
             
@@ -887,8 +989,8 @@
                 const daysRemaining = timelineData.timeline.days_remaining;
                 const daysFromStart = timelineData.timeline.days_from_start;
                 
-                document.getElementById('daysRemaining').textContent = daysRemaining.toLocaleString('fa-IR');
-                document.getElementById('daysFromStart').textContent = daysFromStart.toLocaleString('fa-IR');
+                document.getElementById('daysRemaining').textContent = daysRemaining.toLocaleString('en-US');
+                document.getElementById('daysFromStart').textContent = daysFromStart.toLocaleString('en-US');
                 
                 // تغییر رنگ کارت روزهای مانده بر اساس مقدار
                 const daysRemainingCard = document.querySelector('#daysRemaining').closest('.stat-card');
@@ -916,17 +1018,17 @@
             // نمایش مجموع کل هزینه‌ها
             if (expensesData && expensesData.success && expensesData.total_expenses) {
                 const totalExpenses = expensesData.total_expenses.total_amount;
-                document.getElementById('totalExpenses').textContent = (totalExpenses / BASE_AMOUNT).toFixed(1);
+                document.getElementById('totalExpenses').textContent = totalExpenses.toLocaleString('en-US');
             } else {
                 document.getElementById('totalExpenses').textContent = '-';
             }
 
             console.log('آمار محاسبه شده:', {
-                totalDeposits: (totalDeposits / BASE_AMOUNT).toFixed(1) + ' میلیون',
-                totalWithdrawals: (totalWithdrawals / BASE_AMOUNT).toFixed(1) + ' میلیون',
-                currentCapital: (currentCapital / BASE_AMOUNT).toFixed(1) + ' میلیون',
-                totalProfit: (totalProfit / BASE_AMOUNT).toFixed(1) + ' میلیون',
-                totalExpenses: expensesData && expensesData.success ? (expensesData.total_expenses.total_amount / BASE_AMOUNT).toFixed(1) + ' میلیون' : 'نامشخص',
+                totalDeposits: totalDeposits.toLocaleString('en-US') + ' تومان',
+                totalWithdrawals: totalWithdrawals.toLocaleString('en-US') + ' تومان',
+                currentCapital: currentCapital.toLocaleString('en-US') + ' تومان',
+                totalProfit: Math.round(totalProfit).toLocaleString('en-US') + ' تومان',
+                totalExpenses: expensesData && expensesData.success ? expensesData.total_expenses.total_amount.toLocaleString('en-US') + ' تومان' : 'نامشخص',
                 currentInterestRate: currentInterestRate ? (parseFloat(currentInterestRate.rate) * 100).toFixed(15) + '%' : 'تعریف نشده',
                 projectDuration: projectDuration + ' روز',
                 projectStartDate: projectStartDate,
@@ -1001,7 +1103,7 @@
                 }, {});
 
             const labels = Object.keys(validInvestors);
-            const data = Object.values(validInvestors).map(amount => amount / BASE_AMOUNT); // تبدیل به میلیون تومان
+            const data = Object.values(validInvestors); // مبلغ به تومان
             
             // محاسبه مجموع کل برای محاسبه درصد
             const totalAmount = Object.values(validInvestors).reduce((sum, amount) => sum + amount, 0);
@@ -1096,11 +1198,11 @@
                     tableHTML += `
                         <tr>
                             <td>${investor.name}</td>
-                            <td>${investor.total_deposits.toLocaleString('fa-IR')}</td>
-                            <td>${investor.total_withdrawals.toLocaleString('fa-IR')}</td>
-                            <td>${investor.net_principal.toLocaleString('fa-IR')}</td>
-                            <td>${investor.total_profit.toLocaleString('fa-IR')}</td>
-                            <td>${investor.grand_total.toLocaleString('fa-IR')}</td>
+                            <td>${investor.total_deposits.toLocaleString('en-US')}</td>
+                            <td>${investor.total_withdrawals.toLocaleString('en-US')}</td>
+                            <td>${investor.net_principal.toLocaleString('en-US')}</td>
+                            <td>${Math.round(investor.total_profit).toLocaleString('en-US')}</td>
+                            <td>${investor.grand_total.toLocaleString('en-US')}</td>
                             <td>${profitRatio}%</td>
                             <td style="color: #667eea; font-weight: bold;">${capitalRatio}</td>
                         </tr>
@@ -1111,11 +1213,11 @@
                 tableHTML += `
                     <tr style="background-color: #f8f9fa; font-weight: bold; border-top: 2px solid #667eea;">
                         <td>مجموع / میانگین</td>
-                        <td>${summaryData.reduce((sum, inv) => sum + inv.total_deposits, 0).toLocaleString('fa-IR')}</td>
-                        <td>${summaryData.reduce((sum, inv) => sum + inv.total_withdrawals, 0).toLocaleString('fa-IR')}</td>
-                        <td>${summaryData.reduce((sum, inv) => sum + inv.net_principal, 0).toLocaleString('fa-IR')}</td>
-                        <td>${summaryData.reduce((sum, inv) => sum + inv.total_profit, 0).toLocaleString('fa-IR')}</td>
-                        <td>${summaryData.reduce((sum, inv) => sum + inv.grand_total, 0).toLocaleString('fa-IR')}</td>
+                        <td>${summaryData.reduce((sum, inv) => sum + inv.total_deposits, 0).toLocaleString('en-US')}</td>
+                        <td>${summaryData.reduce((sum, inv) => sum + inv.total_withdrawals, 0).toLocaleString('en-US')}</td>
+                        <td>${summaryData.reduce((sum, inv) => sum + inv.net_principal, 0).toLocaleString('en-US')}</td>
+                        <td>${Math.round(summaryData.reduce((sum, inv) => sum + inv.total_profit, 0)).toLocaleString('en-US')}</td>
+                        <td>${summaryData.reduce((sum, inv) => sum + inv.grand_total, 0).toLocaleString('en-US')}</td>
                         <td>-</td>
                         <td style="color: #28a745; font-weight: bold;">100.00%</td>
                     </tr>
