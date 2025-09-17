@@ -587,7 +587,7 @@
                 
                 <div class="stat-card large profit-card">
                     <div class="stat-number" id="totalProfits">0</div>
-                    <div class="stat-label">مجموع سود مشارکت مشارکت (ریال)</div>
+                    <div class="stat-label">مجموع سود مشارکت (ریال)</div>
                     <div class="stat-words" id="totalProfitsWords" style="font-size: 0.9rem; margin-top: 10px; opacity: 0.8;"></div>
                 </div>
                 
@@ -1725,9 +1725,9 @@
                 amountToPersianWords(withdrawals);
                 
             document.getElementById('totalProfits').textContent = 
-                profits.toLocaleString('en-US');
+                Math.round(profits).toLocaleString('en-US');
             document.getElementById('totalProfitsWords').textContent = 
-                amountToPersianWords(profits);
+                amountToPersianWords(Math.round(profits));
                 
             document.getElementById('netCapital').textContent = 
                 netCapital.toLocaleString('en-US');
