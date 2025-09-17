@@ -21,6 +21,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from . import views
 from construction import user_views
+from dashboard import views as dashboard_views
 
 urlpatterns = [
     path('', TemplateView.as_view(template_name='index.html'), name='index'),
@@ -32,7 +33,7 @@ urlpatterns = [
     path('login/', user_views.user_login_view, name='user_login'),
     path('register/', user_views.user_register_view, name='user_register'),
     path('logout/', user_views.user_logout_view, name='user_logout'),
-    path('user-dashboard/', user_views.user_dashboard_view, name='user_dashboard'),
+    path('user-dashboard/', dashboard_views.user_dashboard, name='user_dashboard'),
     path('profile/', user_views.user_profile_view, name='user_profile'),
     path('change-password/', user_views.change_password_view, name='change_password'),
 

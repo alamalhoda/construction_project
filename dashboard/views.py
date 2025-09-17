@@ -172,4 +172,63 @@ def interest_rate_manager(request):
     except FileNotFoundError:
         return HttpResponse('‏‍فایل مدیریت نرخ سود یافت نشد', status=404)
 
+@login_required
+def user_dashboard(request):
+    """نمایش داشبورد کاربری از فایل جدید"""
+    
+    # بررسی دسترسی کاربر
+    if not request.user.is_authenticated:
+        return redirect('user_login')
+    
+    user = request.user
+    
+    # آماده‌سازی context برای template
+    context = {
+        'user': user,
+        'user_full_name': f"{user.first_name} {user.last_name}".strip() or user.username,
+        'last_login': user.last_login,
+        'date_joined': user.date_joined,
+        'is_technical_admin': user.is_staff or user.is_superuser,
+        'is_end_user': not (user.is_staff or user.is_superuser),
+    }
+    
+    # خواندن فایل HTML از پوشه view
+    file_path = os.path.join(settings.BASE_DIR, 'dashboard', 'view', 'user_dashboard.html')
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            content = file.read()
+        
+        # جایگزینی template variables با مقادیر واقعی
+        content = content.replace('{{ user_full_name }}', context['user_full_name'])
+        
+        # جایگزینی template tags برای دسترسی مدیر فنی
+        if context['is_technical_admin']:
+            # نمایش کامل برای مدیر فنی
+            content = content.replace('{% if is_technical_admin %}', '')
+            content = content.replace('{% else %}', '<!-- کاربران عادی -->')
+            content = content.replace('{% endif %}', '')
+        else:
+            # حذف بخش admin و نمایش فقط بخش user
+            admin_start = content.find('{% if is_technical_admin %}')
+            else_pos = content.find('{% else %}')
+            endif_pos = content.find('{% endif %}')
+            
+            if admin_start != -1 and else_pos != -1 and endif_pos != -1:
+                # نگه داشتن فقط بخش else (کاربر عادی)
+                user_content = content[else_pos + len('{% else %}'):endif_pos]
+                content = content[:admin_start] + user_content + content[endif_pos + len('{% endif %}'):]
+            else:
+                # اگر template tags پیدا نشد، همه محتوا را نمایش بده
+                content = content.replace('{% if is_technical_admin %}', '')
+                content = content.replace('{% else %}', '')
+                content = content.replace('{% endif %}', '')
+        
+        # پاک کردن template tags باقی‌مانده
+        content = content.replace('{% if is_technical_admin %}', '')
+        content = content.replace('{% endif %}', '')
+        
+        return HttpResponse(content)
+    except FileNotFoundError:
+        return HttpResponse('‏‍فایل داشبورد کاربری یافت نشد', status=404)
+
 
