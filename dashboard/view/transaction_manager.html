@@ -281,6 +281,19 @@
             opacity: 0.9;
         }
         
+        /* Statistics card colors */
+        .deposit-card {
+            background: linear-gradient(135deg, #2185d0 0%, #1e6ba8 100%) !important;
+        }
+        
+        .withdrawal-card {
+            background: linear-gradient(135deg, #db2828 0%, #b71c1c 100%) !important;
+        }
+        
+        .profit-card {
+            background: linear-gradient(135deg, #21ba45 0%, #1b8e3a 100%) !important;
+        }
+        
         /* Responsive design for mobile */
         @media (max-width: 768px) {
             .stats-cards {
@@ -560,27 +573,27 @@
 
             <!-- Statistics Cards -->
             <div class="stats-cards" id="statsCards" style="display: none;">
-                <div class="stat-card large">
+                <div class="stat-card large deposit-card">
                     <div class="stat-number" id="totalDeposits">0</div>
                     <div class="stat-label">مجموع آورده‌ها (ریال)</div>
                     <div class="stat-words" id="totalDepositsWords" style="font-size: 0.9rem; margin-top: 10px; opacity: 0.8;"></div>
                 </div>
                 
-                <div class="stat-card large">
+                <div class="stat-card large withdrawal-card">
                     <div class="stat-number" id="totalWithdrawals">0</div>
                     <div class="stat-label">مجموع برداشت‌ها (ریال)</div>
                     <div class="stat-words" id="totalWithdrawalsWords" style="font-size: 0.9rem; margin-top: 10px; opacity: 0.8;"></div>
                 </div>
                 
-                <div class="stat-card large">
+                <div class="stat-card large profit-card">
                     <div class="stat-number" id="totalProfits">0</div>
-                    <div class="stat-label">مجموع سود مشارکت (ریال)</div>
+                    <div class="stat-label">مجموع سود مشارکت مشارکت (ریال)</div>
                     <div class="stat-words" id="totalProfitsWords" style="font-size: 0.9rem; margin-top: 10px; opacity: 0.8;"></div>
                 </div>
                 
                 <div class="stat-card large">
                     <div class="stat-number" id="netCapital">0</div>
-                    <div class="stat-label">سرمایه موجود (بدون سود) (ریال)</div>
+                    <div class="stat-label">سرمایه موجود (بدون سود مشارکت) (ریال)</div>
                     <div class="stat-words" id="netCapitalWords" style="font-size: 0.9rem; margin-top: 10px; opacity: 0.8;"></div>
                 </div>
             </div>
@@ -605,13 +618,13 @@
                         <div class="menu">
                             <div class="item" data-value="">همه انواع تراکنش</div>
                             <div class="item" data-value="principal_deposit">
-                                <i class="ui green circle icon"></i>واریز اصل
+                                <i class="ui blue circle icon"></i>آورده
                             </div>
                             <div class="item" data-value="principal_withdrawal">
-                                <i class="ui red circle icon"></i>برداشت اصل
+                                <i class="ui red circle icon"></i>برداشت
                             </div>
                             <div class="item" data-value="profit_accrual">
-                                <i class="ui blue circle icon"></i>سود
+                                <i class="ui green circle icon"></i>سود مشارکت
                             </div>
                         </div>
                     </div>
@@ -673,9 +686,9 @@
                             افزودن تراکنش جدید
                         </button>
                         
-                        <button class="ui orange button" onclick="showRecalculateModal()" title="محاسبه مجدد سودها با نرخ فعلی">
+                        <button class="ui orange button" onclick="showRecalculateModal()" title="محاسبه مجدد سود مشارکتها با نرخ فعلی">
                             <i class="refresh icon"></i>
-                            محاسبه مجدد سودها
+                            محاسبه مجدد سود مشارکتها
                         </button>
                     </div>
                 </div>
@@ -746,13 +759,13 @@
                             <div class="default text">انتخاب نوع تراکنش</div>
                             <div class="menu">
                                 <div class="item" data-value="principal_deposit">
-                                    <i class="ui green circle icon"></i>آورده
+                                    <i class="ui blue circle icon"></i>آورده
                                 </div>
                                 <div class="item" data-value="principal_withdrawal">
-                                    <i class="ui red circle icon"></i>خروج از سرمایه
+                                    <i class="ui red circle icon"></i>برداشت
                                 </div>
                                 <!-- <div class="item" data-value="profit_accrual">
-                                    <i class="ui blue circle icon"></i>سود
+                                    <i class="ui green circle icon"></i>سود مشارکت
                                 </div> -->
                             </div>
                         </div>
@@ -840,13 +853,13 @@
                             <div class="default text">انتخاب نوع تراکنش</div>
                             <div class="menu">
                                 <div class="item" data-value="principal_deposit">
-                                    <i class="ui green circle icon"></i>آورده
+                                    <i class="ui blue circle icon"></i>آورده
                                 </div>
                                 <div class="item" data-value="principal_withdrawal">
-                                    <i class="ui red circle icon"></i>خروج از سرمایه
+                                    <i class="ui red circle icon"></i>برداشت
                                 </div>
                                 <!-- <div class="item" data-value="profit_accrual">
-                                    <i class="ui blue circle icon"></i>سود
+                                    <i class="ui green circle icon"></i>سود مشارکت
                                 </div> -->
                             </div>
                         </div>
@@ -880,22 +893,22 @@
         </div>
     </div>
 
-    <!-- کدهای قبلی برای تغییر نرخ سود - کامنت شده برای مراجعه آینده -->
+    <!-- کدهای قبلی برای تغییر نرخ سود مشارکت - کامنت شده برای مراجعه آینده -->
     <!--
     <div class="ui modal" id="interestRateModal">
         <div class="header">
             <i class="percent icon"></i>
-            تغییر نرخ سود و محاسبه مجدد
+            تغییر نرخ سود مشارکت و محاسبه مجدد
         </div>
         <div class="content">
             <div class="ui warning message">
                 <div class="header">هشدار مهم</div>
-                <p>این عملیات همه رکوردهای سود قبلی را حذف کرده و با نرخ جدید محاسبه می‌کند. این عمل قابل بازگشت نیست.</p>
+                <p>این عملیات همه رکوردهای سود مشارکت قبلی را حذف کرده و با نرخ جدید محاسبه می‌کند. این عمل قابل بازگشت نیست.</p>
             </div>
             
             <form class="ui form" id="interestRateForm">
                 <div class="field">
-                    <label>نرخ سود جدید (روزانه)</label>
+                    <label>نرخ سود مشارکت جدید (روزانه)</label>
                     <div class="ui right labeled input">
                         <input type="number" id="newInterestRate" name="new_interest_rate" 
                                step="0.000000000000001" placeholder="مثال: 0.000481925679775" required>
@@ -909,7 +922,7 @@
                 <div class="field">
                     <label>توضیحات تغییر نرخ</label>
                     <textarea id="rateChangeDescription" name="description" 
-                              placeholder="دلیل تغییر نرخ سود را توضیح دهید..." rows="3"></textarea>
+                              placeholder="دلیل تغییر نرخ سود مشارکت را توضیح دهید..." rows="3"></textarea>
                 </div>
             </form>
         </div>
@@ -930,17 +943,17 @@
     <div class="ui modal" id="recalculateModal">
         <div class="header">
             <i class="refresh icon"></i>
-            محاسبه مجدد سودها
+            محاسبه مجدد سود مشارکتها
         </div>
         <div class="content">
             <div class="ui warning message">
                 <div class="header">هشدار مهم</div>
-                <p>این عملیات همه رکوردهای سود فعلی را حذف کرده و با نرخ سود فعال فعلی دوباره محاسبه می‌کند.</p>
+                <p>این عملیات همه رکوردهای سود مشارکت فعلی را حذف کرده و با نرخ سود مشارکت فعال فعلی دوباره محاسبه می‌کند.</p>
                 <p><strong>این عمل قابل بازگشت نیست.</strong></p>
             </div>
             
             <div class="ui info message">
-                <div class="header">نرخ سود فعلی</div>
+                <div class="header">نرخ سود مشارکت فعلی</div>
                 <p id="currentRateInfo">در حال بارگذاری...</p>
             </div>
         </div>
@@ -951,7 +964,7 @@
             </div>
             <div class="ui orange button" onclick="recalculateProfits()">
                 <i class="refresh icon"></i>
-                محاسبه مجدد سودها
+                محاسبه مجدد سود مشارکتها
             </div>
         </div>
     </div>
@@ -983,8 +996,8 @@
         // Transaction type mappings
         const TRANSACTION_TYPE_FORMATS = {
             'principal_deposit': '<span class="ui blue label">آورده</span>',
-            'principal_withdrawal': '<span class="ui red label">خروج از سرمایه</span>',
-            'profit_accrual': '<span class="ui green label">سود</span>'
+            'principal_withdrawal': '<span class="ui red label">برداشت</span>',
+            'profit_accrual': '<span class="ui green label">سود مشارکت</span>'
         };
         
         // Theme Management
@@ -1404,19 +1417,19 @@
                     sorter: 'string'
                 },
                 {
-                    title: 'مبلغ (ریال)',
+                    title: 'مبلغ (تومان)',
                     field: 'amount',
                     width: 180,
                     formatter: function(cell) {
                         const value = cell.getValue();
                         if (value === null || value === undefined) return '0';
-                        return parseFloat(value).toLocaleString('en-US');
+                        return (parseFloat(value) / 10).toLocaleString('en-US');
                     },
                     sorter: 'number',
                     bottomCalc: 'sum',
                     bottomCalcFormatter: function(cell) {
                         const value = cell.getValue();
-                        return '<strong>' + parseFloat(value).toLocaleString('en-US') + '</strong>';
+                        return '<strong>' + (parseFloat(value) / 10).toLocaleString('en-US') + '</strong>';
                     }
                 },
                 {
@@ -1452,8 +1465,8 @@
                 layout: "fitData",
                 responsiveLayout: "collapse",
                 pagination: true,
-                paginationSize: 25,
-                paginationSizeSelector: [10, 25, 50, 100, true],
+                paginationSize: 30,
+                paginationSizeSelector: [10, 30, 50, 100, true],
                 movableColumns: true,
                 resizableRows: true,
                 tooltipsHeader: true,
@@ -1477,7 +1490,8 @@
                     }
                 },
                 initialSort: [
-                    {column: "day_remaining", dir: "desc"}
+                    {column: "day_remaining", dir: "desc"},
+                    {column: "investor_data.first_name", dir: "asc"}
                 ],
                 locale: true,
                 langs: {
@@ -1695,7 +1709,7 @@
                 .filter(row => row.transaction_type === 'profit_accrual')
                 .reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
             
-            // محاسبه سرمایه موجود (بدون سود) = مجموع واریزها - مجموع برداشت‌ها
+            // محاسبه سرمایه موجود (بدون سود مشارکت) = مجموع واریزها - مجموع برداشت‌ها
             // const netCapital = deposits - withdrawals; //withdrawals منفی است پس به جای تفریق باید جمع بشه
             const netCapital = deposits + withdrawals; //withdrawals منفی است پس به جای تفریق باید جمع بشه
 
@@ -1986,8 +2000,8 @@
                 if (processedRow.transaction_type) {
                     const typeMapping = {
                         'principal_deposit': 'آورده',
-                        'principal_withdrawal': 'خروج از سرمایه',
-                        'profit_accrual': 'سود تعلق گرفته'
+                        'principal_withdrawal': 'برداشت',
+                        'profit_accrual': 'سود مشارکت تعلق گرفته'
                     };
                     processedRow.transaction_type_fa = typeMapping[processedRow.transaction_type] || processedRow.transaction_type;
                 }
@@ -2116,8 +2130,8 @@
                     if (processedRow.transaction_type) {
                         const typeMapping = {
                             'principal_deposit': 'آورده',
-                            'principal_withdrawal': 'خروج از سرمایه',
-                            'profit_accrual': 'سود تعلق گرفته'
+                            'principal_withdrawal': 'برداشت',
+                            'profit_accrual': 'سود مشارکت تعلق گرفته'
                         };
                         processedRow.transaction_type_fa = typeMapping[processedRow.transaction_type] || processedRow.transaction_type;
                     }
@@ -2233,8 +2247,8 @@
                     if (processedRow.transaction_type) {
                         const typeMapping = {
                             'principal_deposit': 'آورده',
-                            'principal_withdrawal': 'خروج از سرمایه',
-                            'profit_accrual': 'سود تعلق گرفته'
+                            'principal_withdrawal': 'برداشت',
+                            'profit_accrual': 'سود مشارکت تعلق گرفته'
                         };
                         processedRow.transaction_type_fa = typeMapping[processedRow.transaction_type] || processedRow.transaction_type;
                     }
@@ -2690,7 +2704,7 @@
             $('#editTransactionModal').modal('hide');
         }
         
-        // کدهای قبلی برای تغییر نرخ سود - کامنت شده برای مراجعه آینده
+        // کدهای قبلی برای تغییر نرخ سود مشارکت - کامنت شده برای مراجعه آینده
         /*
         function showInterestRateModal() {
             $('#interestRateModal').modal('show');
@@ -2705,11 +2719,11 @@
             const description = $('#rateChangeDescription').val();
             
             if (!newRate || newRate <= 0) {
-                showError('لطفاً نرخ سود معتبر وارد کنید');
+                showError('لطفاً نرخ سود مشارکت معتبر وارد کنید');
                 return;
             }
             
-            if (!confirm('آیا مطمئن هستید که می‌خواهید همه سودهای قبلی را حذف کرده و با نرخ جدید محاسبه کنید؟ این عمل قابل بازگشت نیست.')) {
+            if (!confirm('آیا مطمئن هستید که می‌خواهید همه سود مشارکتهای قبلی را حذف کرده و با نرخ جدید محاسبه کنید؟ این عمل قابل بازگشت نیست.')) {
                 return;
             }
             
@@ -2742,7 +2756,7 @@
             })
             .catch(error => {
                 console.error('Error updating interest rate:', error);
-                showError('خطا در تغییر نرخ سود: ' + error.message);
+                showError('خطا در تغییر نرخ سود مشارکت: ' + error.message);
             })
             .finally(() => {
                 updateBtn.removeClass('loading');
@@ -2752,7 +2766,7 @@
         
         // Simple Recalculate Functions
         function showRecalculateModal() {
-            // بارگذاری نرخ سود فعلی
+            // بارگذاری نرخ سود مشارکت فعلی
             loadCurrentInterestRate();
             $('#recalculateModal').modal('show');
         }
@@ -2767,7 +2781,7 @@
                 .then(data => {
                     if (data.error) {
                         document.getElementById('currentRateInfo').innerHTML = 
-                            '<span style="color: red;">هیچ نرخ سود فعالی یافت نشد</span>';
+                            '<span style="color: red;">هیچ نرخ سود مشارکت فعالی یافت نشد</span>';
                     } else {
                         const rate = (parseFloat(data.rate) * 100).toFixed(6);
                         document.getElementById('currentRateInfo').innerHTML = 
@@ -2777,12 +2791,12 @@
                 .catch(error => {
                     console.error('Error loading current rate:', error);
                     document.getElementById('currentRateInfo').innerHTML = 
-                        '<span style="color: red;">خطا در بارگذاری نرخ سود</span>';
+                        '<span style="color: red;">خطا در بارگذاری نرخ سود مشارکت</span>';
                 });
         }
         
         function recalculateProfits() {
-            if (!confirm('آیا مطمئن هستید که می‌خواهید همه سودهای فعلی را حذف کرده و دوباره محاسبه کنید؟ این عمل قابل بازگشت نیست.')) {
+            if (!confirm('آیا مطمئن هستید که می‌خواهید همه سود مشارکتهای فعلی را حذف کرده و دوباره محاسبه کنید؟ این عمل قابل بازگشت نیست.')) {
                 return;
             }
             
@@ -2813,7 +2827,7 @@
             })
             .catch(error => {
                 console.error('Error recalculating profits:', error);
-                showError('خطا در محاسبه مجدد سودها: ' + error.message);
+                showError('خطا در محاسبه مجدد سود مشارکتها: ' + error.message);
             })
             .finally(() => {
                 recalculateBtn.removeClass('loading');
