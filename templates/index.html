@@ -1,16 +1,21 @@
 {% extends "auth_base.html" %}
+{% load static %}
 {% block content %}
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card shadow-lg">
                 <div class="card-body text-center p-5">
-                    <h1 class="card-title mb-4">🏗️ سیستم مدیریت پروژه ساختمانی</h1>
-                    <p class="card-text mb-4">به سیستم مدیریت پروژه‌های ساختمانی خوش آمدید</p>
-                    
+                    {% if PROJECT_LOGO %}
+                        <div class="mb-4">
+                            <img src="{% static PROJECT_LOGO %}" alt="{{ PROJECT_LOGO_ALT }}" class="img-fluid" style="max-height: 100px; max-width: 300px;">
+                        </div>
+                    {% endif %}
+                    <h1 class="card-title mb-4">{{ PROJECT_TITLE }}</h1>
+                    <p class="card-text mb-4">{{ PROJECT_DESCRIPTION }}</p>
                     {% if user.is_authenticated %}
                         <div class="alert alert-success">
-                            <h5>سلام {{ user.first_name|default:user.username }}! 👋</h5>
+                            <h5>سلام {{ user.first_name|default:user.username }}</h5>
                             <p>شما با موفقیت وارد شده‌اید</p>
                         </div>
                         <div class="d-grid gap-2 d-md-block">

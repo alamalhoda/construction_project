@@ -190,6 +190,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'construction_project.context_processors.project_settings',
             ],
         },
     },
@@ -280,6 +281,12 @@ WHITENOISE_MANIFEST_STRICT = False  # برای فایل‌های گمشده سخ
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
+# تنظیمات پروژه سفارشی
+PROJECT_TITLE = os.environ.get('PROJECT_TITLE', '🏗️ سیستم مدیریت مالی پروژه های آرشا')
+PROJECT_DESCRIPTION = os.environ.get('PROJECT_DESCRIPTION', 'به سیستم مدیریت پروژه‌های ساختمانی خوش آمدید')
+PROJECT_LOGO = os.environ.get('PROJECT_LOGO', '')  # مسیر لوگو - اختیاری
+PROJECT_LOGO_ALT = os.environ.get('PROJECT_LOGO_ALT', 'لوگوی پروژه')  # متن جایگزین لوگو
 
 LANGUAGE_CODE = 'fa-ir'
 
