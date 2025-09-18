@@ -245,6 +245,7 @@
         }
 
         .investor-selector select {
+            font-family: 'Vazir', 'Tahoma', 'Arial', sans-serif;
             padding: 12px 20px;
             font-size: 1.1rem;
             border: 2px solid var(--primary-color);
@@ -1016,6 +1017,32 @@
     
 
     <script>
+        // تنظیم فونت پیش‌فرض Chart.js به Vazir
+        Chart.defaults.font.family = "'Vazir', 'Tahoma', 'Arial', sans-serif";
+        Chart.defaults.font.size = 12;
+        
+        // تنظیمات اضافی برای نمودارها
+        Chart.defaults.plugins.legend.labels.font = {
+            family: "'Vazir', 'Tahoma', 'Arial', sans-serif",
+            size: 13
+        };
+        Chart.defaults.plugins.tooltip.titleFont = {
+            family: "'Vazir', 'Tahoma', 'Arial', sans-serif",
+            size: 14
+        };
+        Chart.defaults.plugins.tooltip.bodyFont = {
+            family: "'Vazir', 'Tahoma', 'Arial', sans-serif",
+            size: 12
+        };
+        Chart.defaults.scales.category.ticks.font = {
+            family: "'Vazir', 'Tahoma', 'Arial', sans-serif",
+            size: 11
+        };
+        Chart.defaults.scales.linear.ticks.font = {
+            family: "'Vazir', 'Tahoma', 'Arial', sans-serif",
+            size: 11
+        };
+
         let selectedInvestor = null;
         let charts = {}; // نگهداری نمودارها
         let globalStatistics = null; // آمار کلی از API
