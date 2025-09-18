@@ -893,6 +893,10 @@
                     <h4 id="totalRatioToGrandTotal">-</h4>
                     <p>نسبت (سرمایه+سود) به (سرمایه کل+سود کل)</p>
                 </div>
+                <div class="stat-card">
+                    <h4 id="profitIndex">-</h4>
+                    <p>شاخص نفع (نسبت سود به سودکل/ نسبت سرمایه به سرمایه کل )</p>
+                </div>
             </div>
 
             <!-- Charts Section with New Grid Layout -->
@@ -1500,17 +1504,30 @@
                 const ratio = (totalBalance / globalStatistics.grand_total) * 100;
                 totalRatioToGrandTotal = ratio.toFixed(2) + '%';
             }
+            
+            // محاسبه شاخص نفع = (نسبت سود به سود کل) ÷ (نسبت سرمایه به سرمایه کل)
+            let profitIndex = '0.00';
+            if (globalStatistics && globalStatistics.net_principal > 0 && globalStatistics.total_profits > 0 && netPrincipal > 0) {
+                const capitalRatioDecimal = netPrincipal / globalStatistics.net_principal;
+                const profitRatioDecimal = totalProfit / globalStatistics.total_profits;
+                
+                if (capitalRatioDecimal > 0) {
+                    const index = profitRatioDecimal / capitalRatioDecimal;
+                    profitIndex = index.toFixed(2);
+                }
+            }
 
-            // نمایش اطلاعات (اعداد کامل برای کارت‌های آمار)
-            document.getElementById('totalPrincipal').textContent = formatNumberWithCommas(totalPrincipal);
-            document.getElementById('totalWithdrawal').textContent = formatNumberWithCommas(Math.abs(totalWithdrawal));
-            document.getElementById('netPrincipal').textContent = formatNumberWithCommas(netPrincipal);
-            document.getElementById('totalProfit').textContent = formatNumberWithCommas(totalProfit);
-            document.getElementById('totalBalance').textContent = formatNumberWithCommas(totalBalance);
+            // نمایش اطلاعات (تبدیل به تومان - تقسیم بر ۱۰)
+            document.getElementById('totalPrincipal').textContent = formatNumberWithCommas(totalPrincipal / 10);
+            document.getElementById('totalWithdrawal').textContent = formatNumberWithCommas(Math.abs(totalWithdrawal) / 10);
+            document.getElementById('netPrincipal').textContent = formatNumberWithCommas(netPrincipal / 10);
+            document.getElementById('totalProfit').textContent = formatNumberWithCommas(totalProfit / 10);
+            document.getElementById('totalBalance').textContent = formatNumberWithCommas(totalBalance / 10);
             document.getElementById('profitRatio').textContent = profitRatio + '%';
             document.getElementById('capitalRatio').textContent = capitalRatio;
             document.getElementById('profitRatioToTotal').textContent = profitRatioToTotal;
             document.getElementById('totalRatioToGrandTotal').textContent = totalRatioToGrandTotal;
+            document.getElementById('profitIndex').textContent = profitIndex;
 
             // تعیین وضعیت
             const statusElement = document.getElementById('investorStatus');
@@ -1575,11 +1592,11 @@
             const profitRatio = netPrincipal > 0 ? ((totalProfit / netPrincipal) * 100).toFixed(2) : '0.00';
 
             document.getElementById('investorName').textContent = investorId;
-            document.getElementById('totalPrincipal').textContent = formatNumberWithCommas(totalPrincipal);
-            document.getElementById('totalWithdrawal').textContent = formatNumberWithCommas(Math.abs(totalWithdrawal));
-            document.getElementById('netPrincipal').textContent = formatNumberWithCommas(netPrincipal);
-            document.getElementById('totalProfit').textContent = formatNumberWithCommas(totalProfit);
-            document.getElementById('totalBalance').textContent = formatNumberWithCommas(totalBalance);
+            document.getElementById('totalPrincipal').textContent = formatNumberWithCommas(totalPrincipal / 10);
+            document.getElementById('totalWithdrawal').textContent = formatNumberWithCommas(Math.abs(totalWithdrawal) / 10);
+            document.getElementById('netPrincipal').textContent = formatNumberWithCommas(netPrincipal / 10);
+            document.getElementById('totalProfit').textContent = formatNumberWithCommas(totalProfit / 10);
+            document.getElementById('totalBalance').textContent = formatNumberWithCommas(totalBalance / 10);
             document.getElementById('profitRatio').textContent = profitRatio + '%';
 
             // تعیین وضعیت
