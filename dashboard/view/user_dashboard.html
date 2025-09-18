@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>داشبورد کاربری</title>
+    <link rel="stylesheet" href="/static/fonts/vazir.css">
 <style>
     body {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         min-height: 100vh;
-        font-family: 'Tahoma', 'Vazir', sans-serif;
+        font-family: 'Vazir', 'Tahoma', sans-serif;
     }
     
     .dashboard-container {
@@ -241,6 +242,27 @@
         font-size: 1.1rem;
     }
     
+    /* کلاس‌های نمایش اعداد انگلیسی */
+    .english-numbers,
+    .number,
+    .amount,
+    .price,
+    .count,
+    .percentage {
+        font-variant-numeric: lining-nums;
+        unicode-bidi: bidi-override;
+        direction: ltr;
+        display: inline-block;
+        font-family: 'Vazir', 'Tahoma', monospace;
+    }
+    
+    /* جداول مالی */
+    .financial-table .number-cell {
+        font-variant-numeric: tabular-nums;
+        text-align: left;
+        direction: ltr;
+    }
+
     @media (max-width: 768px) {
         .dashboard-container {
             padding: 15px;
