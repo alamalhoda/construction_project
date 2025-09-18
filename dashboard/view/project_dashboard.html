@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>داشبورد مالی پروژه آرشا</title>
+    <title>خلاصه مالی </title>
     
     <!-- Chart.js for charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -273,6 +273,9 @@
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
             margin-bottom: 30px;
+            background-color: white;
+            border-radius: 20px;
+            padding: 20px;
         }
 
         .stat-card.interest-rate-card {
@@ -383,6 +386,31 @@
         }
 
         .stat-card.expenses-card p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+        }
+
+        .stat-card.duration-card {
+            grid-column: span 1;
+            background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 12px 40px rgba(78, 205, 196, 0.3);
+            margin: 10px;
+        }
+
+        .stat-card.duration-card i {
+            color: white;
+            font-size: 3rem;
+        }
+
+        .stat-card.duration-card h3 {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+
+        .stat-card.duration-card p {
             color: rgba(255, 255, 255, 0.9);
             font-size: 1.1rem;
         }
@@ -540,10 +568,22 @@
             font-weight: bold;
         }
 
-        .summary-table th:nth-child(7), /* نسبت سود به سود کل */
+        .summary-table th:nth-child(7), /* نسبت سرمایه به سرمایه کل */
         .summary-table td:nth-child(7) {
+            background-color: var(--capital-color-light);
+            border-left: 3px solid var(--capital-color);
+        }
+
+        .summary-table th:nth-child(8), /* نسبت سود به سود کل */
+        .summary-table td:nth-child(8) {
             background-color: var(--profit-color-light);
             border-left: 3px solid var(--profit-color);
+        }
+
+        .summary-table th:nth-child(9), /* شاخص نفع */
+        .summary-table td:nth-child(9) {
+            background-color: rgba(255, 152, 0, 0.1);
+            border-left: 3px solid #ff9800;
         }
 
         /* رنگ‌بندی ردیف خلاصه */
@@ -685,6 +725,20 @@
                 font-size: 2rem;
             }
 
+            .stat-card.duration-card {
+                grid-column: span 1;
+                transform: scale(1);
+                margin: 5px;
+            }
+
+            .stat-card.duration-card i {
+                font-size: 2.5rem;
+            }
+
+            .stat-card.duration-card h3 {
+                font-size: 2rem;
+            }
+
             .stat-card.timeline-card {
                 grid-column: span 1;
                 transform: scale(1);
@@ -712,7 +766,7 @@
             <div class="unified-header-content">
                 <h1>
                     <i class="fas fa-chart-line"></i>
-                    داشبورد مالی پروژه آرشا
+                    خلاصه مالی 
                 </h1>
                 <p class="subtitle">نمایش جامع وضعیت مالی و سرمایه‌گذاری</p>
                 <div class="navigation-links">
@@ -726,7 +780,7 @@
                     </a>
                     <a href="/dashboard/investor-profile/" class="nav-link">
                         <i class="fas fa-user-tie"></i>
-                        پروفایل سرمایه‌گذاران
+                        پروفایل مشارکت کنندگان
                     </a>
                     <a href="/dashboard/interest-rate-manager/" class="nav-link">
                         <i class="fas fa-percentage"></i>
@@ -768,19 +822,25 @@
                     <p>مجموع کل هزینه‌ها (تومان)</p>
                 </div>
                 
-                <!-- ردیف چهارم: نرخ سود و مدت پروژه -->
+                <!-- ردیف چهارم: نرخ سود -->
                 <div class="stat-card interest-rate-card">
                     <i class="fas fa-percentage"></i>
                     <h3 id="currentInterestRate">-</h3>
                     <p>نرخ سود مشارکت روزانه  (%)</p>
                 </div>
                 <div class="stat-card">
+                    <i class="fas fa-users"></i>
+                    <h3 id="totalInvestors">-</h3>
+                    <p>تعداد مشارکت کنندگان</p>
+                </div>
+                <!-- ردیف پنجم: مدت زمان پروژه -->
+                <div class="stat-card duration-card">
                     <i class="fas fa-calendar-alt"></i>
                     <h3 id="totalDays">-</h3>
                     <p>مدت زمان پروژه (روز)</p>
                 </div>
                 
-                <!-- ردیف پنجم: تاریخ‌های پروژه -->
+                <!-- ردیف ششم: تاریخ‌های پروژه -->
                 <div class="stat-card">
                     <i class="fas fa-play-circle"></i>
                     <h3 id="startDate">-</h3>
@@ -792,7 +852,7 @@
                     <p>تاریخ پایان پروژه</p>
                 </div>
                 
-                <!-- ردیف ششم: زمان‌بندی پروژه -->
+                <!-- ردیف هفتم: زمان‌بندی پروژه -->
                 <div class="stat-card timeline-card">
                     <i class="fas fa-clock"></i>
                     <h3 id="daysRemaining">-</h3>
@@ -1083,6 +1143,7 @@
             // به‌روزرسانی المان‌های HTML
             document.getElementById('totalPrincipal').textContent = currentCapital.toLocaleString('en-US');
             document.getElementById('totalProfit').textContent = Math.round(totalProfit).toLocaleString('en-US');
+            document.getElementById('totalInvestors').textContent = totalInvestors.toLocaleString('en-US');
             document.getElementById('totalDays').textContent = projectDuration.toLocaleString('en-US');
             document.getElementById('startDate').textContent = projectStartDate;
             document.getElementById('endDate').textContent = projectEndDate === '-' ? 'ادامه دارد' : projectEndDate;
@@ -1127,6 +1188,7 @@
             }
 
             console.log('آمار محاسبه شده:', {
+                totalInvestors: totalInvestors + ' نفر',
                 totalDeposits: totalDeposits.toLocaleString('en-US') + ' تومان',
                 totalWithdrawals: totalWithdrawals.toLocaleString('en-US') + ' تومان',
                 currentCapital: currentCapital.toLocaleString('en-US') + ' تومان',
@@ -1285,8 +1347,9 @@
                                 <th class="capital-header"><i class="fas fa-wallet"></i> سرمایه موجود</th>
                                 <th class="profit-header"><i class="fas fa-chart-line"></i> سود مشارکت</th>
                                 <th class="total-header"><i class="fas fa-calculator"></i> مجموع (سرمایه+سود)</th>
-                                <th>نسبت سود به سود کل</th>
                                 <th>نسبت سرمایه به سرمایه کل</th>
+                                <th>نسبت سود به سود کل</th>
+                                <th>شاخص نفع</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1320,6 +1383,18 @@
                         capitalRatio = ratio.toFixed(2) + '%';
                     }
                     
+                    // محاسبه شاخص نفع = (نسبت سود به سود کل) ÷ (نسبت سرمایه به سرمایه کل)
+                    let profitIndex = '0.00';
+                    if (globalStatistics && globalStatistics.net_principal > 0 && totalProfit > 0 && investor.net_principal > 0) {
+                        const capitalRatioDecimal = investor.net_principal / globalStatistics.net_principal;
+                        const profitRatioDecimal = investor.total_profit / totalProfit;
+                        
+                        if (capitalRatioDecimal > 0) {
+                            const index = profitRatioDecimal / capitalRatioDecimal;
+                            profitIndex = index.toFixed(2);
+                        }
+                    }
+                    
                     tableHTML += `
                         <tr>
                             <td>${investor.name}</td>
@@ -1328,8 +1403,9 @@
                             <td>${investor.net_principal.toLocaleString('en-US')}</td>
                             <td>${Math.round(investor.total_profit).toLocaleString('en-US')}</td>
                             <td>${Math.round(investor.grand_total).toLocaleString('en-US')}</td>
-                            <td style="color: #21ba45; font-weight: bold;">${profitToTotalRatio}%</td>
                             <td style="color: #667eea; font-weight: bold;">${capitalRatio}</td>
+                            <td style="color: #21ba45; font-weight: bold;">${profitToTotalRatio}%</td>
+                            <td style="color: #ff9800; font-weight: bold;">${profitIndex}</td>
                         </tr>
                     `;
                 });
@@ -1343,8 +1419,9 @@
                         <td>${summaryData.reduce((sum, inv) => sum + inv.net_principal, 0).toLocaleString('en-US')}</td>
                         <td>${Math.round(summaryData.reduce((sum, inv) => sum + inv.total_profit, 0)).toLocaleString('en-US')}</td>
                         <td>${Math.round(summaryData.reduce((sum, inv) => sum + inv.grand_total, 0)).toLocaleString('en-US')}</td>
-                        <td style="color: #21ba45; font-weight: bold;">100.00%</td>
                         <td style="color: #28a745; font-weight: bold;">100.00%</td>
+                        <td style="color: #21ba45; font-weight: bold;">100.00%</td>
+                        <td style="color: #ff9800; font-weight: bold;"></td>
                     </tr>
                 `;
 
