@@ -282,7 +282,8 @@
 
         .stat-card.interest-rate-card {
             grid-column: span 2;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(
+                83deg, #d70f70 0%, #51dd1e 100%);
             color: white;
             transform: scale(1.05);
             box-shadow: 0 12px 40px rgba(102, 126, 234, 0.3);
@@ -415,6 +416,13 @@
         .stat-card.duration-card p {
             color: rgba(255, 255, 255, 0.9);
             font-size: 1.1rem;
+        }
+
+        .stat-card.total-investors-card {
+            background: linear-gradient(228deg, #f2d906 0%, #dfb296 100%);
+            color: rgb(106, 10, 232);
+            transform: scale(1.05);
+            box-shadow: 0 12px 40px rgba(78, 205, 196, 0.3);
         }
 
         .stat-card.timeline-card {
@@ -830,10 +838,20 @@
                     <h3 id="currentInterestRate">-</h3>
                     <p>نرخ سود مشارکت روزانه  (%)</p>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card total-investors-card">
                     <i class="fas fa-users"></i>
                     <h3 id="totalInvestors">-</h3>
                     <p>تعداد مشارکت کنندگان</p>
+                    <div style="margin-top: 10px; font-size: 0.9rem;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <span style="color: var(--capital-color);">مالک:</span>
+                            <span id="ownerCount" style="font-weight: bold;">-</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: var(--profit-color);">سرمایه‌گذار:</span>
+                            <span id="investorCount" style="font-weight: bold;">-</span>
+                        </div>
+                    </div>
                 </div>
                 <!-- ردیف پنجم: مدت زمان پروژه -->
                 <div class="stat-card duration-card">
@@ -957,6 +975,7 @@
 
         // متغیر سراسری برای ذخیره آمار کلی
         let globalStatistics = null;
+        let participationStats = null;
         
         // بارگذاری همه داده‌ها از API های مختلف
         async function loadData() {
@@ -964,7 +983,7 @@
                 console.log('شروع بارگذاری داده‌ها از API...');
                 
                 // بارگذاری موازی همه داده‌ها
-                const [transactionsResponse, investorsResponse, projectsResponse, interestRateResponse, expensesResponse, timelineResponse, statisticsResponse] = await Promise.all([
+                const [transactionsResponse, investorsResponse, projectsResponse, interestRateResponse, expensesResponse, timelineResponse, statisticsResponse, participationStatsResponse] = await Promise.all([
                     fetch('/construction/api/v1/Transaction/'),
                     fetch('/construction/api/v1/Investor/'),
                     fetch('/construction/api/v1/Project/').catch(err => {
@@ -985,6 +1004,10 @@
                     }),
                     fetch('/construction/api/v1/Transaction/statistics/').catch(err => {
                         console.warn('خطا در دسترسی به API آمار کلی:', err);
+                        return { ok: false, status: 404 }; // fallback response
+                    }),
+                    fetch('/construction/api/v1/Investor/participation_stats/').catch(err => {
+                        console.warn('خطا در دسترسی به API آمار مشارکت:', err);
                         return { ok: false, status: 404 }; // fallback response
                     })
                 ]);
@@ -1052,6 +1075,15 @@
                 } else {
                     console.warn('API آمار کلی دسترسی ندارد');
                     globalStatistics = null;
+                }
+                
+                // اگر آمار مشارکت API دسترسی داشت، آن را بارگذاری کن
+                if (participationStatsResponse.ok) {
+                    participationStats = await participationStatsResponse.json();
+                    console.log('آمار مشارکت بارگذاری شدند:', participationStats);
+                } else {
+                    console.warn('API آمار مشارکت دسترسی ندارد');
+                    participationStats = null;
                 }
                 
                 console.log('داده‌ها بارگذاری شدند:', {
@@ -1176,6 +1208,18 @@
             document.getElementById('startDate').textContent = projectStartDate;
             document.getElementById('endDate').textContent = projectEndDate === '-' ? 'ادامه دارد' : projectEndDate;
             
+            // به‌روزرسانی آمار مشارکت کنندگان بر اساس نوع
+            if (participationStats) {
+                document.getElementById('ownerCount').textContent = participationStats.active_owner.toLocaleString('en-US');
+                document.getElementById('investorCount').textContent = participationStats.active_investor.toLocaleString('en-US');
+            } else {
+                // اگر API در دسترس نبود، از داده‌های محلی محاسبه کن
+                const ownerCount = allInvestors.filter(inv => inv.participation_type === 'owner').length;
+                const investorCount = allInvestors.filter(inv => inv.participation_type === 'investor').length;
+                document.getElementById('ownerCount').textContent = ownerCount.toLocaleString('en-US');
+                document.getElementById('investorCount').textContent = investorCount.toLocaleString('en-US');
+            }
+            
             // به‌روزرسانی timeline data اگر موجود باشد
             if (timelineData && timelineData.success && timelineData.timeline) {
                 const daysRemaining = timelineData.timeline.days_remaining;
@@ -1217,6 +1261,8 @@
 
             console.log('آمار محاسبه شده:', {
                 totalInvestors: totalInvestors + ' نفر',
+                ownerCount: participationStats ? participationStats.active_owner + ' نفر' : allInvestors.filter(inv => inv.participation_type === 'owner').length + ' نفر',
+                investorCount: participationStats ? participationStats.active_investor + ' نفر' : allInvestors.filter(inv => inv.participation_type === 'investor').length + ' نفر',
                 totalDeposits: totalDeposits.toLocaleString('en-US') + ' تومان',
                 totalWithdrawals: totalWithdrawals.toLocaleString('en-US') + ' تومان',
                 currentCapital: currentCapital.toLocaleString('en-US') + ' تومان',
