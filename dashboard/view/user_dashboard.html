@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>داشبورد کاربری</title>
+    <link rel="stylesheet" href="/static/fonts/vazir.css">
 <style>
     body {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         min-height: 100vh;
-        font-family: 'Tahoma', 'Vazir', sans-serif;
+        font-family: 'Vazir', 'Tahoma', sans-serif;
     }
     
     .dashboard-container {
@@ -241,6 +242,27 @@
         font-size: 1.1rem;
     }
     
+    /* کلاس‌های نمایش اعداد انگلیسی */
+    .english-numbers,
+    .number,
+    .amount,
+    .price,
+    .count,
+    .percentage {
+        font-variant-numeric: lining-nums;
+        unicode-bidi: bidi-override;
+        direction: ltr;
+        display: inline-block;
+        font-family: 'Vazir', 'Tahoma', monospace;
+    }
+    
+    /* جداول مالی */
+    .financial-table .number-cell {
+        font-variant-numeric: tabular-nums;
+        text-align: left;
+        direction: ltr;
+    }
+
     @media (max-width: 768px) {
         .dashboard-container {
             padding: 15px;
@@ -312,7 +334,7 @@
             </div>
             
             <div class="dashboard-card admin-card">
-                <span class="card-icon">💰</span>
+                <span class="card-icon">💳</span>
                 <h3 class="card-title">مدیریت تراکنش‌ها</h3>
                 <p class="card-description">
                     ثبت و مدیریت تراکنش‌های مالی و سود
@@ -323,7 +345,7 @@
             </div>
             
             <div class="dashboard-card admin-card">
-                <span class="card-icon">🏗️</span>
+                <span class="card-icon">🏢</span>
                 <h3 class="card-title">مدیریت واحدها</h3>
                 <p class="card-description">
                     مدیریت واحدهای ساختمانی و اطلاعات آن‌ها
@@ -395,7 +417,7 @@
             </div>
             
             <div class="dashboard-card user-card">
-                <span class="card-icon">💰</span>
+                <span class="card-icon">💸</span>
                 <h3 class="card-title">داشبورد هزینه‌ها</h3>
                 <p class="card-description">
                     مدیریت و نظارت بر هزینه‌های پروژه‌های ساختمانی
@@ -407,12 +429,12 @@
             
             <div class="dashboard-card user-card">
                 <span class="card-icon">👤</span>
-                <h3 class="card-title">پروفایل مشارکت کنندگان</h3>
+                <h3 class="card-title">پروفایل مالی مشارکت کنندگان</h3>
                 <p class="card-description">
-                    مشاهده پروفایل و اطلاعات مشارکت کنندگان
+                    مشاهده پروفایل و اطلاعات مالی مشارکت کنندگان
                 </p>
                 <a href="/dashboard/investor-profile/" class="card-btn secondary">
-                    پروفایل مشارکت کنندگان
+                    پروفایل مالی مشارکت کنندگان
                 </a>
             </div>
             
@@ -431,7 +453,7 @@
             </div>
             
             <div class="dashboard-card">
-                <span class="card-icon">💰</span>
+                <span class="card-icon">💳</span>
                 <h3 class="card-title">مدیریت تراکنش‌ها</h3>
                 <p class="card-description">
                     مشاهده و مدیریت تراکنش‌های مالی
@@ -442,7 +464,7 @@
             </div>
             
             <div class="dashboard-card">
-                <span class="card-icon">💸</span>
+                <span class="card-icon">📉</span>
                 <h3 class="card-title">داشبورد هزینه‌ها</h3>
                 <p class="card-description">
                     مدیریت و نظارت بر هزینه‌های پروژه‌های ساختمانی
@@ -453,13 +475,13 @@
             </div>
             
             <div class="dashboard-card">
-                <span class="card-icon">👥</span>
-                <h3 class="card-title">پروفایل مشارکت کنندگان</h3>
+                <span class="card-icon">🏦</span>
+                <h3 class="card-title">پروفایل مالی مشارکت کنندگان</h3>
                 <p class="card-description">
-                    مشاهده پروفایل و اطلاعات مشارکت کنندگان
+                    مشاهده پروفایل و اطلاعات مالی مشارکت کنندگان
                 </p>
                 <a href="/dashboard/investor-profile/" class="card-btn">
-                    پروفایل مشارکت کنندگان
+                    پروفایل مالی مشارکت کنندگان
                 </a>
             </div>
             
@@ -478,7 +500,7 @@
                 <span class="card-icon">👥</span>
                 <h3 class="card-title">مدیریت مشارکت کنندگان</h3>
                 <p class="card-description">
-                    مدیریت اطلاعات مشارکت کنندگان و پروفایل‌های مالی
+                    مدیریت مشارکت کنندگان
                 </p>
                 <a href="/construction/Investor/" class="card-btn">
                     مشاهده مشارکت کنندگان

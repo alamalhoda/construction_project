@@ -7,7 +7,7 @@
 body {
     direction: rtl;
     text-align: right;
-    font-family: 'Tahoma', 'Vazir', sans-serif;
+    font-family: 'Vazir', 'Tahoma', sans-serif;
 }
 
 /* استایل‌های فرم‌ها */
@@ -17,7 +17,7 @@ body {
 }
 
 .form-control {
-    font-family: 'Tahoma', 'Vazir', sans-serif;
+    font-family: 'Vazir', 'Tahoma', sans-serif;
 }
 
 /* استایل‌های جدول */
@@ -34,7 +34,7 @@ body {
 
 /* استایل‌های دکمه‌ها */
 .btn {
-    font-family: 'Tahoma', 'Vazir', sans-serif;
+    font-family: 'Vazir', 'Tahoma', sans-serif;
 }
 
 /* نمایش بهتر فیلدهای تاریخ در موبایل */
@@ -72,7 +72,7 @@ body {
 /* تقویم شمسی پاپ‌آپ - persian-datepicker */
 .pwt-datepicker {
     direction: rtl;
-    font-family: 'Tahoma', 'Vazir', sans-serif;
+    font-family: 'Vazir', 'Tahoma', sans-serif;
 }
 
 .pwt-datepicker-input-element {
@@ -91,7 +91,7 @@ body {
 
 .pwt-datepicker-calendar {
     direction: rtl;
-    font-family: 'Tahoma', 'Vazir', sans-serif;
+    font-family: 'Vazir', 'Tahoma', sans-serif;
     border: 1px solid #ddd;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
