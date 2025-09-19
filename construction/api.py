@@ -296,6 +296,39 @@ class InvestorViewSet(viewsets.ModelViewSet):
         
         return Response(results)
 
+    @action(detail=False, methods=['get'])
+    def participation_stats(self, request):
+        """دریافت آمار مشارکت کنندگان بر اساس نوع (مالک و سرمایه گذار)"""
+        from django.db.models import Count, Q
+        
+        # شمارش کل مشارکت کنندگان
+        total_count = models.Investor.objects.count()
+        
+        # شمارش مشارکت کنندگان بر اساس نوع
+        owner_count = models.Investor.objects.filter(participation_type='owner').count()
+        investor_count = models.Investor.objects.filter(participation_type='investor').count()
+        
+        # شمارش مشارکت کنندگان فعال (کسانی که تراکنش داشته‌اند)
+        active_investor_ids = models.Transaction.objects.values_list('investor_id', flat=True).distinct()
+        active_total = models.Investor.objects.filter(id__in=active_investor_ids).count()
+        active_owner = models.Investor.objects.filter(
+            id__in=active_investor_ids, 
+            participation_type='owner'
+        ).count()
+        active_investor = models.Investor.objects.filter(
+            id__in=active_investor_ids, 
+            participation_type='investor'
+        ).count()
+        
+        return Response({
+            'total_count': total_count,
+            'owner_count': owner_count,
+            'investor_count': investor_count,
+            'active_total': active_total,
+            'active_owner': active_owner,
+            'active_investor': active_investor
+        })
+
 
 class PeriodViewSet(viewsets.ModelViewSet):
     """ViewSet for the Period class"""
