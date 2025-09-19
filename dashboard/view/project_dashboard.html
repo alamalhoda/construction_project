@@ -790,7 +790,7 @@
                     <i class="fas fa-chart-line"></i>
                     خلاصه مالی 
                 </h1>
-                <p class="subtitle">نمایش جامع وضعیت مالی و سرمایه‌گذاری</p>
+                <p class="subtitle">نمایش جامع وضعیت مالی </p>
                 <div class="navigation-links">
                     <a href="/user-dashboard/" class="nav-link">
                         <i class="fas fa-home"></i>
@@ -870,11 +870,7 @@
                     </div>
                 </div>
                 <!-- ردیف پنجم: مدت زمان پروژه -->
-                <div class="stat-card duration-card">
-                    <i class="fas fa-calendar-alt"></i>
-                    <h3 id="totalDays">-</h3>
-                    <p>مدت زمان پروژه (روز)</p>
-                </div>
+                
                 
                 <!-- ردیف ششم: تاریخ‌های پروژه -->
                 <div class="stat-card">
@@ -887,7 +883,11 @@
                     <h3 id="endDate">-</h3>
                     <p>تاریخ پایان پروژه</p>
                 </div>
-                
+                <div class="stat-card duration-card">
+                    <i class="fas fa-calendar-alt"></i>
+                    <h3 id="totalDays">-</h3>
+                    <p>مدت زمان پروژه (روز)</p>
+                </div>
                 <!-- ردیف هفتم: زمان‌بندی پروژه -->
                 <div class="stat-card timeline-card">
                     <i class="fas fa-clock"></i>
@@ -917,22 +917,17 @@
 
 
 
-                <!-- Principal Transaction Chart -->
+                <!-- Principal Transaction Chart - موقتاً کامنت شده -->
+                <!-- 
                 <div class="chart-container">
                     <h3><i class="fas fa-chart-line"></i> روند تراکنش‌های آورده و برداشت</h3>
                     <div class="chart-wrapper">
                         <canvas id="principalTransactionChart"></canvas>
                     </div>
                 </div>
+                -->
 
 
-                <!-- Principal Trend Chart -->
-                <div class="chart-container">
-                    <h3><i class="fas fa-chart-line"></i> روند تجمعی آورده</h3>
-                    <div class="chart-wrapper">
-                        <canvas id="principalTrendChart"></canvas>
-                    </div>
-                </div>
 
                 <!-- Monthly Principal Chart -->
                 <div class="chart-container">
@@ -941,6 +936,7 @@
                         <canvas id="monthlyPrincipalChart"></canvas>
                     </div>
                 </div>
+
             </div>
 
             <!-- جدول خلاصه -->
@@ -1159,9 +1155,10 @@
             createInvestorDistributionChart();
             
             // نمودارهای جدید از investor_profile
-            createProjectPrincipalTransactionChart();
-            createProjectPrincipalTrendChart();
+            // createProjectPrincipalTransactionChart(); // موقتاً کامنت شده
+            // createProjectPrincipalTrendChart(); // حذف شده
             createProjectMonthlyPrincipalChart();
+            // createMonthlyCapitalNetChart(); // حذف شده
             
             await createSummaryTable();
         }
@@ -1531,6 +1528,8 @@
         // نمودارهای جدید برای کل پروژه (مشابه investor_profile)
         
 
+        // تابع نمودار روند تراکنش‌های آورده و برداشت - موقتاً کامنت شده
+        /*
         function createProjectPrincipalTransactionChart() {
             // فیلتر تراکنش‌های آورده و برداشت
             const transactions = chartData.filter(row => 
@@ -1619,64 +1618,9 @@
                 }
             });
         }
+        */
 
 
-        function createProjectPrincipalTrendChart() {
-            // فیلتر تراکنش‌های آورده و برداشت
-            const transactions = chartData.filter(row => 
-                row.entry_type === 'principal_deposit' || row.entry_type === 'principal_withdrawal'
-            );
-
-            // مرتب‌سازی بر اساس تاریخ
-            const sortedTransactions = transactions.sort((a, b) => a.date_shamsi.localeCompare(b.date_shamsi));
-
-            const labels = [];
-            const data = [];
-            let cumulative = 0;
-
-            sortedTransactions.forEach(transaction => {
-                const amount = parseFloat(transaction.amount || 0);
-                cumulative += amount;
-                
-                labels.push(transaction.date_shamsi);
-                data.push(cumulative / BASE_AMOUNT);
-            });
-
-            const ctx = document.getElementById('principalTrendChart').getContext('2d');
-            charts.principalTrendChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'مجموع تجمعی آورده (میلیون تومان)',
-                        data: data,
-                        borderColor: 'rgba(128, 0, 128, 1)',
-                        backgroundColor: 'rgba(128, 0, 128, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'روند تجمعی آورده کل پروژه'
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'مبلغ تجمعی (میلیون تومان)'
-                            }
-                        }
-                    }
-                }
-            });
-        }
 
         function createProjectMonthlyPrincipalChart() {
             // گروه‌بندی بر اساس ماه (فقط آورده و برداشت، بدون سود)
@@ -1702,6 +1646,12 @@
             const principalData = months.map(month => monthlyData[month].principal / BASE_AMOUNT);
             const withdrawalData = months.map(month => -monthlyData[month].withdrawal / BASE_AMOUNT);
             
+            // محاسبه سرمایه ماهانه (غیر تجمعی) - آورده منهای برداشت
+            const monthlyNetCapitalData = months.map(month => {
+                const netMonthly = monthlyData[month].principal - monthlyData[month].withdrawal;
+                return netMonthly / BASE_AMOUNT;
+            });
+            
             // محاسبه خط ترند تجمعی (بدون سود)
             const cumulativeData = [];
             let cumulative = 0;
@@ -1721,17 +1671,32 @@
                             type: 'bar',
                             label: 'آورده ماهانه (میلیون تومان)',
                             data: principalData,
-                            backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                            borderColor: 'rgba(54, 162, 235, 1)',
+                            backgroundColor: 'rgba(33, 133, 208, 0.6)', // رنگ آبی آورده از استاندارد پروژه
+                            borderColor: 'rgba(33, 133, 208, 1)',
                             borderWidth: 1
                         },
                         {
                             type: 'bar',
                             label: 'برداشت ماهانه (میلیون تومان)',
                             data: withdrawalData,
-                            backgroundColor: 'rgba(255, 99, 132, 0.6)',
-                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: 'rgba(219, 40, 40, 0.6)', // رنگ قرمز برداشت از استاندارد پروژه
+                            borderColor: 'rgba(219, 40, 40, 1)',
                             borderWidth: 1
+                        },
+                        {
+                            type: 'line',
+                            label: 'سرمایه ماهانه (آورده - برداشت) میلیون تومان',
+                            data: monthlyNetCapitalData,
+                            borderColor: 'rgba(128, 0, 128, 1)', // رنگ بنفش سرمایه از استاندارد پروژه (--capital-color)
+                            backgroundColor: 'rgba(128, 0, 128, 1)',
+                            fill: false,
+                            tension: 0.3,
+                            borderWidth: 3,
+                            pointRadius: 5,
+                            pointBackgroundColor: 'rgba(128, 0, 128, 1)',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2,
+                            yAxisID: 'y'
                         },
                         {
                             type: 'line',
@@ -1741,6 +1706,8 @@
                             backgroundColor: 'rgba(128, 0, 128, 0.1)',
                             fill: false,
                             tension: 0.4,
+                            borderWidth: 2,
+                            borderDash: [5, 5], // خط چین برای تمایز
                             yAxisID: 'y1'
                         }
                     ]
@@ -1751,7 +1718,7 @@
                     plugins: {
                         title: {
                             display: true,
-                            text: 'ماهانه آورده و برداشت کل پروژه (بدون سود)'
+                            text: 'ماهانه آورده، برداشت و سرمایه خالص (بدون سود)'
                         }
                     },
                     scales: {
@@ -1760,6 +1727,21 @@
                             title: {
                                 display: true,
                                 text: 'مبلغ ماهانه (میلیون تومان)'
+                            },
+                            grid: {
+                                color: function(context) {
+                                    // خط صفر را پررنگ‌تر نشان بده
+                                    if (context.tick.value === 0) {
+                                        return '#333333';
+                                    }
+                                    return 'rgba(0, 0, 0, 0.1)';
+                                },
+                                lineWidth: function(context) {
+                                    if (context.tick.value === 0) {
+                                        return 2;
+                                    }
+                                    return 1;
+                                }
                             }
                         },
                         y1: {
@@ -1778,6 +1760,7 @@
                 }
                 });
         }
+
 
         // بررسی بارگذاری Chart.js
         function checkChartJS() {
