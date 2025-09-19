@@ -86,11 +86,22 @@
         }
 
         body {
-            font-family: 'Vazir', 'Tahoma', 'Arial', sans-serif;
+            font-family: 'Vazir','Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             min-height: 100vh;
             padding: 20px;
+            direction: rtl;
             color: var(--text-primary);
+        }
+
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: var(--bg-card);
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
         }
 
         .container {
@@ -803,7 +814,8 @@
 </head>
 <body>
    
-    <div class="container">
+    <div class="main-container">
+        <div class="container">
         <div class="unified-header">
             <div class="unified-header-content">
                 <h1>
@@ -823,6 +835,14 @@
                     <a href="/dashboard/transaction-manager/" class="nav-link">
                         <i class="fas fa-money-bill-wave"></i>
                         مدیریت تراکنش‌ها
+                    </a>
+                    <a href="/dashboard/expense-dashboard/" class="nav-link">
+                        <i class="fas fa-chart-pie"></i>
+                        داشبورد هزینه‌ها
+                    </a>
+                    <a href="/dashboard/interest-rate-manager/" class="nav-link">
+                        <i class="fas fa-percentage"></i>
+                        مدیریت نرخ سود
                     </a>
                 </div>
             </div>
@@ -880,10 +900,11 @@
                     <h4 id="totalBalance">-</h4>
                     <p>سرمایه+سود مشارکت (تومان)</p>
                 </div>
-                <div class="stat-card">
+                <!-- کارت نسبت سود به آورده - موقتاً مخفی شده -->
+                <!-- <div class="stat-card">
                     <h4 id="profitRatio">-</h4>
                     <p>نسبت سود به آورده</p>
-                </div>
+                </div> -->
                 <div class="stat-card">
                     <h4 id="capitalRatio">-</h4>
                     <p>نسبت سرمایه به سرمایه کل</p>
@@ -932,30 +953,28 @@
                     </div>
                 </div>
 
-                <!-- Monthly Comparison Chart -->
-                <div class="chart-container half-width">
+                <!-- Monthly Principal Chart -->
+                <div class="chart-container compact">
                     <div class="chart-header">
                         <h3 class="chart-title">
-                            <i class="fas fa-chart-bar"></i>
-                            نمودار ماهانه اورده، برداشت، سود و سرمایه موجود
+                            <i class="fas fa-chart-area"></i>
+                            نمودار ماهانه آورده، برداشت و سرمایه موجود
                         </h3>
-                        <div class="chart-actions">
-                        </div>
                     </div>
                     <!-- Simple Chart Controls -->
                     <div class="simple-chart-controls">
-                        <button class="simple-control-btn" onclick="collapseChart('monthlyComparisonChart')" title="جمع/باز کردن">
+                        <button class="simple-control-btn" onclick="collapseChart('monthlyPrincipalChart')" title="جمع/باز کردن">
                             <i class="fas fa-chevron-up"></i>
                         </button>
-                        <button class="simple-control-btn" onclick="simpleToggleChart('monthlyComparisonChart')" title="مخفی/نمایش">
+                        <button class="simple-control-btn" onclick="simpleToggleChart('monthlyPrincipalChart')" title="مخفی/نمایش">
                             <i class="fas fa-eye"></i>
                         </button>
-                        <button class="simple-control-btn" onclick="simpleResizeChart('monthlyComparisonChart')" title="بزرگ/کوچک">
+                        <button class="simple-control-btn" onclick="simpleResizeChart('monthlyPrincipalChart')" title="بزرگ/کوچک">
                             <i class="fas fa-expand-alt"></i>
                         </button>
                     </div>
                     <div class="chart-wrapper">
-                        <canvas id="monthlyComparisonChart"></canvas>
+                        <canvas id="monthlyPrincipalChart"></canvas>
                     </div>
                 </div>
 
@@ -986,35 +1005,37 @@
                     </div>
                 </div>
 
-                <!-- Monthly Principal Chart -->
-                <div class="chart-container compact">
+                <!-- Monthly Comparison Chart -->
+                <div class="chart-container half-width">
                     <div class="chart-header">
                         <h3 class="chart-title">
-                            <i class="fas fa-chart-area"></i>
-                            نمودار ماهانه آورده، برداشت و سرمایه موجود
+                            <i class="fas fa-chart-bar"></i>
+                            نمودار ماهانه سرمایه بعلاوه سود موجود
                         </h3>
+                        <div class="chart-actions">
+                        </div>
                     </div>
                     <!-- Simple Chart Controls -->
                     <div class="simple-chart-controls">
-                        <button class="simple-control-btn" onclick="collapseChart('monthlyPrincipalChart')" title="جمع/باز کردن">
+                        <button class="simple-control-btn" onclick="collapseChart('monthlyComparisonChart')" title="جمع/باز کردن">
                             <i class="fas fa-chevron-up"></i>
                         </button>
-                        <button class="simple-control-btn" onclick="simpleToggleChart('monthlyPrincipalChart')" title="مخفی/نمایش">
+                        <button class="simple-control-btn" onclick="simpleToggleChart('monthlyComparisonChart')" title="مخفی/نمایش">
                             <i class="fas fa-eye"></i>
                         </button>
-                        <button class="simple-control-btn" onclick="simpleResizeChart('monthlyPrincipalChart')" title="بزرگ/کوچک">
+                        <button class="simple-control-btn" onclick="simpleResizeChart('monthlyComparisonChart')" title="بزرگ/کوچک">
                             <i class="fas fa-expand-alt"></i>
                         </button>
                     </div>
                     <div class="chart-wrapper">
-                        <canvas id="monthlyPrincipalChart"></canvas>
+                        <canvas id="monthlyComparisonChart"></canvas>
                     </div>
                 </div>
                     </div>
                 </div>
             </div>
-
-    
+        </div>
+    </div>
 
     <script>
         // تنظیم فونت پیش‌فرض Chart.js به Vazir
@@ -1511,7 +1532,8 @@
             
             const netPrincipal = totalPrincipal + totalWithdrawal; // withdrawal معمولاً منفی است
             const totalBalance = netPrincipal + totalProfit;
-            const profitRatio = netPrincipal > 0 ? ((totalProfit / netPrincipal) * 100).toFixed(2) : '0.00';
+            // محاسبه نسبت سود به آورده - موقتاً کامنت شده
+            // const profitRatio = netPrincipal > 0 ? ((totalProfit / netPrincipal) * 100).toFixed(2) : '0.00';
             
             // محاسبه نسبت سرمایه فرد به سرمایه کل (از API آمار کلی)
             let capitalRatio = '0.00%';
@@ -1552,7 +1574,8 @@
             document.getElementById('netPrincipal').textContent = formatNumberWithCommas(netPrincipal / 10);
             document.getElementById('totalProfit').textContent = formatNumberWithCommas(totalProfit / 10);
             document.getElementById('totalBalance').textContent = formatNumberWithCommas(totalBalance / 10);
-            document.getElementById('profitRatio').textContent = profitRatio + '%';
+            // نمایش نسبت سود به آورده - موقتاً کامنت شده
+            // document.getElementById('profitRatio').textContent = profitRatio + '%';
             document.getElementById('capitalRatio').textContent = capitalRatio;
             document.getElementById('profitRatioToTotal').textContent = profitRatioToTotal;
             document.getElementById('totalRatioToGrandTotal').textContent = totalRatioToGrandTotal;
@@ -1578,8 +1601,8 @@
                 profitRatioToTotal: profitRatioToTotal,
                 totalRatioToGrandTotal: totalRatioToGrandTotal,
                 totalProfit: totalProfit / BASE_AMOUNT,
-                totalBalance: totalBalance / BASE_AMOUNT,
-                profitRatio: profitRatio
+                totalBalance: totalBalance / BASE_AMOUNT
+                // profitRatio: profitRatio  // موقتاً کامنت شده
             });
         }
 
@@ -1618,7 +1641,8 @@
             
             const netPrincipal = totalPrincipal + totalWithdrawal; // withdrawal معمولاً منفی است
             const totalBalance = netPrincipal + totalProfit;
-            const profitRatio = netPrincipal > 0 ? ((totalProfit / netPrincipal) * 100).toFixed(2) : '0.00';
+            // محاسبه نسبت سود به آورده - موقتاً کامنت شده
+            // const profitRatio = netPrincipal > 0 ? ((totalProfit / netPrincipal) * 100).toFixed(2) : '0.00';
 
             document.getElementById('investorName').textContent = investorId;
             document.getElementById('totalPrincipal').textContent = formatNumberWithCommas(totalPrincipal / 10);
@@ -1626,7 +1650,8 @@
             document.getElementById('netPrincipal').textContent = formatNumberWithCommas(netPrincipal / 10);
             document.getElementById('totalProfit').textContent = formatNumberWithCommas(totalProfit / 10);
             document.getElementById('totalBalance').textContent = formatNumberWithCommas(totalBalance / 10);
-            document.getElementById('profitRatio').textContent = profitRatio + '%';
+            // نمایش نسبت سود به آورده - موقتاً کامنت شده
+            // document.getElementById('profitRatio').textContent = profitRatio + '%';
 
             // تعیین وضعیت
             const statusElement = document.getElementById('investorStatus');
@@ -1755,10 +1780,10 @@
                         },
                         {
                             type: 'line',
-                            label: 'سرمایه موجود (میلیون تومان)',
+                            label: 'سرمایه + سود (میلیون تومان)',
                             data: cumulativeTotals,
-                            borderColor: 'rgba(128, 128, 128, 1)',
-                            backgroundColor: 'rgba(128, 128, 128, 0.2)',
+                            borderColor: 'rgba(90, 0, 90, 1)',
+                            backgroundColor: 'rgba(90, 0, 90, 0.5)',
                             borderWidth: 3,
                             fill: false,
                             tension: 0.1,
@@ -1772,7 +1797,7 @@
                     plugins: {
                         title: {
                             display: true,
-                            text: 'نمودار ماهانه آورده، برداشت، سود و سرمایه موجود'
+                            text: 'نمودار ماهانه سرمایه بعلاوه سود موجود'
                         },
                         legend: { position: 'top' }
                     },
