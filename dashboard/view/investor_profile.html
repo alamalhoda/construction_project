@@ -953,30 +953,28 @@
                     </div>
                 </div>
 
-                <!-- Monthly Comparison Chart -->
-                <div class="chart-container half-width">
+                <!-- Monthly Principal Chart -->
+                <div class="chart-container compact">
                     <div class="chart-header">
                         <h3 class="chart-title">
-                            <i class="fas fa-chart-bar"></i>
-                            نمودار ماهانه اورده، برداشت، سود و سرمایه موجود
+                            <i class="fas fa-chart-area"></i>
+                            نمودار ماهانه آورده، برداشت و سرمایه موجود
                         </h3>
-                        <div class="chart-actions">
-                        </div>
                     </div>
                     <!-- Simple Chart Controls -->
                     <div class="simple-chart-controls">
-                        <button class="simple-control-btn" onclick="collapseChart('monthlyComparisonChart')" title="جمع/باز کردن">
+                        <button class="simple-control-btn" onclick="collapseChart('monthlyPrincipalChart')" title="جمع/باز کردن">
                             <i class="fas fa-chevron-up"></i>
                         </button>
-                        <button class="simple-control-btn" onclick="simpleToggleChart('monthlyComparisonChart')" title="مخفی/نمایش">
+                        <button class="simple-control-btn" onclick="simpleToggleChart('monthlyPrincipalChart')" title="مخفی/نمایش">
                             <i class="fas fa-eye"></i>
                         </button>
-                        <button class="simple-control-btn" onclick="simpleResizeChart('monthlyComparisonChart')" title="بزرگ/کوچک">
+                        <button class="simple-control-btn" onclick="simpleResizeChart('monthlyPrincipalChart')" title="بزرگ/کوچک">
                             <i class="fas fa-expand-alt"></i>
                         </button>
                     </div>
                     <div class="chart-wrapper">
-                        <canvas id="monthlyComparisonChart"></canvas>
+                        <canvas id="monthlyPrincipalChart"></canvas>
                     </div>
                 </div>
 
@@ -1007,28 +1005,30 @@
                     </div>
                 </div>
 
-                <!-- Monthly Principal Chart -->
-                <div class="chart-container compact">
+                <!-- Monthly Comparison Chart -->
+                <div class="chart-container half-width">
                     <div class="chart-header">
                         <h3 class="chart-title">
-                            <i class="fas fa-chart-area"></i>
-                            نمودار ماهانه آورده، برداشت و سرمایه موجود
+                            <i class="fas fa-chart-bar"></i>
+                            نمودار ماهانه سرمایه بعلاوه سود موجود
                         </h3>
+                        <div class="chart-actions">
+                        </div>
                     </div>
                     <!-- Simple Chart Controls -->
                     <div class="simple-chart-controls">
-                        <button class="simple-control-btn" onclick="collapseChart('monthlyPrincipalChart')" title="جمع/باز کردن">
+                        <button class="simple-control-btn" onclick="collapseChart('monthlyComparisonChart')" title="جمع/باز کردن">
                             <i class="fas fa-chevron-up"></i>
                         </button>
-                        <button class="simple-control-btn" onclick="simpleToggleChart('monthlyPrincipalChart')" title="مخفی/نمایش">
+                        <button class="simple-control-btn" onclick="simpleToggleChart('monthlyComparisonChart')" title="مخفی/نمایش">
                             <i class="fas fa-eye"></i>
                         </button>
-                        <button class="simple-control-btn" onclick="simpleResizeChart('monthlyPrincipalChart')" title="بزرگ/کوچک">
+                        <button class="simple-control-btn" onclick="simpleResizeChart('monthlyComparisonChart')" title="بزرگ/کوچک">
                             <i class="fas fa-expand-alt"></i>
                         </button>
                     </div>
                     <div class="chart-wrapper">
-                        <canvas id="monthlyPrincipalChart"></canvas>
+                        <canvas id="monthlyComparisonChart"></canvas>
                     </div>
                 </div>
                     </div>
@@ -1782,8 +1782,8 @@
                             type: 'line',
                             label: 'سرمایه موجود (میلیون تومان)',
                             data: cumulativeTotals,
-                            borderColor: 'rgba(128, 128, 128, 1)',
-                            backgroundColor: 'rgba(128, 128, 128, 0.2)',
+                            borderColor: 'rgba(128, 0, 128, 1)',
+                            backgroundColor: 'rgba(128, 0, 128, 0.2)',
                             borderWidth: 3,
                             fill: false,
                             tension: 0.1,
@@ -1797,7 +1797,7 @@
                     plugins: {
                         title: {
                             display: true,
-                            text: 'نمودار ماهانه آورده، برداشت، سود و سرمایه موجود'
+                            text: 'نمودار ماهانه سرمایه بعلاوه سود موجود'
                         },
                         legend: { position: 'top' }
                     },
