@@ -487,7 +487,7 @@ class Expense(models.Model):
     """
     EXPENSE_TYPES = [
         ('project_manager', 'مدیر پروژه'),
-        ('facilities_manager', 'مسئول تأسیسات'),
+        ('facilities_manager', 'سرپرست کارگاه'),
         ('procurement', 'کارپرداز'),
         ('warehouse', 'انباردار'),
         ('construction_contractor', 'پیمان ساختمان'),

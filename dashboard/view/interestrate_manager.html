@@ -35,11 +35,106 @@
         }
 
         body {
+            font-family: 'Vazir','Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            font-family: 'Vazir', 'Tahoma', sans-serif;
             direction: rtl;
             text-align: right;
+            padding: 20px;
+            color: var(--text-primary);
+        }
+
+        /* Unified Header Design */
+        .unified-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            border-radius: 20px 20px 0 0;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .unified-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.05)"/><circle cx="10" cy="60" r="0.5" fill="rgba(255,255,255,0.05)"/><circle cx="90" cy="40" r="0.5" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .unified-header-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+
+        .unified-header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            font-weight: 300;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .unified-header h1 i {
+            font-size: 2.5rem;
+            opacity: 0.9;
+        }
+
+        .unified-header .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 25px;
+            font-weight: 300;
+        }
+
+        .unified-header .navigation-links {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .unified-header .nav-link {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .unified-header .nav-link:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .unified-header .nav-link i {
+            font-size: 1.1rem;
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--bg-card);
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
         }
 
         .dashboard-container {
@@ -365,6 +460,36 @@
                 padding: 10px;
             }
             
+            .unified-header {
+                padding: 25px 20px;
+                border-radius: 15px 15px 0 0;
+            }
+
+            .unified-header h1 {
+                font-size: 2.2rem;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .unified-header h1 i {
+                font-size: 2rem;
+            }
+
+            .unified-header .subtitle {
+                font-size: 1.1rem;
+            }
+
+            .unified-header .navigation-links {
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .unified-header .nav-link {
+                padding: 10px 20px;
+                font-size: 0.95rem;
+            }
+            
             .main-content {
                 padding: 20px;
             }
@@ -387,29 +512,38 @@
     </style>
 </head>
 <body>
-    <div class="dashboard-container">
-        <!-- Header -->
-        <div class="dashboard-header">
-            <h1><i class="fas fa-percentage"></i> مدیریت نرخ سود</h1>
-            <p>مشاهده و مدیریت نرخ‌های سود روزانه پروژه</p>
-            
-            <!-- Navigation Menu -->
-            <div class="navigation-menu" style="margin-top: 20px;">
-                <a href="/user-dashboard/" class="nav-btn">
-                    <i class="fas fa-home"></i> صفحه اصلی
-                </a>
-                <a href="/dashboard/project/" class="nav-btn">
-                    <i class="fas fa-chart-line"></i> داشبورد پروژه
-                </a>
-                <a href="/dashboard/transaction-manager/" class="nav-btn">
-                    <i class="fas fa-money-bill-wave"></i> مدیریت تراکنش‌ها
-                </a>
-                <a href="/dashboard/investor-profile/" class="nav-btn">
-                    <i class="fas fa-user-tie"></i> پروفایل سرمایه‌گذاران
-                </a>
-                <a href="/dashboard/expense-dashboard/" class="nav-btn">
-                    <i class="fas fa-chart-pie"></i> داشبورد هزینه‌ها
-                </a>
+    <div class="main-container">
+        <div class="dashboard-container">
+        <!-- Unified Header Section -->
+        <div class="unified-header">
+            <div class="unified-header-content">
+                <h1>
+                    <i class="fas fa-percentage"></i>
+                    مدیریت نرخ سود
+                </h1>
+                <p class="subtitle">مشاهده و مدیریت نرخ‌های سود مشارکت پروژه</p>
+                <div class="navigation-links">
+                    <a href="/user-dashboard/" class="nav-link">
+                        <i class="fas fa-home"></i>
+                        صفحه اصلی
+                    </a>
+                    <a href="/dashboard/project/" class="nav-link">
+                        <i class="fas fa-chart-line"></i>
+خلاصه مالی  
+                     </a>
+                    <a href="/dashboard/transaction-manager/" class="nav-link">
+                        <i class="fas fa-money-bill-wave"></i>
+                        مدیریت تراکنش‌ها
+                    </a>
+                    <a href="/dashboard/investor-profile/" class="nav-link">
+                        <i class="fas fa-user-tie"></i>
+                        پروفایل مالی مشارکت کنندگان
+                    </a>
+                    <a href="/dashboard/expense-dashboard/" class="nav-link">
+                        <i class="fas fa-chart-pie"></i>
+                        داشبورد هزینه‌ها
+                    </a>
+                </div>
             </div>
         </div>
 
@@ -527,6 +661,7 @@
                 </div>
             </div>
         </div>
+    </div>
     </div>
 
     <!-- Scripts -->
