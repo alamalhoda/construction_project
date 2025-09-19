@@ -125,11 +125,22 @@
         }
 
         body {
-            font-family: 'Vazir', 'Tahoma', 'Arial', sans-serif;
+            font-family: 'Vazir','Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             min-height: 100vh;
             padding: 20px;
+            direction: rtl;
             color: var(--text-primary);
+        }
+
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: var(--bg-card);
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
         }
 
         .container {
@@ -630,7 +641,7 @@
 
         .loading {
             text-align: center;
-            color: white;
+            color: rgb(30, 5, 5);
             font-size: 1.2rem;
             margin: 50px 0;
         }
@@ -771,7 +782,8 @@
         <span id="themeText">حالت تیره</span>
     </button>
 
-    <div class="container">
+    <div class="main-container">
+        <div class="container">
         <div class="unified-header">
             <div class="unified-header-content">
                 <h1>
@@ -791,6 +803,10 @@
                     <a href="/dashboard/investor-profile/" class="nav-link">
                         <i class="fas fa-user-tie"></i>
                         پروفایل مشارکت کنندگان
+                    </a>
+                    <a href="/dashboard/expense-dashboard/" class="nav-link">
+                        <i class="fas fa-chart-pie"></i>
+                        داشبورد هزینه‌ها
                     </a>
                     <a href="/dashboard/interest-rate-manager/" class="nav-link">
                         <i class="fas fa-percentage"></i>
@@ -933,6 +949,7 @@
                 <div id="summaryTable"></div>
             </div>
         </div>
+    </div>
     </div>
 
     <script>
