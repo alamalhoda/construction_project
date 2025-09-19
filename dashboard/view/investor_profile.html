@@ -880,10 +880,11 @@
                     <h4 id="totalBalance">-</h4>
                     <p>سرمایه+سود مشارکت (تومان)</p>
                 </div>
-                <div class="stat-card">
+                <!-- کارت نسبت سود به آورده - موقتاً مخفی شده -->
+                <!-- <div class="stat-card">
                     <h4 id="profitRatio">-</h4>
                     <p>نسبت سود به آورده</p>
-                </div>
+                </div> -->
                 <div class="stat-card">
                     <h4 id="capitalRatio">-</h4>
                     <p>نسبت سرمایه به سرمایه کل</p>
@@ -1511,7 +1512,8 @@
             
             const netPrincipal = totalPrincipal + totalWithdrawal; // withdrawal معمولاً منفی است
             const totalBalance = netPrincipal + totalProfit;
-            const profitRatio = netPrincipal > 0 ? ((totalProfit / netPrincipal) * 100).toFixed(2) : '0.00';
+            // محاسبه نسبت سود به آورده - موقتاً کامنت شده
+            // const profitRatio = netPrincipal > 0 ? ((totalProfit / netPrincipal) * 100).toFixed(2) : '0.00';
             
             // محاسبه نسبت سرمایه فرد به سرمایه کل (از API آمار کلی)
             let capitalRatio = '0.00%';
@@ -1552,7 +1554,8 @@
             document.getElementById('netPrincipal').textContent = formatNumberWithCommas(netPrincipal / 10);
             document.getElementById('totalProfit').textContent = formatNumberWithCommas(totalProfit / 10);
             document.getElementById('totalBalance').textContent = formatNumberWithCommas(totalBalance / 10);
-            document.getElementById('profitRatio').textContent = profitRatio + '%';
+            // نمایش نسبت سود به آورده - موقتاً کامنت شده
+            // document.getElementById('profitRatio').textContent = profitRatio + '%';
             document.getElementById('capitalRatio').textContent = capitalRatio;
             document.getElementById('profitRatioToTotal').textContent = profitRatioToTotal;
             document.getElementById('totalRatioToGrandTotal').textContent = totalRatioToGrandTotal;
@@ -1578,8 +1581,8 @@
                 profitRatioToTotal: profitRatioToTotal,
                 totalRatioToGrandTotal: totalRatioToGrandTotal,
                 totalProfit: totalProfit / BASE_AMOUNT,
-                totalBalance: totalBalance / BASE_AMOUNT,
-                profitRatio: profitRatio
+                totalBalance: totalBalance / BASE_AMOUNT
+                // profitRatio: profitRatio  // موقتاً کامنت شده
             });
         }
 
@@ -1618,7 +1621,8 @@
             
             const netPrincipal = totalPrincipal + totalWithdrawal; // withdrawal معمولاً منفی است
             const totalBalance = netPrincipal + totalProfit;
-            const profitRatio = netPrincipal > 0 ? ((totalProfit / netPrincipal) * 100).toFixed(2) : '0.00';
+            // محاسبه نسبت سود به آورده - موقتاً کامنت شده
+            // const profitRatio = netPrincipal > 0 ? ((totalProfit / netPrincipal) * 100).toFixed(2) : '0.00';
 
             document.getElementById('investorName').textContent = investorId;
             document.getElementById('totalPrincipal').textContent = formatNumberWithCommas(totalPrincipal / 10);
@@ -1626,7 +1630,8 @@
             document.getElementById('netPrincipal').textContent = formatNumberWithCommas(netPrincipal / 10);
             document.getElementById('totalProfit').textContent = formatNumberWithCommas(totalProfit / 10);
             document.getElementById('totalBalance').textContent = formatNumberWithCommas(totalBalance / 10);
-            document.getElementById('profitRatio').textContent = profitRatio + '%';
+            // نمایش نسبت سود به آورده - موقتاً کامنت شده
+            // document.getElementById('profitRatio').textContent = profitRatio + '%';
 
             // تعیین وضعیت
             const statusElement = document.getElementById('investorStatus');
