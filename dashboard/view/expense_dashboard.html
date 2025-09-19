@@ -511,6 +511,9 @@
                         داشبورد هزینه‌ها
                     </h1>
                     <p class="subtitle">مدیریت و نظارت بر هزینه‌های پروژه</p>
+                    <div id="projectName" class="project-name-display" style="margin-top: 10px; font-size: 16px; color: var(--primary-color); font-weight: 500;">
+                        در حال بارگذاری...
+                    </div>
                     <div class="navigation-links">
                         <a href="/user-dashboard/" class="nav-link">
                             <i class="fas fa-home"></i>
@@ -618,7 +621,7 @@
                 document.getElementById('loadingSpinner').style.display = 'block';
                 document.getElementById('tableContainer').style.display = 'none';
 
-                const response = await fetch('/api/api/v1/Expense/dashboard_data/', {
+                const response = await fetch('/api/v1/Expense/dashboard_data/', {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -630,7 +633,7 @@
 
                 if (result.success) {
                     dashboardData = result.data;
-                    document.getElementById('projectName').textContent = `پروژه: ${dashboardData.project_name}`;
+                    // document.getElementById('projectName').textContent = `پروژه: ${dashboardData.project_name}`;
                     buildTable();
                     document.getElementById('loadingSpinner').style.display = 'none';
                     document.getElementById('tableContainer').style.display = 'block';
