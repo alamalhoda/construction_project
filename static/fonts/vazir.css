@@ -1,0 +1,96 @@
+/**
+ * فونت وزیر - Vazir Font
+ * طراحی شده توسط صابر راستی‌کردار
+ * بر اساس فونت Tahoma بهبود یافته برای فارسی
+ */
+
+/* وزیر - نسخه معمولی */
+@font-face {
+    font-family: 'Vazir';
+    src: url('Vazir-Regular.woff2') format('woff2'),
+         url('Vazir-Regular.woff') format('woff');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* وزیر - نسخه ضخیم */
+@font-face {
+    font-family: 'Vazir';
+    src: url('Vazir-Bold.woff2') format('woff2'),
+         url('Vazir-Bold.woff') format('woff');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* وزیر - نسخه نیمه‌ضخیم */
+@font-face {
+    font-family: 'Vazir';
+    src: url('Vazir-Medium.woff2') format('woff2'),
+         url('Vazir-Medium.woff') format('woff');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* وزیر - نسخه نازک */
+@font-face {
+    font-family: 'Vazir';
+    src: url('Vazir-Light.woff2') format('woff2'),
+         url('Vazir-Light.woff') format('woff');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* تنظیمات کلی برای فونت وزیر */
+.vazir-font {
+    font-family: 'Vazir', 'Tahoma', Arial, sans-serif;
+    font-feature-settings: 'kern' 1;
+    text-rendering: optimizeLegibility;
+}
+
+/* کلاس‌های مختلف وزن */
+.vazir-light {
+    font-family: 'Vazir', 'Tahoma', Arial, sans-serif;
+    font-weight: 300;
+}
+
+.vazir-regular {
+    font-family: 'Vazir', 'Tahoma', Arial, sans-serif;
+    font-weight: 400;
+}
+
+.vazir-medium {
+    font-family: 'Vazir', 'Tahoma', Arial, sans-serif;
+    font-weight: 500;
+}
+
+.vazir-bold {
+    font-family: 'Vazir', 'Tahoma', Arial, sans-serif;
+    font-weight: 700;
+}
+
+/* اطمینان از نمایش اعداد انگلیسی */
+.english-numbers,
+.number,
+.amount,
+.price,
+.count {
+    font-variant-numeric: lining-nums;
+    unicode-bidi: bidi-override;
+    direction: ltr;
+    display: inline-block;
+}
+
+/* تنظیمات برای جداول مالی */
+.financial-table {
+    font-family: 'Vazir', 'Tahoma', Arial, sans-serif;
+}
+
+.financial-table .number-cell {
+    font-variant-numeric: tabular-nums;
+    text-align: left;
+    direction: ltr;
+}
