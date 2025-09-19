@@ -283,7 +283,7 @@ WHITENOISE_MANIFEST_STRICT = False  # برای فایل‌های گمشده سخ
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 # تنظیمات پروژه سفارشی
-PROJECT_TITLE = os.environ.get('PROJECT_TITLE', '🏗️ سیستم مدیریت مالی پروژه های آرشا')
+PROJECT_TITLE = os.environ.get('PROJECT_TITLE', 'سیستم مدیریت مالی پروژه های آرشا')
 PROJECT_DESCRIPTION = os.environ.get('PROJECT_DESCRIPTION', 'به سیستم مدیریت پروژه‌های ساختمانی خوش آمدید')
 PROJECT_LOGO = os.environ.get('PROJECT_LOGO', '')  # مسیر لوگو - اختیاری
 PROJECT_LOGO_ALT = os.environ.get('PROJECT_LOGO_ALT', 'لوگوی پروژه')  # متن جایگزین لوگو

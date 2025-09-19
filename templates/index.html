@@ -11,7 +11,7 @@
                             <img src="{% static PROJECT_LOGO %}" alt="{{ PROJECT_LOGO_ALT }}" class="img-fluid" style="max-height: 100px; max-width: 300px;">
                         </div>
                     {% endif %}
-                    <h1 class="card-title mb-4">{{ PROJECT_TITLE }}</h1>
+                    <h1 class="card-title mb-4" style="color: purple;">{{ PROJECT_TITLE }}</h1>
                     <p class="card-text mb-4">{{ PROJECT_DESCRIPTION }}</p>
                     {% if user.is_authenticated %}
                         <div class="alert alert-success">
