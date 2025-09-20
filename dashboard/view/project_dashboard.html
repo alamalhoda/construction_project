@@ -43,7 +43,7 @@
             --withdrawal-color-light: rgba(219, 40, 40, 0.1);
             --profit-color: #21ba45;            /* سبز - سود مشارکت */
             --profit-color-light: rgba(33, 186, 69, 0.1);
-            --capital-color: #667eea;           /* بنفش - سرمایه موجود */
+            --capital-color: #9575cd;           /* بنفش - سرمایه موجود */
             --capital-color-light: rgba(102, 126, 234, 0.1);
             --expense-color: #dc3545;           /* قرمز تیره - هزینه‌ها */
             --expense-color-light: rgba(220, 53, 69, 0.1);
@@ -296,8 +296,8 @@
             background: linear-gradient(
                 83deg, #d70f70 0%, #51dd1e 100%);
             color: white;
-            transform: scale(1.05);
             box-shadow: 0 12px 40px rgba(102, 126, 234, 0.3);
+            margin: 10px;
         }
 
         .stat-card.interest-rate-card i {
@@ -318,7 +318,7 @@
 
         .stat-card.principal-card {
             grid-column: span 2;
-            background: linear-gradient(135deg, var(--capital-color) 0%, var(--secondary-color) 100%);
+            background: linear-gradient(135deg, var(--capital-color) 0%, var(--capital-color) 100%);
             color: white;
             box-shadow: 0 12px 40px var(--capital-color-light);
             margin: 10px;
@@ -408,7 +408,7 @@
             grid-column: span 1;
             background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
             color: white;
-            transform: scale(1.05);
+            transform: scale(1.0);
             box-shadow: 0 12px 40px rgba(78, 205, 196, 0.3);
             margin: 10px;
         }
@@ -432,15 +432,17 @@
         .stat-card.total-investors-card {
             background: linear-gradient(228deg, #f2d906 0%, #dfb296 100%);
             color: rgb(106, 10, 232);
-            transform: scale(1.05);
+            transform: scale(1.0);
             box-shadow: 0 12px 40px rgba(78, 205, 196, 0.3);
+            margin: 10px;
         }
 
         .stat-card.timeline-card {
             background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
             color: white;
-            transform: scale(1.05);
+            transform: scale(1.0);
             box-shadow: 0 12px 40px rgba(78, 205, 196, 0.3);
+            margin: 10px;
         }
 
         .stat-card.timeline-card i {
@@ -467,6 +469,12 @@
             text-align: center;
             transition: transform 0.3s ease;
             border: 1px solid var(--border-color);
+            margin: 10px;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
 
         .stat-card:hover {
@@ -831,7 +839,7 @@
                 <div class="stat-card principal-card">
                     <i class="fas fa-money-bill-wave"></i>
                     <h3 id="totalPrincipal">-</h3>
-                    <p>سرمایه موجود (تومان)</p>
+                    <p> کل سرمایه موجود پروژه(تومان) </p>
                 </div>
                 
                 <!-- ردیف دوم: کل سود مشارکت -->
