@@ -1,4 +1,9 @@
 ---
+description:
+globs:
+alwaysApply: true
+---
+---
 alwaysApply: false
 ---
 # استاندارد رنگ‌بندی مالی پروژه
