@@ -24,6 +24,8 @@
             --danger-color: #dc3545;
             --warning-color: #ffc107;
             --info-color: #17a2b8;
+            --gold-color: #ffd700;
+            --gold-color-light: rgba(255, 215, 0, 0.1);
             
             /* Background Colors */
             --bg-primary: #f8f9fa;
@@ -58,6 +60,8 @@
             --danger-color: #dc3545;
             --warning-color: #ffc107;
             --info-color: #17a2b8;
+            --gold-color: #ffd700;
+            --gold-color-light: rgba(255, 215, 0, 0.15);
             
             /* Dark Background Colors */
             --bg-primary: #121212;
@@ -646,6 +650,41 @@
             margin: 0;
         }
 
+        /* Golden Profit Index Card */
+        .stat-card.profit-index-card {
+            background: linear-gradient(135deg, var(--gold-color-light) 0%, var(--bg-card) 100%);
+            border: 2px solid var(--gold-color);
+            box-shadow: 0 8px 25px var(--gold-color-light);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card.profit-index-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--gold-color), #ffed4e);
+        }
+
+        .stat-card.profit-index-card h4 {
+            color: var(--gold-color);
+            text-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
+            font-weight: 800;
+        }
+
+        .stat-card.profit-index-card p {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .stat-card.profit-index-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px var(--gold-color-light);
+        }
+
         /* Responsive Breakpoints */
         @media (max-width: 1200px) {
             .charts-grid {
@@ -858,7 +897,7 @@
 
         <div class="dashboard-layout">
         <div class="investor-selector">
-            <h3><i class="fas fa-search"></i> انتخاب سرمایه‌گذار</h3>
+            <h3><i class="fas fa-search"></i> انتخاب مشارکت کننده</h3>
             <select id="investorSelect">
                 <option value="">-- انتخاب کنید --</option>
             </select>
@@ -917,7 +956,7 @@
                     <h4 id="totalRatioToGrandTotal">-</h4>
                     <p>نسبت (سرمایه+سود) به (سرمایه کل+سود کل)</p>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card profit-index-card">
                     <h4 id="profitIndex">-</h4>
                     <p>شاخص نفع (نسبت سود به سودکل/ نسبت سرمایه به سرمایه کل )</p>
                 </div>
