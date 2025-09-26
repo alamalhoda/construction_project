@@ -7,6 +7,8 @@
     
     <!-- Chart.js for charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SheetJS for Excel export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Vazir Font CSS -->
@@ -647,6 +649,78 @@
             color: var(--total-color) !important;
         }
 
+        /* استایل برای header جدول خلاصه */
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .table-header h3 {
+            margin: 0;
+            flex: 1;
+        }
+
+        /* استایل دکمه Excel */
+        .excel-export-btn {
+            background: linear-gradient(135deg, #1e7e34 0%, #28a745 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Vazir', 'Tahoma', 'Arial', sans-serif;
+        }
+
+        .excel-export-btn:hover {
+            background: linear-gradient(135deg, #28a745 0%, #34ce57 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+        }
+
+        .excel-export-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(40, 167, 69, 0.3);
+        }
+
+        .excel-export-btn i {
+            font-size: 16px;
+        }
+
+        /* حالت تاریک برای دکمه Excel */
+        [data-theme="dark"] .excel-export-btn {
+            background: linear-gradient(135deg, #28a745 0%, #34ce57 100%);
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+        }
+
+        [data-theme="dark"] .excel-export-btn:hover {
+            background: linear-gradient(135deg, #34ce57 0%, #40d65a 100%);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.5);
+        }
+
+        /* ریسپانسیو برای موبایل */
+        @media (max-width: 768px) {
+            .table-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .excel-export-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
         .loading {
             text-align: center;
             color: rgb(30, 5, 5);
@@ -949,7 +1023,12 @@
 
             <!-- جدول خلاصه -->
             <div class="table-container">
-                <h3><i class="fas fa-table"></i>خلاصه مشارکت کنندگان (تومان)</h3>
+                <div class="table-header">
+                    <h3><i class="fas fa-table"></i>خلاصه مشارکت کنندگان (تومان)</h3>
+                    <button id="exportExcelBtn" class="excel-export-btn" onclick="exportSummaryToExcel()">
+                        <i class="fas fa-file-excel"></i> دریافت Excel
+                    </button>
+                </div>
                 <div id="summaryTable"></div>
             </div>
         </div>
@@ -1529,6 +1608,336 @@
                 document.getElementById('summaryTable').innerHTML = 
                     '<p style="text-align: center; color: #d32f2f;">خطا در بارگذاری جدول خلاصه</p>';
             }
+        }
+
+        // تابع export به Excel
+        async function exportSummaryToExcel() {
+            try {
+                console.log('📊 شروع export جدول خلاصه به Excel...');
+                
+                // دریافت داده‌های خلاصه از سرور
+                const response = await fetch('/construction/api/v1/Investor/summary/');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const summaryData = await response.json();
+                console.log('✅ داده‌های خلاصه برای Excel دریافت شد:', summaryData);
+
+                // محاسبه مجموع کل سود
+                const totalProfitFromSummary = summaryData.reduce((sum, inv) => sum + inv.total_profit, 0);
+                let totalProfit = 0;
+                if (globalStatistics && globalStatistics.total_profit > 0) {
+                    totalProfit = globalStatistics.total_profit;
+                } else {
+                    totalProfit = totalProfitFromSummary;
+                }
+
+                // ایجاد workbook
+                const wb = XLSX.utils.book_new();
+                
+                // تعریف هدرها
+                const headers = [
+                    'نام مشارکت کننده',
+                    'آورده (تومان)',
+                    'برداشت (تومان)', 
+                    'سرمایه موجود (تومان)',
+                    'سود مشارکت (تومان)',
+                    'مجموع (سرمایه+سود) (تومان)',
+                    'نسبت سرمایه به سرمایه کل (%)',
+                    'نسبت سود به سود کل (%)',
+                    'شاخص نفع'
+                ];
+
+                // ایجاد داده‌های جدول
+                const excelData = [headers];
+                
+                summaryData.forEach(investor => {
+                    // محاسبه نسبت سود فرد به سود کل
+                    let profitToTotalRatio = '0.00';
+                    if (totalProfit > 0) {
+                        const ratio = (investor.total_profit / totalProfit) * 100;
+                        profitToTotalRatio = ratio.toFixed(2);
+                    }
+                    
+                    // محاسبه نسبت سرمایه فرد به سرمایه کل
+                    let capitalRatio = '0.00';
+                    if (globalStatistics && globalStatistics.net_principal > 0) {
+                        const ratio = (investor.net_principal / globalStatistics.net_principal) * 100;
+                        capitalRatio = ratio.toFixed(2);
+                    }
+                    
+                    // محاسبه شاخص نفع
+                    let profitIndex = '0.00';
+                    if (globalStatistics && globalStatistics.net_principal > 0 && totalProfit > 0 && investor.net_principal > 0) {
+                        const capitalRatioDecimal = investor.net_principal / globalStatistics.net_principal;
+                        const profitRatioDecimal = investor.total_profit / totalProfit;
+                        
+                        if (capitalRatioDecimal > 0) {
+                            const index = profitRatioDecimal / capitalRatioDecimal;
+                            profitIndex = index.toFixed(2);
+                        }
+                    }
+
+                    excelData.push([
+                        investor.name,
+                        investor.total_deposits,
+                        investor.total_withdrawals,
+                        investor.net_principal,
+                        Math.round(investor.total_profit),
+                        Math.round(investor.grand_total),
+                        capitalRatio,
+                        profitToTotalRatio,
+                        profitIndex
+                    ]);
+                });
+
+                // اضافه کردن ردیف مجموع
+                excelData.push([
+                    'مجموع',
+                    summaryData.reduce((sum, inv) => sum + inv.total_deposits, 0),
+                    summaryData.reduce((sum, inv) => sum + inv.total_withdrawals, 0),
+                    summaryData.reduce((sum, inv) => sum + inv.net_principal, 0),
+                    Math.round(summaryData.reduce((sum, inv) => sum + inv.total_profit, 0)),
+                    Math.round(summaryData.reduce((sum, inv) => sum + inv.grand_total, 0)),
+                    '100.00',
+                    '100.00',
+                    ''
+                ]);
+
+                // ایجاد worksheet
+                const ws = XLSX.utils.aoa_to_sheet(excelData);
+                
+                // تنظیم عرض ستون‌ها
+                const colWidths = [
+                    { wch: 25 }, // نام مشارکت کننده
+                    { wch: 18 }, // آورده
+                    { wch: 18 }, // برداشت
+                    { wch: 20 }, // سرمایه موجود
+                    { wch: 20 }, // سود مشارکت
+                    { wch: 22 }, // مجموع
+                    { wch: 25 }, // نسبت سرمایه
+                    { wch: 22 }, // نسبت سود
+                    { wch: 15 }  // شاخص نفع
+                ];
+                ws['!cols'] = colWidths;
+
+                // تعریف رنگ‌های استاندارد پروژه (فرمت RGB برای Excel Windows)
+                const colors = {
+                    deposit: "2185D0",      // آبی - آورده
+                    withdrawal: "DB2828",   // قرمز - برداشت
+                    capital: "667EEA",      // بنفش - سرمایه موجود
+                    profit: "21BA45",       // سبز - سود مشارکت
+                    total: "6C757D",        // خاکستری - مجموع
+                    profitIndex: "FF9800"   // نارنجی - شاخص نفع
+                };
+
+                // تعریف رنگ‌های روشن‌تر برای پس‌زمینه سلول‌ها
+                const lightColors = {
+                    deposit: "E3F2FD",      // آبی روشن
+                    withdrawal: "FFEBEE",   // قرمز روشن
+                    capital: "F3E5F5",      // بنفش روشن
+                    profit: "E8F5E8",       // سبز روشن
+                    total: "F5F5F5",        // خاکستری روشن
+                    profitIndex: "FFF3E0"   // نارنجی روشن
+                };
+
+                // تنظیم استایل‌ها برای هدرها با رنگ‌بندی
+                const headerStyles = [
+                    { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "4472C4" } } }, // نام
+                    { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: colors.deposit } } }, // آورده
+                    { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: colors.withdrawal } } }, // برداشت
+                    { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: colors.capital } } }, // سرمایه موجود
+                    { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: colors.profit } } }, // سود مشارکت
+                    { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: colors.total } } }, // مجموع
+                    { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: colors.capital } } }, // نسبت سرمایه
+                    { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: colors.profit } } }, // نسبت سود
+                    { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: colors.profitIndex } } } // شاخص نفع
+                ];
+
+                // اعمال استایل به هدرها
+                for (let col = 0; col < headers.length; col++) {
+                    const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
+                    if (!ws[cellAddress]) ws[cellAddress] = { v: headers[col] };
+                    ws[cellAddress].s = {
+                        ...headerStyles[col],
+                        alignment: { horizontal: "center", vertical: "center" }
+                    };
+                }
+
+                // تنظیم فرمت و استایل برای سلول‌های داده
+                const range = XLSX.utils.decode_range(ws['!ref']);
+                for (let row = 1; row < range.e.r; row++) { // از ردیف 1 شروع کن (ردیف 0 هدر است)
+                    for (let col = 0; col < headers.length; col++) {
+                        const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+                        if (!ws[cellAddress]) continue;
+                        
+                        // تنظیم فرمت اعداد برای ستون‌های عددی
+                        if (col >= 1 && col <= 5) { // ستون‌های 1-5 (آورده تا مجموع)
+                            ws[cellAddress].z = '#,##0'; // فرمت عدد با جداکننده هزارگان
+                        } else if (col >= 6 && col <= 7) { // ستون‌های 6-7 (نسبت‌ها)
+                            ws[cellAddress].z = '#,##0.00'; // فرمت اعشاری با 2 رقم اعشار
+                        } else if (col === 8) { // ستون 8 (شاخص نفع)
+                            ws[cellAddress].z = '#,##0.00'; // فرمت اعشاری با 2 رقم اعشار
+                        }
+                        
+                        // تنظیم رنگ پس‌زمینه برای سلول‌های داده
+                        let backgroundColor = "";
+                        if (col === 1) backgroundColor = lightColors.deposit; // آورده
+                        else if (col === 2) backgroundColor = lightColors.withdrawal; // برداشت
+                        else if (col === 3) backgroundColor = lightColors.capital; // سرمایه موجود
+                        else if (col === 4) backgroundColor = lightColors.profit; // سود مشارکت
+                        else if (col === 5) backgroundColor = lightColors.total; // مجموع
+                        else if (col === 6) backgroundColor = lightColors.capital; // نسبت سرمایه
+                        else if (col === 7) backgroundColor = lightColors.profit; // نسبت سود
+                        else if (col === 8) backgroundColor = lightColors.profitIndex; // شاخص نفع
+                        
+                        // تنظیم رنگ متن برای خوانایی بهتر
+                        let textColor = "";
+                        if (col >= 1 && col <= 8) {
+                            textColor = colors[col === 1 ? 'deposit' : 
+                                            col === 2 ? 'withdrawal' : 
+                                            col === 3 ? 'capital' : 
+                                            col === 4 ? 'profit' : 
+                                            col === 5 ? 'total' : 
+                                            col === 6 ? 'capital' : 
+                                            col === 7 ? 'profit' : 'profitIndex'];
+                        }
+                        
+                        if (backgroundColor) {
+                            if (!ws[cellAddress].s) ws[cellAddress].s = {};
+                            // فرمت ساده برای Excel Windows
+                            ws[cellAddress].s.fill = { fgColor: { rgb: backgroundColor } };
+                            
+                            // تنظیم رنگ متن
+                            if (textColor) {
+                                ws[cellAddress].s.font = { color: { rgb: textColor } };
+                            }
+                        }
+                    }
+                }
+
+                // تنظیم استایل برای ردیف مجموع
+                const summaryRowIndex = excelData.length - 1;
+                const summaryStyle = {
+                    font: { bold: true },
+                    fill: { fgColor: { rgb: "F2F2F2" } },
+                    alignment: { horizontal: "center", vertical: "center" }
+                };
+
+                for (let col = 0; col < headers.length; col++) {
+                    const cellAddress = XLSX.utils.encode_cell({ r: summaryRowIndex, c: col });
+                    if (ws[cellAddress]) {
+                        ws[cellAddress].s = summaryStyle;
+                        // تنظیم فرمت اعداد برای ردیف مجموع
+                        if (col >= 1 && col <= 5) {
+                            ws[cellAddress].z = '#,##0';
+                        } else if (col >= 6 && col <= 7) {
+                            ws[cellAddress].z = '#,##0.00';
+                        }
+                    }
+                }
+
+                // تنظیم border برای کل جدول
+                for (let row = range.s.r; row <= range.e.r; row++) {
+                    for (let col = range.s.c; col <= range.e.c; col++) {
+                        const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+                        if (!ws[cellAddress]) continue;
+                        
+                        if (!ws[cellAddress].s) ws[cellAddress].s = {};
+                        ws[cellAddress].s.border = {
+                            top: { style: "thin", color: { rgb: "000000" } },
+                            bottom: { style: "thin", color: { rgb: "000000" } },
+                            left: { style: "thin", color: { rgb: "000000" } },
+                            right: { style: "thin", color: { rgb: "000000" } }
+                        };
+                    }
+                }
+
+                // اضافه کردن worksheet به workbook
+                XLSX.utils.book_append_sheet(wb, ws, "خلاصه مشارکت کنندگان");
+
+                // تنظیمات اضافی برای Excel Mac
+                wb.Props = {
+                    Title: "خلاصه مشارکت کنندگان",
+                    Subject: "گزارش مالی پروژه",
+                    Author: "سیستم مدیریت پروژه",
+                    CreatedDate: new Date()
+                };
+
+                // تولید نام فایل با تاریخ
+                const now = new Date();
+                const persianDate = now.toLocaleDateString('fa-IR');
+                const fileName = `خلاصه_مشارکت_کنندگان_${persianDate.replace(/\//g, '-')}.xlsx`;
+
+                // دانلود فایل با تنظیمات بهینه برای Excel Windows
+                XLSX.writeFile(wb, fileName);
+                
+                console.log('✅ فایل Excel با موفقیت تولید و دانلود شد:', fileName);
+                
+                // نمایش پیام موفقیت
+                showNotification('فایل Excel با موفقیت دانلود شد', 'success');
+                
+            } catch (error) {
+                console.error('❌ خطا در export به Excel:', error);
+                showNotification('خطا در تولید فایل Excel', 'error');
+            }
+        }
+
+        // تابع نمایش notification
+        function showNotification(message, type = 'info') {
+            // ایجاد عنصر notification
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            `;
+            
+            // اضافه کردن استایل
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#17a2b8'};
+                color: white;
+                padding: 15px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                z-index: 10000;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-family: 'Vazir', 'Tahoma', 'Arial', sans-serif;
+                font-size: 14px;
+                animation: slideIn 0.3s ease;
+            `;
+            
+            // اضافه کردن animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+                @keyframes slideOut {
+                    from { transform: translateX(0); opacity: 1; }
+                    to { transform: translateX(100%); opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            document.body.appendChild(notification);
+            
+            // حذف خودکار بعد از 3 ثانیه
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
         }
 
 
