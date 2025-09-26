@@ -959,7 +959,7 @@
                     </div>
                     <div class="form-group">
                         <label for="expenseAmount">مبلغ (تومان):</label>
-                        <input type="number" id="expenseAmount" class="form-control" min="0" step="1000" required>
+                        <input type="text" id="expenseAmount" class="form-control" required dir="ltr" style="text-align: left;" placeholder="مثال: 1,000,000">
                     </div>
                     <div class="form-group">
                         <label for="expenseDescription">توضیحات:</label>
@@ -1000,7 +1000,7 @@
 
         // تابع فرمت کردن اعداد
         function formatNumber(num) {
-            return new Intl.NumberFormat('fa-IR').format(num);
+            return new Intl.NumberFormat('en-US').format(num);
         }
 
         // تابع نمایش پیام
@@ -1141,7 +1141,8 @@
 
                 if (result.success) {
                     currentExpenseData = result.data;
-                    document.getElementById('expenseAmount').value = currentExpenseData.amount;
+                    // نمایش مبلغ با فرمت
+                    document.getElementById('expenseAmount').value = formatNumber(currentExpenseData.amount);
                     document.getElementById('expenseDescription').value = currentExpenseData.description || '';
                     
                     // نمایش دکمه حذف اگر هزینه وجود دارد
@@ -1162,6 +1163,15 @@
             
             // نمایش modal
             document.getElementById('expenseModal').style.display = 'block';
+            
+            // اضافه کردن event listener برای فرمت کردن اعداد
+            const amountInput = document.getElementById('expenseAmount');
+            amountInput.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/,/g, '');
+                if (!isNaN(value) && value !== '') {
+                    e.target.value = formatNumber(parseFloat(value));
+                }
+            });
         }
 
         // تابع بستن modal
@@ -1179,7 +1189,8 @@
 
             const periodId = currentEditCell.dataset.periodId;
             const expenseType = currentEditCell.dataset.expenseType;
-            const amount = parseFloat(document.getElementById('expenseAmount').value) || 0;
+            const amountValue = document.getElementById('expenseAmount').value;
+            const amount = parseFloat(amountValue.replace(/,/g, '')) || 0;
             const description = document.getElementById('expenseDescription').value.trim();
 
             try {
@@ -1551,7 +1562,8 @@
             const description = cell.dataset.description;
             const expenseType = cell.dataset.expenseType;
             const periodId = cell.dataset.periodId;
-            const amount = cell.querySelector('.expense-amount span').textContent;
+            const amountText = cell.querySelector('.expense-amount span').textContent;
+            const amount = amountText.replace(/,/g, ''); // حذف کاما برای نمایش در hover card
             
             // یافتن نام نوع هزینه
             const expenseTypeName = dashboardData.expense_types.find(type => type[0] === expenseType)[1];
@@ -1578,7 +1590,7 @@
                 </div>
                 <div class="expense-hover-card-body">
                     <div><strong>دوره:</strong> ${periodName}</div>
-                    <div class="expense-hover-card-amount">${amount} تومان</div>
+                    <div class="expense-hover-card-amount">${formatNumber(parseFloat(amount))} تومان</div>
                     ${description ? 
                         `<div class="expense-hover-card-description">
                             <strong>توضیحات:</strong><br>
