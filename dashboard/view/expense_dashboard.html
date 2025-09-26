@@ -253,8 +253,8 @@
         }
 
         .expense-table .period-cell {
-            background: linear-gradient(135deg, var(--info-color) 0%, #6f42c1 100%);
-            color: var(--text-white);
+            /* background: linear-gradient(135deg, var(--info-color) 0%, #6f42c1 100%); */
+            color: #0d1bb4;
             font-weight: 600;
             text-align: right;
             padding-right: 10px;
@@ -262,15 +262,15 @@
         }
 
         .expense-table .total-cell {
-            background: linear-gradient(135deg, var(--success-color) 0%, #20c997 100%);
-            color: var(--text-white);
+            /* background: linear-gradient(135deg, var(--success-color) 0%, #20c997 100%); */
+            color: var(--bs-red);
             font-weight: 600;
             font-size: 0.9rem;
         }
 
         .expense-table .cumulative-cell {
             background: linear-gradient(135deg, var(--warning-color) 0%, #fd7e14 100%);
-            color: var(--text-white);
+            color: var(--bs-dark);
             font-weight: 600;
             font-size: 0.9rem;
         }
@@ -293,26 +293,302 @@
             transform: scale(1.02);
         }
 
-        .editable-cell.editing {
-            background: var(--bg-secondary) !important;
-            padding: 0;
-        }
-
-        .editable-input {
+        /* Modal Styles */
+        .expense-modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
             width: 100%;
             height: 100%;
-            border: none;
-            background: transparent;
-            text-align: center;
-            font-size: 0.85rem;
-            padding: 8px 6px;
-            outline: none;
-            border-radius: 5px;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
         }
 
-        .editable-input:focus {
+        .expense-modal-content {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            margin: 8% auto;
+            padding: 0;
+            border-radius: 15px;
+            width: 95%;
+            max-width: 700px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s ease-out;
+            overflow: hidden;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .expense-modal-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 15px 25px;
+            text-align: center;
+            position: relative;
+        }
+
+        .expense-modal-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .expense-modal-header .close {
+            position: absolute;
+            top: 10px;
+            left: 15px;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .expense-modal-header .close:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        .expense-modal-body {
+            padding: 20px 25px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
             background: var(--bg-secondary);
-            box-shadow: 0 0 0 2px var(--primary-color);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-control[readonly] {
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+        }
+
+        .expense-modal-footer {
+            padding: 15px 25px;
+            background: var(--bg-primary);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .btn-modal {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 20px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            min-width: 80px;
+        }
+
+        .btn-modal-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+        }
+
+        .btn-modal-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-modal-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-modal-secondary:hover {
+            background: var(--bg-primary);
+            transform: translateY(-2px);
+        }
+
+        .btn-modal-danger {
+            background: linear-gradient(135deg, var(--danger-color) 0%, #e83e8c 100%);
+            color: white;
+        }
+
+        .btn-modal-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(220, 53, 69, 0.3);
+        }
+
+        /* Tooltip and Hover Styles */
+        .expense-cell {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .expense-cell:hover {
+            background: rgba(102, 126, 234, 0.1) !important;
+            transform: scale(1.02);
+        }
+
+        .expense-amount {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .expense-icon {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            transition: all 0.3s ease;
+            cursor: help;
+        }
+
+        .expense-icon:hover {
+            opacity: 1;
+            transform: scale(1.2);
+        }
+
+
+        /* Hover card for detailed view */
+        .expense-hover-card {
+            position: fixed;
+            background: white;
+            border: 2px solid var(--primary-color);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            z-index: 1001;
+            max-width: 350px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px) scale(0.95);
+            transition: all 0.3s ease;
+            pointer-events: auto;
+        }
+
+        .expense-hover-card.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+        }
+
+        .expense-hover-card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+            position: relative;
+        }
+
+        .expense-hover-card-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .expense-hover-card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .expense-hover-card-body {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .expense-hover-card-amount {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 10px 0;
+        }
+
+        .expense-hover-card-description {
+            background: var(--bg-primary);
+            padding: 12px;
+            border-radius: 8px;
+            border-right: 4px solid var(--primary-color);
+            margin-top: 10px;
+        }
+
+        .expense-hover-card-empty {
+            color: #95a5a6;
+            font-style: italic;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .expense-hover-card-close {
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            width: 30px;
+            height: 30px;
+            background: var(--danger-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+        }
+
+        .expense-hover-card-close:hover {
+            background: #c82333;
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
         }
 
         .btn-primary {
@@ -491,6 +767,82 @@
             .expense-table th {
                 font-size: 0.7rem;
             }
+
+            /* Modal responsive styles */
+            .expense-modal-content {
+                width: 95%;
+                margin: 5% auto;
+                max-width: none;
+            }
+
+            .expense-modal-header {
+                padding: 12px 15px;
+            }
+
+            .expense-modal-header h3 {
+                font-size: 1.1rem;
+            }
+
+            .expense-modal-body {
+                padding: 15px;
+            }
+
+            .expense-modal-footer {
+                padding: 12px 15px;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .btn-modal {
+                width: 100%;
+                margin: 0;
+                padding: 10px 15px;
+                font-size: 0.85rem;
+            }
+
+            /* در موبایل، دوره و نوع هزینه را در سطرهای جداگانه نمایش بده */
+            .expense-modal-body .row .col-md-6 {
+                margin-bottom: 10px;
+            }
+
+
+            .expense-hover-card {
+                max-width: 280px;
+                padding: 15px;
+                left: 50% !important;
+                top: 50% !important;
+                transform: translate(-50%, -50%) scale(0.95);
+            }
+
+            .expense-hover-card.show {
+                transform: translate(-50%, -50%) scale(1);
+            }
+
+            .expense-hover-card-header {
+                flex-direction: column;
+                text-align: center;
+                gap: 8px;
+            }
+
+            .expense-hover-card-icon {
+                width: 35px;
+                height: 35px;
+                font-size: 1rem;
+            }
+
+            .expense-hover-card-title {
+                font-size: 1rem;
+            }
+
+            .expense-hover-card-amount {
+                font-size: 1.1rem;
+            }
+
+            .expense-hover-card-close {
+                width: 25px;
+                height: 25px;
+                font-size: 0.8rem;
+            }
             
         }
     </style>
@@ -579,6 +931,56 @@
     </div>
     </div>
 
+    <!-- Modal for editing expenses -->
+    <div id="expenseModal" class="expense-modal">
+        <div class="expense-modal-content">
+            <div class="expense-modal-header">
+                <span class="close" onclick="closeExpenseModal()">&times;</span>
+                <h3>
+                    <i class="fas fa-edit"></i>
+                    ویرایش هزینه
+                </h3>
+            </div>
+            <div class="expense-modal-body">
+                <form id="expenseForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="expensePeriod">دوره:</label>
+                                <input type="text" id="expensePeriod" class="form-control" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="expenseType">نوع هزینه:</label>
+                                <input type="text" id="expenseType" class="form-control" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="expenseAmount">مبلغ (تومان):</label>
+                        <input type="number" id="expenseAmount" class="form-control" min="0" step="1000" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="expenseDescription">توضیحات:</label>
+                        <textarea id="expenseDescription" class="form-control" rows="3" placeholder="توضیحات مربوط به این هزینه را وارد کنید..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="expense-modal-footer">
+                <button type="button" class="btn-modal btn-modal-secondary" onclick="closeExpenseModal()">
+                    <i class="fas fa-times"></i> انصراف
+                </button>
+                <button type="button" class="btn-modal btn-modal-danger" onclick="deleteExpense()" id="deleteBtn" style="display: none;">
+                    <i class="fas fa-trash"></i> حذف
+                </button>
+                <button type="button" class="btn-modal btn-modal-primary" onclick="saveExpense()">
+                    <i class="fas fa-save"></i> ذخیره
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     
@@ -588,8 +990,8 @@
     <script>
         // متغیرهای global
         let dashboardData = null;
-        let isEditing = false;
         let currentEditCell = null;
+        let currentExpenseData = null;
 
         // تابع بازگشت
         function goBack() {
@@ -624,11 +1026,12 @@
                 document.getElementById('loadingSpinner').style.display = 'block';
                 document.getElementById('tableContainer').style.display = 'none';
 
+                const csrfToken = await getCSRFToken();
                 const response = await fetch('/api/v1/Expense/dashboard_data/', {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken')
+                        'X-CSRFToken': csrfToken || ''
                     }
                 });
 
@@ -674,11 +1077,19 @@
                 row.innerHTML = `
                     <td class="period-cell">${period.period_label}</td>
                     ${dashboardData.expense_types.map(type => `
-                        <td class="editable-cell" 
+                        <td class="editable-cell expense-cell" 
                             data-period-id="${period.period_id}" 
                             data-expense-type="${type[0]}"
+                            data-description="${period.expenses[type[0]].description || ''}"
+                            data-expense-id="${period.expenses[type[0]].expense_id || ''}"
                             onclick="startEdit(this)">
-                            ${formatNumber(period.expenses[type[0]].amount)}
+                            <div class="expense-amount">
+                                <span>${formatNumber(period.expenses[type[0]].amount)}</span>
+                                ${period.expenses[type[0]].description ? 
+                                    '<i class="fas fa-info-circle expense-icon" title="توضیحات موجود" onclick="showExpenseHoverCard(this.closest(\'.expense-cell\'), event)"></i>' : 
+                                    '<i class="fas fa-plus-circle expense-icon" title="افزودن توضیحات" onclick="showExpenseHoverCard(this.closest(\'.expense-cell\'), event)"></i>'
+                                }
+                            </div>
                         </td>
                     `).join('')}
                     <td class="total-cell">${formatNumber(period.period_total)}</td>
@@ -701,112 +1112,161 @@
             tableBody.appendChild(grandTotalRow);
         }
 
-        // تابع شروع ویرایش
-        function startEdit(cell) {
-            if (isEditing) {
-                return;
-            }
-
-            isEditing = true;
+        // تابع شروع ویرایش با modal
+        async function startEdit(cell) {
             currentEditCell = cell;
+            const periodId = cell.dataset.periodId;
+            const expenseType = cell.dataset.expenseType;
             
-            const currentValue = cell.textContent.replace(/,/g, '');
-            const input = document.createElement('input');
-            input.type = 'number';
-            input.className = 'editable-input';
-            input.value = currentValue;
-            input.min = '0';
-            input.step = '1000';
-
-            cell.classList.add('editing');
-            cell.innerHTML = '';
-            cell.appendChild(input);
-            input.focus();
-            input.select();
-
-            // رویدادهای کیبورد
-            input.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    saveEdit();
-                } else if (e.key === 'Escape') {
-                    cancelEdit();
-                }
-            });
-
-            input.addEventListener('blur', function() {
-                setTimeout(() => {
-                    if (isEditing) {
-                        saveEdit();
-                    }
-                }, 100);
-            });
-        }
-
-        // تابع ذخیره ویرایش
-        async function saveEdit() {
-            if (!isEditing || !currentEditCell) {
-                return;
-            }
-
-            const input = currentEditCell.querySelector('.editable-input');
-            const newValue = parseFloat(input.value) || 0;
-            const periodId = currentEditCell.dataset.periodId;
-            const expenseType = currentEditCell.dataset.expenseType;
-
+            // دریافت اطلاعات دوره و نوع هزینه
+            const period = dashboardData.periods.find(p => p.period_id == periodId);
+            const expenseTypeName = dashboardData.expense_types.find(type => type[0] === expenseType)[1];
+            
+            // پر کردن اطلاعات ثابت در modal
+            document.getElementById('expensePeriod').value = period.period_label;
+            document.getElementById('expenseType').value = expenseTypeName;
+            
+            // دریافت اطلاعات فعلی هزینه
             try {
-                const response = await fetch('/api/v1/Expense/update_expense/', {
-                    method: 'POST',
+                const csrfToken = await getCSRFToken();
+                const response = await fetch(`/api/v1/Expense/get_expense_details/?period_id=${periodId}&expense_type=${expenseType}`, {
+                    method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken')
-                    },
-                    body: JSON.stringify({
-                        period_id: periodId,
-                        expense_type: expenseType,
-                        amount: newValue
-                    })
+                        'X-CSRFToken': csrfToken || ''
+                    }
                 });
 
                 const result = await response.json();
 
                 if (result.success) {
-                    // به‌روزرسانی مقدار در سلول
-                    currentEditCell.textContent = formatNumber(newValue);
-                    currentEditCell.classList.remove('editing');
+                    currentExpenseData = result.data;
+                    document.getElementById('expenseAmount').value = currentExpenseData.amount;
+                    document.getElementById('expenseDescription').value = currentExpenseData.description || '';
                     
+                    // نمایش دکمه حذف اگر هزینه وجود دارد
+                    const deleteBtn = document.getElementById('deleteBtn');
+                    if (currentExpenseData.expense_id) {
+                        deleteBtn.style.display = 'inline-block';
+                    } else {
+                        deleteBtn.style.display = 'none';
+                    }
+                } else {
+                    throw new Error(result.error || 'خطا در دریافت اطلاعات');
+                }
+            } catch (error) {
+                console.error('خطا در دریافت اطلاعات هزینه:', error);
+                showAlert(`خطا در دریافت اطلاعات: ${error.message}`, 'danger');
+                return;
+            }
+            
+            // نمایش modal
+            document.getElementById('expenseModal').style.display = 'block';
+        }
+
+        // تابع بستن modal
+        function closeExpenseModal() {
+            document.getElementById('expenseModal').style.display = 'none';
+            currentEditCell = null;
+            currentExpenseData = null;
+        }
+
+        // تابع ذخیره هزینه
+        async function saveExpense() {
+            if (!currentEditCell || !currentExpenseData) {
+                return;
+            }
+
+            const periodId = currentEditCell.dataset.periodId;
+            const expenseType = currentEditCell.dataset.expenseType;
+            const amount = parseFloat(document.getElementById('expenseAmount').value) || 0;
+            const description = document.getElementById('expenseDescription').value.trim();
+
+            try {
+                const csrfToken = await getCSRFToken();
+                if (!csrfToken) {
+                    throw new Error('CSRF Token یافت نشد');
+                }
+
+                const response = await fetch('/api/v1/Expense/update_expense/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({
+                        period_id: periodId,
+                        expense_type: expenseType,
+                        amount: amount,
+                        description: description
+                    })
+                });
+
+                if (!response.ok) {
+                    if (response.status === 403) {
+                        throw new Error('دسترسی غیرمجاز. لطفاً صفحه را رفرش کنید و دوباره تلاش کنید.');
+                    } else if (response.status === 400) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'داده‌های ارسالی نامعتبر است');
+                    } else {
+                        throw new Error(`خطای سرور: ${response.status}`);
+                    }
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
                     // به‌روزرسانی کل جدول
                     await loadDashboardData();
                     showAlert('هزینه با موفقیت به‌روزرسانی شد', 'success');
+                    closeExpenseModal();
                 } else {
                     throw new Error(result.error || 'خطا در به‌روزرسانی');
                 }
             } catch (error) {
                 console.error('خطا در ذخیره:', error);
                 showAlert(`خطا در ذخیره: ${error.message}`, 'danger');
-                cancelEdit();
             }
-
-            isEditing = false;
-            currentEditCell = null;
         }
 
-        // تابع لغو ویرایش
-        function cancelEdit() {
-            if (!isEditing || !currentEditCell) {
+        // تابع حذف هزینه
+        async function deleteExpense() {
+            if (!currentExpenseData || !currentExpenseData.expense_id) {
+                showAlert('هزینه‌ای برای حذف وجود ندارد', 'warning');
                 return;
             }
 
-            // بازگردانی مقدار قبلی
-            const periodId = currentEditCell.dataset.periodId;
-            const expenseType = currentEditCell.dataset.expenseType;
-            const period = dashboardData.periods.find(p => p.period_id == periodId);
-            const originalValue = period.expenses[expenseType].amount;
+            if (!confirm('آیا مطمئن هستید که می‌خواهید این هزینه را حذف کنید؟')) {
+                return;
+            }
 
-            currentEditCell.textContent = formatNumber(originalValue);
-            currentEditCell.classList.remove('editing');
+            try {
+                const csrfToken = await getCSRFToken();
+                if (!csrfToken) {
+                    throw new Error('CSRF Token یافت نشد');
+                }
 
-            isEditing = false;
-            currentEditCell = null;
+                const response = await fetch(`/api/v1/Expense/${currentExpenseData.expense_id}/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    }
+                });
+
+                if (response.ok) {
+                    // به‌روزرسانی کل جدول
+                    await loadDashboardData();
+                    showAlert('هزینه با موفقیت حذف شد', 'success');
+                    closeExpenseModal();
+                } else {
+                    const result = await response.json();
+                    throw new Error(result.error || 'خطا در حذف');
+                }
+            } catch (error) {
+                console.error('خطا در حذف:', error);
+                showAlert(`خطا در حذف: ${error.message}`, 'danger');
+            }
         }
 
         // تابع به‌روزرسانی داده‌ها
@@ -1024,8 +1484,238 @@
             return cookieValue;
         }
 
+        // متغیر global برای CSRF token
+        let csrfToken = null;
+
+        // تابع دریافت CSRF token
+        async function getCSRFToken() {
+            // اگر قبلاً دریافت شده، آن را برگردان
+            if (csrfToken) {
+                return csrfToken;
+            }
+            
+            // ابتدا از cookie بررسی کن
+            const cookieToken = getCookie('csrftoken');
+            if (cookieToken) {
+                csrfToken = cookieToken;
+                return csrfToken;
+            }
+            
+            // اگر cookie موجود نبود، از سرور دریافت کن
+            try {
+                const response = await fetch('/api/v1/auth/csrf/', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    csrfToken = data.csrf_token;
+                    return csrfToken;
+                }
+            } catch (error) {
+                console.error('خطا در دریافت CSRF token:', error);
+            }
+            
+            return null;
+        }
+
+
+        // بستن modal با کلیک روی پس‌زمینه
+        window.onclick = function(event) {
+            const modal = document.getElementById('expenseModal');
+            if (event.target === modal) {
+                closeExpenseModal();
+            }
+            
+            // بستن hover card با کلیک روی پس‌زمینه
+            if (currentHoverCard && !currentHoverCard.contains(event.target)) {
+                hideExpenseHoverCard();
+            }
+        }
+
+        // بستن modal با کلید Escape
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeExpenseModal();
+            }
+        });
+
+        // متغیرهای hover card
+        let currentHoverCard = null;
+
+        // تابع نمایش hover card (برای کلیک روی آیکون)
+        function showExpenseHoverCard(cell, event) {
+            event.stopPropagation();
+            
+            const description = cell.dataset.description;
+            const expenseType = cell.dataset.expenseType;
+            const periodId = cell.dataset.periodId;
+            const amount = cell.querySelector('.expense-amount span').textContent;
+            
+            // یافتن نام نوع هزینه
+            const expenseTypeName = dashboardData.expense_types.find(type => type[0] === expenseType)[1];
+            
+            // یافتن نام دوره
+            const period = dashboardData.periods.find(p => p.period_id == periodId);
+            const periodName = period ? period.period_label : 'نامشخص';
+
+            // حذف hover card قبلی
+            hideExpenseHoverCard();
+
+            // ایجاد hover card
+            const hoverCard = document.createElement('div');
+            hoverCard.className = 'expense-hover-card';
+            hoverCard.innerHTML = `
+                <div class="expense-hover-card-header">
+                    <div class="expense-hover-card-icon">
+                        <i class="fas fa-receipt"></i>
+                    </div>
+                    <div class="expense-hover-card-title">${expenseTypeName}</div>
+                    <button class="expense-hover-card-close" onclick="hideExpenseHoverCard(event)" title="بستن">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="expense-hover-card-body">
+                    <div><strong>دوره:</strong> ${periodName}</div>
+                    <div class="expense-hover-card-amount">${amount} تومان</div>
+                    ${description ? 
+                        `<div class="expense-hover-card-description">
+                            <strong>توضیحات:</strong><br>
+                            ${description}
+                        </div>` : 
+                        '<div class="expense-hover-card-empty">توضیحاتی وارد نشده است</div>'
+                    }
+                </div>
+            `;
+
+            // اضافه کردن hover card به صفحه
+            document.body.appendChild(hoverCard);
+            currentHoverCard = hoverCard;
+
+            // موقعیت‌یابی hover card
+            const cellRect = cell.getBoundingClientRect();
+            
+            // ابتدا کارت را بدون نمایش اضافه کن تا بتوان اندازه آن را محاسبه کرد
+            hoverCard.style.visibility = 'hidden';
+            hoverCard.style.display = 'block';
+            
+            const hoverCardRect = hoverCard.getBoundingClientRect();
+            
+            // بررسی اینکه آیا در موبایل هستیم یا نه
+            const isMobile = window.innerWidth <= 768;
+            
+            if (isMobile) {
+                // در موبایل، کارت را در مرکز صفحه نمایش بده
+                hoverCard.style.left = '50%';
+                hoverCard.style.top = '50%';
+                hoverCard.style.transform = 'translate(-50%, -50%) scale(0.95)';
+                
+                // اضافه کردن پس‌زمینه تیره برای موبایل
+                const overlay = document.createElement('div');
+                overlay.className = 'expense-card-overlay';
+                overlay.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.5);
+                    z-index: 1000;
+                    opacity: 0;
+                    transition: opacity 0.3s ease;
+                `;
+                overlay.onclick = hideExpenseHoverCard;
+                document.body.appendChild(overlay);
+                
+                setTimeout(() => {
+                    overlay.style.opacity = '1';
+                }, 10);
+            } else {
+                // در دسکتاپ، موقعیت‌یابی عادی
+                let left = cellRect.right + 15;
+                let top = cellRect.top + (cellRect.height / 2) - (hoverCardRect.height / 2);
+
+                // بررسی مرزهای صفحه - سمت راست
+                if (left + hoverCardRect.width > window.innerWidth - 15) {
+                    left = cellRect.left - hoverCardRect.width - 15;
+                }
+                
+                // بررسی مرزهای صفحه - بالا و پایین
+                if (top < 15) {
+                    top = 15;
+                }
+                if (top + hoverCardRect.height > window.innerHeight - 15) {
+                    top = window.innerHeight - hoverCardRect.height - 15;
+                }
+                
+                // اگر کارت از هر دو طرف خارج می‌شود، آن را در مرکز قرار بده
+                if (left < 15 && left + hoverCardRect.width > window.innerWidth - 15) {
+                    left = (window.innerWidth - hoverCardRect.width) / 2;
+                }
+
+                hoverCard.style.left = left + 'px';
+                hoverCard.style.top = top + 'px';
+            }
+            
+            hoverCard.style.visibility = 'visible';
+
+            // نمایش hover card با انیمیشن
+            setTimeout(() => {
+                hoverCard.classList.add('show');
+                if (isMobile) {
+                    hoverCard.style.transform = 'translate(-50%, -50%) scale(1)';
+                }
+            }, 10);
+        }
+
+        // تابع مخفی کردن hover card
+        function hideExpenseHoverCard(event) {
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+            
+            if (currentHoverCard) {
+                currentHoverCard.classList.remove('show');
+                setTimeout(() => {
+                    if (currentHoverCard && currentHoverCard.parentNode) {
+                        currentHoverCard.parentNode.removeChild(currentHoverCard);
+                    }
+                    currentHoverCard = null;
+                }, 300);
+            }
+            
+            // حذف overlay در موبایل
+            const overlay = document.querySelector('.expense-card-overlay');
+            if (overlay) {
+                overlay.style.opacity = '0';
+                setTimeout(() => {
+                    if (overlay && overlay.parentNode) {
+                        overlay.parentNode.removeChild(overlay);
+                    }
+                }, 300);
+            }
+        }
+
+        // تابع تست CSRF token
+        async function testCSRFToken() {
+            const token = await getCSRFToken();
+            console.log('CSRF Token:', token);
+            if (!token) {
+                showAlert('خطا: CSRF Token یافت نشد. لطفاً صفحه را رفرش کنید.', 'danger');
+                return false;
+            }
+            return true;
+        }
+
         // بارگذاری اولیه
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
+            // تست CSRF token
+            const tokenValid = await testCSRFToken();
+            if (!tokenValid) {
+                return;
+            }
             loadDashboardData();
         });
     </script>
