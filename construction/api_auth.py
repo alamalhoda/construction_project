@@ -12,9 +12,29 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.db import transaction
+from django.middleware.csrf import get_token
 import logging
 
 logger = logging.getLogger('django.security')
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def api_csrf_token(request):
+    """
+    دریافت CSRF Token
+    """
+    try:
+        csrf_token = get_token(request)
+        return Response({
+            'success': True,
+            'csrf_token': csrf_token
+        })
+    except Exception as e:
+        logger.error(f'خطا در دریافت CSRF token: {str(e)}')
+        return Response({
+            'success': False,
+            'error': 'خطا در دریافت CSRF token'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])

@@ -187,6 +187,28 @@ class UnitForm(forms.ModelForm):
             "price_per_meter",
             "total_price",
         ]
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # حذف فیلد project از فرم چون خودکار تنظیم می‌شود
+        if 'project' in self.fields:
+            del self.fields['project']
+    
+    def save(self, commit=True):
+        """ذخیره واحد با تنظیم خودکار پروژه فعال"""
+        unit = super().save(commit=False)
+        
+        # تنظیم پروژه فعال
+        active_project = models.Project.get_active_project()
+        if not active_project:
+            raise forms.ValidationError("هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید.")
+        
+        unit.project = active_project
+        
+        if commit:
+            unit.save()
+        
+        return unit
 
 
 class InterestRateForm(forms.ModelForm):

@@ -14,7 +14,7 @@ class ExpenseViewSet(viewsets.ModelViewSet):
 
     queryset = models.Expense.objects.all()
     serializer_class = serializers.ExpenseSerializer
-    permission_classes = [APISecurityPermission]
+    permission_classes = [permissions.IsAuthenticated]
 
     @action(detail=False, methods=['get'])
     def dashboard_data(self, request):
@@ -40,7 +40,7 @@ class ExpenseViewSet(viewsets.ModelViewSet):
             # ساختار داده‌ها
             expense_types = [
                 ('project_manager', 'مدیر پروژه'),
-                ('facilities_manager', 'مسئول تأسیسات'),
+                ('facilities_manager', 'سرپرست کارگاه'),
                 ('procurement', 'کارپرداز'),
                 ('warehouse', 'انباردار'),
                 ('construction_contractor', 'پیمان ساختمان'),
@@ -69,9 +69,17 @@ class ExpenseViewSet(viewsets.ModelViewSet):
                         expense_type=expense_type
                     ).aggregate(total=Sum('amount'))['total'] or 0
 
+                    # دریافت توضیحات هزینه
+                    expense_obj = expenses.filter(
+                        period=period,
+                        expense_type=expense_type
+                    ).first()
+                    
                     period_data['expenses'][expense_type] = {
                         'amount': float(expense_amount),
-                        'label': expense_label
+                        'label': expense_label,
+                        'description': expense_obj.description if expense_obj else '',
+                        'expense_id': expense_obj.id if expense_obj else None
                     }
                     period_data['period_total'] += float(expense_amount)
 
@@ -115,6 +123,7 @@ class ExpenseViewSet(viewsets.ModelViewSet):
             period_id = request.data.get('period_id')
             expense_type = request.data.get('expense_type')
             amount = request.data.get('amount')
+            description = request.data.get('description', '')
 
             if not all([period_id, expense_type, amount is not None]):
                 return Response({
@@ -145,11 +154,12 @@ class ExpenseViewSet(viewsets.ModelViewSet):
                 project=active_project,
                 period=period,
                 expense_type=expense_type,
-                defaults={'amount': amount}
+                defaults={'amount': amount, 'description': description}
             )
 
             if not created:
                 expense.amount = amount
+                expense.description = description
                 expense.save()
 
             return Response({
@@ -158,6 +168,7 @@ class ExpenseViewSet(viewsets.ModelViewSet):
                 'data': {
                     'expense_id': expense.id,
                     'amount': float(expense.amount),
+                    'description': expense.description,
                     'created': created
                 }
             })
@@ -165,6 +176,63 @@ class ExpenseViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({
                 'error': f'خطا در به‌روزرسانی هزینه: {str(e)}'
+            }, status=500)
+    
+    @action(detail=False, methods=['get'])
+    def get_expense_details(self, request):
+        """دریافت جزئیات هزینه برای ویرایش"""
+        try:
+            period_id = request.query_params.get('period_id')
+            expense_type = request.query_params.get('expense_type')
+
+            if not all([period_id, expense_type]):
+                return Response({
+                    'error': 'پارامترهای مورد نیاز ارسال نشده است'
+                }, status=400)
+
+            # دریافت پروژه فعال
+            active_project = models.Project.get_active_project()
+            if not active_project:
+                return Response({
+                    'error': 'هیچ پروژه فعالی یافت نشد'
+                }, status=400)
+
+            # دریافت دوره
+            try:
+                period = models.Period.objects.get(id=period_id, project=active_project)
+            except models.Period.DoesNotExist:
+                return Response({
+                    'error': 'دوره مورد نظر یافت نشد'
+                }, status=404)
+
+            # یافتن هزینه
+            try:
+                expense = models.Expense.objects.get(
+                    project=active_project,
+                    period=period,
+                    expense_type=expense_type
+                )
+                return Response({
+                    'success': True,
+                    'data': {
+                        'amount': float(expense.amount),
+                        'description': expense.description or '',
+                        'expense_id': expense.id
+                    }
+                })
+            except models.Expense.DoesNotExist:
+                return Response({
+                    'success': True,
+                    'data': {
+                        'amount': 0,
+                        'description': '',
+                        'expense_id': None
+                    }
+                })
+
+        except Exception as e:
+            return Response({
+                'error': f'خطا در دریافت جزئیات هزینه: {str(e)}'
             }, status=500)
     
     @action(detail=False, methods=['get'])

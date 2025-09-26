@@ -24,6 +24,7 @@ urlpatterns = (
     path("api/login/", views.api_login_view, name="api_login_page"),
     
     # API Authentication URLs
+    path("api/v1/auth/csrf/", api_auth.api_csrf_token, name="api_csrf_token"),
     path("api/v1/auth/login/", api_auth.api_login, name="api_login"),
     path("api/v1/auth/logout/", api_auth.api_logout, name="api_logout"),
     path("api/v1/auth/user/", api_auth.api_user_info, name="api_user_info"),

@@ -200,6 +200,15 @@ class UnitListView(generic.ListView):
 class UnitCreateView(generic.CreateView):
     model = models.Unit
     form_class = forms.UnitForm
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # اضافه کردن اطلاعات پروژه فعال به context
+        active_project = models.Project.get_active_project()
+        context['active_project'] = active_project
+        if not active_project:
+            context['error_message'] = "هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید."
+        return context
 
 
 @method_decorator(login_required, name='dispatch')

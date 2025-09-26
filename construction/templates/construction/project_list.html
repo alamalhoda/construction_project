@@ -24,7 +24,6 @@
                                         <th>وضعیت</th>
                                         <th>تاریخ شروع</th>
                                         <th>تاریخ پایان</th>
-                                        <th>تاریخ ایجاد</th>
                                         <th>عملیات</th>
                                     </tr>
                                 </thead>
@@ -45,7 +44,6 @@
                                             </td>
                                             <td>{{ project.start_date_shamsi|jformat:"%Y/%m/%d" }}</td>
                                             <td>{{ project.end_date_shamsi|jformat:"%Y/%m/%d" }}</td>
-                                            <td>{{ project.created_at|jformat:"%Y/%m/%d" }}</td>
                                             <td>
                                                 <div class="btn-group" role="group">
                                                     <a href="{{ project.get_absolute_url }}" class="btn btn-sm btn-outline-primary">

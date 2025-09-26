@@ -23,7 +23,6 @@
                                         <th>نوع هزینه</th>
                                         <th>مبلغ</th>
                                         <th>توضیحات</th>
-                                        <th>تاریخ ثبت</th>
                                         <th>عملیات</th>
                                     </tr>
                                 </thead>
@@ -46,7 +45,7 @@
                                                     {{ expense.get_expense_type_display }}
                                                 </span>
                                             </td>
-                                            <td>{{ expense.amount|floatformat:0 }} ریال</td>
+                                            <td>{{ expense.amount|floatformat:0 }} تومان</td>
                                             <td>
                                                 {% if expense.description %}
                                                     {{ expense.description|truncatechars:30 }}
@@ -54,7 +53,6 @@
                                                     <span class="text-muted">-</span>
                                                 {% endif %}
                                             </td>
-                                            <td>{{ expense.created_at|date:"Y/m/d" }}</td>
                                             <td>
                                                 <div class="btn-group" role="group">
                                                     <a href="{{ expense.get_absolute_url }}" class="btn btn-sm btn-outline-primary">
@@ -109,7 +107,7 @@
 
 /* رنگ‌های مخصوص انواع هزینه */
 .badge-primary { background-color: #007bff; } /* مدیر پروژه */
-.badge-success { background-color: #28a745; } /* مسئول تأسیسات */
+.badge-success { background-color: #28a745; } /* سرپرست کارگاه */
 .badge-info { background-color: #17a2b8; } /* کارپرداز */
 .badge-warning { background-color: #ffc107; color: #212529; } /* انباردار */
 .badge-danger { background-color: #dc3545; } /* پیمان ساختمان */

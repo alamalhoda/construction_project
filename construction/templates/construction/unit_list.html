@@ -23,7 +23,6 @@
                                         <th>مساحت</th>
                                         <th>قیمت هر متر</th>
                                         <th>قیمت کل</th>
-                                        <th>تاریخ ثبت</th>
                                         <th>عملیات</th>
                                     </tr>
                                 </thead>
@@ -40,7 +39,6 @@
                                             <td>
                                                 <strong class="text-success">{{ unit.total_price|floatformat:0 }} ریال</strong>
                                             </td>
-                                            <td>{{ unit.created_at|date:"Y/m/d" }}</td>
                                             <td>
                                                 <div class="btn-group" role="group">
                                                     <a href="{{ unit.get_absolute_url }}" class="btn btn-sm btn-outline-primary">
