@@ -71,7 +71,7 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="price_per_meter" class="form-label">قیمت هر متر (ریال) <span class="text-danger">*</span></label>
+                                    <label for="price_per_meter" class="form-label">قیمت هر متر <span class="text-danger">*</span></label>
                                     <input class="form-control" id="price_per_meter" type="number" name="price_per_meter" 
                                            value="{{ object.price_per_meter|default:'' }}" required>
                                 </div>
@@ -79,7 +79,7 @@
                         </div>
                         
                         <div class="form-group">
-                            <label for="total_price" class="form-label">قیمت کل (ریال) <span class="text-danger">*</span></label>
+                            <label for="total_price" class="form-label">قیمت کل <span class="text-danger">*</span></label>
                             <input class="form-control" id="total_price" type="number" name="total_price" 
                                    value="{{ object.total_price|default:'' }}" required>
                             <small class="form-text text-muted">قیمت کل = مساحت × قیمت هر متر</small>
