@@ -23,7 +23,6 @@
                                         <th>تاریخ اعمال</th>
                                         <th>وضعیت</th>
                                         <th>توضیحات</th>
-                                        <th>تاریخ ایجاد</th>
                                         <th>عملیات</th>
                                     </tr>
                                 </thead>
@@ -48,7 +47,6 @@
                                                     <span class="text-muted">-</span>
                                                 {% endif %}
                                             </td>
-                                            <td>{{ interestrate.created_at|jformat:"%Y/%m/%d" }}</td>
                                             <td>
                                                 <div class="btn-group" role="group">
                                                     <a href="{{ interestrate.get_absolute_url }}" class="btn btn-sm btn-outline-primary">

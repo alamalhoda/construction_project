@@ -50,7 +50,7 @@ class ExpenseAutoCalculationTestCase(TestCase):
             period=self.period,
             expense_type='facilities_manager',
             amount=Decimal('800000'),
-            description='حقوق مسئول تأسیسات'
+            description='حقوق سرپرست کارگاه'
         )
         
         Expense.objects.create(
@@ -157,7 +157,7 @@ class ExpenseAutoCalculationTestCase(TestCase):
             period=self.period,
             expense_type='facilities_manager',
             amount=Decimal('500000'),
-            description='حقوق مسئول تأسیسات'
+            description='حقوق سرپرست کارگاه'
         )
         
         # محاسبه اولیه

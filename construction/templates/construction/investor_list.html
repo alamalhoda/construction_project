@@ -24,7 +24,6 @@
                                         <th>ایمیل</th>
                                         <th>نوع مشارکت</th>
                                         <th>تعداد واحدها</th>
-                                        <th>تاریخ ثبت</th>
                                         <th>عملیات</th>
                                     </tr>
                                 </thead>
@@ -54,7 +53,6 @@
                                                     {{ investor.units.count }} واحد
                                                 </span>
                                             </td>
-                                            <td>{{ investor.created_at|date:"Y/m/d" }}</td>
                                             <td>
                                                 <div class="btn-group" role="group">
                                                     <a href="{{ investor.get_absolute_url }}" class="btn btn-sm btn-outline-primary">

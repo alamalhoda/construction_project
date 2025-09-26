@@ -23,6 +23,23 @@
                         </a>
                     </p>
                     
+                    {% if error_message %}
+                        <div class="alert alert-danger">
+                            <strong>خطا:</strong> {{ error_message }}
+                            <div class="mt-2">
+                                <a href="{% url 'construction_active_project' %}" class="btn btn-warning btn-sm">
+                                    <i class="fas fa-cog"></i> تنظیم پروژه فعال
+                                </a>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- {% if active_project %}
+                        <div class="alert alert-info">
+                            <strong>پروژه فعال:</strong> {{ active_project.name }}
+                        </div>
+                    {% endif %} -->
+                    
                     <form method="post" enctype="multipart/form-data">
                         {% csrf_token %}
                         {% if form.errors %}

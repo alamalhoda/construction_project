@@ -25,7 +25,7 @@
                     <div class="expense-info p-3 bg-light rounded">
                         <h5>{{ object.get_expense_type_display }}</h5>
                         <p class="mb-1"><strong>دوره:</strong> {{ object.period.label }}</p>
-                        <p class="mb-1"><strong>مبلغ:</strong> {{ object.amount|floatformat:0 }} ریال</p>
+                        <p class="mb-1"><strong>مبلغ:</strong> {{ object.amount|floatformat:0 }} تومان</p>
                         {% if object.description %}
                             <p class="mb-0"><strong>توضیحات:</strong> {{ object.description }}</p>
                         {% endif %}
