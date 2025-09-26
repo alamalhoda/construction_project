@@ -356,17 +356,6 @@
             </div>
             
             <div class="dashboard-card admin-card">
-                <span class="card-icon">🔧</span>
-                <h3 class="card-title">پنل ادمین</h3>
-                <p class="card-description">
-                    دسترسی به پنل مدیریت سیستم
-                </p>
-                <a href="/admin/" class="card-btn danger">
-                    ورود به ادمین
-                </a>
-            </div>
-            
-            <div class="dashboard-card admin-card">
                 <span class="card-icon">🔄</span>
                 <h3 class="card-title">مدیریت بک‌آپ</h3>
                 <p class="card-description">
@@ -386,12 +375,6 @@
                 <a href="/dashboard/interest-rate-manager/" class="card-btn">
                     مدیریت نرخ سود
                 </a>
-            </div>
-            
-            <!-- کارت‌های کاربر نهایی برای مدیر فنی -->
-            <div class="section-header">
-                <h2>👥 ابزارهای کاربری</h2>
-                <p>دسترسی به بخش‌های کاربران نهایی</p>
             </div>
 
             <div class="dashboard-card user-card">
@@ -440,7 +423,11 @@
             
         {% else %}
             <!-- کارت‌های کاربر نهایی -->
-            
+                        <!-- کارت‌های کاربر نهایی برای مدیر فنی -->
+                        <div class="section-header">
+                            <h2>👥 ابزارهای کاربری</h2>
+                            <p>دسترسی به بخش‌های کاربران نهایی</p>
+                        </div>
             <div class="dashboard-card">
                 <span class="card-icon">📋</span>
                 <h3 class="card-title">خلاصه مالی</h3>
@@ -506,7 +493,16 @@
                     مشاهده مشارکت کنندگان
                 </a>
             </div>
-            
+            <div class="dashboard-card">
+                <span class="card-icon">🏢</span>
+                <h3 class="card-title">مدیریت واحدها</h3>
+                <p class="card-description">
+                    مدیریت واحدهای ساختمان و اطلاعات آن‌ها
+                </p>
+                <a href="/construction/Unit/" class="card-btn">
+                    مشاهده واحدها
+                </a>
+            </div>
             <div class="dashboard-card">
                 <span class="card-icon">🔄</span>
                 <h3 class="card-title">مدیریت بک‌آپ</h3>
