@@ -68,6 +68,10 @@ done
 
 print_step "3. Syncing with chabokan-deployment branch..."
 
+# Fix Git ownership issue
+git config --global --add safe.directory /app
+print_message "Fixed Git ownership issue"
+
 # Fetch latest changes
 git fetch origin
 
