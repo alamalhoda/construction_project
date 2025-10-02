@@ -62,6 +62,23 @@ class ProjectSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
 
+class SaleSerializer(serializers.ModelSerializer):
+    project_data = ProjectSerializer(source='project', read_only=True)
+    period_data = PeriodSerializer(source='period', read_only=True)
+
+    class Meta:
+        model = models.Sale
+        fields = [
+            "id",
+            "project",
+            "period",
+            "amount",
+            "description",
+            "created_at",
+            "project_data",
+            "period_data",
+        ]
+
 class TransactionSerializer(serializers.ModelSerializer):
     # فیلدهای محاسبه شده - فقط برای خواندن
     date_gregorian = serializers.DateField(read_only=True)

@@ -237,3 +237,43 @@ class InterestRateForm(forms.ModelForm):
             "description",
             "is_active",
         ]
+
+
+class SaleForm(forms.ModelForm):
+    class Meta:
+        model = models.Sale
+        fields = [
+            "period",
+            "amount",
+            "description",
+        ]
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # تنظیم استایل‌ها برای فیلدها
+        self.fields['period'].widget.attrs.update({'class': 'form-control'})
+        self.fields['amount'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'مبلغ فروش/مرجوعی را وارد کنید...'
+        })
+        self.fields['description'].widget.attrs.update({
+            'class': 'form-control',
+            'rows': 3,
+            'placeholder': 'توضیحات فروش/مرجوعی...'
+        })
+    
+    def save(self, commit=True):
+        """ذخیره فروش با تنظیم خودکار پروژه فعال"""
+        sale = super().save(commit=False)
+        
+        # تنظیم پروژه فعال
+        active_project = models.Project.get_active_project()
+        if not active_project:
+            raise forms.ValidationError("هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید.")
+        
+        sale.project = active_project
+        
+        if commit:
+            sale.save()
+        
+        return sale
