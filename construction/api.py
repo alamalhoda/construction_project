@@ -772,3 +772,39 @@ class UnitViewSet(viewsets.ModelViewSet):
     queryset = models.Unit.objects.all()
     serializer_class = serializers.UnitSerializer
     permission_classes = [APISecurityPermission]
+
+    @action(detail=False, methods=['get'])
+    def statistics(self, request):
+        """دریافت آمار کلی واحدها"""
+        from django.db.models import Sum, Count
+        
+        # محاسبه آمار کلی
+        stats = self.queryset.aggregate(
+            total_units=Count('id'),
+            total_area=Sum('area'),
+            total_price=Sum('total_price')
+        )
+        
+        # محاسبه آمار به تفکیک پروژه
+        project_stats = []
+        for project in models.Project.objects.all():
+            project_units = self.queryset.filter(project=project)
+            project_stat = project_units.aggregate(
+                units_count=Count('id'),
+                total_area=Sum('area'),
+                total_price=Sum('total_price')
+            )
+            project_stats.append({
+                'project_name': project.name,
+                'project_id': project.id,
+                'units_count': project_stat['units_count'] or 0,
+                'total_area': float(project_stat['total_area'] or 0),
+                'total_price': float(project_stat['total_price'] or 0)
+            })
+        
+        return Response({
+            'total_units': stats['total_units'] or 0,
+            'total_area': float(stats['total_area'] or 0),
+            'total_price': float(stats['total_price'] or 0),
+            'project_breakdown': project_stats
+        })

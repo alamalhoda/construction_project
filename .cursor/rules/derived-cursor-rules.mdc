@@ -13,7 +13,7 @@ globs: *
 
 ### CODE STYLE
 *   Maintain consistent indentation and formatting.
-*   Use meaningful variable and function names.
+*   Use meaningful variable and function and endpoint names.
 *   Keep functions short and focused.
 *   Avoid unnecessary complexity.
 
