@@ -6,10 +6,16 @@
     body {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         min-height: 100vh;
+        font-family: 'Vazir', 'Tahoma', sans-serif;
+        position: relative;
+        padding-bottom: 80px; /* فضا برای فوتر */
+    }
+    
+    .login-wrapper {
         display: flex;
         align-items: center;
         justify-content: center;
-        font-family: 'Vazir', 'Tahoma', sans-serif;
+        min-height: calc(100vh - 80px); /* کم کردن ارتفاع فوتر */
     }
     
     .login-container {
@@ -172,7 +178,8 @@
 {% endblock %}
 
 {% block content %}
-<div class="login-container">
+<div class="login-wrapper">
+    <div class="login-container">
     <div class="login-header">
         <h1>🔐 ورود به سیستم</h1>
         <p>لطفاً نام کاربری و رمز عبور خود را وارد کنید</p>
@@ -263,4 +270,6 @@ document.querySelectorAll('.form-control').forEach(input => {
     });
 });
 </script>
+    </div> <!-- بستن login-container -->
+</div> <!-- بستن login-wrapper -->
 {% endblock %}
