@@ -256,11 +256,43 @@ class InterestRateAdmin(admin.ModelAdmin):
     ordering = ['-effective_date']
 
 
+class SaleAdminForm(forms.ModelForm):
+
+    class Meta:
+        model = models.Sale
+        fields = "__all__"
+
+
+class SaleAdmin(admin.ModelAdmin):
+    form = SaleAdminForm
+    list_display = [
+        "project",
+        "period",
+        "amount",
+        "description",
+        "created_at",
+    ]
+    list_filter = [
+        "project",
+        "period",
+        "created_at",
+    ]
+    search_fields = [
+        "description",
+        "project__name",
+        "period__label",
+    ]
+    readonly_fields = [
+        "created_at",
+    ]
+
+
 admin.site.register(models.Expense, ExpenseAdmin)
 admin.site.register(models.Investor, InvestorAdmin)
 admin.site.register(models.InterestRate, InterestRateAdmin)
 admin.site.register(models.Period, PeriodAdmin)
 admin.site.register(models.Project, ProjectAdmin)
+admin.site.register(models.Sale, SaleAdmin)
 admin.site.register(models.Transaction, TransactionAdmin)
 admin.site.register(models.Unit, UnitAdmin)
 admin.site.register(models.UserProfile)
