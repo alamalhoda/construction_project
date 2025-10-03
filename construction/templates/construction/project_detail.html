@@ -51,35 +51,6 @@
                         </div>
                     </div>
                     
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="info-item mb-3">
-                                <label class="info-label">تاریخ شروع (میلادی):</label>
-                                <span class="info-value">{{ object.start_date_gregorian }}</span>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="info-item mb-3">
-                                <label class="info-label">تاریخ پایان (میلادی):</label>
-                                <span class="info-value">{{ object.end_date_gregorian }}</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="info-item mb-3">
-                                <label class="info-label">تاریخ ایجاد:</label>
-                                <span class="info-value">{{ object.created_at|jformat:"%Y/%m/%d - %H:%M" }}</span>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="info-item mb-3">
-                                <label class="info-label">تاریخ به‌روزرسانی:</label>
-                                <span class="info-value">{{ object.updated_at|jformat:"%Y/%m/%d - %H:%M" }}</span>
-                            </div>
-                        </div>
-                    </div>
                     
                     <div class="form-actions mt-4 pt-3 border-top">
                         <a class="btn btn-primary" href="{{object.get_update_url}}">
