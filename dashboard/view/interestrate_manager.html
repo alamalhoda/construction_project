@@ -32,6 +32,14 @@
             --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
             --shadow-md: 0 8px 25px rgba(0, 0, 0, 0.08);
             --shadow-lg: 0 15px 35px rgba(0, 0, 0, 0.12);
+            
+            /* رنگ‌های استاندارد پروژه */
+            --deposit-color: #2185d0;           /* آبی - آورده */
+            --withdrawal-color: #db2828;        /* قرمز - برداشت */
+            --profit-color: #21ba45;            /* سبز - سود مشارکت */
+            --capital-color: #667eea;           /* بنفش - سرمایه موجود */
+            --expense-color: #dc3545;           /* قرمز تیره - هزینه‌ها */
+            --total-color: #6c757d;             /* خاکستری - مجموع */
         }
 
         body {
@@ -512,7 +520,7 @@
 
         /* Project Financial Summary Cards */
         .stat-card {
-            background: var(--bg-secondary);
+            background: var(--bg-secondary) !important;
             border-radius: 15px;
             padding: 25px;
             box-shadow: var(--shadow-md);
@@ -520,6 +528,9 @@
             border: 1px solid var(--border-color);
             position: relative;
             overflow: hidden;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
         }
 
         .stat-card:hover {
@@ -538,15 +549,15 @@
         }
 
         .stat-card.expense-card::before {
-            background: linear-gradient(90deg, var(--expense-color), #f48fb1);
+            background: linear-gradient(90deg, var(--expense-color), #f48fb1) !important;
         }
 
         .stat-card.sales-card::before {
-            background: linear-gradient(90deg, #4caf50, #81c784);
+            background: linear-gradient(90deg, #4caf50, #81c784) !important;
         }
 
         .stat-card.final-cost-card::before {
-            background: linear-gradient(90deg, var(--total-color), #90a4ae);
+            background: linear-gradient(90deg, var(--total-color), #90a4ae) !important;
         }
 
         .stat-icon {
@@ -558,23 +569,28 @@
             justify-content: center;
             margin-bottom: 15px;
             font-size: 1.5rem;
-            color: white;
+            color: white !important;
+            flex-shrink: 0;
         }
 
         .stat-card.expense-card .stat-icon {
-            background: linear-gradient(135deg, var(--expense-color), #f48fb1);
+            background: linear-gradient(135deg, var(--expense-color), #f48fb1) !important;
         }
 
         .stat-card.sales-card .stat-icon {
-            background: linear-gradient(135deg, #4caf50, #81c784);
+            background: linear-gradient(135deg, #4caf50, #81c784) !important;
         }
 
         .stat-card.final-cost-card .stat-icon {
-            background: linear-gradient(135deg, var(--total-color), #90a4ae);
+            background: linear-gradient(135deg, var(--total-color), #90a4ae) !important;
         }
 
         .stat-content {
             text-align: right;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
         .stat-value {
@@ -585,21 +601,45 @@
         }
 
         .stat-card.expense-card .stat-value {
-            color: var(--expense-color);
+            color: var(--expense-color) !important;
         }
 
         .stat-card.sales-card .stat-value {
-            color: #4caf50;
+            color: #4caf50 !important;
         }
 
         .stat-card.final-cost-card .stat-value {
-            color: var(--total-color);
+            color: var(--total-color) !important;
         }
 
         .stat-label {
             font-size: 0.9rem;
             color: var(--text-secondary);
             font-weight: 500;
+        }
+
+        /* Ensure cards display in one row */
+        #financialSummaryCards .row {
+            display: flex !important;
+            flex-wrap: nowrap !important;
+        }
+
+        #financialSummaryCards .col-lg-4,
+        #financialSummaryCards .col-md-4,
+        #financialSummaryCards .col-sm-12 {
+            flex: 1 !important;
+            max-width: 33.333333% !important;
+        }
+
+        @media (max-width: 768px) {
+            #financialSummaryCards .row {
+                flex-wrap: wrap !important;
+            }
+            
+            #financialSummaryCards .col-sm-12 {
+                max-width: 100% !important;
+                flex: none !important;
+            }
         }
     </style>
 </head>
@@ -647,7 +687,7 @@
 
         <!-- Project Financial Summary Cards -->
         <div class="row mb-4" id="financialSummaryCards" style="display: none;">
-            <div class="col-md-4 col-sm-6 mb-3">
+            <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
                 <div class="stat-card expense-card">
                     <div class="stat-icon">
                         <i class="fas fa-receipt"></i>
@@ -658,7 +698,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4 col-sm-6 mb-3">
+            <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
                 <div class="stat-card sales-card">
                     <div class="stat-icon">
                         <i class="fas fa-shopping-cart"></i>
@@ -669,7 +709,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4 col-sm-6 mb-3">
+            <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
                 <div class="stat-card final-cost-card">
                     <div class="stat-icon">
                         <i class="fas fa-calculator"></i>
@@ -1031,7 +1071,7 @@
             document.getElementById('finalCost').textContent = formatNumber(finalCost);
 
             // Show the financial summary cards
-            document.getElementById('financialSummaryCards').style.display = 'block';
+            document.getElementById('financialSummaryCards').style.display = 'flex';
         }
 
         // Display rates in table
