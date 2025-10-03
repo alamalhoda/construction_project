@@ -30,7 +30,8 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'construction_project.settings')
 django.setup()
 
 from django.core.management import call_command
-from construction.models import Project, Investor, Period, Transaction, Unit, InterestRate, Expense
+from construction.models import Project, Investor, Period, Transaction, Unit, InterestRate, Expense, Sale, UserProfile
+from construction.security_monitoring import SecurityEvent
 
 
 def create_backup_directory():
@@ -69,6 +70,8 @@ def get_database_stats():
         'units': Unit.objects.count(),
         'interest_rates': InterestRate.objects.count(),
         'expenses': Expense.objects.count(),
+        'sales': Sale.objects.count(),
+        'user_profiles': UserProfile.objects.count(),
         
         # مدل‌های Django داخلی
         'users': User.objects.count(),
@@ -76,6 +79,9 @@ def get_database_stats():
         
         # مدل‌های backup
         'backup_records': BackupRecord.objects.count(),
+        
+        # مدل‌های امنیتی
+        'security_events': SecurityEvent.objects.count(),
     }
     
     stats['total'] = sum(stats.values())
@@ -124,6 +130,8 @@ def create_individual_fixtures(backup_path):
         ('construction.unit', 'units.json', 'واحدها'),
         ('construction.interestrate', 'interest_rates.json', 'نرخ‌های سود'),
         ('construction.expense', 'expenses.json', 'هزینه‌ها'),
+        ('construction.sale', 'sales.json', 'فروش/مرجوعی‌ها'),
+        ('construction.userprofile', 'user_profiles.json', 'پروفایل‌های کاربران'),
         
         # مدل‌های Django داخلی
         ('auth.user', 'users.json', 'کاربران'),
@@ -136,6 +144,9 @@ def create_individual_fixtures(backup_path):
         # مدل‌های backup
         ('backup.backuprecord', 'backup_records.json', 'رکوردهای بک‌آپ'),
         ('backup.backupsettings', 'backup_settings.json', 'تنظیمات بک‌آپ'),
+        
+        # مدل‌های امنیتی
+        ('construction.securityevent', 'security_events.json', 'رویدادهای امنیتی'),
     ]
     
     success_count = 0
@@ -205,6 +216,19 @@ def create_stats_file(backup_path, timestamp, stats):
             'periods.json',
             'transactions.json',
             'units.json',
+            'interest_rates.json',
+            'expenses.json',
+            'sales.json',
+            'user_profiles.json',
+            'users.json',
+            'groups.json',
+            'permissions.json',
+            'content_types.json',
+            'sessions.json',
+            'admin_logs.json',
+            'backup_records.json',
+            'backup_settings.json',
+            'security_events.json',
             'backup_report.json',
             'backup_summary.txt'
         ]
@@ -234,11 +258,15 @@ def create_stats_file(backup_path, timestamp, stats):
         f.write(f"    واحدها: {stats['units']}\n")
         f.write(f"    نرخ‌های سود: {stats['interest_rates']}\n")
         f.write(f"    هزینه‌ها: {stats['expenses']}\n")
+        f.write(f"    فروش/مرجوعی‌ها: {stats['sales']}\n")
+        f.write(f"    پروفایل‌های کاربران: {stats['user_profiles']}\n")
         f.write("  مدل‌های Django:\n")
         f.write(f"    کاربران: {stats['users']}\n")
         f.write(f"    گروه‌ها: {stats['groups']}\n")
         f.write("  مدل‌های backup:\n")
         f.write(f"    رکوردهای بک‌آپ: {stats['backup_records']}\n")
+        f.write("  مدل‌های امنیتی:\n")
+        f.write(f"    رویدادهای امنیتی: {stats['security_events']}\n")
         f.write(f"  کل رکوردها: {stats['total']}\n\n")
         
         if transaction_stats and 'error' not in transaction_stats:
@@ -287,7 +315,7 @@ def main():
     # گزارش نهایی
     print("\n" + "=" * 60)
     
-    if complete_success and individual_count == 15:
+    if complete_success and individual_count == 18:
         print("🎉 پشتیبان‌گیری با موفقیت کامل شد!")
         print(f"📁 مسیر: {backup_path}")
         print(f"📦 فایل‌های ایجاد شده: {len(os.listdir(backup_path))}")
@@ -303,7 +331,7 @@ def main():
     else:
         print("⚠️  پشتیبان‌گیری با مشکل مواجه شد!")
         print(f"Fixture کامل: {'✅' if complete_success else '❌'}")
-        print(f"Fixtures جداگانه: {individual_count}/15")
+        print(f"Fixtures جداگانه: {individual_count}/18")
     
     print("\n🔄 برای بازیابی:")
     print(f"python scripts/restore_backup.py")
