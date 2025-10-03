@@ -58,6 +58,8 @@ class ProjectSerializer(serializers.ModelSerializer):
             "start_date_gregorian",
             "end_date_gregorian",
             "is_active",
+            "total_infrastructure",
+            "correction_factor",
             "created_at",
             "updated_at",
         ]

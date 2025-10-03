@@ -414,73 +414,6 @@ class ProjectViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.ProjectSerializer
     permission_classes = [APISecurityPermission]
 
-
-class SaleViewSet(viewsets.ModelViewSet):
-    """ViewSet for the Sale class"""
-
-    queryset = models.Sale.objects.all()
-    serializer_class = serializers.SaleSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    @action(detail=False, methods=['get'])
-    def total_sales(self, request):
-        """دریافت مجموع فروش‌ها"""
-        try:
-            # دریافت پروژه فعال
-            active_project = models.Project.get_active_project()
-            if not active_project:
-                return Response({
-                    'error': 'هیچ پروژه فعالی یافت نشد'
-                }, status=400)
-
-            # محاسبه مجموع فروش‌ها برای پروژه فعال
-            total_amount = models.Sale.objects.filter(
-                project=active_project
-            ).aggregate(total=Sum('amount'))['total'] or 0
-
-            # تعداد فروش‌ها
-            sales_count = models.Sale.objects.filter(
-                project=active_project
-            ).count()
-
-            # فروش‌ها به تفکیک دوره
-            sales_by_period = models.Sale.objects.filter(
-                project=active_project
-            ).values('period__label', 'period__id').annotate(
-                period_total=Sum('amount'),
-                period_count=Count('id')
-            ).order_by('period__id')
-
-            # محاسبه تجمعی فروش‌ها در هر دوره
-            cumulative_sales = []
-            cumulative_total = 0
-            
-            for period_data in sales_by_period:
-                period_amount = period_data['period_total'] or 0
-                cumulative_total += period_amount
-                
-                cumulative_sales.append({
-                    'period_id': period_data['period__id'],
-                    'period_label': period_data['period__label'],
-                    'period_amount': period_amount,
-                    'period_count': period_data['period_count'],
-                    'cumulative_amount': cumulative_total
-                })
-
-            return Response({
-                'project_name': active_project.name,
-                'total_amount': total_amount,
-                'sales_count': sales_count,
-                'sales_by_period': list(sales_by_period),
-                'cumulative_sales_by_period': cumulative_sales,
-                'currency': 'تومان'
-            })
-
-        except Exception as e:
-            return Response({
-                'error': f'خطا در محاسبه مجموع فروش‌ها: {str(e)}'
-            }, status=500)
-
     @action(detail=False, methods=['get'])
     def active(self, request):
         """دریافت پروژه فعال"""
@@ -490,6 +423,52 @@ class SaleViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
         else:
             return Response({'error': 'هیچ پروژه فعالی یافت نشد'}, status=404)
+
+    @action(detail=False, methods=['get'])
+    def statistics(self, request):
+        """دریافت آمار کامل پروژه فعال شامل اطلاعات پروژه و آمار واحدها"""
+        try:
+            # دریافت پروژه فعال
+            active_project = models.Project.get_active_project()
+            if not active_project:
+                return Response({
+                    'error': 'هیچ پروژه فعالی یافت نشد'
+                }, status=400)
+
+            # آمار واحدها برای پروژه فعال
+            from django.db.models import Sum, Count
+            units_stats = models.Unit.objects.filter(project=active_project).aggregate(
+                total_units=Count('id'),
+                total_area=Sum('area'),
+                total_price=Sum('total_price')
+            )
+
+            # اطلاعات پروژه
+            project_data = {
+                'id': active_project.id,
+                'name': active_project.name,
+                'total_infrastructure': float(active_project.total_infrastructure),
+                'correction_factor': float(active_project.correction_factor),
+                'start_date_shamsi': str(active_project.start_date_shamsi),
+                'end_date_shamsi': str(active_project.end_date_shamsi),
+                'start_date_gregorian': str(active_project.start_date_gregorian),
+                'end_date_gregorian': str(active_project.end_date_gregorian),
+                'is_active': active_project.is_active
+            }
+
+            return Response({
+                'project': project_data,
+                'units_statistics': {
+                    'total_units': units_stats['total_units'] or 0,
+                    'total_area': float(units_stats['total_area'] or 0),
+                    'total_price': float(units_stats['total_price'] or 0)
+                }
+            })
+
+        except Exception as e:
+            return Response({
+                'error': f'خطا در دریافت آمار پروژه: {str(e)}'
+            }, status=500)
 
     @action(detail=False, methods=['post'])
     def set_active(self, request):
@@ -582,6 +561,73 @@ class SaleViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({
                 'error': f'خطا در محاسبه زمان‌بندی پروژه: {str(e)}'
+            }, status=500)
+
+
+class SaleViewSet(viewsets.ModelViewSet):
+    """ViewSet for the Sale class"""
+
+    queryset = models.Sale.objects.all()
+    serializer_class = serializers.SaleSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    @action(detail=False, methods=['get'])
+    def total_sales(self, request):
+        """دریافت مجموع فروش‌ها"""
+        try:
+            # دریافت پروژه فعال
+            active_project = models.Project.get_active_project()
+            if not active_project:
+                return Response({
+                    'error': 'هیچ پروژه فعالی یافت نشد'
+                }, status=400)
+
+            # محاسبه مجموع فروش‌ها برای پروژه فعال
+            total_amount = models.Sale.objects.filter(
+                project=active_project
+            ).aggregate(total=Sum('amount'))['total'] or 0
+
+            # تعداد فروش‌ها
+            sales_count = models.Sale.objects.filter(
+                project=active_project
+            ).count()
+
+            # فروش‌ها به تفکیک دوره
+            sales_by_period = models.Sale.objects.filter(
+                project=active_project
+            ).values('period__label', 'period__id').annotate(
+                period_total=Sum('amount'),
+                period_count=Count('id')
+            ).order_by('period__id')
+
+            # محاسبه تجمعی فروش‌ها در هر دوره
+            cumulative_sales = []
+            cumulative_total = 0
+            
+            for period_data in sales_by_period:
+                period_amount = period_data['period_total'] or 0
+                cumulative_total += period_amount
+                
+                cumulative_sales.append({
+                    'period_id': period_data['period__id'],
+                    'period_label': period_data['period__label'],
+                    'period_amount': period_amount,
+                    'period_count': period_data['period_count'],
+                    'cumulative_amount': cumulative_total
+                })
+
+            return Response({
+                'project_name': active_project.name,
+                'total_amount': total_amount,
+                'sales_count': sales_count,
+                'sales_by_period': list(sales_by_period),
+                'cumulative_sales_by_period': cumulative_sales,
+                'currency': 'تومان'
+            })
+
+        except Exception as e:
+            return Response({
+                'error': f'خطا در محاسبه مجموع فروش‌ها: {str(e)}'
             }, status=500)
 
 

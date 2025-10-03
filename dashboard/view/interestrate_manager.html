@@ -612,6 +612,54 @@
             color: var(--total-color) !important;
         }
 
+        .stat-card.units-card .stat-icon {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
+        }
+
+        .stat-card.units-card::before {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color)) !important;
+        }
+
+        .stat-card.units-card .stat-value {
+            color: var(--primary-color) !important;
+        }
+
+        .stat-card.area-card .stat-icon {
+            background: linear-gradient(135deg, var(--info-color), #4fc3f7) !important;
+        }
+
+        .stat-card.area-card::before {
+            background: linear-gradient(90deg, var(--info-color), #4fc3f7) !important;
+        }
+
+        .stat-card.area-card .stat-value {
+            color: var(--info-color) !important;
+        }
+
+        .stat-card.value-card .stat-icon {
+            background: linear-gradient(135deg, var(--success-color), #81c784) !important;
+        }
+
+        .stat-card.value-card::before {
+            background: linear-gradient(90deg, var(--success-color), #81c784) !important;
+        }
+
+        .stat-card.value-card .stat-value {
+            color: var(--success-color) !important;
+        }
+
+        .stat-card.infrastructure-card .stat-icon {
+            background: linear-gradient(135deg, var(--warning-color), #ffb74d) !important;
+        }
+
+        .stat-card.infrastructure-card::before {
+            background: linear-gradient(90deg, var(--warning-color), #ffb74d) !important;
+        }
+
+        .stat-card.infrastructure-card .stat-value {
+            color: var(--warning-color) !important;
+        }
+
         .stat-label {
             font-size: 0.9rem;
             color: var(--text-secondary);
@@ -631,12 +679,33 @@
             max-width: 33.333333% !important;
         }
 
+        #projectStatsCards .row {
+            display: flex !important;
+            flex-wrap: nowrap !important;
+        }
+
+        #projectStatsCards .col-lg-3,
+        #projectStatsCards .col-md-6,
+        #projectStatsCards .col-sm-12 {
+            flex: 1 !important;
+            max-width: 25% !important;
+        }
+
         @media (max-width: 768px) {
             #financialSummaryCards .row {
                 flex-wrap: wrap !important;
             }
             
             #financialSummaryCards .col-sm-12 {
+                max-width: 100% !important;
+                flex: none !important;
+            }
+
+            #projectStatsCards .row {
+                flex-wrap: wrap !important;
+            }
+            
+            #projectStatsCards .col-sm-12 {
                 max-width: 100% !important;
                 flex: none !important;
             }
@@ -717,6 +786,54 @@
                     <div class="stat-content">
                         <div class="stat-value" id="finalCost">-</div>
                         <div class="stat-label">هزینه تمام شده نهایی(تومان)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Project Statistics Cards -->
+        <div class="row mb-4" id="projectStatsCards" style="display: none;">
+            <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
+                <div class="stat-card units-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="totalUnits">-</div>
+                        <div class="stat-label">تعداد واحدها</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
+                <div class="stat-card area-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-ruler-combined"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="totalArea">-</div>
+                        <div class="stat-label">مجموع متراژ مفید (م²)</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
+                <div class="stat-card value-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="totalValue">-</div>
+                        <div class="stat-label">ارزش ساختمان (تومان)</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
+                <div class="stat-card infrastructure-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="totalInfrastructure">-</div>
+                        <div class="stat-label">زیربنای کل (م²)</div>
                     </div>
                 </div>
             </div>
@@ -854,6 +971,7 @@
             loadRates();
             loadCurrentRate();
             loadFinancialSummary();
+            loadProjectStatistics();
         });
 
         // Initialize Persian date pickers
@@ -1072,6 +1190,47 @@
 
             // Show the financial summary cards
             document.getElementById('financialSummaryCards').style.display = 'flex';
+        }
+
+        // Load project statistics
+        async function loadProjectStatistics() {
+            try {
+                // Load project statistics (includes both project data and units statistics)
+                const response = await fetch(`${API_BASE}Project/statistics/`);
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Project Statistics API Response:', data);
+                    displayProjectStatistics(data);
+                } else {
+                    console.error('Error loading project statistics');
+                }
+
+            } catch (error) {
+                console.error('Error loading project statistics:', error);
+            }
+        }
+
+        // Display project statistics
+        function displayProjectStatistics(data) {
+            // Format numbers with English locale and 3-digit separators
+            const formatNumber = (num) => {
+                return new Intl.NumberFormat('en-US').format(Math.round(num));
+            };
+
+            // Display units statistics
+            if (data.units_statistics) {
+                document.getElementById('totalUnits').textContent = formatNumber(data.units_statistics.total_units);
+                document.getElementById('totalArea').textContent = formatNumber(data.units_statistics.total_area);
+                document.getElementById('totalValue').textContent = formatNumber(data.units_statistics.total_price);
+            }
+
+            // Display project infrastructure
+            if (data.project && data.project.total_infrastructure) {
+                document.getElementById('totalInfrastructure').textContent = formatNumber(data.project.total_infrastructure);
+            }
+
+            // Show the project statistics cards
+            document.getElementById('projectStatsCards').style.display = 'flex';
         }
 
         // Display rates in table
