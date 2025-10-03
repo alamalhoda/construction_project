@@ -509,6 +509,98 @@
                 align-items: flex-start;
             }
         }
+
+        /* Project Financial Summary Cards */
+        .stat-card {
+            background: var(--bg-secondary);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+        }
+
+        .stat-card.expense-card::before {
+            background: linear-gradient(90deg, var(--expense-color), #f48fb1);
+        }
+
+        .stat-card.sales-card::before {
+            background: linear-gradient(90deg, #4caf50, #81c784);
+        }
+
+        .stat-card.final-cost-card::before {
+            background: linear-gradient(90deg, var(--total-color), #90a4ae);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .stat-card.expense-card .stat-icon {
+            background: linear-gradient(135deg, var(--expense-color), #f48fb1);
+        }
+
+        .stat-card.sales-card .stat-icon {
+            background: linear-gradient(135deg, #4caf50, #81c784);
+        }
+
+        .stat-card.final-cost-card .stat-icon {
+            background: linear-gradient(135deg, var(--total-color), #90a4ae);
+        }
+
+        .stat-content {
+            text-align: right;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .stat-card.expense-card .stat-value {
+            color: var(--expense-color);
+        }
+
+        .stat-card.sales-card .stat-value {
+            color: #4caf50;
+        }
+
+        .stat-card.final-cost-card .stat-value {
+            color: var(--total-color);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
@@ -519,9 +611,9 @@
             <div class="unified-header-content">
                 <h1>
                     <i class="fas fa-percentage"></i>
-                    مدیریت نرخ سود
+                    مدیریت  سود
                 </h1>
-                <p class="subtitle">مشاهده و مدیریت نرخ‌های سود مشارکت پروژه</p>
+                <p class="subtitle">مشاهده و مدیریت سودهای مشارکت پروژه</p>
                 <div class="navigation-links">
                     <a href="/user-dashboard/" class="nav-link">
                         <i class="fas fa-home"></i>
@@ -553,13 +645,50 @@
             <div class="current-rate-date" id="currentRateDate">-</div>
         </div>
 
+        <!-- Project Financial Summary Cards -->
+        <div class="row mb-4" id="financialSummaryCards" style="display: none;">
+            <div class="col-md-4 col-sm-6 mb-3">
+                <div class="stat-card expense-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-receipt"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="totalExpenses">-</div>
+                        <div class="stat-label">مجموع کل هزینه‌ها(تومان)</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-6 mb-3">
+                <div class="stat-card sales-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="totalSales">-</div>
+                        <div class="stat-label">مجموع فروش(تومان)</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-6 mb-3">
+                <div class="stat-card final-cost-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-calculator"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="finalCost">-</div>
+                        <div class="stat-label">هزینه تمام شده نهایی(تومان)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Main Content -->
         <div class="main-content">
             <!-- Section Header -->
             <div class="section-title">
                 <span>
                     <i class="fas fa-list"></i>
-                    لیست نرخ‌های سود(<a style="color:black;font-size:14px;" href="../../construction/InterestRate/">ویرایش نرخ سود</a>)
+                    لیست سودها(<a style="color:black;font-size:14px;" href="../../construction/InterestRate/">ویرایش سود</a>)
                 </span>
                 <br> <span style="color:black;font-size:1.2rem;"></span>
 
@@ -684,6 +813,7 @@
             initializeDatePickers();
             loadRates();
             loadCurrentRate();
+            loadFinancialSummary();
         });
 
         // Initialize Persian date pickers
@@ -849,6 +979,59 @@
             document.getElementById('currentRateValue').textContent = rateValue;
             document.getElementById('currentRateDate').textContent = `از تاریخ ${rateDate}`;
             document.getElementById('currentRateCard').style.display = 'block';
+        }
+
+        // Load financial summary data
+        async function loadFinancialSummary() {
+            try {
+                // Load expenses data
+                const expensesResponse = await fetch(`${API_BASE}Expense/total_expenses/`);
+                let totalExpenses = 0;
+                if (expensesResponse.ok) {
+                    const expensesData = await expensesResponse.json();
+                    console.log('Expenses API Response:', expensesData);
+                    totalExpenses = expensesData.total_expenses?.total_amount || 0;
+                }
+
+                // Load sales data
+                const salesResponse = await fetch(`${API_BASE}Sale/total_sales/`);
+                let totalSales = 0;
+                if (salesResponse.ok) {
+                    const salesData = await salesResponse.json();
+                    console.log('Sales API Response:', salesData);
+                    totalSales = salesData.total_amount || 0;
+                }
+
+                // Calculate final cost (expenses - sales)
+                const finalCost = totalExpenses - totalSales;
+
+                console.log('Final Values:', {
+                    totalExpenses,
+                    totalSales,
+                    finalCost
+                });
+
+                // Display the data
+                displayFinancialSummary(totalExpenses, totalSales, finalCost);
+
+            } catch (error) {
+                console.error('Error loading financial summary:', error);
+            }
+        }
+
+        // Display financial summary
+        function displayFinancialSummary(totalExpenses, totalSales, finalCost) {
+            // Format numbers with English locale and 3-digit separators
+            const formatNumber = (num) => {
+                return new Intl.NumberFormat('en-US').format(Math.round(num));
+            };
+
+            document.getElementById('totalExpenses').textContent = formatNumber(totalExpenses);
+            document.getElementById('totalSales').textContent = formatNumber(totalSales);
+            document.getElementById('finalCost').textContent = formatNumber(finalCost);
+
+            // Show the financial summary cards
+            document.getElementById('financialSummaryCards').style.display = 'block';
         }
 
         // Display rates in table

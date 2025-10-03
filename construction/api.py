@@ -1,7 +1,7 @@
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Sum, Q
+from django.db.models import Sum, Q, Count
 from django.db import connection
 
 from . import serializers
@@ -448,7 +448,7 @@ class SaleViewSet(viewsets.ModelViewSet):
                 project=active_project
             ).values('period__label', 'period__id').annotate(
                 period_total=Sum('amount'),
-                period_count=models.Count('id')
+                period_count=Count('id')
             ).order_by('period__id')
 
             # محاسبه تجمعی فروش‌ها در هر دوره
