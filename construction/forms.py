@@ -123,6 +123,32 @@ class ProjectForm(forms.ModelForm):
             'class': 'form-check-input'
         })
     )
+    total_infrastructure = forms.DecimalField(
+        label="زیر بنای کل",
+        max_digits=15,
+        decimal_places=2,
+        required=False,
+        initial=0.00,
+        help_text="زیر بنای کل پروژه به متر مربع",
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'زیر بنای کل را وارد کنید...',
+            'step': '0.01'
+        })
+    )
+    correction_factor = forms.DecimalField(
+        label="ضریب اصلاحی",
+        max_digits=20,
+        decimal_places=10,
+        required=False,
+        initial=1.0000000000,
+        help_text="ضریب اصلاحی برای محاسبات پروژه",
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'ضریب اصلاحی را وارد کنید...',
+            'step': '0.0000000001'
+        })
+    )
     
     class Meta:
         model = models.Project
@@ -133,6 +159,8 @@ class ProjectForm(forms.ModelForm):
             "start_date_gregorian",
             "end_date_gregorian",
             "is_active",
+            "total_infrastructure",
+            "correction_factor",
         ]
 
 

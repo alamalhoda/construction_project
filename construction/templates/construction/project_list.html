@@ -24,6 +24,7 @@
                                         <th>وضعیت</th>
                                         <th>تاریخ شروع</th>
                                         <th>تاریخ پایان</th>
+                                        <th>زیر بنای کل</th>
                                         <th>عملیات</th>
                                     </tr>
                                 </thead>
@@ -44,6 +45,7 @@
                                             </td>
                                             <td>{{ project.start_date_shamsi|jformat:"%Y/%m/%d" }}</td>
                                             <td>{{ project.end_date_shamsi|jformat:"%Y/%m/%d" }}</td>
+                                            <td>{{ project.total_infrastructure|floatformat:2 }} متر مربع</td>
                                             <td>
                                                 <div class="btn-group" role="group">
                                                     <a href="{{ project.get_absolute_url }}" class="btn btn-sm btn-outline-primary">

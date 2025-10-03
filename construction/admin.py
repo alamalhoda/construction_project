@@ -117,6 +117,8 @@ class ProjectAdmin(admin.ModelAdmin):
         "is_active",
         "start_date_shamsi",
         "end_date_shamsi",
+        "total_infrastructure",
+        "correction_factor",
         "created_at",
         "updated_at",
     ]

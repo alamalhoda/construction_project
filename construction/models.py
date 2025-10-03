@@ -19,6 +19,20 @@ class Project(models.Model):
         verbose_name="پروژه فعال",
         help_text="آیا این پروژه در حال حاضر فعال است؟ (فقط یک پروژه می‌تواند فعال باشد)"
     )
+    total_infrastructure = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        default=0.00,
+        verbose_name="زیر بنای کل",
+        help_text="زیر بنای کل پروژه به متر مربع"
+    )
+    correction_factor = models.DecimalField(
+        max_digits=20,
+        decimal_places=10,
+        default=1.0000000000,
+        verbose_name="ضریب اصلاحی",
+        help_text="ضریب اصلاحی برای محاسبات پروژه"
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="تاریخ به‌روزرسانی")
 

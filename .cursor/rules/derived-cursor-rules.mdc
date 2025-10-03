@@ -24,6 +24,23 @@ globs: *
 ### COPYRIGHT NOTICE
 *   Always include a copyright notice at the bottom of each page, linking to royasoftteam.ir, formatted as a professional footer. The footer should include the copyright year (currently 2024), a link to RoyaSoftTeam with a code icon, and be styled appropriately for the page (e.g., using Bootstrap). The footer should also be responsive and support dark/light themes where applicable, using CSS variables. The footer on authentication pages (e.g., login, registration) must be fixed to the bottom of the page.
 
+### MODEL DEFINITIONS
+*   When defining models, use DecimalFields with appropriate max_digits and decimal_places to ensure data integrity for numerical fields like "Total_Infrastructure" and "Correction_factor".
+    *   For "Total_Infrastructure", use `max_digits=15` and `decimal_places=2`.
+    *   For "Correction_factor", use `max_digits=20` and `decimal_places=10`.
+*   Always include verbose names and help texts for each field to improve readability and usability in forms and admin interfaces.
+
+### FORM HANDLING
+*   When creating forms, ensure that new model fields are included and properly configured.
+*   Use appropriate widgets (e.g., `NumberInput`) with relevant attributes (e.g., `class`, `placeholder`, `step`) for each form field.
+*   Set `required=False` if the field is not mandatory.
+*   Ensure the form's `Meta` class includes all relevant fields in the `fields` attribute.
+
+### TEMPLATE UPDATES
+*   When updating templates, ensure that new fields are displayed correctly using the form's rendering mechanism (e.g., `{{ form.field_name }}`).
+*   Include labels and help texts for each field to provide context to the user.
+*   Use appropriate HTML structure (e.g., `div`, `form-group`, `col-md-6`) to ensure proper layout and responsiveness.
+
 ## TECH STACK
 *   (Add the used technologies, frameworks, libraries, versions, etc. Example: Python 3.9, Django 3.2, React 17, Bootstrap 5)
 
