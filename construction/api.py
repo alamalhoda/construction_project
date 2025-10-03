@@ -17,6 +17,43 @@ class ExpenseViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     @action(detail=False, methods=['get'])
+    def with_periods(self, request):
+        """دریافت هزینه‌ها با اطلاعات دوره‌ها برای محاسبه دوره متوسط ساخت"""
+        try:
+            # دریافت پروژه فعال
+            active_project = models.Project.get_active_project()
+            if not active_project:
+                return Response({
+                    'error': 'هیچ پروژه فعالی یافت نشد'
+                }, status=400)
+
+            # دریافت تمام هزینه‌ها برای پروژه فعال با اطلاعات دوره
+            expenses = models.Expense.objects.filter(
+                project=active_project
+            ).select_related('period')
+
+            # بررسی آمار دوره‌ها
+            total_expenses = expenses.count()
+            expenses_with_period = expenses.exclude(period__isnull=True).count()
+            expenses_without_period = expenses.filter(period__isnull=True).count()
+
+            # استفاده از serializer مخصوص
+            serializer = serializers.ExpenseSerializer(expenses, many=True)
+            
+            return Response({
+                'expenses': serializer.data,
+                'total_count': total_expenses,
+                'expenses_with_period': expenses_with_period,
+                'expenses_without_period': expenses_without_period,
+                'active_project': active_project.name
+            })
+
+        except Exception as e:
+            return Response({
+                'error': f'خطا در دریافت داده‌ها: {str(e)}'
+            }, status=500)
+
+    @action(detail=False, methods=['get'])
     def dashboard_data(self, request):
         """دریافت داده‌های داشبورد هزینه‌ها"""
         try:
