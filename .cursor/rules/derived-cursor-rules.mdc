@@ -60,3 +60,11 @@ globs: *
 
 ## TESTING
 *   (Define testing procedures and standards.)
+
+## BACKUP AND RECOVERY
+*   Ensure that the backup process covers all models defined in the `construction` app.
+*   Verify that the backup process includes models defined in the `backup` app.
+*   The backup process must include the following models:
+    *   Models in `construction`: `Project`, `Unit`, `Investor`, `Period`, `InterestRate`, `Transaction`, `Expense`, `Sale`, `UserProfile`.
+    *   Models in `backup`: `BackupRecord`, `BackupSettings`.
+    *   Models in `security_monitoring`: `SecurityEvent`.
