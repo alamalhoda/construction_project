@@ -14,6 +14,7 @@ router.register("Investor", api.InvestorViewSet)
 router.register("InterestRate", api.InterestRateViewSet)
 router.register("Period", api.PeriodViewSet)
 router.register("Project", api.ProjectViewSet)
+router.register("Sale", api.SaleViewSet)
 router.register("Transaction", api.TransactionViewSet)
 router.register("Unit", api.UnitViewSet)
 
@@ -69,6 +70,11 @@ urlpatterns = (
     path("construction/InterestRate/detail/<int:pk>/", views.InterestRateDetailView.as_view(), name="construction_InterestRate_detail"),
     path("construction/InterestRate/update/<int:pk>/", views.InterestRateUpdateView.as_view(), name="construction_InterestRate_update"),
     path("construction/InterestRate/delete/<int:pk>/", views.InterestRateDeleteView.as_view(), name="construction_InterestRate_delete"),
+    path("construction/Sale/", views.SaleListView.as_view(), name="construction_Sale_list"),
+    path("construction/Sale/create/", views.SaleCreateView.as_view(), name="construction_Sale_create"),
+    path("construction/Sale/detail/<int:pk>/", views.SaleDetailView.as_view(), name="construction_Sale_detail"),
+    path("construction/Sale/update/<int:pk>/", views.SaleUpdateView.as_view(), name="construction_Sale_update"),
+    path("construction/Sale/delete/<int:pk>/", views.SaleDeleteView.as_view(), name="construction_Sale_delete"),
 
     # User Authentication URLs - moved to root level in main urls.py
     # path("login/", user_views.user_login_view, name="user_login"),

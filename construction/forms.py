@@ -123,6 +123,32 @@ class ProjectForm(forms.ModelForm):
             'class': 'form-check-input'
         })
     )
+    total_infrastructure = forms.DecimalField(
+        label="زیر بنای کل",
+        max_digits=15,
+        decimal_places=2,
+        required=False,
+        initial=0.00,
+        help_text="زیر بنای کل پروژه به متر مربع",
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'زیر بنای کل را وارد کنید...',
+            'step': '0.01'
+        })
+    )
+    correction_factor = forms.DecimalField(
+        label="ضریب اصلاحی",
+        max_digits=20,
+        decimal_places=10,
+        required=False,
+        initial=1.0000000000,
+        help_text="ضریب اصلاحی برای محاسبات پروژه",
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'ضریب اصلاحی را وارد کنید...',
+            'step': '0.0000000001'
+        })
+    )
     
     class Meta:
         model = models.Project
@@ -133,6 +159,8 @@ class ProjectForm(forms.ModelForm):
             "start_date_gregorian",
             "end_date_gregorian",
             "is_active",
+            "total_infrastructure",
+            "correction_factor",
         ]
 
 
@@ -237,3 +265,43 @@ class InterestRateForm(forms.ModelForm):
             "description",
             "is_active",
         ]
+
+
+class SaleForm(forms.ModelForm):
+    class Meta:
+        model = models.Sale
+        fields = [
+            "period",
+            "amount",
+            "description",
+        ]
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # تنظیم استایل‌ها برای فیلدها
+        self.fields['period'].widget.attrs.update({'class': 'form-control'})
+        self.fields['amount'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'مبلغ فروش/مرجوعی را وارد کنید...'
+        })
+        self.fields['description'].widget.attrs.update({
+            'class': 'form-control',
+            'rows': 3,
+            'placeholder': 'توضیحات فروش/مرجوعی...'
+        })
+    
+    def save(self, commit=True):
+        """ذخیره فروش با تنظیم خودکار پروژه فعال"""
+        sale = super().save(commit=False)
+        
+        # تنظیم پروژه فعال
+        active_project = models.Project.get_active_project()
+        if not active_project:
+            raise forms.ValidationError("هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید.")
+        
+        sale.project = active_project
+        
+        if commit:
+            sale.save()
+        
+        return sale

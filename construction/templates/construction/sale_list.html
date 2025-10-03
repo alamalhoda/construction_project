@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">لیست فروش/مرجوعیها</h4>
+                    <a class="btn btn-primary" href="{% url 'construction_Sale_create' %}">
+                        <i class="fas fa-plus"></i> افزودن فروش/مرجوعی جدید
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if object_list %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>دوره</th>
+                                        <th>مبلغ</th>
+                                        <th>توضیحات</th>
+                                        <th>عملیات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for sale in object_list %}
+                                        <tr>
+                                            <td>
+                                                {% ifchanged sale.period.id %}
+                                                    <strong>{{ sale.period.label }}</strong>
+                                                {% endifchanged %}
+                                            </td>
+                                            <td>
+                                                <span class="text-success font-weight-bold">
+                                                    {{ sale.amount|floatformat:0 }} تومان
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {% if sale.description %}
+                                                    {{ sale.description|truncatechars:30 }}
+                                                {% else %}
+                                                    <span class="text-muted">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="{{ sale.get_absolute_url }}" class="btn btn-sm btn-outline-primary">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <a href="{{ sale.get_update_url }}" class="btn btn-sm btn-outline-warning">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <a href="{% url 'construction_Sale_delete' sale.pk %}" 
+                                                       class="btn btn-sm btn-outline-danger"
+                                                       onclick="return confirm('آیا از حذف این فروش/مرجوعی اطمینان دارید؟')">
+                                                        <i class="fas fa-trash"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">هیچ فروش/مرجوعیی یافت نشد</h5>
+                            <p class="text-muted">برای شروع، یک فروش/مرجوعی جدید اضافه کنید.</p>
+                            <a class="btn btn-primary" href="{% url 'construction_Sale_create' %}">
+                                <i class="fas fa-plus"></i> افزودن اولین فروش/مرجوعی
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* استایل برای merge کردن سلول‌های دوره */
+.table tbody tr td:first-child {
+    border-top: 2px solid #dee2e6;
+}
+
+.table tbody tr:first-child td:first-child {
+    border-top: none;
+}
+
+/* بهبود ظاهر Badge ها */
+.badge {
+    font-size: 0.75rem;
+    padding: 0.375rem 0.75rem;
+}
+
+/* رنگ‌های مخصوص فروش/مرجوعی */
+.badge-info { 
+    background-color: var(--profit-color, #21ba45); 
+    color: white;
+}
+
+/* بهبود ظاهر جدول */
+.table-hover tbody tr:hover {
+    background-color: rgba(33, 186, 69, 0.05);
+}
+
+/* استایل مبلغ فروش/مرجوعی */
+.text-success {
+    color: var(--profit-color, #21ba45) !important;
+}
+
+.font-weight-bold {
+    font-weight: 600 !important;
+}
+</style>
+
+{% endblock %}
