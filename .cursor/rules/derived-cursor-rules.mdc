@@ -17,6 +17,10 @@ globs: *
 *   Keep functions short and focused.
 *   Avoid unnecessary complexity.
 
+### API Design
+*   When creating new API endpoints, ensure they are well-documented with docstrings, explaining the purpose, inputs, and outputs.
+*   New API endpoints should include comprehensive statistics such as total units, total area, and total price. Breakdown by project should also be included where applicable, providing the same statistics for each project.
+
 ### COPYRIGHT NOTICE
 *   Always include a copyright notice at the bottom of each page, linking to royasoftteam.ir, formatted as a professional footer. The footer should include the copyright year (currently 2024), a link to RoyaSoftTeam with a code icon, and be styled appropriately for the page (e.g., using Bootstrap). The footer should also be responsive and support dark/light themes where applicable, using CSS variables. The footer on authentication pages (e.g., login, registration) must be fixed to the bottom of the page.
 
