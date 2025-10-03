@@ -19,6 +19,20 @@ class Project(models.Model):
         verbose_name="پروژه فعال",
         help_text="آیا این پروژه در حال حاضر فعال است؟ (فقط یک پروژه می‌تواند فعال باشد)"
     )
+    total_infrastructure = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        default=0.00,
+        verbose_name="زیر بنای کل",
+        help_text="زیر بنای کل پروژه به متر مربع"
+    )
+    correction_factor = models.DecimalField(
+        max_digits=20,
+        decimal_places=10,
+        default=1.0000000000,
+        verbose_name="ضریب اصلاحی",
+        help_text="ضریب اصلاحی برای محاسبات پروژه"
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="تاریخ به‌روزرسانی")
 
@@ -583,7 +597,28 @@ class Expense(models.Model):
         return total_updated
     
 
-
+class Sale(models.Model):
+    """
+    مدل فروش/مرجوعی
+    """
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, verbose_name="پروژه")
+    period = models.ForeignKey(Period, on_delete=models.CASCADE, verbose_name="دوره")
+    amount = models.DecimalField(max_digits=20, decimal_places=2, verbose_name="مبلغ")
+    description = models.TextField(blank=True, verbose_name="توضیحات")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
+    
+    class Meta:
+        verbose_name = "فروش/مرجوعی"
+        verbose_name_plural = "فروش/مرجوعیها"
+    
+    def __str__(self):
+        return f"{self.project.name} - {self.period.label} - {self.amount}"
+    
+    def get_update_url(self):
+        return reverse('construction_Sale_update', kwargs={'pk': self.pk})
+    
+    def get_absolute_url(self):
+        return reverse('construction_Sale_detail', kwargs={'pk': self.pk})
 
 class UserProfile(models.Model):
     """

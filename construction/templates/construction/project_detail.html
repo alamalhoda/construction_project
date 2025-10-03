@@ -54,29 +54,14 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="info-item mb-3">
-                                <label class="info-label">تاریخ شروع (میلادی):</label>
-                                <span class="info-value">{{ object.start_date_gregorian }}</span>
+                                <label class="info-label">زیر بنای کل:</label>
+                                <span class="info-value">{{ object.total_infrastructure|floatformat:2 }} متر مربع</span>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="info-item mb-3">
-                                <label class="info-label">تاریخ پایان (میلادی):</label>
-                                <span class="info-value">{{ object.end_date_gregorian }}</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="info-item mb-3">
-                                <label class="info-label">تاریخ ایجاد:</label>
-                                <span class="info-value">{{ object.created_at|jformat:"%Y/%m/%d - %H:%M" }}</span>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="info-item mb-3">
-                                <label class="info-label">تاریخ به‌روزرسانی:</label>
-                                <span class="info-value">{{ object.updated_at|jformat:"%Y/%m/%d - %H:%M" }}</span>
+                                <label class="info-label">ضریب اصلاحی:</label>
+                                <span class="info-value">{{ object.correction_factor|floatformat:10 }}</span>
                             </div>
                         </div>
                     </div>

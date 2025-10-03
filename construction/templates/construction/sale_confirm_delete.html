@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle"></i> تأیید حذف فروش/مرجوعی
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-warning"></i>
+                        <strong>هشدار:</strong> این عمل قابل بازگشت نیست!
+                    </div>
+                    
+                    <p class="mb-4">
+                        آیا از حذف فروش/مرجوعی زیر اطمینان دارید؟
+                    </p>
+                    
+                    <div class="sale-info p-3 bg-light rounded">
+                        <h5 class="sale-title">{{ object.project.name }}</h5>
+                        <p class="mb-1"><strong>دوره:</strong> {{ object.period.label }}</p>
+                        <p class="mb-1"><strong>مبلغ:</strong> <span class="sale-amount">{{ object.amount|floatformat:0 }} تومان</span></p>
+                        {% if object.description %}
+                            <p class="mb-0"><strong>توضیحات:</strong> {{ object.description }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'construction_Sale_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-right"></i> انصراف
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> حذف فروش/مرجوعی
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* استایل‌های مخصوص صفحه حذف فروش/مرجوعی */
+.sale-info {
+    border-left: 4px solid var(--profit-color, #21ba45);
+}
+
+.sale-title {
+    color: var(--profit-color, #21ba45);
+    margin-bottom: 0.5rem;
+}
+
+.sale-amount {
+    color: var(--profit-color, #21ba45);
+    font-weight: bold;
+}
+
+.bg-light {
+    background-color: #f8f9fa !important;
+}
+</style>
+
+{% endblock %}

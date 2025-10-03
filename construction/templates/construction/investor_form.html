@@ -86,7 +86,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="units" class="form-label">واحدها</label>
-                                    <select class="form-control" id="units" name="units" multiple size="3">
+                                    <select class="form-control" id="units" name="units" multiple size="20" size="20">
                                         {% for unit in form.units.field.queryset %}
                                             <option value="{{ unit.id }}" {% if unit in object.units.all %}selected{% endif %}>{{ unit.name }}</option>
                                         {% endfor %}

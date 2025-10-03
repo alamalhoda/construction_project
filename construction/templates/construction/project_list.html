@@ -10,9 +10,9 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h4 class="mb-0">لیست پروژه‌ها</h4>
-                    <a class="btn btn-primary" href="{% url 'construction_Project_create' %}">
+                    <!-- <a class="btn btn-primary" href="{% url 'construction_Project_create' %}">
                         <i class="fas fa-plus"></i> افزودن پروژه جدید
-                    </a>
+                    </a> -->
                 </div>
                 <div class="card-body">
                     {% if object_list %}
@@ -24,6 +24,7 @@
                                         <th>وضعیت</th>
                                         <th>تاریخ شروع</th>
                                         <th>تاریخ پایان</th>
+                                        <th>زیر بنای کل</th>
                                         <th>عملیات</th>
                                     </tr>
                                 </thead>
@@ -44,6 +45,7 @@
                                             </td>
                                             <td>{{ project.start_date_shamsi|jformat:"%Y/%m/%d" }}</td>
                                             <td>{{ project.end_date_shamsi|jformat:"%Y/%m/%d" }}</td>
+                                            <td>{{ project.total_infrastructure|floatformat:2 }} متر مربع</td>
                                             <td>
                                                 <div class="btn-group" role="group">
                                                     <a href="{{ project.get_absolute_url }}" class="btn btn-sm btn-outline-primary">

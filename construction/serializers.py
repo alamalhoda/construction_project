@@ -3,32 +3,6 @@ from rest_framework import serializers
 from . import models
 
 
-class ExpenseSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = models.Expense
-        fields = [
-            "expense_type",
-            "amount",
-            "description",
-            "created_at",
-        ]
-
-class InvestorSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = models.Investor
-        fields = [
-            "id",
-            "first_name",
-            "last_name",
-            "phone",
-            "email",
-            "participation_type",
-            "units",
-            "created_at",
-        ]
-
 class PeriodSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -46,6 +20,44 @@ class PeriodSerializer(serializers.ModelSerializer):
             "end_date_gregorian",
         ]
 
+class ExpenseSerializer(serializers.ModelSerializer):
+    period_data = PeriodSerializer(source='period', read_only=True)
+    period_weight = serializers.SerializerMethodField()
+
+    class Meta:
+        model = models.Expense
+        fields = [
+            "id",
+            "expense_type",
+            "amount",
+            "description",
+            "period",
+            "period_data",
+            "period_weight",
+            "created_at",
+        ]
+
+    def get_period_weight(self, obj):
+        """دریافت وزن دوره"""
+        if obj.period:
+            return obj.period.weight
+        return 0
+
+class InvestorSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.Investor
+        fields = [
+            "id",
+            "first_name",
+            "last_name",
+            "phone",
+            "email",
+            "participation_type",
+            "units",
+            "created_at",
+        ]
+
 class ProjectSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -58,8 +70,27 @@ class ProjectSerializer(serializers.ModelSerializer):
             "start_date_gregorian",
             "end_date_gregorian",
             "is_active",
+            "total_infrastructure",
+            "correction_factor",
             "created_at",
             "updated_at",
+        ]
+
+class SaleSerializer(serializers.ModelSerializer):
+    project_data = ProjectSerializer(source='project', read_only=True)
+    period_data = PeriodSerializer(source='period', read_only=True)
+
+    class Meta:
+        model = models.Sale
+        fields = [
+            "id",
+            "project",
+            "period",
+            "amount",
+            "description",
+            "created_at",
+            "project_data",
+            "period_data",
         ]
 
 class TransactionSerializer(serializers.ModelSerializer):

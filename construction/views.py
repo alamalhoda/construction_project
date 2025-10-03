@@ -48,6 +48,39 @@ class ExpenseDeleteView(generic.DeleteView):
     success_url = reverse_lazy("construction_Expense_list")
 
 
+# Sale Views
+@method_decorator(login_required, name='dispatch')
+class SaleListView(generic.ListView):
+    model = models.Sale
+    form_class = forms.SaleForm
+    ordering = ['period__id', 'created_at']
+
+
+@method_decorator(login_required, name='dispatch')
+class SaleCreateView(generic.CreateView):
+    model = models.Sale
+    form_class = forms.SaleForm
+
+
+@method_decorator(login_required, name='dispatch')
+class SaleDetailView(generic.DetailView):
+    model = models.Sale
+    form_class = forms.SaleForm
+
+
+@method_decorator(login_required, name='dispatch')
+class SaleUpdateView(generic.UpdateView):
+    model = models.Sale
+    form_class = forms.SaleForm
+    pk_url_kwarg = "pk"
+
+
+@method_decorator(login_required, name='dispatch')
+class SaleDeleteView(generic.DeleteView):
+    model = models.Sale
+    success_url = reverse_lazy("construction_Sale_list")
+
+
 @method_decorator(login_required, name='dispatch')
 class InvestorListView(generic.ListView):
     model = models.Investor

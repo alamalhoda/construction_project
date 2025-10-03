@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        {% if object %}
+                            ویرایش فروش/مرجوعی
+                        {% else %}
+                            افزودن فروش/مرجوعی جدید
+                        {% endif %}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="mb-3">
+                        <a class="btn btn-outline-secondary" href="{% url 'construction_Sale_list' %}">
+                            <i class="fas fa-arrow-right"></i> بازگشت به لیست فروش/مرجوعیها
+                        </a>
+                    </p>
+                    
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {% if form.errors %}
+                            <div class="alert alert-danger">
+                                <strong>خطا:</strong> لطفاً موارد زیر را بررسی کنید:
+                                <ul class="mb-0 mt-2">
+                                    {% for field, errors in form.errors.items %}
+                                        {% for error in errors %}
+                                            <li>{{ error }}</li>
+                                        {% endfor %}
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.period.id_for_label }}" class="form-label">دوره <span class="text-danger">*</span></label>
+                                    {{ form.period }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.amount.id_for_label }}" class="form-label">مبلغ فروش/مرجوعی (تومان) <span class="text-danger">*</span></label>
+                                    {{ form.amount }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        
+                        <div class="form-group">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">توضیحات فروش/مرجوعی</label>
+                            {{ form.description }}
+                        </div>
+                        
+                        <div class="form-actions mt-4">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save"></i> ذخیره فروش/مرجوعی
+                            </button>
+                            <a href="{% url 'construction_Sale_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> انصراف
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* استایل‌های مخصوص فرم فروش/مرجوعی */
+.btn-success {
+    background-color: var(--profit-color, #21ba45);
+    border-color: var(--profit-color, #21ba45);
+}
+
+.btn-success:hover {
+    background-color: var(--profit-color, #1ea83a);
+    border-color: var(--profit-color, #1ea83a);
+}
+
+.form-control:focus {
+    border-color: var(--profit-color, #21ba45);
+    box-shadow: 0 0 0 0.2rem rgba(33, 186, 69, 0.25);
+}
+</style>
+
+{% endblock %}
