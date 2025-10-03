@@ -83,3 +83,4 @@ globs: *
     *   Models in `construction`: `Project`, `Unit`, `Investor`, `Period`, `InterestRate`, `Transaction`, `Expense`, `Sale`, `UserProfile`.
     *   Models in `backup`: `BackupRecord`, `BackupSettings`.
     *   Models in `security_monitoring`: `SecurityEvent`.
+*   When creating a new backup, if the process stops and throws an error, check the import statements in `create_backup.py` for `SecurityEvent`. Ensure that the import path is correct, pointing to the correct location of the `SecurityEvent` model (e.g., `security_monitoring.py`).
