@@ -610,7 +610,11 @@
         .stat-card.value-per-meter-card .stat-value,
         .stat-card.final-cost-per-meter-card .stat-value,
         .stat-card.final-profit-amount-card .stat-value,
-        .stat-card.total-profit-percentage-card .stat-value {
+        .stat-card.total-profit-percentage-card .stat-value,
+        .stat-card.average-construction-period-card .stat-value,
+        .stat-card.annual-profit-percentage-card .stat-value,
+        .stat-card.monthly-profit-percentage-card .stat-value,
+        .stat-card.daily-profit-percentage-card .stat-value {
             font-size: 2.2rem !important;
         }
 
@@ -621,7 +625,11 @@
         .stat-card.value-per-meter-card,
         .stat-card.final-cost-per-meter-card,
         .stat-card.final-profit-amount-card,
-        .stat-card.total-profit-percentage-card {
+        .stat-card.total-profit-percentage-card,
+        .stat-card.average-construction-period-card,
+        .stat-card.annual-profit-percentage-card,
+        .stat-card.monthly-profit-percentage-card,
+        .stat-card.daily-profit-percentage-card {
             min-height: 180px !important;
             padding: 30px !important;
         }
@@ -632,7 +640,11 @@
         .stat-card.value-per-meter-card .stat-icon,
         .stat-card.final-cost-per-meter-card .stat-icon,
         .stat-card.final-profit-amount-card .stat-icon,
-        .stat-card.total-profit-percentage-card .stat-icon {
+        .stat-card.total-profit-percentage-card .stat-icon,
+        .stat-card.average-construction-period-card .stat-icon,
+        .stat-card.annual-profit-percentage-card .stat-icon,
+        .stat-card.monthly-profit-percentage-card .stat-icon,
+        .stat-card.daily-profit-percentage-card .stat-icon {
             width: 70px !important;
             height: 70px !important;
             font-size: 1.8rem !important;
@@ -770,6 +782,54 @@
             color: #ff9800 !important;
         }
 
+        .stat-card.average-construction-period-card .stat-icon {
+            background: linear-gradient(135deg, #673ab7, #9575cd) !important;
+        }
+
+        .stat-card.average-construction-period-card::before {
+            background: linear-gradient(90deg, #673ab7, #9575cd) !important;
+        }
+
+        .stat-card.average-construction-period-card .stat-value {
+            color: #673ab7 !important;
+        }
+
+        .stat-card.annual-profit-percentage-card .stat-icon {
+            background: linear-gradient(135deg, #795548, #a1887f) !important;
+        }
+
+        .stat-card.annual-profit-percentage-card::before {
+            background: linear-gradient(90deg, #795548, #a1887f) !important;
+        }
+
+        .stat-card.annual-profit-percentage-card .stat-value {
+            color: #795548 !important;
+        }
+
+        .stat-card.monthly-profit-percentage-card .stat-icon {
+            background: linear-gradient(135deg, #ff9800, #ffb74d) !important;
+        }
+
+        .stat-card.monthly-profit-percentage-card::before {
+            background: linear-gradient(90deg, #ff9800, #ffb74d) !important;
+        }
+
+        .stat-card.monthly-profit-percentage-card .stat-value {
+            color: #ff9800 !important;
+        }
+
+        .stat-card.daily-profit-percentage-card .stat-icon {
+            background: linear-gradient(135deg, #4caf50, #81c784) !important;
+        }
+
+        .stat-card.daily-profit-percentage-card::before {
+            background: linear-gradient(90deg, #4caf50, #81c784) !important;
+        }
+
+        .stat-card.daily-profit-percentage-card .stat-value {
+            color: #4caf50 !important;
+        }
+
         .stat-label {
             font-size: 0.9rem;
             color: var(--text-secondary);
@@ -883,8 +943,16 @@
         #projectStatsCards .value-per-meter-card,
         #projectStatsCards .final-cost-per-meter-card,
         #projectStatsCards .final-profit-amount-card,
-        #projectStatsCards .total-profit-percentage-card {
+        #projectStatsCards .total-profit-percentage-card,
+        #projectStatsCards .average-construction-period-card,
+        #projectStatsCards .annual-profit-percentage-card,
+        #projectStatsCards .monthly-profit-percentage-card {
             flex: 1.5 !important;
+        }
+
+        #projectStatsCards .daily-profit-percentage-card {
+            flex: 2 !important;
+            max-width: 50% !important;
         }
 
         @media (max-width: 768px) {
@@ -913,8 +981,16 @@
             #projectStatsCards .value-per-meter-card,
             #projectStatsCards .final-cost-per-meter-card,
             #projectStatsCards .final-profit-amount-card,
-            #projectStatsCards .total-profit-percentage-card {
+            #projectStatsCards .total-profit-percentage-card,
+            #projectStatsCards .average-construction-period-card,
+            #projectStatsCards .annual-profit-percentage-card,
+            #projectStatsCards .monthly-profit-percentage-card {
                 flex: none !important;
+            }
+
+            #projectStatsCards .daily-profit-percentage-card {
+                flex: none !important;
+                max-width: 100% !important;
             }
 
             /* Smaller font size for price cards on mobile */
@@ -924,7 +1000,11 @@
             .stat-card.value-per-meter-card .stat-value,
             .stat-card.final-cost-per-meter-card .stat-value,
             .stat-card.final-profit-amount-card .stat-value,
-            .stat-card.total-profit-percentage-card .stat-value {
+            .stat-card.total-profit-percentage-card .stat-value,
+            .stat-card.average-construction-period-card .stat-value,
+            .stat-card.annual-profit-percentage-card .stat-value,
+            .stat-card.monthly-profit-percentage-card .stat-value,
+            .stat-card.daily-profit-percentage-card .stat-value {
                 font-size: 1.6rem !important;
             }
 
@@ -935,7 +1015,11 @@
             .stat-card.value-per-meter-card,
             .stat-card.final-cost-per-meter-card,
             .stat-card.final-profit-amount-card,
-            .stat-card.total-profit-percentage-card {
+            .stat-card.total-profit-percentage-card,
+            .stat-card.average-construction-period-card,
+            .stat-card.annual-profit-percentage-card,
+            .stat-card.monthly-profit-percentage-card,
+            .stat-card.daily-profit-percentage-card {
                 min-height: 160px !important;
                 padding: 25px !important;
             }
@@ -946,7 +1030,11 @@
             .stat-card.value-per-meter-card .stat-icon,
             .stat-card.final-cost-per-meter-card .stat-icon,
             .stat-card.final-profit-amount-card .stat-icon,
-            .stat-card.total-profit-percentage-card .stat-icon {
+            .stat-card.total-profit-percentage-card .stat-icon,
+            .stat-card.average-construction-period-card .stat-icon,
+            .stat-card.annual-profit-percentage-card .stat-icon,
+            .stat-card.monthly-profit-percentage-card .stat-icon,
+            .stat-card.daily-profit-percentage-card .stat-icon {
                 width: 60px !important;
                 height: 60px !important;
                 font-size: 1.5rem !important;
@@ -1166,7 +1254,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-6 col-sm-12 mb-3 final-profit-amount-card">
+            <div class="col-lg-4 col-md-6 col-sm-12 mb-3 final-profit-amount-card">
                 <div class="stat-card final-profit-amount-card">
                     <div class="info-icon" data-tooltip="ارزش ساختمان منهای هزینه تمام شده نهایی. این عدد نشان‌دهنده سود خالص پروژه است">
                         <i class="fas fa-info"></i>
@@ -1177,6 +1265,62 @@
                     <div class="stat-content">
                         <div class="stat-value" id="finalProfitAmount">-</div>
                         <div class="stat-label">مبلغ سود نهایی (تومان)</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 col-sm-12 mb-3 average-construction-period-card">
+                <div class="stat-card average-construction-period-card">
+                    <div class="info-icon" data-tooltip="محاسبه دوره متوسط ساخت بر اساس وزن دوره‌ها و هزینه‌های هر دوره. فرمول: مجموع (هزینه هر دوره × وزن آن دوره) ÷ مجموع کل هزینه‌ها">
+                        <i class="fas fa-info"></i>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="averageConstructionPeriod">-</div>
+                        <div class="stat-label">دوره متوسط ساخت (ماه)</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 col-sm-12 mb-3 annual-profit-percentage-card">
+                <div class="stat-card annual-profit-percentage-card">
+                    <div class="info-icon" data-tooltip="درصد سود سالانه بر اساس دوره متوسط ساخت. فرمول: (درصد سود کل ÷ دوره متوسط ساخت) × 12">
+                        <i class="fas fa-info"></i>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="annualProfitPercentage">-</div>
+                        <div class="stat-label">درصد سود سالانه (%)</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 col-sm-12 mb-3 monthly-profit-percentage-card">
+                <div class="stat-card monthly-profit-percentage-card">
+                    <div class="info-icon" data-tooltip="درصد سود ماهانه بر اساس درصد سود سالانه. فرمول: درصد سود سالانه ÷ 12">
+                        <i class="fas fa-info"></i>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-calendar-week"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="monthlyProfitPercentage">-</div>
+                        <div class="stat-label">درصد سود ماهانه (%)</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-6 col-sm-12 mb-3 daily-profit-percentage-card">
+                <div class="stat-card daily-profit-percentage-card">
+                    <div class="info-icon" data-tooltip="درصد سود روزانه با ضریب اصلاحی. فرمول: (درصد سود سالانه ÷ 365) × ضریب اصلاحی">
+                        <i class="fas fa-info"></i>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-calendar-day"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="dailyProfitPercentage">-</div>
+                        <div class="stat-label">درصد سود روزانه (%)</div>
                     </div>
                 </div>
             </div>
@@ -1674,6 +1818,9 @@
             
             const totalProfitPercentageEl = document.getElementById('totalProfitPercentage');
             if (totalProfitPercentageEl) totalProfitPercentageEl.textContent = formatPercentage(totalProfitPercentage);
+            
+            // Calculate average construction period
+            calculateAverageConstructionPeriod();
 
             console.log('Cost and Value Calculations:', {
                 finalCost,
@@ -1687,6 +1834,218 @@
                 finalProfitAmount,
                 totalProfitPercentage
             });
+        }
+
+        // Calculate annual profit percentage
+        function calculateAnnualProfitPercentage(averagePeriod) {
+            try {
+                // Get total profit percentage from the card
+                const totalProfitPercentageEl = document.getElementById('totalProfitPercentage');
+                if (!totalProfitPercentageEl) {
+                    console.warn('Total profit percentage element not found');
+                    return;
+                }
+                
+                const totalProfitPercentageText = totalProfitPercentageEl.textContent;
+                const totalProfitPercentage = parseFloat(totalProfitPercentageText.replace(/,/g, '')) || 0;
+                
+                let annualProfitPercentage = 0;
+                if (averagePeriod > 0) {
+                    // Formula: (Total Profit Percentage / Average Construction Period) * 12
+                    annualProfitPercentage = (totalProfitPercentage / averagePeriod) * 12;
+                }
+                
+                // Format and display
+                const formatNumber = (num) => {
+                    return new Intl.NumberFormat('en-US', {
+                        minimumFractionDigits: 1,
+                        maximumFractionDigits: 1
+                    }).format(num);
+                };
+                
+                const annualProfitPercentageEl = document.getElementById('annualProfitPercentage');
+                if (annualProfitPercentageEl) {
+                    annualProfitPercentageEl.textContent = formatNumber(annualProfitPercentage);
+                }
+                
+                console.log('Annual Profit Percentage Calculation:', {
+                    totalProfitPercentage,
+                    averagePeriod,
+                    annualProfitPercentage
+                });
+                
+                // Calculate monthly and daily profit percentages
+                calculateMonthlyAndDailyProfitPercentage(annualProfitPercentage);
+                
+            } catch (error) {
+                console.error('Error calculating annual profit percentage:', error);
+            }
+        }
+
+        // Calculate monthly and daily profit percentages
+        async function calculateMonthlyAndDailyProfitPercentage(annualProfitPercentage) {
+            try {
+                // Calculate monthly profit percentage: Annual / 12
+                const monthlyProfitPercentage = annualProfitPercentage / 12;
+                
+                // Get correction factor from project statistics
+                let correctionFactor = 1.0; // Default value
+                try {
+                    const response = await fetch(`${API_BASE}Project/statistics/`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        correctionFactor = parseFloat(data.correction_factor) || 1.0;
+                    }
+                } catch (error) {
+                    console.warn('Could not fetch correction factor, using default:', error);
+                }
+                
+                // Calculate daily profit percentage: (Annual / 365) * correction_factor
+                const dailyProfitPercentage = (annualProfitPercentage / 365) * correctionFactor;
+                
+                // Format and display monthly profit percentage
+                const formatNumber = (num) => {
+                    return new Intl.NumberFormat('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    }).format(num);
+                };
+                
+                const monthlyProfitPercentageEl = document.getElementById('monthlyProfitPercentage');
+                if (monthlyProfitPercentageEl) {
+                    monthlyProfitPercentageEl.textContent = formatNumber(monthlyProfitPercentage);
+                }
+                
+                // Format and display daily profit percentage with 8 decimal places
+                const formatDailyNumber = (num) => {
+                    return new Intl.NumberFormat('en-US', {
+                        minimumFractionDigits: 8,
+                        maximumFractionDigits: 8
+                    }).format(num);
+                };
+                
+                const dailyProfitPercentageEl = document.getElementById('dailyProfitPercentage');
+                if (dailyProfitPercentageEl) {
+                    dailyProfitPercentageEl.textContent = formatDailyNumber(dailyProfitPercentage);
+                }
+                
+                console.log('Monthly and Daily Profit Percentage Calculation:', {
+                    annualProfitPercentage,
+                    monthlyProfitPercentage,
+                    correctionFactor,
+                    dailyProfitPercentage
+                });
+                
+            } catch (error) {
+                console.error('Error calculating monthly and daily profit percentages:', error);
+            }
+        }
+
+        // Calculate average construction period
+        async function calculateAverageConstructionPeriod() {
+            try {
+                // Load expenses data with period information
+                const response = await fetch(`${API_BASE}Expense/with_periods/`);
+                if (response.ok) {
+                    const data = await response.json();
+                    const expenses = data.expenses || [];
+                    
+                    console.log('API Response:', {
+                        total_count: data.total_count,
+                        expenses_with_period: data.expenses_with_period,
+                        expenses_without_period: data.expenses_without_period,
+                        active_project: data.active_project
+                    });
+                    
+                    // Group expenses by period and calculate weighted average
+                    const periodData = {};
+                    let totalWeightedCost = 0;
+                    let totalCost = 0;
+                    
+                    let expensesWithoutPeriod = 0;
+                    let expensesWithPeriod = 0;
+                    
+                    expenses.forEach(expense => {
+                        const periodId = expense.period;
+                        const amount = parseFloat(expense.amount) || 0;
+                        const weight = parseFloat(expense.period_weight) || 0;
+                        
+                        // Skip if period is null or undefined
+                        if (!periodId) {
+                            expensesWithoutPeriod++;
+                            console.warn('Expense without period:', {
+                                id: expense.id,
+                                amount: expense.amount,
+                                expense_type: expense.expense_type,
+                                period: expense.period,
+                                period_weight: expense.period_weight
+                            });
+                            return;
+                        }
+                        
+                        expensesWithPeriod++;
+                        
+                        if (!periodData[periodId]) {
+                            periodData[periodId] = {
+                                totalAmount: 0,
+                                weight: weight,
+                                count: 0
+                            };
+                        }
+                        
+                        periodData[periodId].totalAmount += amount;
+                        periodData[periodId].count += 1;
+                    });
+                    
+                    console.log('Period Statistics:', {
+                        totalExpenses: expenses.length,
+                        expensesWithPeriod,
+                        expensesWithoutPeriod
+                    });
+                    
+                    // Calculate weighted average
+                    Object.values(periodData).forEach(period => {
+                        const weightedCost = period.totalAmount * period.weight;
+                        totalWeightedCost += weightedCost;
+                        totalCost += period.totalAmount;
+                    });
+                    
+                    let averagePeriod = 0;
+                    if (totalCost > 0) {
+                        averagePeriod = totalWeightedCost / totalCost;
+                    }
+                    
+                    // Format and display
+                    const formatNumber = (num) => {
+                        return new Intl.NumberFormat('en-US', {
+                            minimumFractionDigits: 1,
+                            maximumFractionDigits: 1
+                        }).format(num);
+                    };
+                    
+                    const averagePeriodEl = document.getElementById('averageConstructionPeriod');
+                    if (averagePeriodEl) {
+                        averagePeriodEl.textContent = formatNumber(averagePeriod);
+                    }
+                    
+                    // Calculate annual profit percentage
+                    calculateAnnualProfitPercentage(averagePeriod);
+                    
+                    console.log('Average Construction Period Calculation:', {
+                        totalExpenses: expenses.length,
+                        sampleExpenses: expenses.slice(0, 3), // Show first 3 expenses for debugging
+                        periodData,
+                        totalWeightedCost,
+                        totalCost,
+                        averagePeriod
+                    });
+                    
+                } else {
+                    console.error('Error loading expenses for period calculation');
+                }
+            } catch (error) {
+                console.error('Error calculating average construction period:', error);
+            }
         }
 
         // Display rates in table

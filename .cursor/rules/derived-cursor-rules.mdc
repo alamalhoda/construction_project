@@ -20,6 +20,7 @@ globs: *
 ### API Design
 *   When creating new API endpoints, ensure they are well-documented with docstrings, explaining the purpose, inputs, and outputs.
 *   New API endpoints should include comprehensive statistics such as total units, total area, and total price. Breakdown by project should also be included where applicable, providing the same statistics for each project.
+*   When creating new API endpoints, place them in the correct ViewSet (e.g., project related endpoints in ProjectViewSet).
 
 ### COPYRIGHT NOTICE
 *   Always include a copyright notice at the bottom of each page, linking to royasoftteam.ir, formatted as a professional footer. The footer should include the copyright year (currently 2024), a link to RoyaSoftTeam with a code icon, and be styled appropriately for the page (e.g., using Bootstrap). The footer should also be responsive and support dark/light themes where applicable, using CSS variables. The footer on authentication pages (e.g., login, registration) must be fixed to the bottom of the page.
@@ -45,15 +46,18 @@ globs: *
 *   All numbers in the application must **always** be displayed in English with a 3-digit separator (thousands separator). Use `new Intl.NumberFormat('en-US').format(Math.round(num))` to achieve this.
 
 ### CARD STYLING FOR PRICE FIGURES
-*   On cards that display price-related figures, such as "Building Value (Toman)", "Net Cost Per Meter (Toman/m²)", "Gross Cost Per Meter (Toman/m²)", "Building Value(per meter)(Toman/m²)", "Final Cost(per meter)(Toman/m²)", "مبلغ سود نهایی(تومان)", and "درصد سودکل", the numbers must be displayed using a larger font size to improve readability, and the containing cards should be larger (width 1.5x to 2x) compared to other cards. Specifically:
+*   On cards that display price-related figures, such as "Building Value (Toman)", "Net Cost Per Meter (Toman/m²)", "Gross Cost Per Meter (Toman/m²)", "Building Value(per meter)(Toman/m²)", "Final Cost(per meter)(Toman/m²)", "مبلغ سود نهایی(تومان)", and "درصد سودکل", the numbers must be displayed using a larger font size (2.2rem for desktop, 1.6rem for mobile) to improve readability, and the containing cards should be larger (width 1.5x to 2x) compared to other cards. Specifically:
     *   For price-related figures, use a larger font size (2.2rem for desktop, 1.6rem for mobile).
     *   The cards containing these figures should also have width 1.5x to 2x compared to other cards (depending on the specific card).
 
 ### TOOLTIP IMPLEMENTATION
-*   For cards requiring explanations, implement a tooltip system using an information icon (e.g., `<i>` tag with a Font Awesome info icon) positioned at the top-left of the card.
-*   The tooltip should appear on click, displaying the necessary explanation. Ensure the tooltip is styled appropriately and positioned correctly within the card.
-*   The tooltip font must be Vazir to match the rest of the page.
-*   Tooltips should be implemented such that only one tooltip is visible at any time. Clicking outside the card, scrolling, or resizing the window should close the tooltip.
+*   For cards requiring explanations, implement a tooltip system using an information icon (e.g., `<i>` tag with a Font Awesome info icon) positioned at the top-left of the card. The tooltip font must be Vazir to match the rest of the page.
+*   The tooltip should appear on click, displaying the necessary explanation. Ensure the tooltip is styled appropriately and positioned correctly within the card. Tooltips should be implemented such that only one tooltip is visible at any time. Clicking outside the card, scrolling, or resizing the window should close the tooltip.
+*   Ensure that tooltips display correctly without being cut off and that the layout is responsive.
+
+### SERIALIZER DEFINITIONS
+*   Ensure that serializers are defined before they are used in other serializers to avoid "not defined" errors. When encountering such errors, reorder the serializer definitions to ensure dependencies are met.
+*   When creating serializers for models, include all relevant fields (e.g. period and period_weight in ExpenseSerializer), defining methods where necessary to retrieve related data.
 
 ## TECH STACK
 *   (Add the used technologies, frameworks, libraries, versions, etc. Example: Python 3.9, Django 3.2, React 17, Bootstrap 5)
