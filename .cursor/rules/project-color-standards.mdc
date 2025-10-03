@@ -16,6 +16,15 @@ alwaysApply: false
 - **🔴 قرمز تیره (#dc3545)** - هزینه‌ها و خرجی
 - **⚫ خاکستری (#6c757d)** - مجموع و کل
 
+## نمایش اعداد
+در تمام صفحات اعداد به زبان انگلیسی و با جداکننده ۳رقمی(هزارگان) نممایش داده شوند
+ // Display numbers
+        function displayNumber(totalExpenses, totalSales, finalCost) {
+            // Format numbers with English locale and 3-digit separators
+            const formatNumber = (num) => {
+                return new Intl.NumberFormat('en-US').format(Math.round(num));
+            };
+
 ## پیاده‌سازی
 
 ### CSS Variables:
