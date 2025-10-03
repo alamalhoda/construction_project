@@ -522,6 +522,8 @@
         .stat-card {
             background: var(--bg-secondary) !important;
             border-radius: 15px;
+            border-top-left-radius: 0px;
+            border-top-right-radius: 0px;
             padding: 25px;
             box-shadow: var(--shadow-md);
             transition: all 0.3s ease;
@@ -546,6 +548,7 @@
             right: 0;
             height: 4px;
             background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border-radius: 0;
         }
 
         .stat-card.expense-card::before {
@@ -603,21 +606,33 @@
         /* Larger font size for price-related cards */
         .stat-card.value-card .stat-value,
         .stat-card.cost-per-meter-net-card .stat-value,
-        .stat-card.cost-per-meter-gross-card .stat-value {
+        .stat-card.cost-per-meter-gross-card .stat-value,
+        .stat-card.value-per-meter-card .stat-value,
+        .stat-card.final-cost-per-meter-card .stat-value,
+        .stat-card.final-profit-amount-card .stat-value,
+        .stat-card.total-profit-percentage-card .stat-value {
             font-size: 2.2rem !important;
         }
 
         /* Larger cards for price-related statistics */
         .stat-card.value-card,
         .stat-card.cost-per-meter-net-card,
-        .stat-card.cost-per-meter-gross-card {
+        .stat-card.cost-per-meter-gross-card,
+        .stat-card.value-per-meter-card,
+        .stat-card.final-cost-per-meter-card,
+        .stat-card.final-profit-amount-card,
+        .stat-card.total-profit-percentage-card {
             min-height: 180px !important;
             padding: 30px !important;
         }
 
         .stat-card.value-card .stat-icon,
         .stat-card.cost-per-meter-net-card .stat-icon,
-        .stat-card.cost-per-meter-gross-card .stat-icon {
+        .stat-card.cost-per-meter-gross-card .stat-icon,
+        .stat-card.value-per-meter-card .stat-icon,
+        .stat-card.final-cost-per-meter-card .stat-icon,
+        .stat-card.final-profit-amount-card .stat-icon,
+        .stat-card.total-profit-percentage-card .stat-icon {
             width: 70px !important;
             height: 70px !important;
             font-size: 1.8rem !important;
@@ -707,10 +722,131 @@
             color: #ff5722 !important;
         }
 
+        .stat-card.value-per-meter-card .stat-icon {
+            background: linear-gradient(135deg, #00bcd4, #26c6da) !important;
+        }
+
+        .stat-card.value-per-meter-card::before {
+            background: linear-gradient(90deg, #00bcd4, #26c6da) !important;
+        }
+
+        .stat-card.value-per-meter-card .stat-value {
+            color: #00bcd4 !important;
+        }
+
+        .stat-card.final-cost-per-meter-card .stat-icon {
+            background: linear-gradient(135deg, #e91e63, #f06292) !important;
+        }
+
+        .stat-card.final-cost-per-meter-card::before {
+            background: linear-gradient(90deg, #e91e63, #f06292) !important;
+        }
+
+        .stat-card.final-cost-per-meter-card .stat-value {
+            color: #e91e63 !important;
+        }
+
+        .stat-card.final-profit-amount-card .stat-icon {
+            background: linear-gradient(135deg, #4caf50, #81c784) !important;
+        }
+
+        .stat-card.final-profit-amount-card::before {
+            background: linear-gradient(90deg, #4caf50, #81c784) !important;
+        }
+
+        .stat-card.final-profit-amount-card .stat-value {
+            color: #4caf50 !important;
+        }
+
+        .stat-card.total-profit-percentage-card .stat-icon {
+            background: linear-gradient(135deg, #ff9800, #ffb74d) !important;
+        }
+
+        .stat-card.total-profit-percentage-card::before {
+            background: linear-gradient(90deg, #ff9800, #ffb74d) !important;
+        }
+
+        .stat-card.total-profit-percentage-card .stat-value {
+            color: #ff9800 !important;
+        }
+
         .stat-label {
             font-size: 0.9rem;
             color: var(--text-secondary);
             font-weight: 500;
+            position: relative;
+        }
+
+        /* Position info icon at top-left of card */
+        .stat-card {
+            position: relative;
+        }
+
+        /* Info Icon and Tooltip Styles */
+        .info-icon {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 18px;
+            height: 18px;
+            background: var(--info-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .info-icon:hover {
+            background: #0d6efd;
+            transform: scale(1.1);
+        }
+
+        .tooltip {
+            position: fixed;
+            background: rgba(0, 0, 0, 0.95);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-family: 'Vazir', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 300px;
+            min-width: 200px;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            line-height: 1.5;
+        }
+
+        .tooltip.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* .tooltip::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 20px;
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 8px solid rgba(0, 0, 0, 0.95);
+        } */
+
+        /* Ensure tooltip is always visible */
+        .stat-card {
+            overflow: visible !important;
         }
 
         /* Ensure cards display in one row */
@@ -743,7 +879,11 @@
         }
 
         #projectStatsCards .cost-per-meter-net-card,
-        #projectStatsCards .cost-per-meter-gross-card {
+        #projectStatsCards .cost-per-meter-gross-card,
+        #projectStatsCards .value-per-meter-card,
+        #projectStatsCards .final-cost-per-meter-card,
+        #projectStatsCards .final-profit-amount-card,
+        #projectStatsCards .total-profit-percentage-card {
             flex: 1.5 !important;
         }
 
@@ -769,28 +909,44 @@
             /* Reset flex for mobile */
             #projectStatsCards .value-card,
             #projectStatsCards .cost-per-meter-net-card,
-            #projectStatsCards .cost-per-meter-gross-card {
+            #projectStatsCards .cost-per-meter-gross-card,
+            #projectStatsCards .value-per-meter-card,
+            #projectStatsCards .final-cost-per-meter-card,
+            #projectStatsCards .final-profit-amount-card,
+            #projectStatsCards .total-profit-percentage-card {
                 flex: none !important;
             }
 
             /* Smaller font size for price cards on mobile */
             .stat-card.value-card .stat-value,
             .stat-card.cost-per-meter-net-card .stat-value,
-            .stat-card.cost-per-meter-gross-card .stat-value {
+            .stat-card.cost-per-meter-gross-card .stat-value,
+            .stat-card.value-per-meter-card .stat-value,
+            .stat-card.final-cost-per-meter-card .stat-value,
+            .stat-card.final-profit-amount-card .stat-value,
+            .stat-card.total-profit-percentage-card .stat-value {
                 font-size: 1.6rem !important;
             }
 
             /* Adjust card size for mobile */
             .stat-card.value-card,
             .stat-card.cost-per-meter-net-card,
-            .stat-card.cost-per-meter-gross-card {
+            .stat-card.cost-per-meter-gross-card,
+            .stat-card.value-per-meter-card,
+            .stat-card.final-cost-per-meter-card,
+            .stat-card.final-profit-amount-card,
+            .stat-card.total-profit-percentage-card {
                 min-height: 160px !important;
                 padding: 25px !important;
             }
 
             .stat-card.value-card .stat-icon,
             .stat-card.cost-per-meter-net-card .stat-icon,
-            .stat-card.cost-per-meter-gross-card .stat-icon {
+            .stat-card.cost-per-meter-gross-card .stat-icon,
+            .stat-card.value-per-meter-card .stat-icon,
+            .stat-card.final-cost-per-meter-card .stat-icon,
+            .stat-card.final-profit-amount-card .stat-icon,
+            .stat-card.total-profit-percentage-card .stat-icon {
                 width: 60px !important;
                 height: 60px !important;
                 font-size: 1.5rem !important;
@@ -844,6 +1000,9 @@
         <div class="row mb-4" id="financialSummaryCards" style="display: none;">
             <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
                 <div class="stat-card expense-card">
+                    <div class="info-icon" data-tooltip="مجموع تمام هزینه‌های ثبت شده در پروژه شامل هزینه‌های ساخت، خرید مصالح، دستمزد کارگران و سایر هزینه‌های مرتبط">
+                        <i class="fas fa-info"></i>
+                    </div>
                     <div class="stat-icon">
                         <i class="fas fa-receipt"></i>
                     </div>
@@ -855,17 +1014,21 @@
             </div>
             <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
                 <div class="stat-card sales-card">
+                    
                     <div class="stat-icon">
                         <i class="fas fa-shopping-cart"></i>
                     </div>
                     <div class="stat-content">
                         <div class="stat-value" id="totalSales">-</div>
-                        <div class="stat-label">مجموع فروش(تومان)</div>
+                        <div class="stat-label">مجموع فروش/مرجوعی(تومان)</div>
                     </div>
                 </div>
             </div>
             <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
                 <div class="stat-card final-cost-card">
+                    <div class="info-icon" data-tooltip="هزینه خالص پروژه که از تفریق مجموع فروش از مجموع هزینه‌ها محاسبه می‌شود. این عدد نشان‌دهنده هزینه واقعی پروژه است">
+                        <i class="fas fa-info"></i>
+                    </div>
                     <div class="stat-icon">
                         <i class="fas fa-calculator"></i>
                     </div>
@@ -892,6 +1055,9 @@
             </div>
             <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
                 <div class="stat-card area-card">
+                    <div class="info-icon" data-tooltip="مجموع متراژ  همه واحدها ">
+                        <i class="fas fa-info"></i>
+                    </div>
                     <div class="stat-icon">
                         <i class="fas fa-ruler-combined"></i>
                     </div>
@@ -903,6 +1069,9 @@
             </div>
             <div class="col-lg-4 col-md-6 col-sm-12 mb-3 value-card">
                 <div class="stat-card value-card">
+                    <div class="info-icon" data-tooltip="مجموع قیمت واحدها که نشان‌دهنده ارزش کل ساختمان بر اساس قیمت‌گذاری واحدها است">
+                        <i class="fas fa-info"></i>
+                    </div>
                     <div class="stat-icon">
                         <i class="fas fa-dollar-sign"></i>
                     </div>
@@ -914,6 +1083,9 @@
             </div>
             <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
                 <div class="stat-card infrastructure-card">
+                    <div class="info-icon" data-tooltip="زیربنای کل پروژه که شامل تمام فضاها از جمله واحدها، راهروها، آسانسور، پله‌ها و سایر فضاهای مشترک است">
+                        <i class="fas fa-info"></i>
+                    </div>
                     <div class="stat-icon">
                         <i class="fas fa-home"></i>
                     </div>
@@ -925,6 +1097,9 @@
             </div>
             <div class="col-lg-3 col-md-6 col-sm-12 mb-3 cost-per-meter-net-card">
                 <div class="stat-card cost-per-meter-net-card">
+                    <div class="info-icon" data-tooltip="هزینه تمام شده نهایی تقسیم بر مجموع متراژ مفید. این عدد نشان‌دهنده هزینه ساخت هر متر مربع از فضای مفید است">
+                        <i class="fas fa-info"></i>
+                    </div>
                     <div class="stat-icon">
                         <i class="fas fa-calculator"></i>
                     </div>
@@ -936,12 +1111,72 @@
             </div>
             <div class="col-lg-3 col-md-6 col-sm-12 mb-3 cost-per-meter-gross-card">
                 <div class="stat-card cost-per-meter-gross-card">
+                    <div class="info-icon" data-tooltip="هزینه تمام شده نهایی تقسیم بر زیربنای کل. این عدد نشان‌دهنده هزینه ساخت هر متر مربع از کل زیربنا شامل فضاهای مشترک است">
+                        <i class="fas fa-info"></i>
+                    </div>
                     <div class="stat-icon">
                         <i class="fas fa-chart-bar"></i>
                     </div>
                     <div class="stat-content">
                         <div class="stat-value" id="costPerMeterGross">-</div>
                         <div class="stat-label">هزینه هر متر ناخالص (تومان/م²)</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 col-sm-12 mb-3 value-per-meter-card">
+                <div class="stat-card value-per-meter-card">
+                    <div class="info-icon" data-tooltip="ارزش ساختمان تقسیم بر مجموع متراژ مفید. این عدد نشان‌دهنده ارزش هر متر مربع از فضای مفید بر اساس قیمت‌گذاری واحدها است">
+                        <i class="fas fa-info"></i>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="valuePerMeter">-</div>
+                        <div class="stat-label">ارزش ساختمان(متری) (تومان/م²)</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 col-sm-12 mb-3 final-cost-per-meter-card">
+                <div class="stat-card final-cost-per-meter-card">
+                    <div class="info-icon" data-tooltip="هزینه تمام شده نهایی تقسیم بر مجموع متراژ مفید. این عدد نشان‌دهنده هزینه واقعی هر متر مربع از فضای مفید است">
+                        <i class="fas fa-info"></i>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-calculator"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="finalCostPerMeter">-</div>
+                        <div class="stat-label">هزینه تمام شده(متری) (تومان/م²)</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6 col-sm-12 mb-3 total-profit-percentage-card">
+                <div class="stat-card total-profit-percentage-card">
+                    <div class="info-icon" data-tooltip="مبلغ سود نهایی تقسیم بر هزینه تمام شده نهایی ضرب در 100. این عدد نشان‌دهنده درصد سود کل پروژه است">
+                        <i class="fas fa-info"></i>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-percentage"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="totalProfitPercentage">-</div>
+                        <div class="stat-label">درصد سود کل (%)</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 col-sm-12 mb-3 final-profit-amount-card">
+                <div class="stat-card final-profit-amount-card">
+                    <div class="info-icon" data-tooltip="ارزش ساختمان منهای هزینه تمام شده نهایی. این عدد نشان‌دهنده سود خالص پروژه است">
+                        <i class="fas fa-info"></i>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="finalProfitAmount">-</div>
+                        <div class="stat-label">مبلغ سود نهایی (تومان)</div>
                     </div>
                 </div>
             </div>
@@ -1080,6 +1315,7 @@
             loadCurrentRate();
             loadFinancialSummary();
             loadProjectStatistics();
+            initializeTooltips();
         });
 
         // Initialize Persian date pickers
@@ -1358,7 +1594,7 @@
             document.getElementById('projectStatsCards').style.display = 'flex';
         }
 
-        // Calculate cost per meter (net and gross)
+        // Calculate cost per meter (net and gross) and value per meter
         function calculateAndDisplayCostPerMeter(data) {
             // Get final cost from financial summary
             const finalCostElement = document.getElementById('finalCost');
@@ -1370,6 +1606,9 @@
             
             // Get total infrastructure (gross)
             const totalInfrastructure = data.project ? data.project.total_infrastructure : 0;
+
+            // Get total value (building value)
+            const totalValue = data.units_statistics ? data.units_statistics.total_price : 0;
 
             // Calculate cost per meter net (final cost / total area)
             let costPerMeterNet = 0;
@@ -1383,20 +1622,70 @@
                 costPerMeterGross = finalCost / totalInfrastructure;
             }
 
+            // Calculate value per meter (total value / total area)
+            let valuePerMeter = 0;
+            if (totalArea > 0) {
+                valuePerMeter = totalValue / totalArea;
+            }
+
+            // Calculate final cost per meter (final cost / total area)
+            let finalCostPerMeter = 0;
+            if (totalArea > 0) {
+                finalCostPerMeter = finalCost / totalArea;
+            }
+
+            // Calculate final profit amount (total value - final cost)
+            let finalProfitAmount = 0;
+            finalProfitAmount = totalValue - finalCost;
+
+            // Calculate total profit percentage ((final profit amount / final cost) * 100)
+            let totalProfitPercentage = 0;
+            if (finalCost > 0) {
+                totalProfitPercentage = (finalProfitAmount / finalCost) * 100;
+            }
+
             // Format and display
             const formatNumber = (num) => {
                 return new Intl.NumberFormat('en-US').format(Math.round(num));
             };
 
-            document.getElementById('costPerMeterNet').textContent = formatNumber(costPerMeterNet);
-            document.getElementById('costPerMeterGross').textContent = formatNumber(costPerMeterGross);
+            const formatPercentage = (num) => {
+                return new Intl.NumberFormat('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }).format(num);
+            };
 
-            console.log('Cost Calculations:', {
+            // Safely update elements if they exist
+            const costPerMeterNetEl = document.getElementById('costPerMeterNet');
+            if (costPerMeterNetEl) costPerMeterNetEl.textContent = formatNumber(costPerMeterNet);
+            
+            const costPerMeterGrossEl = document.getElementById('costPerMeterGross');
+            if (costPerMeterGrossEl) costPerMeterGrossEl.textContent = formatNumber(costPerMeterGross);
+            
+            const valuePerMeterEl = document.getElementById('valuePerMeter');
+            if (valuePerMeterEl) valuePerMeterEl.textContent = formatNumber(valuePerMeter);
+            
+            const finalCostPerMeterEl = document.getElementById('finalCostPerMeter');
+            if (finalCostPerMeterEl) finalCostPerMeterEl.textContent = formatNumber(finalCostPerMeter);
+            
+            const finalProfitAmountEl = document.getElementById('finalProfitAmount');
+            if (finalProfitAmountEl) finalProfitAmountEl.textContent = formatNumber(finalProfitAmount);
+            
+            const totalProfitPercentageEl = document.getElementById('totalProfitPercentage');
+            if (totalProfitPercentageEl) totalProfitPercentageEl.textContent = formatPercentage(totalProfitPercentage);
+
+            console.log('Cost and Value Calculations:', {
                 finalCost,
                 totalArea,
                 totalInfrastructure,
+                totalValue,
                 costPerMeterNet,
-                costPerMeterGross
+                costPerMeterGross,
+                valuePerMeter,
+                finalCostPerMeter,
+                finalProfitAmount,
+                totalProfitPercentage
             });
         }
 
@@ -1462,6 +1751,65 @@
                     alertElement.remove();
                 }
             }, 5000);
+        }
+
+        // Initialize tooltips
+        function initializeTooltips() {
+            const infoIcons = document.querySelectorAll('.info-icon');
+            
+            infoIcons.forEach(icon => {
+                const tooltipText = icon.getAttribute('data-tooltip');
+                if (tooltipText) {
+                    // Create tooltip element
+                    const tooltip = document.createElement('div');
+                    tooltip.className = 'tooltip';
+                    tooltip.textContent = tooltipText;
+                    
+                    // Add tooltip to body to avoid overflow issues
+                    document.body.appendChild(tooltip);
+                    
+                    // Add click event to show/hide tooltip
+                    icon.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        
+                        // Hide all other tooltips
+                        document.querySelectorAll('.tooltip.show').forEach(t => {
+                            t.classList.remove('show');
+                        });
+                        
+                        // Get icon position
+                        const iconRect = icon.getBoundingClientRect();
+                        
+                        // Position tooltip below the icon
+                        tooltip.style.left = (iconRect.left - 50) + 'px';
+                        tooltip.style.top = (iconRect.bottom + 10) + 'px';
+                        
+                        // Toggle current tooltip
+                        tooltip.classList.toggle('show');
+                    });
+                }
+            });
+            
+            // Hide tooltips when clicking outside
+            document.addEventListener('click', function() {
+                document.querySelectorAll('.tooltip.show').forEach(tooltip => {
+                    tooltip.classList.remove('show');
+                });
+            });
+            
+            // Hide tooltips on scroll
+            window.addEventListener('scroll', function() {
+                document.querySelectorAll('.tooltip.show').forEach(tooltip => {
+                    tooltip.classList.remove('show');
+                });
+            });
+            
+            // Hide tooltips on window resize
+            window.addEventListener('resize', function() {
+                document.querySelectorAll('.tooltip.show').forEach(tooltip => {
+                    tooltip.classList.remove('show');
+                });
+            });
         }
     </script>
 </body>
