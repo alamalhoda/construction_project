@@ -600,6 +600,29 @@
             color: var(--text-primary);
         }
 
+        /* Larger font size for price-related cards */
+        .stat-card.value-card .stat-value,
+        .stat-card.cost-per-meter-net-card .stat-value,
+        .stat-card.cost-per-meter-gross-card .stat-value {
+            font-size: 2.2rem !important;
+        }
+
+        /* Larger cards for price-related statistics */
+        .stat-card.value-card,
+        .stat-card.cost-per-meter-net-card,
+        .stat-card.cost-per-meter-gross-card {
+            min-height: 180px !important;
+            padding: 30px !important;
+        }
+
+        .stat-card.value-card .stat-icon,
+        .stat-card.cost-per-meter-net-card .stat-icon,
+        .stat-card.cost-per-meter-gross-card .stat-icon {
+            width: 70px !important;
+            height: 70px !important;
+            font-size: 1.8rem !important;
+        }
+
         .stat-card.expense-card .stat-value {
             color: var(--expense-color) !important;
         }
@@ -660,6 +683,30 @@
             color: var(--warning-color) !important;
         }
 
+        .stat-card.cost-per-meter-net-card .stat-icon {
+            background: linear-gradient(135deg, #9c27b0, #ba68c8) !important;
+        }
+
+        .stat-card.cost-per-meter-net-card::before {
+            background: linear-gradient(90deg, #9c27b0, #ba68c8) !important;
+        }
+
+        .stat-card.cost-per-meter-net-card .stat-value {
+            color: #9c27b0 !important;
+        }
+
+        .stat-card.cost-per-meter-gross-card .stat-icon {
+            background: linear-gradient(135deg, #ff5722, #ff8a65) !important;
+        }
+
+        .stat-card.cost-per-meter-gross-card::before {
+            background: linear-gradient(90deg, #ff5722, #ff8a65) !important;
+        }
+
+        .stat-card.cost-per-meter-gross-card .stat-value {
+            color: #ff5722 !important;
+        }
+
         .stat-label {
             font-size: 0.9rem;
             color: var(--text-secondary);
@@ -684,11 +731,20 @@
             flex-wrap: nowrap !important;
         }
 
-        #projectStatsCards .col-lg-3,
-        #projectStatsCards .col-md-6,
-        #projectStatsCards .col-sm-12 {
+        #projectStatsCards .col-lg-2,
+        #projectStatsCards .col-md-4,
+        #projectStatsCards .col-sm-6 {
             flex: 1 !important;
-            max-width: 25% !important;
+        }
+
+        /* Special sizing for price-related cards */
+        #projectStatsCards .value-card {
+            flex: 2 !important;
+        }
+
+        #projectStatsCards .cost-per-meter-net-card,
+        #projectStatsCards .cost-per-meter-gross-card {
+            flex: 1.5 !important;
         }
 
         @media (max-width: 768px) {
@@ -705,9 +761,39 @@
                 flex-wrap: wrap !important;
             }
             
-            #projectStatsCards .col-sm-12 {
-                max-width: 100% !important;
+            #projectStatsCards .col-sm-6 {
+                max-width: 50% !important;
                 flex: none !important;
+            }
+
+            /* Reset flex for mobile */
+            #projectStatsCards .value-card,
+            #projectStatsCards .cost-per-meter-net-card,
+            #projectStatsCards .cost-per-meter-gross-card {
+                flex: none !important;
+            }
+
+            /* Smaller font size for price cards on mobile */
+            .stat-card.value-card .stat-value,
+            .stat-card.cost-per-meter-net-card .stat-value,
+            .stat-card.cost-per-meter-gross-card .stat-value {
+                font-size: 1.6rem !important;
+            }
+
+            /* Adjust card size for mobile */
+            .stat-card.value-card,
+            .stat-card.cost-per-meter-net-card,
+            .stat-card.cost-per-meter-gross-card {
+                min-height: 160px !important;
+                padding: 25px !important;
+            }
+
+            .stat-card.value-card .stat-icon,
+            .stat-card.cost-per-meter-net-card .stat-icon,
+            .stat-card.cost-per-meter-gross-card .stat-icon {
+                width: 60px !important;
+                height: 60px !important;
+                font-size: 1.5rem !important;
             }
         }
     </style>
@@ -793,7 +879,7 @@
 
         <!-- Project Statistics Cards -->
         <div class="row mb-4" id="projectStatsCards" style="display: none;">
-            <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
+            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
                 <div class="stat-card units-card">
                     <div class="stat-icon">
                         <i class="fas fa-building"></i>
@@ -804,7 +890,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
+            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
                 <div class="stat-card area-card">
                     <div class="stat-icon">
                         <i class="fas fa-ruler-combined"></i>
@@ -815,7 +901,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
+            <div class="col-lg-4 col-md-6 col-sm-12 mb-3 value-card">
                 <div class="stat-card value-card">
                     <div class="stat-icon">
                         <i class="fas fa-dollar-sign"></i>
@@ -826,7 +912,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
+            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
                 <div class="stat-card infrastructure-card">
                     <div class="stat-icon">
                         <i class="fas fa-home"></i>
@@ -834,6 +920,28 @@
                     <div class="stat-content">
                         <div class="stat-value" id="totalInfrastructure">-</div>
                         <div class="stat-label">زیربنای کل (م²)</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 col-sm-12 mb-3 cost-per-meter-net-card">
+                <div class="stat-card cost-per-meter-net-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-calculator"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="costPerMeterNet">-</div>
+                        <div class="stat-label">هزینه هر متر خالص (تومان/م²)</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 col-sm-12 mb-3 cost-per-meter-gross-card">
+                <div class="stat-card cost-per-meter-gross-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="costPerMeterGross">-</div>
+                        <div class="stat-label">هزینه هر متر ناخالص (تومان/م²)</div>
                     </div>
                 </div>
             </div>
@@ -1190,6 +1298,18 @@
 
             // Show the financial summary cards
             document.getElementById('financialSummaryCards').style.display = 'flex';
+
+            // Recalculate cost per meter if project stats are already loaded
+            const projectStatsElement = document.getElementById('projectStatsCards');
+            if (projectStatsElement && projectStatsElement.style.display !== 'none') {
+                // Trigger recalculation by calling the function again
+                setTimeout(() => {
+                    const projectData = window.lastProjectData;
+                    if (projectData) {
+                        calculateAndDisplayCostPerMeter(projectData);
+                    }
+                }, 100);
+            }
         }
 
         // Load project statistics
@@ -1200,6 +1320,8 @@
                 if (response.ok) {
                     const data = await response.json();
                     console.log('Project Statistics API Response:', data);
+                    // Store data globally for recalculation
+                    window.lastProjectData = data;
                     displayProjectStatistics(data);
                 } else {
                     console.error('Error loading project statistics');
@@ -1229,8 +1351,53 @@
                 document.getElementById('totalInfrastructure').textContent = formatNumber(data.project.total_infrastructure);
             }
 
+            // Calculate and display cost per meter
+            calculateAndDisplayCostPerMeter(data);
+
             // Show the project statistics cards
             document.getElementById('projectStatsCards').style.display = 'flex';
+        }
+
+        // Calculate cost per meter (net and gross)
+        function calculateAndDisplayCostPerMeter(data) {
+            // Get final cost from financial summary
+            const finalCostElement = document.getElementById('finalCost');
+            const finalCostText = finalCostElement ? finalCostElement.textContent : '0';
+            const finalCost = parseFloat(finalCostText.replace(/,/g, '')) || 0;
+
+            // Get total area (net)
+            const totalArea = data.units_statistics ? data.units_statistics.total_area : 0;
+            
+            // Get total infrastructure (gross)
+            const totalInfrastructure = data.project ? data.project.total_infrastructure : 0;
+
+            // Calculate cost per meter net (final cost / total area)
+            let costPerMeterNet = 0;
+            if (totalArea > 0) {
+                costPerMeterNet = finalCost / totalArea;
+            }
+
+            // Calculate cost per meter gross (final cost / total infrastructure)
+            let costPerMeterGross = 0;
+            if (totalInfrastructure > 0) {
+                costPerMeterGross = finalCost / totalInfrastructure;
+            }
+
+            // Format and display
+            const formatNumber = (num) => {
+                return new Intl.NumberFormat('en-US').format(Math.round(num));
+            };
+
+            document.getElementById('costPerMeterNet').textContent = formatNumber(costPerMeterNet);
+            document.getElementById('costPerMeterGross').textContent = formatNumber(costPerMeterGross);
+
+            console.log('Cost Calculations:', {
+                finalCost,
+                totalArea,
+                totalInfrastructure,
+                costPerMeterNet,
+                costPerMeterGross
+            });
         }
 
         // Display rates in table
