@@ -21,6 +21,10 @@ globs: *
 *   When creating new API endpoints, ensure they are well-documented with docstrings, explaining the purpose, inputs, and outputs.
 *   New API endpoints should include comprehensive statistics such as total units, total area, and total price. Breakdown by project should also be included where applicable, providing the same statistics for each project.
 *   When creating new API endpoints, place them in the correct ViewSet (e.g., project related endpoints in ProjectViewSet).
+*   When creating new API endpoints for financial calculations, follow the structure outlined below:
+    *   Create a dedicated financial calculation service in `construction/calculations.py`.
+    *   Implement API endpoints using `@action` in the relevant ViewSet (e.g., `construction/api.py`).
+    *   Structure API responses to include relevant metrics (e.g., profit metrics, project statistics, investor analysis).
 
 ### COPYRIGHT NOTICE
 *   Always include a copyright notice at the bottom of each page, linking to royasoftteam.ir, formatted as a professional footer. The footer should include the copyright year (currently 2024), a link to RoyaSoftTeam with a code icon, and be styled appropriately for the page (e.g., using Bootstrap). The footer should also be responsive and support dark/light themes where applicable, using CSS variables. The footer on authentication pages (e.g., login, registration) must be fixed to the bottom of the page.
@@ -63,6 +67,73 @@ globs: *
 *   When requested to remove a specific card and its associated JavaScript code (e.g., "هزینه تمام شده(متری)"), perform the following steps:
     1.  Locate and remove the corresponding HTML element (card) from the relevant template file.
     2.  Identify and remove any JavaScript code that is specifically related to the removed card. This includes event listeners, data processing functions, and any other code that directly interacts with the card.
+
+### SERVER-SIDE CALCULATIONS
+*   Whenever possible, move complex calculations from the client-side (JavaScript) to the server-side (Django). This ensures data integrity, improves performance, and centralizes business logic.
+*   **Implementation Steps:**
+    1.  Identify calculations currently performed in JavaScript that should be moved to the server.
+    2.  Create a dedicated financial calculation service in `construction/calculations.py` to encapsulate these calculations.
+    3.  Develop new API endpoints to expose the results of these server-side calculations.
+    4.  Update the front-end to consume the new API endpoints and remove the corresponding JavaScript code.
+    5.  Thoroughly test and optimize the new implementation.
+*   A large number of calculations (over 50) are currently performed in JavaScript and should be migrated to the server-side. This includes, but is not limited to:
+    *   **Project Dashboard Calculations:**
+        *   Calculating available capital (total deposits - total withdrawals).
+        *   Calculating total profit.
+        *   Calculating the grand total (net principal + total profit).
+        *   Calculating active days.
+        *   Calculating project duration.
+    *   **Cost and Sales Calculations:**
+        *   Calculating final cost (total expenses - total sales).
+        *   Calculating cost per net meter (final cost / total area).
+        *   Calculating cost per gross meter (final cost / total infrastructure).
+        *   Calculating value per meter (total value / total area).
+        *   Calculating final profit (total value - final cost).
+        *   Calculating total profit percentage ((final profit amount / final cost) * 100).
+    *   **Time-Based Profit Calculations:**
+        *   Calculating average construction period.
+        *   Calculating annual profit percentage.
+        *   Calculating monthly profit percentage.
+        *   Calculating daily profit percentage.
+    *   **Investor Calculations:**
+        *   Calculating total principal deposits.
+        *   Calculating total withdrawals.
+        *   Calculating net principal.
+        *   Calculating total balance.
+        *   Calculating individual capital to total capital ratio.
+        *   Calculating individual profit to total profit ratio.
+        *   Calculating individual total to total ratio.
+        *   Calculating profit index.
+    *   **Transaction Calculations:**
+        *   Calculating total deposits.
+        *   Calculating total withdrawals.
+        *   Calculating total profits.
+        *   Calculating available capital.
+    *   **Construction Calculations:**
+        *   Calculating the number of units.
+        *   Calculating total area.
+        *   Calculating total price.
+        *   Calculating total infrastructure.
+        *   Calculating the correction factor.
+    *   **Time Calculations:**
+        *   Calculating start date.
+        *   Calculating end date.
+        *   Calculating project duration.
+        *   Calculating active days.
+    *   **Unit Conversion Calculations:**
+        *   Converting to Toman.
+        *   Converting amounts to Persian words.
+        *   Number formatting.
+        *   Percentage formatting.
+    *   **Statistical Calculations:**
+        *   Calculating average.
+        *   Calculating cumulative total.
+        *   Calculating unique count.
+        *   Calculating filtered data.
+    *   **Special Calculations:**
+        *   Calculating current interest rate.
+        *   Calculating the number of owners.
+        *   Calculating the number of investors.
 
 ## TECH STACK
 *   (Add the used technologies, frameworks, libraries, versions, etc. Example: Python 3.9, Django 3.2, React 17, Bootstrap 5)
