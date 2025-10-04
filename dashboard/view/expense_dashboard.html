@@ -29,6 +29,14 @@
             --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
             --shadow-md: 0 8px 25px rgba(0, 0, 0, 0.08);
             --shadow-lg: 0 15px 35px rgba(0, 0, 0, 0.12);
+            
+            /* رنگ‌های پس‌زمینه برای انواع هزینه‌ها */
+            --project-manager-bg: rgba(102, 126, 234, 0.1);     /* بنفش کم رنگ */
+            --supervisor-bg: rgba(255, 193, 7, 0.1);           /* زرد کم رنگ */
+            --procurement-bg: rgba(33, 133, 208, 0.1);         /* آبی کم رنگ */
+            --warehouse-bg: rgba(40, 167, 69, 0.1);            /* سبز کم رنگ */
+            --contractor-bg: rgba(255, 152, 0, 0.1);           /* نارنجی کم رنگ */
+            --other-bg: rgba(255, 255, 255, 0.1);              /* سفید کم رنگ */
         }
 
         body {
@@ -269,17 +277,42 @@
         }
 
         .expense-table .cumulative-cell {
-            background: linear-gradient(135deg, var(--warning-color) 0%, #fd7e14 100%);
-            color: var(--bs-dark);
+            background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%);
+            color: black;
             font-weight: 600;
             font-size: 0.9rem;
         }
 
         .expense-table .grand-total-row td {
             background: linear-gradient(135deg, var(--danger-color) 0%, #e83e8c 100%);
-            color: var(--text-white);
+            color: black;
             font-weight: 700;
             font-size: 1rem;
+        }
+
+        /* رنگ‌های پس‌زمینه برای انواع هزینه‌ها */
+        .expense-table .project-manager-cell {
+            background: var(--project-manager-bg) !important;
+        }
+
+        .expense-table .supervisor-cell {
+            background: var(--supervisor-bg) !important;
+        }
+
+        .expense-table .procurement-cell {
+            background: var(--procurement-bg) !important;
+        }
+
+        .expense-table .warehouse-cell {
+            background: var(--warehouse-bg) !important;
+        }
+
+        .expense-table .contractor-cell {
+            background: var(--contractor-bg) !important;
+        }
+
+        .expense-table .other-cell {
+            background: var(--other-bg) !important;
         }
 
         .editable-cell {
@@ -1003,6 +1036,25 @@
             return new Intl.NumberFormat('en-US').format(num);
         }
 
+        // تابع تعیین کلاس CSS بر اساس نوع هزینه
+        function getExpenseTypeClass(expenseTypeName) {
+            const typeName = expenseTypeName.toLowerCase();
+            
+            if (typeName.includes('مدیر پروژه') || typeName.includes('مدیریت پروژه')) {
+                return 'project-manager-cell';
+            } else if (typeName.includes('سرپرست') || typeName.includes('سرپرست کارگاه')) {
+                return 'supervisor-cell';
+            } else if (typeName.includes('کارپرداز') || typeName.includes('خرید')) {
+                return 'procurement-cell';
+            } else if (typeName.includes('انباردار') || typeName.includes('انبار')) {
+                return 'warehouse-cell';
+            } else if (typeName.includes('پیمان') || typeName.includes('پیمانکار')) {
+                return 'contractor-cell';
+            } else {
+                return 'other-cell';
+            }
+        }
+
         // تابع نمایش پیام
         function showAlert(message, type = 'info') {
             const alertDiv = document.createElement('div');
@@ -1064,7 +1116,7 @@
                     <th>دوره</th>
                     ${dashboardData.expense_types.map(type => `<th>${type[1]}</th>`).join('')}
                     <th>مجموع دوره</th>
-                    <th>مجموع تجمیعی</th>
+                    <th>مجموع تجمعی</th>
                 </tr>
             `;
 
@@ -1077,7 +1129,7 @@
                 row.innerHTML = `
                     <td class="period-cell">${period.period_label}</td>
                     ${dashboardData.expense_types.map(type => `
-                        <td class="editable-cell expense-cell" 
+                        <td class="editable-cell expense-cell ${getExpenseTypeClass(type[1])}" 
                             data-period-id="${period.period_id}" 
                             data-expense-type="${type[0]}"
                             data-description="${period.expenses[type[0]].description || ''}"
@@ -1104,7 +1156,7 @@
             grandTotalRow.innerHTML = `
                 <td><strong>مجموع کل</strong></td>
                 ${dashboardData.expense_types.map(type => `
-                    <td><strong>${formatNumber(dashboardData.column_totals[type[0]])}</strong></td>
+                    <td class="${getExpenseTypeClass(type[1])}"><strong>${formatNumber(dashboardData.column_totals[type[0]])}</strong></td>
                 `).join('')}
                 <td><strong>${formatNumber(dashboardData.grand_total)}</strong></td>
                 <td><strong>${formatNumber(dashboardData.grand_total)}</strong></td>
