@@ -57,6 +57,10 @@ globs: *
 *   When requested to remove a specific card and its associated JavaScript code (e.g., "هزینه تمام شده(متری)"), perform the following steps:
     1.  Locate and remove the corresponding HTML element (card) from the relevant template file.
     2.  Identify and remove any JavaScript code that is specifically related to the removed card. This includes event listeners, data processing functions, and any other code that directly interacts with the card.
+*   **Table Styling:**
+    *   Alternate row colors in tables by adding the `table-striped` class to the `<table>` element.
+    *   Display numbers in tables in English format with a 3-digit separator (thousands separator). Apply the `number-format` class to the `<td>` elements containing numbers.
+    *   Implement JavaScript to format numbers with the `number-format` class using `new Intl.NumberFormat('en-US').format(Math.round(number))`. The JS must search for a number within the text content of the cell and replace it with the formatted number.
 
 ### NUMBER FORMATTING
 *   All numbers in the application must **always** be displayed in English with a 3-digit separator (thousands separator). Use `new Intl.NumberFormat('en-US').format(Math.round(num))` to achieve this.
