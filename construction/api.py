@@ -6,6 +6,7 @@ from django.db import connection
 
 from . import serializers
 from . import models
+from . import calculations
 from .api_security import APISecurityPermission, ReadOnlyPermission, AdminOnlyPermission
 
 
@@ -434,6 +435,54 @@ class InvestorViewSet(viewsets.ModelViewSet):
             'active_investor': active_investor
         })
 
+    @action(detail=True, methods=['get'])
+    def detailed_statistics(self, request, pk=None):
+        """دریافت آمار تفصیلی سرمایه‌گذار"""
+        try:
+            project_id = request.query_params.get('project_id')
+            stats = calculations.InvestorCalculations.calculate_investor_statistics(pk, project_id)
+            
+            if 'error' in stats:
+                return Response(stats, status=400)
+            
+            return Response(stats)
+            
+        except Exception as e:
+            return Response({
+                'error': f'خطا در دریافت آمار تفصیلی سرمایه‌گذار: {str(e)}'
+            }, status=500)
+
+    @action(detail=True, methods=['get'])
+    def ratios(self, request, pk=None):
+        """دریافت نسبت‌های سرمایه‌گذار"""
+        try:
+            project_id = request.query_params.get('project_id')
+            ratios = calculations.InvestorCalculations.calculate_investor_ratios(pk, project_id)
+            
+            if 'error' in ratios:
+                return Response(ratios, status=400)
+            
+            return Response(ratios)
+            
+        except Exception as e:
+            return Response({
+                'error': f'خطا در محاسبه نسبت‌های سرمایه‌گذار: {str(e)}'
+            }, status=500)
+
+    @action(detail=False, methods=['get'])
+    def all_investors_summary(self, request):
+        """دریافت خلاصه آمار تمام سرمایه‌گذاران"""
+        try:
+            project_id = request.query_params.get('project_id')
+            summary = calculations.InvestorCalculations.get_all_investors_summary(project_id)
+            
+            return Response(summary)
+            
+        except Exception as e:
+            return Response({
+                'error': f'خطا در دریافت خلاصه سرمایه‌گذاران: {str(e)}'
+            }, status=500)
+
 
 class PeriodViewSet(viewsets.ModelViewSet):
     """ViewSet for the Period class"""
@@ -598,6 +647,74 @@ class ProjectViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({
                 'error': f'خطا در محاسبه زمان‌بندی پروژه: {str(e)}'
+            }, status=500)
+
+    @action(detail=False, methods=['get'])
+    def comprehensive_analysis(self, request):
+        """دریافت تحلیل جامع پروژه شامل تمام محاسبات مالی"""
+        try:
+            project_id = request.query_params.get('project_id')
+            analysis = calculations.ComprehensiveCalculations.get_comprehensive_project_analysis(project_id)
+            
+            if 'error' in analysis:
+                return Response(analysis, status=400)
+            
+            return Response(analysis)
+            
+        except Exception as e:
+            return Response({
+                'error': f'خطا در دریافت تحلیل جامع: {str(e)}'
+            }, status=500)
+
+    @action(detail=False, methods=['get'])
+    def profit_metrics(self, request):
+        """دریافت متریک‌های سود (کل، سالانه، ماهانه، روزانه)"""
+        try:
+            project_id = request.query_params.get('project_id')
+            metrics = calculations.ProfitCalculations.calculate_profit_percentages(project_id)
+            
+            if 'error' in metrics:
+                return Response(metrics, status=400)
+            
+            return Response(metrics)
+            
+        except Exception as e:
+            return Response({
+                'error': f'خطا در محاسبه متریک‌های سود: {str(e)}'
+            }, status=500)
+
+    @action(detail=False, methods=['get'])
+    def cost_metrics(self, request):
+        """دریافت متریک‌های هزینه"""
+        try:
+            project_id = request.query_params.get('project_id')
+            metrics = calculations.ProjectCalculations.calculate_cost_metrics(project_id)
+            
+            if 'error' in metrics:
+                return Response(metrics, status=400)
+            
+            return Response(metrics)
+            
+        except Exception as e:
+            return Response({
+                'error': f'خطا در محاسبه متریک‌های هزینه: {str(e)}'
+            }, status=500)
+
+    @action(detail=False, methods=['get'])
+    def project_statistics_detailed(self, request):
+        """دریافت آمار تفصیلی پروژه"""
+        try:
+            project_id = request.query_params.get('project_id')
+            stats = calculations.ProjectCalculations.calculate_project_statistics(project_id)
+            
+            if 'error' in stats:
+                return Response(stats, status=400)
+            
+            return Response(stats)
+            
+        except Exception as e:
+            return Response({
+                'error': f'خطا در دریافت آمار تفصیلی: {str(e)}'
             }, status=500)
 
 
@@ -795,6 +912,35 @@ class TransactionViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({
                 'error': f'خطا در محاسبه مجدد سودها: {str(e)}'
+            }, status=500)
+
+    @action(detail=False, methods=['get'])
+    def detailed_statistics(self, request):
+        """دریافت آمار تفصیلی تراکنش‌ها با فیلترهای پیشرفته"""
+        try:
+            project_id = request.query_params.get('project_id')
+            
+            # فیلترهای اضافی
+            filters = {}
+            if request.query_params.get('investor_id'):
+                filters['investor_id'] = int(request.query_params.get('investor_id'))
+            if request.query_params.get('date_from'):
+                filters['date_from'] = request.query_params.get('date_from')
+            if request.query_params.get('date_to'):
+                filters['date_to'] = request.query_params.get('date_to')
+            if request.query_params.get('transaction_type'):
+                filters['transaction_type'] = request.query_params.get('transaction_type')
+            
+            stats = calculations.TransactionCalculations.calculate_transaction_statistics(project_id, filters)
+            
+            if 'error' in stats:
+                return Response(stats, status=400)
+            
+            return Response(stats)
+            
+        except Exception as e:
+            return Response({
+                'error': f'خطا در دریافت آمار تفصیلی تراکنش‌ها: {str(e)}'
             }, status=500)
     
     @action(detail=False, methods=['post'])

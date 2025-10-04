@@ -1409,6 +1409,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/persian-date@1.1.0/dist/persian-date.min.js"></script>
+    
+    <!-- Financial Calculations Service -->
+    <script src="/static/js/financial-calculations.js"></script>
 
     <script>
         // Global variables
@@ -1592,15 +1595,42 @@
             document.getElementById('currentRateCard').style.display = 'block';
         }
 
-        // Load financial summary data
+        // Load financial summary data - استفاده از API جدید
         async function loadFinancialSummary() {
+            try {
+                // استفاده از سرویس محاسبات مالی جدید
+                const costMetrics = await window.financialService.getCostMetrics();
+                
+                if (costMetrics.error) {
+                    console.error('خطا در دریافت متریک‌های هزینه:', costMetrics.error);
+                    return;
+                }
+
+                console.log('Cost Metrics from Server:', costMetrics);
+
+                // Display the data
+                displayFinancialSummary(
+                    costMetrics.total_expenses,
+                    costMetrics.total_sales,
+                    costMetrics.final_cost
+                );
+
+            } catch (error) {
+                console.error('Error loading financial summary:', error);
+                // Fallback به روش قدیمی در صورت خطا
+                await loadFinancialSummaryLegacy();
+            }
+        }
+
+        // روش قدیمی به عنوان fallback
+        async function loadFinancialSummaryLegacy() {
             try {
                 // Load expenses data
                 const expensesResponse = await fetch(`${API_BASE}Expense/total_expenses/`);
                 let totalExpenses = 0;
                 if (expensesResponse.ok) {
                     const expensesData = await expensesResponse.json();
-                    console.log('Expenses API Response:', expensesData);
+                    console.log('Expenses API Response (Legacy):', expensesData);
                     totalExpenses = expensesData.total_expenses?.total_amount || 0;
                 }
 
@@ -1609,14 +1639,14 @@
                 let totalSales = 0;
                 if (salesResponse.ok) {
                     const salesData = await salesResponse.json();
-                    console.log('Sales API Response:', salesData);
+                    console.log('Sales API Response (Legacy):', salesData);
                     totalSales = salesData.total_amount || 0;
                 }
 
                 // Calculate final cost (expenses - sales)
                 const finalCost = totalExpenses - totalSales;
 
-                console.log('Final Values:', {
+                console.log('Final Values (Legacy):', {
                     totalExpenses,
                     totalSales,
                     finalCost
@@ -1626,7 +1656,7 @@
                 displayFinancialSummary(totalExpenses, totalSales, finalCost);
 
             } catch (error) {
-                console.error('Error loading financial summary:', error);
+                console.error('Error loading financial summary (Legacy):', error);
             }
         }
 
@@ -1779,6 +1809,9 @@
             
             // Calculate average construction period
             calculateAverageConstructionPeriod();
+            
+            // محاسبه متریک‌های سود با استفاده از API جدید
+            loadProfitMetrics();
 
             console.log('Cost and Value Calculations:', {
                 finalCost,
@@ -1793,7 +1826,75 @@
             });
         }
 
-        // Calculate annual profit percentage
+        // Load profit metrics using new API
+        async function loadProfitMetrics() {
+            try {
+                const profitMetrics = await window.financialService.getProfitMetrics();
+                
+                if (profitMetrics.error) {
+                    console.error('خطا در دریافت متریک‌های سود:', profitMetrics.error);
+                    return;
+                }
+
+                console.log('Profit Metrics from Server:', profitMetrics);
+
+                // Update UI with server-calculated values
+                const formatNumber = (num) => {
+                    return new Intl.NumberFormat('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    }).format(num);
+                };
+
+                const formatDailyNumber = (num) => {
+                    return new Intl.NumberFormat('en-US', {
+                        minimumFractionDigits: 8,
+                        maximumFractionDigits: 8
+                    }).format(num);
+                };
+
+                // Update profit percentage elements
+                const totalProfitPercentageEl = document.getElementById('totalProfitPercentage');
+                if (totalProfitPercentageEl) {
+                    totalProfitPercentageEl.textContent = formatNumber(profitMetrics.total_profit_percentage);
+                }
+
+                const annualProfitPercentageEl = document.getElementById('annualProfitPercentage');
+                if (annualProfitPercentageEl) {
+                    annualProfitPercentageEl.textContent = formatNumber(profitMetrics.annual_profit_percentage);
+                }
+
+                const monthlyProfitPercentageEl = document.getElementById('monthlyProfitPercentage');
+                if (monthlyProfitPercentageEl) {
+                    monthlyProfitPercentageEl.textContent = formatNumber(profitMetrics.monthly_profit_percentage);
+                }
+
+                const dailyProfitPercentageEl = document.getElementById('dailyProfitPercentage');
+                if (dailyProfitPercentageEl) {
+                    dailyProfitPercentageEl.textContent = formatDailyNumber(profitMetrics.daily_profit_percentage);
+                }
+
+                const averageConstructionPeriodEl = document.getElementById('averageConstructionPeriod');
+                if (averageConstructionPeriodEl) {
+                    averageConstructionPeriodEl.textContent = formatNumber(profitMetrics.average_construction_period);
+                }
+
+                console.log('Profit metrics updated from server:', {
+                    total_profit_percentage: profitMetrics.total_profit_percentage,
+                    annual_profit_percentage: profitMetrics.annual_profit_percentage,
+                    monthly_profit_percentage: profitMetrics.monthly_profit_percentage,
+                    daily_profit_percentage: profitMetrics.daily_profit_percentage,
+                    average_construction_period: profitMetrics.average_construction_period
+                });
+
+            } catch (error) {
+                console.error('Error loading profit metrics:', error);
+                // Fallback to legacy calculation
+                calculateAverageConstructionPeriod();
+            }
+        }
+
+        // Calculate annual profit percentage (Legacy method as fallback)
         function calculateAnnualProfitPercentage(averagePeriod) {
             try {
                 // Get total profit percentage from the card
