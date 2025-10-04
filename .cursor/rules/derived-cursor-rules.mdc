@@ -83,4 +83,11 @@ globs: *
     *   Models in `construction`: `Project`, `Unit`, `Investor`, `Period`, `InterestRate`, `Transaction`, `Expense`, `Sale`, `UserProfile`.
     *   Models in `backup`: `BackupRecord`, `BackupSettings`.
     *   Models in `security_monitoring`: `SecurityEvent`.
-*   When creating a new backup, if the process stops and throws an error, check the import statements in `create_backup.py` for `SecurityEvent`. Ensure that the import path is correct, pointing to the correct location of the `SecurityEvent` model (e.g., `security_monitoring.py`).
+*   When creating a new backup, if the process stops and throws an error related to `SecurityEvent`, follow these steps:
+    1.  Check the import statements in `create_backup.py` for `SecurityEvent`. Ensure that the import path is correct, pointing to the correct location of the `SecurityEvent` model (e.g., `security_monitoring.py`).
+    2.  If the `SecurityEvent` model is causing issues, exclude it from the backup process by:
+        *   Removing or commenting out the import statement for `SecurityEvent` in `create_backup.py`.
+        *   Removing or commenting out the lines related to `security_events` in the `get_database_stats` function within `create_backup.py`.
+        *   Removing or commenting out the lines related to `security_events.json` in the list of files created by the backup script within `create_backup.py`.
+        *   Excluding the `construction.securityevent` model when creating the complete database fixture using the `--exclude` option.
+        *   Adjusting the expected number of individual fixtures and the corresponding success message in `create_backup.py`.
