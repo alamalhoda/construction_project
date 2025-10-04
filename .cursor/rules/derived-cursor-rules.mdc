@@ -144,7 +144,7 @@ globs: *
         *   Calculating the number of owners.
         *   Calculating the number of investors.
 *   **Documentation:**
-    *   Create a comprehensive document of all calculations, including name, description, formula, and location of use.
+    *   Create a comprehensive document of all calculations, including name, description, formula, and location of use. The document name should be `FINANCIAL_CALCULATIONS.md`.
 
 ## TECH STACK
 *   (Add the used technologies, frameworks, libraries, versions, etc. Example: Python 3.9, Django 3.2, React 17, Bootstrap 5)
@@ -152,6 +152,14 @@ globs: *
 ## PROJECT DOCUMENTATION & CONTEXT SYSTEM
 *   (Define where the project documentation is stored and how to access it.)
 *   (Describe the context system for the project, including how different components interact.)
+*   **Financial Calculations Documentation:** The documentation for all financial calculations is stored in `FINANCIAL_CALCULATIONS.md`. This document includes the name, description, formula, and location of use for each calculation.
+*   **API Reference:** The documentation for available APIs is stored in `API_REFERENCE.md`.
+*   **Implemented Calculations:** The list of implemented calculations is stored in `IMPLEMENTED_CALCULATIONS.md`.
+*   **Checking Server-Side Calculations:** To determine if a calculation exists on the server-side, follow these steps:
+    1.  **Comprehensive Documentation:** Consult `docs/FINANCIAL_CALCULATIONS.md` for a complete list of calculations.
+    2.  **Automated Script:** Run `scripts/check_calculations.py` to verify the presence and functionality of server-side calculations.
+    3.  **Code Review:** Examine `construction/calculations.py` for calculation classes and `static/js/financial-calculations.js` for JavaScript service usage.
+    4.  **API Endpoints:** Review available API endpoints and test them using `curl`.
 
 ## WORKFLOW & RELEASE RULES
 *   (Define the project workflow, including branching strategies, pull request procedures, and code review guidelines.)
@@ -178,3 +186,6 @@ globs: *
         *   Removing or commenting out the lines related to `security_events.json` in the list of files created by the backup script within `create_backup.py`.
         *   Excluding the `construction.securityevent` model when creating the complete database fixture using the `--exclude` option.
         *   Adjusting the expected number of individual fixtures and the corresponding success message in `create_backup.py`.
+
+## CURSOR RULES
+*   A comprehensive rules file for financial calculations has been created and stored in `.cursor/rules` to ensure consistent usage of these calculations across the project.
