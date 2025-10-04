@@ -598,7 +598,7 @@
 
         .stat-value {
             font-size: 1.8rem;
-            font-weight: bold;
+            /* font-weight: bold; */
             margin-bottom: 8px;
             color: var(--text-primary);
         }
@@ -608,7 +608,6 @@
         .stat-card.cost-per-meter-net-card .stat-value,
         .stat-card.cost-per-meter-gross-card .stat-value,
         .stat-card.value-per-meter-card .stat-value,
-        .stat-card.final-cost-per-meter-card .stat-value,
         .stat-card.final-profit-amount-card .stat-value,
         .stat-card.total-profit-percentage-card .stat-value,
         .stat-card.average-construction-period-card .stat-value,
@@ -623,7 +622,6 @@
         .stat-card.cost-per-meter-net-card,
         .stat-card.cost-per-meter-gross-card,
         .stat-card.value-per-meter-card,
-        .stat-card.final-cost-per-meter-card,
         .stat-card.final-profit-amount-card,
         .stat-card.total-profit-percentage-card,
         .stat-card.average-construction-period-card,
@@ -638,7 +636,6 @@
         .stat-card.cost-per-meter-net-card .stat-icon,
         .stat-card.cost-per-meter-gross-card .stat-icon,
         .stat-card.value-per-meter-card .stat-icon,
-        .stat-card.final-cost-per-meter-card .stat-icon,
         .stat-card.final-profit-amount-card .stat-icon,
         .stat-card.total-profit-percentage-card .stat-icon,
         .stat-card.average-construction-period-card .stat-icon,
@@ -746,17 +743,6 @@
             color: #00bcd4 !important;
         }
 
-        .stat-card.final-cost-per-meter-card .stat-icon {
-            background: linear-gradient(135deg, #e91e63, #f06292) !important;
-        }
-
-        .stat-card.final-cost-per-meter-card::before {
-            background: linear-gradient(90deg, #e91e63, #f06292) !important;
-        }
-
-        .stat-card.final-cost-per-meter-card .stat-value {
-            color: #e91e63 !important;
-        }
 
         .stat-card.final-profit-amount-card .stat-icon {
             background: linear-gradient(135deg, #4caf50, #81c784) !important;
@@ -941,7 +927,6 @@
         #projectStatsCards .cost-per-meter-net-card,
         #projectStatsCards .cost-per-meter-gross-card,
         #projectStatsCards .value-per-meter-card,
-        #projectStatsCards .final-cost-per-meter-card,
         #projectStatsCards .final-profit-amount-card,
         #projectStatsCards .total-profit-percentage-card,
         #projectStatsCards .average-construction-period-card,
@@ -952,7 +937,6 @@
 
         #projectStatsCards .daily-profit-percentage-card {
             flex: 2 !important;
-            max-width: 50% !important;
         }
 
         @media (max-width: 768px) {
@@ -979,7 +963,6 @@
             #projectStatsCards .cost-per-meter-net-card,
             #projectStatsCards .cost-per-meter-gross-card,
             #projectStatsCards .value-per-meter-card,
-            #projectStatsCards .final-cost-per-meter-card,
             #projectStatsCards .final-profit-amount-card,
             #projectStatsCards .total-profit-percentage-card,
             #projectStatsCards .average-construction-period-card,
@@ -990,7 +973,6 @@
 
             #projectStatsCards .daily-profit-percentage-card {
                 flex: none !important;
-                max-width: 100% !important;
             }
 
             /* Smaller font size for price cards on mobile */
@@ -998,7 +980,6 @@
             .stat-card.cost-per-meter-net-card .stat-value,
             .stat-card.cost-per-meter-gross-card .stat-value,
             .stat-card.value-per-meter-card .stat-value,
-            .stat-card.final-cost-per-meter-card .stat-value,
             .stat-card.final-profit-amount-card .stat-value,
             .stat-card.total-profit-percentage-card .stat-value,
             .stat-card.average-construction-period-card .stat-value,
@@ -1013,7 +994,6 @@
             .stat-card.cost-per-meter-net-card,
             .stat-card.cost-per-meter-gross-card,
             .stat-card.value-per-meter-card,
-            .stat-card.final-cost-per-meter-card,
             .stat-card.final-profit-amount-card,
             .stat-card.total-profit-percentage-card,
             .stat-card.average-construction-period-card,
@@ -1028,7 +1008,6 @@
             .stat-card.cost-per-meter-net-card .stat-icon,
             .stat-card.cost-per-meter-gross-card .stat-icon,
             .stat-card.value-per-meter-card .stat-icon,
-            .stat-card.final-cost-per-meter-card .stat-icon,
             .stat-card.final-profit-amount-card .stat-icon,
             .stat-card.total-profit-percentage-card .stat-icon,
             .stat-card.average-construction-period-card .stat-icon,
@@ -1151,7 +1130,7 @@
                     </div>
                     <div class="stat-content">
                         <div class="stat-value" id="totalArea">-</div>
-                        <div class="stat-label">مجموع متراژ مفید (م²)</div>
+                        <div class="stat-label">مجموع متراژ مفید (متر مربع)</div>
                     </div>
                 </div>
             </div>
@@ -1179,7 +1158,7 @@
                     </div>
                     <div class="stat-content">
                         <div class="stat-value" id="totalInfrastructure">-</div>
-                        <div class="stat-label">زیربنای کل (م²)</div>
+                        <div class="stat-label">زیربنای کل (متر مربع)</div>
                     </div>
                 </div>
             </div>
@@ -1193,7 +1172,7 @@
                     </div>
                     <div class="stat-content">
                         <div class="stat-value" id="costPerMeterNet">-</div>
-                        <div class="stat-label">هزینه هر متر خالص (تومان/م²)</div>
+                        <div class="stat-label">هزینه هر متر خالص (تومان/متر مربع)</div>
                     </div>
                 </div>
             </div>
@@ -1207,7 +1186,7 @@
                     </div>
                     <div class="stat-content">
                         <div class="stat-value" id="costPerMeterGross">-</div>
-                        <div class="stat-label">هزینه هر متر ناخالص (تومان/م²)</div>
+                        <div class="stat-label">هزینه هر متر ناخالص (تومان/متر مربع)</div>
                     </div>
                 </div>
             </div>
@@ -1221,21 +1200,7 @@
                     </div>
                     <div class="stat-content">
                         <div class="stat-value" id="valuePerMeter">-</div>
-                        <div class="stat-label">ارزش ساختمان(متری) (تومان/م²)</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 col-sm-12 mb-3 final-cost-per-meter-card">
-                <div class="stat-card final-cost-per-meter-card">
-                    <div class="info-icon" data-tooltip="هزینه تمام شده نهایی تقسیم بر مجموع متراژ مفید. این عدد نشان‌دهنده هزینه واقعی هر متر مربع از فضای مفید است">
-                        <i class="fas fa-info"></i>
-                    </div>
-                    <div class="stat-icon">
-                        <i class="fas fa-calculator"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value" id="finalCostPerMeter">-</div>
-                        <div class="stat-label">هزینه تمام شده(متری) (تومان/م²)</div>
+                        <div class="stat-label">ارزش ساختمان(متری) (تومان/متر مربع)</div>
                     </div>
                 </div>
             </div>
@@ -1444,6 +1409,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/persian-date@1.1.0/dist/persian-date.min.js"></script>
+    
+    <!-- Financial Calculations Service -->
+    <script src="/static/js/financial-calculations.js"></script>
 
     <script>
         // Global variables
@@ -1627,15 +1595,42 @@
             document.getElementById('currentRateCard').style.display = 'block';
         }
 
-        // Load financial summary data
+        // Load financial summary data - استفاده از API جدید
         async function loadFinancialSummary() {
+            try {
+                // استفاده از سرویس محاسبات مالی جدید
+                const costMetrics = await window.financialService.getCostMetrics();
+                
+                if (costMetrics.error) {
+                    console.error('خطا در دریافت متریک‌های هزینه:', costMetrics.error);
+                    return;
+                }
+
+                console.log('Cost Metrics from Server:', costMetrics);
+
+                // Display the data
+                displayFinancialSummary(
+                    costMetrics.total_expenses,
+                    costMetrics.total_sales,
+                    costMetrics.final_cost
+                );
+
+            } catch (error) {
+                console.error('Error loading financial summary:', error);
+                // Fallback به روش قدیمی در صورت خطا
+                await loadFinancialSummaryLegacy();
+            }
+        }
+
+        // روش قدیمی به عنوان fallback
+        async function loadFinancialSummaryLegacy() {
             try {
                 // Load expenses data
                 const expensesResponse = await fetch(`${API_BASE}Expense/total_expenses/`);
                 let totalExpenses = 0;
                 if (expensesResponse.ok) {
                     const expensesData = await expensesResponse.json();
-                    console.log('Expenses API Response:', expensesData);
+                    console.log('Expenses API Response (Legacy):', expensesData);
                     totalExpenses = expensesData.total_expenses?.total_amount || 0;
                 }
 
@@ -1644,14 +1639,14 @@
                 let totalSales = 0;
                 if (salesResponse.ok) {
                     const salesData = await salesResponse.json();
-                    console.log('Sales API Response:', salesData);
+                    console.log('Sales API Response (Legacy):', salesData);
                     totalSales = salesData.total_amount || 0;
                 }
 
                 // Calculate final cost (expenses - sales)
                 const finalCost = totalExpenses - totalSales;
 
-                console.log('Final Values:', {
+                console.log('Final Values (Legacy):', {
                     totalExpenses,
                     totalSales,
                     finalCost
@@ -1661,7 +1656,7 @@
                 displayFinancialSummary(totalExpenses, totalSales, finalCost);
 
             } catch (error) {
-                console.error('Error loading financial summary:', error);
+                console.error('Error loading financial summary (Legacy):', error);
             }
         }
 
@@ -1772,11 +1767,6 @@
                 valuePerMeter = totalValue / totalArea;
             }
 
-            // Calculate final cost per meter (final cost / total area)
-            let finalCostPerMeter = 0;
-            if (totalArea > 0) {
-                finalCostPerMeter = finalCost / totalArea;
-            }
 
             // Calculate final profit amount (total value - final cost)
             let finalProfitAmount = 0;
@@ -1810,8 +1800,6 @@
             const valuePerMeterEl = document.getElementById('valuePerMeter');
             if (valuePerMeterEl) valuePerMeterEl.textContent = formatNumber(valuePerMeter);
             
-            const finalCostPerMeterEl = document.getElementById('finalCostPerMeter');
-            if (finalCostPerMeterEl) finalCostPerMeterEl.textContent = formatNumber(finalCostPerMeter);
             
             const finalProfitAmountEl = document.getElementById('finalProfitAmount');
             if (finalProfitAmountEl) finalProfitAmountEl.textContent = formatNumber(finalProfitAmount);
@@ -1821,6 +1809,9 @@
             
             // Calculate average construction period
             calculateAverageConstructionPeriod();
+            
+            // محاسبه متریک‌های سود با استفاده از API جدید
+            loadProfitMetrics();
 
             console.log('Cost and Value Calculations:', {
                 finalCost,
@@ -1830,13 +1821,80 @@
                 costPerMeterNet,
                 costPerMeterGross,
                 valuePerMeter,
-                finalCostPerMeter,
                 finalProfitAmount,
                 totalProfitPercentage
             });
         }
 
-        // Calculate annual profit percentage
+        // Load profit metrics using new API
+        async function loadProfitMetrics() {
+            try {
+                const profitMetrics = await window.financialService.getProfitMetrics();
+                
+                if (profitMetrics.error) {
+                    console.error('خطا در دریافت متریک‌های سود:', profitMetrics.error);
+                    return;
+                }
+
+                console.log('Profit Metrics from Server:', profitMetrics);
+
+                // Update UI with server-calculated values
+                const formatNumber = (num) => {
+                    return new Intl.NumberFormat('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    }).format(num);
+                };
+
+                const formatDailyNumber = (num) => {
+                    return new Intl.NumberFormat('en-US', {
+                        minimumFractionDigits: 8,
+                        maximumFractionDigits: 8
+                    }).format(num);
+                };
+
+                // Update profit percentage elements
+                const totalProfitPercentageEl = document.getElementById('totalProfitPercentage');
+                if (totalProfitPercentageEl) {
+                    totalProfitPercentageEl.textContent = formatNumber(profitMetrics.total_profit_percentage);
+                }
+
+                const annualProfitPercentageEl = document.getElementById('annualProfitPercentage');
+                if (annualProfitPercentageEl) {
+                    annualProfitPercentageEl.textContent = formatNumber(profitMetrics.annual_profit_percentage);
+                }
+
+                const monthlyProfitPercentageEl = document.getElementById('monthlyProfitPercentage');
+                if (monthlyProfitPercentageEl) {
+                    monthlyProfitPercentageEl.textContent = formatNumber(profitMetrics.monthly_profit_percentage);
+                }
+
+                const dailyProfitPercentageEl = document.getElementById('dailyProfitPercentage');
+                if (dailyProfitPercentageEl) {
+                    dailyProfitPercentageEl.textContent = formatDailyNumber(profitMetrics.daily_profit_percentage);
+                }
+
+                const averageConstructionPeriodEl = document.getElementById('averageConstructionPeriod');
+                if (averageConstructionPeriodEl) {
+                    averageConstructionPeriodEl.textContent = formatNumber(profitMetrics.average_construction_period);
+                }
+
+                console.log('Profit metrics updated from server:', {
+                    total_profit_percentage: profitMetrics.total_profit_percentage,
+                    annual_profit_percentage: profitMetrics.annual_profit_percentage,
+                    monthly_profit_percentage: profitMetrics.monthly_profit_percentage,
+                    daily_profit_percentage: profitMetrics.daily_profit_percentage,
+                    average_construction_period: profitMetrics.average_construction_period
+                });
+
+            } catch (error) {
+                console.error('Error loading profit metrics:', error);
+                // Fallback to legacy calculation
+                calculateAverageConstructionPeriod();
+            }
+        }
+
+        // Calculate annual profit percentage (Legacy method as fallback)
         function calculateAnnualProfitPercentage(averagePeriod) {
             try {
                 // Get total profit percentage from the card
@@ -1858,8 +1916,8 @@
                 // Format and display
                 const formatNumber = (num) => {
                     return new Intl.NumberFormat('en-US', {
-                        minimumFractionDigits: 1,
-                        maximumFractionDigits: 1
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
                     }).format(num);
                 };
                 
@@ -2018,8 +2076,8 @@
                     // Format and display
                     const formatNumber = (num) => {
                         return new Intl.NumberFormat('en-US', {
-                            minimumFractionDigits: 1,
-                            maximumFractionDigits: 1
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
                         }).format(num);
                     };
                     
