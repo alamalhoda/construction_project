@@ -54,6 +54,9 @@ globs: *
 *   When updating templates, ensure that new fields are displayed correctly using the form's rendering mechanism (e.g., `{{ form.field_name }}`).
 *   Include labels and help texts for each field to provide context to the user.
 *   Use appropriate HTML structure (e.g., `div`, `form-group`, `col-md-6`) to ensure proper layout and responsiveness.
+*   When requested to remove a specific card and its associated JavaScript code (e.g., "هزینه تمام شده(متری)"), perform the following steps:
+    1.  Locate and remove the corresponding HTML element (card) from the relevant template file.
+    2.  Identify and remove any JavaScript code that is specifically related to the removed card. This includes event listeners, data processing functions, and any other code that directly interacts with the card.
 
 ### NUMBER FORMATTING
 *   All numbers in the application must **always** be displayed in English with a 3-digit separator (thousands separator). Use `new Intl.NumberFormat('en-US').format(Math.round(num))` to achieve this.
@@ -129,6 +132,8 @@ globs: *
         *   Calculating end date.
         *   Calculating project duration.
         *   Calculating active days.
+        *   Calculating days remaining until project end.
+        *   Calculating days passed from project start.
     *   **Unit Conversion Calculations:**
         *   Converting to Toman.
         *   Converting amounts to Persian words.
@@ -143,6 +148,8 @@ globs: *
         *   Calculating current interest rate.
         *   Calculating the number of owners.
         *   Calculating the number of investors.
+    *   **New Calculation:**
+        *   Calculating the building fund balance (total capital - net cost).
 *   **Documentation:**
     *   Create a comprehensive document of all calculations, including name, description, formula, and location of use. The document name should be `FINANCIAL_CALCULATIONS.md`.
 

@@ -197,6 +197,27 @@ class ProjectCalculations(FinancialCalculationService):
         # محاسبه درصد سود کل
         total_profit_percentage = (final_profit_amount / final_cost * 100) if final_cost > 0 else 0
         
+        # محاسبه مانده صندوق ساختمان
+        # فرمول: مجموع کل سرمایه + فروش/مرجوع - کل هزینه
+        # یا: مجموع کل سرمایه - مجموع هزینه خالص
+        # مجموع کل سرمایه = مجموع آورده - مجموع برداشت
+        
+        # دریافت آمار تراکنش‌ها برای محاسبه مجموع کل سرمایه
+        transaction_stats = models.Transaction.objects.filter(project=project).aggregate(
+            total_deposits=Sum('amount', filter=Q(transaction_type='principal_deposit')),
+            total_withdrawals=Sum('amount', filter=Q(transaction_type='principal_withdrawal'))
+        )
+        
+        total_deposits = float(transaction_stats['total_deposits'] or 0)
+        total_withdrawals = float(transaction_stats['total_withdrawals'] or 0)
+        total_capital = total_deposits + total_withdrawals  # withdrawal منفی است
+        
+        # محاسبه هزینه خالص
+        net_cost = total_expenses - total_sales
+        
+        # محاسبه مانده صندوق ساختمان
+        building_fund_balance = total_capital - net_cost
+        
         return {
             'final_cost': final_cost,
             'final_profit_amount': final_profit_amount,
@@ -208,7 +229,10 @@ class ProjectCalculations(FinancialCalculationService):
             'total_sales': total_sales,
             'total_value': total_value,
             'total_area': total_area,
-            'total_infrastructure': total_infrastructure
+            'total_infrastructure': total_infrastructure,
+            'total_capital': total_capital,
+            'net_cost': net_cost,
+            'building_fund_balance': building_fund_balance
         }
 
 
@@ -456,19 +480,36 @@ class InvestorCalculations(FinancialCalculationService):
         investors = models.Investor.objects.filter(id__in=investor_ids)
         summary = []
         
+        print(f"🔍 تعداد سرمایه‌گذاران یافت شده: {investors.count()}")
+        print(f"🔍 investor_ids: {list(investor_ids)}")
+        
         for investor in investors:
             try:
+                print(f"🔍 پردازش سرمایه‌گذار: {investor.id} - {investor.first_name} {investor.last_name}")
+                
                 # آمار سرمایه‌گذار
                 investor_stats = InvestorCalculations.calculate_investor_statistics(investor.id, project_id)
                 investor_ratios = InvestorCalculations.calculate_investor_ratios(investor.id, project_id)
                 
+                print(f"🔍 investor_stats: {investor_stats}")
+                print(f"🔍 investor_ratios: {investor_ratios}")
+                
                 if 'error' not in investor_stats and 'error' not in investor_ratios:
+                    # محاسبه مجموع کل (سرمایه + سود)
+                    grand_total = investor_stats['amounts']['net_principal'] + investor_stats['amounts']['total_profit']
+                    
                     summary.append({
                         'id': investor.id,
                         'name': f"{investor.first_name} {investor.last_name}",
                         'participation_type': investor.participation_type,
-                        **investor_stats['amounts'],
-                        **investor_ratios
+                        'total_deposits': investor_stats['amounts']['total_principal'],
+                        'total_withdrawals': abs(investor_stats['amounts']['total_withdrawal']),  # مقدار مثبت
+                        'net_principal': investor_stats['amounts']['net_principal'],
+                        'total_profit': investor_stats['amounts']['total_profit'],
+                        'grand_total': grand_total,
+                        'capital_ratio': investor_ratios.get('capital_ratio', 0),
+                        'profit_ratio': investor_ratios.get('profit_ratio', 0),
+                        'profit_index': investor_ratios.get('profit_index', 0)
                     })
             except Exception as e:
                 print(f"خطا در محاسبه آمار سرمایه‌گذار {investor.id}: {e}")
