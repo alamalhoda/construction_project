@@ -25,6 +25,15 @@ globs: *
     *   Create a dedicated financial calculation service in `construction/calculations.py`.
     *   Implement API endpoints using `@action` in the relevant ViewSet (e.g., `construction/api.py`).
     *   Structure API responses to include relevant metrics (e.g., profit metrics, project statistics, investor analysis).
+*   New API Endpoints:
+    *   `Project/comprehensive_analysis/`: Provides a comprehensive project analysis.
+    *   `Project/profit_metrics/`: Provides profit metrics (total, annual, monthly, daily).
+    *   `Project/cost_metrics/`: Provides cost metrics.
+    *   `Project/project_statistics_detailed/`: Provides detailed project statistics.
+    *   `Investor/{id}/detailed_statistics/`: Provides detailed statistics for an investor.
+    *   `Investor/{id}/ratios/`: Provides ratios for an investor.
+    *   `Investor/all_investors_summary/`: Provides a summary of all investors.
+    *   `Transaction/detailed_statistics/`: Provides detailed transaction statistics.
 
 ### COPYRIGHT NOTICE
 *   Always include a copyright notice at the bottom of each page, linking to royasoftteam.ir, formatted as a professional footer. The footer should include the copyright year (currently 2024), a link to RoyaSoftTeam with a code icon, and be styled appropriately for the page (e.g., using Bootstrap). The footer should also be responsive and support dark/light themes where applicable, using CSS variables. The footer on authentication pages (e.g., login, registration) must be fixed to the bottom of the page.
@@ -134,6 +143,8 @@ globs: *
         *   Calculating current interest rate.
         *   Calculating the number of owners.
         *   Calculating the number of investors.
+*   **Documentation:**
+    *   Create a comprehensive document of all calculations, including name, description, formula, and location of use.
 
 ## TECH STACK
 *   (Add the used technologies, frameworks, libraries, versions, etc. Example: Python 3.9, Django 3.2, React 17, Bootstrap 5)
