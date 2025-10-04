@@ -6,6 +6,7 @@ from django.db import connection
 
 from . import serializers
 from . import models
+from . import calculations
 from .api_security import APISecurityPermission, ReadOnlyPermission, AdminOnlyPermission
 
 
@@ -434,6 +435,102 @@ class InvestorViewSet(viewsets.ModelViewSet):
             'active_investor': active_investor
         })
 
+    @action(detail=True, methods=['get'])
+    def detailed_statistics(self, request, pk=None):
+        """دریافت آمار تفصیلی سرمایه‌گذار"""
+        try:
+            project_id = request.query_params.get('project_id')
+            stats = calculations.InvestorCalculations.calculate_investor_statistics(pk, project_id)
+            
+            if 'error' in stats:
+                return Response(stats, status=400)
+            
+            return Response(stats)
+            
+        except Exception as e:
+            return Response({
+                'error': f'خطا در دریافت آمار تفصیلی سرمایه‌گذار: {str(e)}'
+            }, status=500)
+
+    @action(detail=True, methods=['get'])
+    def ratios(self, request, pk=None):
+        """دریافت نسبت‌های سرمایه‌گذار"""
+        try:
+            project_id = request.query_params.get('project_id')
+            ratios = calculations.InvestorCalculations.calculate_investor_ratios(pk, project_id)
+            
+            if 'error' in ratios:
+                return Response(ratios, status=400)
+            
+            return Response(ratios)
+            
+        except Exception as e:
+            return Response({
+                'error': f'خطا در محاسبه نسبت‌های سرمایه‌گذار: {str(e)}'
+            }, status=500)
+
+    @action(detail=False, methods=['get'])
+    def all_investors_summary(self, request):
+        """دریافت خلاصه آمار تمام سرمایه‌گذاران"""
+        try:
+            project_id = request.query_params.get('project_id')
+            
+            # دریافت پروژه فعال
+            project = models.Project.get_active_project() if not project_id else models.Project.objects.get(id=project_id)
+            
+            if not project:
+                return Response({'error': 'هیچ پروژه فعالی یافت نشد'}, status=404)
+            
+            # دریافت سرمایه‌گذاران از طریق تراکنش‌ها
+            investor_ids = models.Transaction.objects.filter(project=project).values_list('investor_id', flat=True).distinct()
+            investors = models.Investor.objects.filter(id__in=investor_ids)
+            
+            summary = []
+            
+            for investor in investors:
+                try:
+                    # محاسبه آمار ساده
+                    transactions = models.Transaction.objects.filter(investor=investor, project=project)
+                    
+                    from django.db.models import Sum
+                    
+                    total_deposits = transactions.filter(transaction_type='principal_deposit').aggregate(
+                        total=Sum('amount'))['total'] or 0
+                    
+                    total_withdrawals = transactions.filter(transaction_type='principal_withdrawal').aggregate(
+                        total=Sum('amount'))['total'] or 0
+                    
+                    total_profits = transactions.filter(transaction_type='profit_accrual').aggregate(
+                        total=Sum('amount'))['total'] or 0
+                    
+                    net_principal = float(total_deposits) + float(total_withdrawals)  # withdrawal منفی است
+                    grand_total = net_principal + float(total_profits)
+                    
+                    summary.append({
+                        'id': investor.id,
+                        'name': f"{investor.first_name} {investor.last_name}",
+                        'participation_type': investor.participation_type,
+                        'total_deposits': float(total_deposits),
+                        'total_withdrawals': abs(float(total_withdrawals)),  # مقدار مثبت
+                        'net_principal': net_principal,
+                        'total_profit': float(total_profits),
+                        'grand_total': grand_total,
+                        'capital_ratio': 0,  # موقتاً 0
+                        'profit_ratio': 0,   # موقتاً 0
+                        'profit_index': 0    # موقتاً 0
+                    })
+                    
+                except Exception as e:
+                    print(f"خطا در محاسبه آمار سرمایه‌گذار {investor.id}: {e}")
+                    continue
+            
+            return Response(summary)
+            
+        except Exception as e:
+            return Response({
+                'error': f'خطا در دریافت خلاصه سرمایه‌گذاران: {str(e)}'
+            }, status=500)
+
 
 class PeriodViewSet(viewsets.ModelViewSet):
     """ViewSet for the Period class"""
@@ -441,6 +538,91 @@ class PeriodViewSet(viewsets.ModelViewSet):
     queryset = models.Period.objects.all()
     serializer_class = serializers.PeriodSerializer
     permission_classes = [APISecurityPermission]
+
+    @action(detail=False, methods=['get'])
+    def chart_data(self, request):
+        """دریافت داده‌های دوره‌ای برای نمودارها (سرمایه، هزینه، فروش، مانده صندوق)"""
+        try:
+            # دریافت پروژه فعال
+            active_project = models.Project.get_active_project()
+            if not active_project:
+                return Response({
+                    'error': 'هیچ پروژه فعالی یافت نشد'
+                }, status=400)
+
+            # دریافت تمام دوره‌ها مرتب شده
+            periods = models.Period.objects.filter(
+                project=active_project
+            ).order_by('year', 'month_number')
+
+            chart_data = []
+            cumulative_capital = 0
+            cumulative_expenses = 0
+            cumulative_sales = 0
+
+            for period in periods:
+                # محاسبه سرمایه دوره (آورده - برداشت)
+                period_transactions = models.Transaction.objects.filter(
+                    project=active_project,
+                    period=period
+                )
+                
+                deposits = period_transactions.filter(
+                    transaction_type='principal_deposit'
+                ).aggregate(total=Sum('amount'))['total'] or 0
+                
+                withdrawals = period_transactions.filter(
+                    transaction_type='principal_withdrawal'
+                ).aggregate(total=Sum('amount'))['total'] or 0
+                
+                period_capital = float(deposits - withdrawals)
+                cumulative_capital += period_capital
+
+                # محاسبه هزینه‌های دوره
+                period_expenses = models.Expense.objects.filter(
+                    project=active_project,
+                    period=period
+                ).aggregate(total=Sum('amount'))['total'] or 0
+                
+                period_expenses = float(period_expenses)
+                cumulative_expenses += period_expenses
+
+                # محاسبه فروش/مرجوعی دوره
+                period_sales = models.Sale.objects.filter(
+                    project=active_project,
+                    period=period
+                ).aggregate(total=Sum('amount'))['total'] or 0
+                
+                period_sales = float(period_sales)
+                cumulative_sales += period_sales
+
+                # محاسبه مانده صندوق (سرمایه موجود - هزینه‌ها + فروش)
+                fund_balance = cumulative_capital - cumulative_expenses + cumulative_sales
+
+                chart_data.append({
+                    'period_id': period.id,
+                    'period_label': period.label,
+                    'year': period.year,
+                    'month_number': period.month_number,
+                    'capital': period_capital,
+                    'expenses': period_expenses,
+                    'sales': period_sales,
+                    'fund_balance': fund_balance,
+                    'cumulative_capital': cumulative_capital,
+                    'cumulative_expenses': cumulative_expenses,
+                    'cumulative_sales': cumulative_sales
+                })
+
+            return Response({
+                'success': True,
+                'data': chart_data,
+                'active_project': active_project.name
+            })
+
+        except Exception as e:
+            return Response({
+                'error': f'خطا در دریافت داده‌های نمودار: {str(e)}'
+            }, status=500)
 
 
 
@@ -598,6 +780,74 @@ class ProjectViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({
                 'error': f'خطا در محاسبه زمان‌بندی پروژه: {str(e)}'
+            }, status=500)
+
+    @action(detail=False, methods=['get'])
+    def comprehensive_analysis(self, request):
+        """دریافت تحلیل جامع پروژه شامل تمام محاسبات مالی"""
+        try:
+            project_id = request.query_params.get('project_id')
+            analysis = calculations.ComprehensiveCalculations.get_comprehensive_project_analysis(project_id)
+            
+            if 'error' in analysis:
+                return Response(analysis, status=400)
+            
+            return Response(analysis)
+            
+        except Exception as e:
+            return Response({
+                'error': f'خطا در دریافت تحلیل جامع: {str(e)}'
+            }, status=500)
+
+    @action(detail=False, methods=['get'])
+    def profit_metrics(self, request):
+        """دریافت متریک‌های سود (کل، سالانه، ماهانه، روزانه)"""
+        try:
+            project_id = request.query_params.get('project_id')
+            metrics = calculations.ProfitCalculations.calculate_profit_percentages(project_id)
+            
+            if 'error' in metrics:
+                return Response(metrics, status=400)
+            
+            return Response(metrics)
+            
+        except Exception as e:
+            return Response({
+                'error': f'خطا در محاسبه متریک‌های سود: {str(e)}'
+            }, status=500)
+
+    @action(detail=False, methods=['get'])
+    def cost_metrics(self, request):
+        """دریافت متریک‌های هزینه"""
+        try:
+            project_id = request.query_params.get('project_id')
+            metrics = calculations.ProjectCalculations.calculate_cost_metrics(project_id)
+            
+            if 'error' in metrics:
+                return Response(metrics, status=400)
+            
+            return Response(metrics)
+            
+        except Exception as e:
+            return Response({
+                'error': f'خطا در محاسبه متریک‌های هزینه: {str(e)}'
+            }, status=500)
+
+    @action(detail=False, methods=['get'])
+    def project_statistics_detailed(self, request):
+        """دریافت آمار تفصیلی پروژه"""
+        try:
+            project_id = request.query_params.get('project_id')
+            stats = calculations.ProjectCalculations.calculate_project_statistics(project_id)
+            
+            if 'error' in stats:
+                return Response(stats, status=400)
+            
+            return Response(stats)
+            
+        except Exception as e:
+            return Response({
+                'error': f'خطا در دریافت آمار تفصیلی: {str(e)}'
             }, status=500)
 
 
@@ -795,6 +1045,35 @@ class TransactionViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({
                 'error': f'خطا در محاسبه مجدد سودها: {str(e)}'
+            }, status=500)
+
+    @action(detail=False, methods=['get'])
+    def detailed_statistics(self, request):
+        """دریافت آمار تفصیلی تراکنش‌ها با فیلترهای پیشرفته"""
+        try:
+            project_id = request.query_params.get('project_id')
+            
+            # فیلترهای اضافی
+            filters = {}
+            if request.query_params.get('investor_id'):
+                filters['investor_id'] = int(request.query_params.get('investor_id'))
+            if request.query_params.get('date_from'):
+                filters['date_from'] = request.query_params.get('date_from')
+            if request.query_params.get('date_to'):
+                filters['date_to'] = request.query_params.get('date_to')
+            if request.query_params.get('transaction_type'):
+                filters['transaction_type'] = request.query_params.get('transaction_type')
+            
+            stats = calculations.TransactionCalculations.calculate_transaction_statistics(project_id, filters)
+            
+            if 'error' in stats:
+                return Response(stats, status=400)
+            
+            return Response(stats)
+            
+        except Exception as e:
+            return Response({
+                'error': f'خطا در دریافت آمار تفصیلی تراکنش‌ها: {str(e)}'
             }, status=500)
     
     @action(detail=False, methods=['post'])

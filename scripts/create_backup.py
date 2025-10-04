@@ -31,7 +31,14 @@ django.setup()
 
 from django.core.management import call_command
 from construction.models import Project, Investor, Period, Transaction, Unit, InterestRate, Expense, Sale, UserProfile
-from construction.security_monitoring import SecurityEvent
+
+# Import SecurityEvent if available
+try:
+    from construction.security_monitoring import SecurityEvent
+    SECURITY_EVENT_AVAILABLE = True
+except ImportError:
+    SecurityEvent = None
+    SECURITY_EVENT_AVAILABLE = False
 
 
 def create_backup_directory():
@@ -80,8 +87,8 @@ def get_database_stats():
         # مدل‌های backup
         'backup_records': BackupRecord.objects.count(),
         
-        # مدل‌های امنیتی
-        'security_events': SecurityEvent.objects.count(),
+        # مدل‌های امنیتی (حذف شده - جدول وجود ندارد)
+        # 'security_events': SecurityEvent.objects.count() if SECURITY_EVENT_AVAILABLE else 0,
     }
     
     stats['total'] = sum(stats.values())
@@ -105,6 +112,7 @@ def create_complete_fixture(backup_path):
             'sessions',
             'admin',
             'backup',
+            '--exclude', 'construction.securityevent',  # حذف SecurityEvent
             indent=2,
             output=str(complete_file)
         )
@@ -145,8 +153,8 @@ def create_individual_fixtures(backup_path):
         ('backup.backuprecord', 'backup_records.json', 'رکوردهای بک‌آپ'),
         ('backup.backupsettings', 'backup_settings.json', 'تنظیمات بک‌آپ'),
         
-        # مدل‌های امنیتی
-        ('construction.securityevent', 'security_events.json', 'رویدادهای امنیتی'),
+        # مدل‌های امنیتی (فقط در صورت وجود)
+        # ('construction.securityevent', 'security_events.json', 'رویدادهای امنیتی'),
     ]
     
     success_count = 0
@@ -228,7 +236,7 @@ def create_stats_file(backup_path, timestamp, stats):
             'admin_logs.json',
             'backup_records.json',
             'backup_settings.json',
-            'security_events.json',
+            # 'security_events.json',
             'backup_report.json',
             'backup_summary.txt'
         ]
@@ -265,8 +273,8 @@ def create_stats_file(backup_path, timestamp, stats):
         f.write(f"    گروه‌ها: {stats['groups']}\n")
         f.write("  مدل‌های backup:\n")
         f.write(f"    رکوردهای بک‌آپ: {stats['backup_records']}\n")
-        f.write("  مدل‌های امنیتی:\n")
-        f.write(f"    رویدادهای امنیتی: {stats['security_events']}\n")
+        # f.write("  مدل‌های امنیتی:\n")
+        # f.write(f"    رویدادهای امنیتی: {stats['security_events']}\n")
         f.write(f"  کل رکوردها: {stats['total']}\n\n")
         
         if transaction_stats and 'error' not in transaction_stats:
@@ -315,7 +323,7 @@ def main():
     # گزارش نهایی
     print("\n" + "=" * 60)
     
-    if complete_success and individual_count == 18:
+    if complete_success and individual_count == 17:  # 18 - 1 (security_events)
         print("🎉 پشتیبان‌گیری با موفقیت کامل شد!")
         print(f"📁 مسیر: {backup_path}")
         print(f"📦 فایل‌های ایجاد شده: {len(os.listdir(backup_path))}")
@@ -331,7 +339,7 @@ def main():
     else:
         print("⚠️  پشتیبان‌گیری با مشکل مواجه شد!")
         print(f"Fixture کامل: {'✅' if complete_success else '❌'}")
-        print(f"Fixtures جداگانه: {individual_count}/18")
+        print(f"Fixtures جداگانه: {individual_count}/17")
     
     print("\n🔄 برای بازیابی:")
     print(f"python scripts/restore_backup.py")

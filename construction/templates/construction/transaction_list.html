@@ -44,7 +44,7 @@
                                         <td>{{ object.period.label }}</td>
                                         <td>{{ object.date_shamsi|jformat:"%Y/%m/%d" }}</td>
                                         <td class="text-nowrap">
-                                            <span class="{% if object.transaction_type == 'principal_deposit' %}text-success{% elif object.transaction_type == 'principal_withdrawal' %}text-danger{% else %}text-warning{% endif %}">
+                                            <span class="{% if object.transaction_type == 'principal_deposit' %}text-success{% elif object.transaction_type == 'principal_withdrawal' %}text-danger{% else %}text-warning{% endif %} number-format">
                                                 {{ object.amount|floatformat:0 }} تومان
                                             </span>
                                         </td>
@@ -93,5 +93,21 @@
         </div>
     </div>
 </div>
+
+<script>
+// فرمت اعداد انگلیسی با جداکننده هزارگان
+document.addEventListener('DOMContentLoaded', function() {
+    const numberCells = document.querySelectorAll('.number-format');
+    numberCells.forEach(cell => {
+        const text = cell.textContent;
+        const numberMatch = text.match(/(\d+(?:\.\d+)?)/);
+        if (numberMatch) {
+            const number = parseFloat(numberMatch[1]);
+            const formattedNumber = new Intl.NumberFormat('en-US').format(Math.round(number));
+            cell.textContent = text.replace(numberMatch[1], formattedNumber);
+        }
+    });
+});
+</script>
 
 {% endblock %}

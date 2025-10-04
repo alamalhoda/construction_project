@@ -21,6 +21,20 @@ globs: *
 *   When creating new API endpoints, ensure they are well-documented with docstrings, explaining the purpose, inputs, and outputs.
 *   New API endpoints should include comprehensive statistics such as total units, total area, and total price. Breakdown by project should also be included where applicable, providing the same statistics for each project.
 *   When creating new API endpoints, place them in the correct ViewSet (e.g., project related endpoints in ProjectViewSet).
+*   When creating new API endpoints for financial calculations, follow the structure outlined below:
+    *   Create a dedicated financial calculation service in `construction/calculations.py`.
+    *   Implement API endpoints using `@action` in the relevant ViewSet (e.g., `construction/api.py`).
+    *   Structure API responses to include relevant metrics (e.g., profit metrics, project statistics, investor analysis).
+*   New API Endpoints:
+    *   `Project/comprehensive_analysis/`: Provides a comprehensive project analysis.
+    *   `Project/profit_metrics/`: Provides profit metrics (total, annual, monthly, daily).
+    *   `Project/cost_metrics/`: Provides cost metrics.
+    *   `Project/project_statistics_detailed/`: Provides detailed project statistics.
+    *   `Investor/{id}/detailed_statistics/`: Provides detailed statistics for an investor.
+    *   `Investor/{id}/ratios/`: Provides ratios for an investor.
+    *   `Investor/all_investors_summary/`: Provides a summary of all investors.
+    *   `Transaction/detailed_statistics/`: Provides detailed transaction statistics.
+    *   `Period/chart_data/`: Provides period data (capital, expenses, sales, fund balance) for charts.
 
 ### COPYRIGHT NOTICE
 *   Always include a copyright notice at the bottom of each page, linking to royasoftteam.ir, formatted as a professional footer. The footer should include the copyright year (currently 2024), a link to RoyaSoftTeam with a code icon, and be styled appropriately for the page (e.g., using Bootstrap). The footer should also be responsive and support dark/light themes where applicable, using CSS variables. The footer on authentication pages (e.g., login, registration) must be fixed to the bottom of the page.
@@ -41,12 +55,92 @@ globs: *
 *   When updating templates, ensure that new fields are displayed correctly using the form's rendering mechanism (e.g., `{{ form.field_name }}`).
 *   Include labels and help texts for each field to provide context to the user.
 *   Use appropriate HTML structure (e.g., `div`, `form-group`, `col-md-6`) to ensure proper layout and responsiveness.
+*   When requested to remove a specific card and its associated JavaScript code (e.g., "هزینه تمام شده(متری)"), perform the following steps:
+    1.  Locate and remove the corresponding HTML element (card) from the relevant template file.
+    2.  Identify and remove any JavaScript code that is specifically related to the removed card. This includes event listeners, data processing functions, and any other code that directly interacts with the card.
+*   **Table Styling:**
+    *   Alternate row colors in tables by adding the `table-striped` class to the `<table>` element.
+    *   Display numbers in tables in English format with a 3-digit separator (thousands separator). Apply the `number-format` class to the `<td>` elements containing numbers.
+    *   Implement JavaScript to format numbers with the `number-format` class using `new Intl.NumberFormat('en-US').format(Math.round(number))`. The JS must search for a number within the text content of the cell and replace it with the formatted number.
+*   **Role-Based Coloring for Expense Types:**
+    *   To visually distinguish different expense types in tables, apply background colors based on the role associated with the expense.
+    *   Define CSS variables for each role's background color in the template's `<style>` section:
+        ```css
+        :root {
+            /* Background colors for expense types */
+            --project-manager-bg: rgba(102, 126, 234, 0.1);     /* Light Purple */
+            --supervisor-bg: rgba(255, 193, 7, 0.1);           /* Light Yellow */
+            --procurement-bg: rgba(33, 133, 208, 0.1);         /* Light Blue */
+            --warehouse-bg: rgba(40, 167, 69, 0.1);            /* Light Green */
+            --contractor-bg: rgba(255, 152, 0, 0.1);           /* Light Orange */
+            --other-bg: rgba(255, 255, 255, 0.1);              /* Light White */
+        }
+        ```
+    *   Create CSS classes for each role, applying the corresponding background color:
+        ```css
+        .expense-table .project-manager-cell { background: var(--project-manager-bg) !important; }
+        .expense-table .supervisor-cell { background: var(--supervisor-bg) !important; }
+        .expense-table .procurement-cell { background: var(--procurement-bg) !important; }
+        .expense-table .warehouse-cell { background: var(--warehouse-bg) !important; }
+        .expense-table .contractor-cell { background: var(--contractor-bg) !important; }
+        .expense-table .other-cell { background: var(--other-bg) !important; }
+        ```
+    *   Implement a JavaScript function `getExpenseTypeClass` to determine the appropriate CSS class based on the expense type name:
+        ```javascript
+        function getExpenseTypeClass(expenseTypeName) {
+            const typeName = expenseTypeName.toLowerCase();
+            if (typeName.includes('مدیر پروژه') || typeName.includes('مدیریت پروژه')) {
+                return 'project-manager-cell';
+            } else if (typeName.includes('سرپرست') || typeName.includes('سرپرست کارگاه')) {
+                return 'supervisor-cell';
+            } else if (typeName.includes('کارپرداز') || typeName.includes('خرید')) {
+                return 'procurement-cell';
+            } else if (typeName.includes('انباردار') || typeName.includes('انبار')) {
+                return 'warehouse-cell';
+            } else if (typeName.includes('پیمان') || typeName.includes('پیمانکار')) {
+                return 'contractor-cell';
+            } else {
+                return 'other-cell';
+            }
+        }
+        ```
+    *   Apply the CSS class to the relevant table cells using the `getExpenseTypeClass` function:
+        ```html
+        <td class="editable-cell expense-cell ${getExpenseTypeClass(type[1])}" data-period-id="${period.period_id}" data-expense-type="${type[0]}">
+        ```
+    *   Apply the CSS class to the total row cells as well:
+        ```html
+        <td class="${getExpenseTypeClass(type[1])}"><strong>${formatNumber(dashboardData.column_totals[type[0]])}</strong></td>
+        ```
+    *   Ensure the "مجموع تجمعی" (cumulative total) column has a red background, achieved by setting the background color of the `.cumulative-cell` class to a red gradient and the text color to white:
+        ```css
+        .expense-table .cumulative-cell {
+            background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%);
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        ```
+*   **New Charts:**
+    *   When adding new charts to the dashboard, ensure that the following guidelines are followed:
+        *   Create an API endpoint to provide the necessary data.
+        *   Add the HTML structure for the chart canvas in the template.
+        *   Implement a JavaScript function to fetch data from the API and render the chart using Chart.js.
+        *   Ensure that the chart is responsive and displays data accurately.
+    *   **Period Chart:**
+        *   Displays capital, expenses, sales, and fund balance for each period.
+        *   Uses standard project colors (blue for capital, red for expenses, green for sales, purple for fund balance).
+    *   **Cumulative Trend Chart:**
+        *   Displays the cumulative trend of capital, expenses, sales, and fund balance over time.
+        *   Uses standard project colors and a dashed line for fund balance to distinguish it.
+        *   Numbers should be displayed in millions of Toman.
+        *   Tooltips should display accurate values in millions of Toman.
 
 ### NUMBER FORMATTING
 *   All numbers in the application must **always** be displayed in English with a 3-digit separator (thousands separator). Use `new Intl.NumberFormat('en-US').format(Math.round(num))` to achieve this.
 
 ### CARD STYLING FOR PRICE FIGURES
-*   On cards that display price-related figures, such as "Building Value (Toman)", "Net Cost Per Meter (Toman/m²)", "Gross Cost Per Meter (Toman/m²)", "Building Value(per meter)(Toman/m²)", "Final Cost(per meter)(Toman/m²)", "مبلغ سود نهایی(تومان)", and "درصد سودکل", the numbers must be displayed using a larger font size (2.2rem for desktop, 1.6rem for mobile) to improve readability, and the containing cards should be larger (width 1.5x to 2x) compared to other cards. Specifically:
+*   On cards that display price-related figures, such as "Building Value (Toman)", "Net Cost Per Meter (Toman/m²)", "Gross Cost Per Meter (Toman/m²)", "Building Value(per meter)(Toman/m²)", "مبلغ سود نهایی(تومان)", and "درصد سودکل", the numbers must be displayed using a larger font size (2.2rem for desktop, 1.6rem for mobile) to improve readability, and the containing cards should be larger (width 1.5x to 2x) compared to other cards. Specifically:
     *   For price-related figures, use a larger font size (2.2rem for desktop, 1.6rem for mobile).
     *   The cards containing these figures should also have width 1.5x to 2x compared to other cards (depending on the specific card).
 
@@ -59,12 +153,98 @@ globs: *
 *   Ensure that serializers are defined before they are used in other serializers to avoid "not defined" errors. When encountering such errors, reorder the serializer definitions to ensure dependencies are met.
 *   When creating serializers for models, include all relevant fields (e.g. period and period_weight in ExpenseSerializer), defining methods where necessary to retrieve related data.
 
+### TEMPLATE MODIFICATIONS
+*   When requested to remove a specific card and its associated JavaScript code (e.g., "هزینه تمام شده(متری)"), perform the following steps:
+    1.  Locate and remove the corresponding HTML element (card) from the relevant template file.
+    2.  Identify and remove any JavaScript code that is specifically related to the removed card. This includes event listeners, data processing functions, and any other code that directly interacts with the card.
+
+### SERVER-SIDE CALCULATIONS
+*   Whenever possible, move complex calculations from the client-side (JavaScript) to the server-side (Django). This ensures data integrity, improves performance, and centralizes business logic.
+*   **Implementation Steps:**
+    1.  Identify calculations currently performed in JavaScript that should be moved to the server.
+    2.  Create a dedicated financial calculation service in `construction/calculations.py` to encapsulate these calculations.
+    3.  Develop new API endpoints to expose the results of these server-side calculations.
+    4.  Update the front-end to consume the new API endpoints and remove the corresponding JavaScript code.
+    5.  Thoroughly test and optimize the new implementation.
+*   A large number of calculations (over 50) are currently performed in JavaScript and should be migrated to the server-side. This includes, but is not limited to:
+    *   **Project Dashboard Calculations:**
+        *   Calculating available capital (total deposits - total withdrawals).
+        *   Calculating total profit.
+        *   Calculating the grand total (net principal + total profit).
+        *   Calculating active days.
+        *   Calculating project duration.
+    *   **Cost and Sales Calculations:**
+        *   Calculating final cost (total expenses - total sales).
+        *   Calculating cost per net meter (final cost / total area).
+        *   Calculating cost per gross meter (final cost / total infrastructure).
+        *   Calculating value per meter (total value / total area).
+        *   Calculating final profit (total value - final cost).
+        *   Calculating total profit percentage ((final profit amount / final cost) * 100).
+    *   **Time-Based Profit Calculations:**
+        *   Calculating average construction period.
+        *   Calculating annual profit percentage.
+        *   Calculating monthly profit percentage.
+        *   Calculating daily profit percentage.
+    *   **Investor Calculations:**
+        *   Calculating total principal deposits.
+        *   Calculating total withdrawals.
+        *   Calculating net principal.
+        *   Calculating total balance.
+        *   Calculating individual capital to total capital ratio.
+        *   Calculating individual profit to total profit ratio.
+        *   Calculating individual total to total ratio.
+        *   Calculating profit index.
+    *   **Transaction Calculations:**
+        *   Calculating total deposits.
+        *   Calculating total withdrawals.
+        *   Calculating total profits.
+        *   Calculating available capital.
+    *   **Construction Calculations:**
+        *   Calculating the number of units.
+        *   Calculating total area.
+        *   Calculating total price.
+        *   Calculating total infrastructure.
+        *   Calculating the correction factor.
+    *   **Time Calculations:**
+        *   Calculating start date.
+        *   Calculating end date.
+        *   Calculating project duration.
+        *   Calculating active days.
+        *   Calculating days remaining until project end.
+        *   Calculating days passed from project start.
+    *   **Unit Conversion Calculations:**
+        *   Converting to Toman.
+        *   Converting amounts to Persian words.
+        *   Number formatting.
+        *   Percentage formatting.
+    *   **Statistical Calculations:**
+        *   Calculating average.
+        *   Calculating cumulative total.
+        *   Calculating unique count.
+        *   Calculating filtered data.
+    *   **Special Calculations:**
+        *   Calculating current interest rate.
+        *   Calculating the number of owners.
+        *   Calculating the number of investors.
+    *   **New Calculation:**
+        *   Calculating the building fund balance (total capital - net cost).
+*   **Documentation:**
+    *   Create a comprehensive document of all calculations, including name, description, formula, and location of use. The document name should be `FINANCIAL_CALCULATIONS.md`.
+
 ## TECH STACK
 *   (Add the used technologies, frameworks, libraries, versions, etc. Example: Python 3.9, Django 3.2, React 17, Bootstrap 5)
 
 ## PROJECT DOCUMENTATION & CONTEXT SYSTEM
 *   (Define where the project documentation is stored and how to access it.)
 *   (Describe the context system for the project, including how different components interact.)
+*   **Financial Calculations Documentation:** The documentation for all financial calculations is stored in `FINANCIAL_CALCULATIONS.md`. This document includes the name, description, formula, and location of use for each calculation.
+*   **API Reference:** The documentation for available APIs is stored in `API_REFERENCE.md`.
+*   **Implemented Calculations:** The list of implemented calculations is stored in `IMPLEMENTED_CALCULATIONS.md`.
+*   **Checking Server-Side Calculations:** To determine if a calculation exists on the server-side, follow these steps:
+    1.  **Comprehensive Documentation:** Consult `docs/FINANCIAL_CALCULATIONS.md` for a complete list of calculations.
+    2.  **Automated Script:** Run `scripts/check_calculations.py` to verify the presence and functionality of server-side calculations.
+    3.  **Code Review:** Examine `construction/calculations.py` for calculation classes and `static/js/financial-calculations.js` for JavaScript service usage.
+    4.  **API Endpoints:** Review available API endpoints and test them using `curl`.
 
 ## WORKFLOW & RELEASE RULES
 *   (Define the project workflow, including branching strategies, pull request procedures, and code review guidelines.)
@@ -83,3 +263,23 @@ globs: *
     *   Models in `construction`: `Project`, `Unit`, `Investor`, `Period`, `InterestRate`, `Transaction`, `Expense`, `Sale`, `UserProfile`.
     *   Models in `backup`: `BackupRecord`, `BackupSettings`.
     *   Models in `security_monitoring`: `SecurityEvent`.
+*   When creating a new backup, if the process stops and throws an error related to `SecurityEvent`, follow these steps:
+    1.  Check the import statements in `create_backup.py` for `SecurityEvent`. Ensure that the import path is correct, pointing to the correct location of the `SecurityEvent` model (e.g., `security_monitoring.py`).
+    2.  If the `SecurityEvent` model is causing issues, exclude it from the backup process by:
+        *   Removing or commenting out the import statement for `SecurityEvent` in `create_backup.py`.
+        *   Removing or commenting out the lines related to `security_events` in the `get_database_stats` function within `create_backup.py`.
+        *   Removing or commenting out the lines related to `security_events.json` in the list of files created by the backup script within `create_backup.py`.
+        *   Excluding the `construction.securityevent` model when creating the complete database fixture using the `--exclude` option.
+        *   Adjusting the expected number of individual fixtures and the corresponding success message in `create_backup.py`.
+
+## CURSOR RULES
+*   A comprehensive rules file for financial calculations has been created and stored in `.cursor/rules` to ensure consistent usage of these calculations across the project.
+
+## CHART RULES
+*   When creating new charts, adhere to the following guidelines:
+    *   Use standard project colors.
+    *   Numbers should be displayed in English with a 3-digit separator.
+    *   Tooltips should display accurate values.
+    *   Charts should be responsive and work on different screen sizes.
+    *   Use the Vazir font for all text elements.
+    *   Ensure that tooltips display numbers in millions of Toman when the chart label indicates "(Million Toman)".
