@@ -1106,6 +1106,22 @@
                     </div>
                 </div>
 
+                <!-- Period Chart - نمودار ستونی دوره‌ای -->
+                <div class="chart-container">
+                    <h3><i class="fas fa-chart-bar"></i> نمودار دوره‌ای (سرمایه، هزینه، فروش، مانده صندوق)</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="periodChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Cumulative Trend Chart - نمودار ترند تجمعی -->
+                <div class="chart-container">
+                    <h3><i class="fas fa-chart-line"></i> نمودار ترند تجمعی دوره‌ای</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="cumulativeTrendChart"></canvas>
+                    </div>
+                </div>
+
             </div>
 
             <!-- جدول خلاصه -->
@@ -1154,6 +1170,7 @@
         let allInvestors = [];
         let allProjects = [];
         let expensesData = null;
+        let periodChartData = null;
         let currentInterestRate = null;
         let timelineData = null;
 
@@ -1351,10 +1368,11 @@
                     grand_total: projectStats.transaction_statistics.grand_total
                 };
                 
-                // بارگذاری تراکنش‌ها و سرمایه‌گذاران (برای نمودارها)
-                const [transactionsResponse, investorsResponse] = await Promise.all([
+                // بارگذاری تراکنش‌ها، سرمایه‌گذاران و داده‌های نمودار دوره‌ای
+                const [transactionsResponse, investorsResponse, periodChartResponse] = await Promise.all([
                     fetch('/construction/api/v1/Transaction/'),
-                    fetch('/construction/api/v1/Investor/')
+                    fetch('/construction/api/v1/Investor/'),
+                    fetch('/construction/api/v1/Period/chart_data/')
                 ]);
                 
                 if (transactionsResponse.ok && investorsResponse.ok) {
@@ -1393,6 +1411,21 @@
                     console.warn('⚠️ investorsResponse.ok:', investorsResponse.ok);
                     chartData = [];
                     allInvestors = [];
+                }
+
+                // بارگذاری داده‌های نمودار دوره‌ای
+                if (periodChartResponse.ok) {
+                    const periodChartDataResponse = await periodChartResponse.json();
+                    if (periodChartDataResponse.success) {
+                        periodChartData = periodChartDataResponse.data;
+                        console.log('✅ داده‌های نمودار دوره‌ای بارگذاری شدند:', periodChartData.length);
+                    } else {
+                        console.warn('⚠️ خطا در دریافت داده‌های نمودار دوره‌ای:', periodChartDataResponse.error);
+                        periodChartData = [];
+                    }
+                } else {
+                    console.warn('⚠️ API نمودار دوره‌ای دسترسی ندارد');
+                    periodChartData = [];
                 }
                 
                 // تنظیم داده‌های پروژه
@@ -1437,6 +1470,10 @@
             // createProjectPrincipalTrendChart(); // حذف شده
             createProjectMonthlyPrincipalChart();
             // createMonthlyCapitalNetChart(); // حذف شده
+            
+            // نمودارهای دوره‌ای جدید
+            createPeriodChart();
+            createCumulativeTrendChart();
             
             await createSummaryTable();
         }
@@ -2588,6 +2625,211 @@
                     }
                 }
                 });
+        }
+
+        // ایجاد نمودار ستونی دوره‌ای
+        function createPeriodChart() {
+            console.log('📊 ایجاد نمودار ستونی دوره‌ای...');
+            
+            if (!periodChartData || periodChartData.length === 0) {
+                console.warn('⚠️ داده‌های نمودار دوره‌ای موجود نیست');
+                return;
+            }
+
+            const ctx = document.getElementById('periodChart').getContext('2d');
+            
+            // آماده‌سازی داده‌ها
+            const labels = periodChartData.map(item => item.period_label);
+            const capitalData = periodChartData.map(item => item.capital / BASE_AMOUNT);
+            const expensesData = periodChartData.map(item => item.expenses / BASE_AMOUNT);
+            const salesData = periodChartData.map(item => item.sales / BASE_AMOUNT);
+            const fundBalanceData = periodChartData.map(item => item.fund_balance / BASE_AMOUNT);
+
+            charts.periodChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'سرمایه (میلیون تومان)',
+                            data: capitalData,
+                            backgroundColor: 'rgba(33, 133, 208, 0.6)', // آبی - آورده
+                            borderColor: 'rgba(33, 133, 208, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'هزینه (میلیون تومان)',
+                            data: expensesData,
+                            backgroundColor: 'rgba(220, 53, 69, 0.6)', // قرمز تیره - هزینه
+                            borderColor: 'rgba(220, 53, 69, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'فروش/مرجوعی (میلیون تومان)',
+                            data: salesData,
+                            backgroundColor: 'rgba(33, 186, 69, 0.6)', // سبز - فروش
+                            borderColor: 'rgba(33, 186, 69, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'مانده صندوق (میلیون تومان)',
+                            data: fundBalanceData,
+                            backgroundColor: 'rgba(102, 126, 234, 0.6)', // بنفش - سرمایه موجود
+                            borderColor: 'rgba(102, 126, 234, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    const value = new Intl.NumberFormat('en-US').format(Math.round(context.parsed.y));
+                                    return `${context.dataset.label}: ${value} `;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'دوره'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'مبلغ (میلیون تومان)'
+                            },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // ایجاد نمودار ترند تجمعی دوره‌ای
+        function createCumulativeTrendChart() {
+            console.log('📊 ایجاد نمودار ترند تجمعی دوره‌ای...');
+            
+            if (!periodChartData || periodChartData.length === 0) {
+                console.warn('⚠️ داده‌های نمودار دوره‌ای موجود نیست');
+                return;
+            }
+
+            const ctx = document.getElementById('cumulativeTrendChart').getContext('2d');
+            
+            // آماده‌سازی داده‌ها
+            const labels = periodChartData.map(item => item.period_label);
+            const cumulativeCapitalData = periodChartData.map(item => item.cumulative_capital / BASE_AMOUNT);
+            const cumulativeExpensesData = periodChartData.map(item => item.cumulative_expenses / BASE_AMOUNT);
+            const cumulativeSalesData = periodChartData.map(item => item.cumulative_sales / BASE_AMOUNT);
+            const fundBalanceData = periodChartData.map(item => item.fund_balance / BASE_AMOUNT);
+
+            charts.cumulativeTrendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'سرمایه تجمعی (میلیون تومان)',
+                            data: cumulativeCapitalData,
+                            borderColor: 'rgba(33, 133, 208, 1)', // آبی
+                            backgroundColor: 'rgba(33, 133, 208, 0.1)',
+                            fill: false,
+                            tension: 0.3,
+                            borderWidth: 3,
+                            pointRadius: 5,
+                            pointBackgroundColor: 'rgba(33, 133, 208, 1)',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2
+                        },
+                        {
+                            label: 'هزینه تجمعی (میلیون تومان)',
+                            data: cumulativeExpensesData,
+                            borderColor: 'rgba(220, 53, 69, 1)', // قرمز تیره
+                            backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                            fill: false,
+                            tension: 0.3,
+                            borderWidth: 3,
+                            pointRadius: 5,
+                            pointBackgroundColor: 'rgba(220, 53, 69, 1)',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2
+                        },
+                        {
+                            label: 'فروش تجمعی (میلیون تومان)',
+                            data: cumulativeSalesData,
+                            borderColor: 'rgba(33, 186, 69, 1)', // سبز
+                            backgroundColor: 'rgba(33, 186, 69, 0.1)',
+                            fill: false,
+                            tension: 0.3,
+                            borderWidth: 3,
+                            pointRadius: 5,
+                            pointBackgroundColor: 'rgba(33, 186, 69, 1)',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2
+                        },
+                        {
+                            label: 'مانده صندوق (میلیون تومان)',
+                            data: fundBalanceData,
+                            borderColor: 'rgba(102, 126, 234, 1)', // بنفش
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            fill: false,
+                            tension: 0.3,
+                            borderWidth: 4,
+                            pointRadius: 6,
+                            pointBackgroundColor: 'rgba(102, 126, 234, 1)',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 3,
+                            borderDash: [5, 5] // خط چین برای تمایز
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    const value = new Intl.NumberFormat('en-US').format(Math.round(context.parsed.y));
+                                    return `${context.dataset.label}: ${value}  `;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'دوره'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'مبلغ (میلیون تومان)'
+                            },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
         }
 
 

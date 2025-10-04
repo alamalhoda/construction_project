@@ -539,6 +539,91 @@ class PeriodViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.PeriodSerializer
     permission_classes = [APISecurityPermission]
 
+    @action(detail=False, methods=['get'])
+    def chart_data(self, request):
+        """دریافت داده‌های دوره‌ای برای نمودارها (سرمایه، هزینه، فروش، مانده صندوق)"""
+        try:
+            # دریافت پروژه فعال
+            active_project = models.Project.get_active_project()
+            if not active_project:
+                return Response({
+                    'error': 'هیچ پروژه فعالی یافت نشد'
+                }, status=400)
+
+            # دریافت تمام دوره‌ها مرتب شده
+            periods = models.Period.objects.filter(
+                project=active_project
+            ).order_by('year', 'month_number')
+
+            chart_data = []
+            cumulative_capital = 0
+            cumulative_expenses = 0
+            cumulative_sales = 0
+
+            for period in periods:
+                # محاسبه سرمایه دوره (آورده - برداشت)
+                period_transactions = models.Transaction.objects.filter(
+                    project=active_project,
+                    period=period
+                )
+                
+                deposits = period_transactions.filter(
+                    transaction_type='principal_deposit'
+                ).aggregate(total=Sum('amount'))['total'] or 0
+                
+                withdrawals = period_transactions.filter(
+                    transaction_type='principal_withdrawal'
+                ).aggregate(total=Sum('amount'))['total'] or 0
+                
+                period_capital = float(deposits - withdrawals)
+                cumulative_capital += period_capital
+
+                # محاسبه هزینه‌های دوره
+                period_expenses = models.Expense.objects.filter(
+                    project=active_project,
+                    period=period
+                ).aggregate(total=Sum('amount'))['total'] or 0
+                
+                period_expenses = float(period_expenses)
+                cumulative_expenses += period_expenses
+
+                # محاسبه فروش/مرجوعی دوره
+                period_sales = models.Sale.objects.filter(
+                    project=active_project,
+                    period=period
+                ).aggregate(total=Sum('amount'))['total'] or 0
+                
+                period_sales = float(period_sales)
+                cumulative_sales += period_sales
+
+                # محاسبه مانده صندوق (سرمایه موجود - هزینه‌ها + فروش)
+                fund_balance = cumulative_capital - cumulative_expenses + cumulative_sales
+
+                chart_data.append({
+                    'period_id': period.id,
+                    'period_label': period.label,
+                    'year': period.year,
+                    'month_number': period.month_number,
+                    'capital': period_capital,
+                    'expenses': period_expenses,
+                    'sales': period_sales,
+                    'fund_balance': fund_balance,
+                    'cumulative_capital': cumulative_capital,
+                    'cumulative_expenses': cumulative_expenses,
+                    'cumulative_sales': cumulative_sales
+                })
+
+            return Response({
+                'success': True,
+                'data': chart_data,
+                'active_project': active_project.name
+            })
+
+        except Exception as e:
+            return Response({
+                'error': f'خطا در دریافت داده‌های نمودار: {str(e)}'
+            }, status=500)
+
 
 
 class ProjectViewSet(viewsets.ModelViewSet):
