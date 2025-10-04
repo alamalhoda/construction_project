@@ -598,7 +598,7 @@
 
         .stat-value {
             font-size: 1.8rem;
-            font-weight: bold;
+            /* font-weight: bold; */
             margin-bottom: 8px;
             color: var(--text-primary);
         }
@@ -937,7 +937,6 @@
 
         #projectStatsCards .daily-profit-percentage-card {
             flex: 2 !important;
-            max-width: 50% !important;
         }
 
         @media (max-width: 768px) {
@@ -974,7 +973,6 @@
 
             #projectStatsCards .daily-profit-percentage-card {
                 flex: none !important;
-                max-width: 100% !important;
             }
 
             /* Smaller font size for price cards on mobile */
@@ -1817,8 +1815,8 @@
                 // Format and display
                 const formatNumber = (num) => {
                     return new Intl.NumberFormat('en-US', {
-                        minimumFractionDigits: 1,
-                        maximumFractionDigits: 1
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
                     }).format(num);
                 };
                 
@@ -1977,8 +1975,8 @@
                     // Format and display
                     const formatNumber = (num) => {
                         return new Intl.NumberFormat('en-US', {
-                            minimumFractionDigits: 1,
-                            maximumFractionDigits: 1
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
                         }).format(num);
                     };
                     
