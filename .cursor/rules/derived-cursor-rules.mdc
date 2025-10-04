@@ -34,6 +34,7 @@ globs: *
     *   `Investor/{id}/ratios/`: Provides ratios for an investor.
     *   `Investor/all_investors_summary/`: Provides a summary of all investors.
     *   `Transaction/detailed_statistics/`: Provides detailed transaction statistics.
+    *   `Period/chart_data/`: Provides period data (capital, expenses, sales, fund balance) for charts.
 
 ### COPYRIGHT NOTICE
 *   Always include a copyright notice at the bottom of each page, linking to royasoftteam.ir, formatted as a professional footer. The footer should include the copyright year (currently 2024), a link to RoyaSoftTeam with a code icon, and be styled appropriately for the page (e.g., using Bootstrap). The footer should also be responsive and support dark/light themes where applicable, using CSS variables. The footer on authentication pages (e.g., login, registration) must be fixed to the bottom of the page.
@@ -120,6 +121,20 @@ globs: *
             font-size: 0.9rem;
         }
         ```
+*   **New Charts:**
+    *   When adding new charts to the dashboard, ensure that the following guidelines are followed:
+        *   Create an API endpoint to provide the necessary data.
+        *   Add the HTML structure for the chart canvas in the template.
+        *   Implement a JavaScript function to fetch data from the API and render the chart using Chart.js.
+        *   Ensure that the chart is responsive and displays data accurately.
+    *   **Period Chart:**
+        *   Displays capital, expenses, sales, and fund balance for each period.
+        *   Uses standard project colors (blue for capital, red for expenses, green for sales, purple for fund balance).
+    *   **Cumulative Trend Chart:**
+        *   Displays the cumulative trend of capital, expenses, sales, and fund balance over time.
+        *   Uses standard project colors and a dashed line for fund balance to distinguish it.
+        *   Numbers should be displayed in millions of Toman.
+        *   Tooltips should display accurate values in millions of Toman.
 
 ### NUMBER FORMATTING
 *   All numbers in the application must **always** be displayed in English with a 3-digit separator (thousands separator). Use `new Intl.NumberFormat('en-US').format(Math.round(num))` to achieve this.
@@ -259,3 +274,12 @@ globs: *
 
 ## CURSOR RULES
 *   A comprehensive rules file for financial calculations has been created and stored in `.cursor/rules` to ensure consistent usage of these calculations across the project.
+
+## CHART RULES
+*   When creating new charts, adhere to the following guidelines:
+    *   Use standard project colors.
+    *   Numbers should be displayed in English with a 3-digit separator.
+    *   Tooltips should display accurate values.
+    *   Charts should be responsive and work on different screen sizes.
+    *   Use the Vazir font for all text elements.
+    *   Ensure that tooltips display numbers in millions of Toman when the chart label indicates "(Million Toman)".
