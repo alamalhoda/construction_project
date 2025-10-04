@@ -46,7 +46,7 @@ globs: *
 *   All numbers in the application must **always** be displayed in English with a 3-digit separator (thousands separator). Use `new Intl.NumberFormat('en-US').format(Math.round(num))` to achieve this.
 
 ### CARD STYLING FOR PRICE FIGURES
-*   On cards that display price-related figures, such as "Building Value (Toman)", "Net Cost Per Meter (Toman/m²)", "Gross Cost Per Meter (Toman/m²)", "Building Value(per meter)(Toman/m²)", "Final Cost(per meter)(Toman/m²)", "مبلغ سود نهایی(تومان)", and "درصد سودکل", the numbers must be displayed using a larger font size (2.2rem for desktop, 1.6rem for mobile) to improve readability, and the containing cards should be larger (width 1.5x to 2x) compared to other cards. Specifically:
+*   On cards that display price-related figures, such as "Building Value (Toman)", "Net Cost Per Meter (Toman/m²)", "Gross Cost Per Meter (Toman/m²)", "Building Value(per meter)(Toman/m²)", "مبلغ سود نهایی(تومان)", and "درصد سودکل", the numbers must be displayed using a larger font size (2.2rem for desktop, 1.6rem for mobile) to improve readability, and the containing cards should be larger (width 1.5x to 2x) compared to other cards. Specifically:
     *   For price-related figures, use a larger font size (2.2rem for desktop, 1.6rem for mobile).
     *   The cards containing these figures should also have width 1.5x to 2x compared to other cards (depending on the specific card).
 
@@ -58,6 +58,11 @@ globs: *
 ### SERIALIZER DEFINITIONS
 *   Ensure that serializers are defined before they are used in other serializers to avoid "not defined" errors. When encountering such errors, reorder the serializer definitions to ensure dependencies are met.
 *   When creating serializers for models, include all relevant fields (e.g. period and period_weight in ExpenseSerializer), defining methods where necessary to retrieve related data.
+
+### TEMPLATE MODIFICATIONS
+*   When requested to remove a specific card and its associated JavaScript code (e.g., "هزینه تمام شده(متری)"), perform the following steps:
+    1.  Locate and remove the corresponding HTML element (card) from the relevant template file.
+    2.  Identify and remove any JavaScript code that is specifically related to the removed card. This includes event listeners, data processing functions, and any other code that directly interacts with the card.
 
 ## TECH STACK
 *   (Add the used technologies, frameworks, libraries, versions, etc. Example: Python 3.9, Django 3.2, React 17, Bootstrap 5)
