@@ -608,7 +608,6 @@
         .stat-card.cost-per-meter-net-card .stat-value,
         .stat-card.cost-per-meter-gross-card .stat-value,
         .stat-card.value-per-meter-card .stat-value,
-        .stat-card.final-cost-per-meter-card .stat-value,
         .stat-card.final-profit-amount-card .stat-value,
         .stat-card.total-profit-percentage-card .stat-value,
         .stat-card.average-construction-period-card .stat-value,
@@ -623,7 +622,6 @@
         .stat-card.cost-per-meter-net-card,
         .stat-card.cost-per-meter-gross-card,
         .stat-card.value-per-meter-card,
-        .stat-card.final-cost-per-meter-card,
         .stat-card.final-profit-amount-card,
         .stat-card.total-profit-percentage-card,
         .stat-card.average-construction-period-card,
@@ -638,7 +636,6 @@
         .stat-card.cost-per-meter-net-card .stat-icon,
         .stat-card.cost-per-meter-gross-card .stat-icon,
         .stat-card.value-per-meter-card .stat-icon,
-        .stat-card.final-cost-per-meter-card .stat-icon,
         .stat-card.final-profit-amount-card .stat-icon,
         .stat-card.total-profit-percentage-card .stat-icon,
         .stat-card.average-construction-period-card .stat-icon,
@@ -746,17 +743,6 @@
             color: #00bcd4 !important;
         }
 
-        .stat-card.final-cost-per-meter-card .stat-icon {
-            background: linear-gradient(135deg, #e91e63, #f06292) !important;
-        }
-
-        .stat-card.final-cost-per-meter-card::before {
-            background: linear-gradient(90deg, #e91e63, #f06292) !important;
-        }
-
-        .stat-card.final-cost-per-meter-card .stat-value {
-            color: #e91e63 !important;
-        }
 
         .stat-card.final-profit-amount-card .stat-icon {
             background: linear-gradient(135deg, #4caf50, #81c784) !important;
@@ -941,7 +927,6 @@
         #projectStatsCards .cost-per-meter-net-card,
         #projectStatsCards .cost-per-meter-gross-card,
         #projectStatsCards .value-per-meter-card,
-        #projectStatsCards .final-cost-per-meter-card,
         #projectStatsCards .final-profit-amount-card,
         #projectStatsCards .total-profit-percentage-card,
         #projectStatsCards .average-construction-period-card,
@@ -979,7 +964,6 @@
             #projectStatsCards .cost-per-meter-net-card,
             #projectStatsCards .cost-per-meter-gross-card,
             #projectStatsCards .value-per-meter-card,
-            #projectStatsCards .final-cost-per-meter-card,
             #projectStatsCards .final-profit-amount-card,
             #projectStatsCards .total-profit-percentage-card,
             #projectStatsCards .average-construction-period-card,
@@ -998,7 +982,6 @@
             .stat-card.cost-per-meter-net-card .stat-value,
             .stat-card.cost-per-meter-gross-card .stat-value,
             .stat-card.value-per-meter-card .stat-value,
-            .stat-card.final-cost-per-meter-card .stat-value,
             .stat-card.final-profit-amount-card .stat-value,
             .stat-card.total-profit-percentage-card .stat-value,
             .stat-card.average-construction-period-card .stat-value,
@@ -1013,7 +996,6 @@
             .stat-card.cost-per-meter-net-card,
             .stat-card.cost-per-meter-gross-card,
             .stat-card.value-per-meter-card,
-            .stat-card.final-cost-per-meter-card,
             .stat-card.final-profit-amount-card,
             .stat-card.total-profit-percentage-card,
             .stat-card.average-construction-period-card,
@@ -1028,7 +1010,6 @@
             .stat-card.cost-per-meter-net-card .stat-icon,
             .stat-card.cost-per-meter-gross-card .stat-icon,
             .stat-card.value-per-meter-card .stat-icon,
-            .stat-card.final-cost-per-meter-card .stat-icon,
             .stat-card.final-profit-amount-card .stat-icon,
             .stat-card.total-profit-percentage-card .stat-icon,
             .stat-card.average-construction-period-card .stat-icon,
@@ -1222,20 +1203,6 @@
                     <div class="stat-content">
                         <div class="stat-value" id="valuePerMeter">-</div>
                         <div class="stat-label">ارزش ساختمان(متری) (تومان/متر مربع)</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 col-sm-12 mb-3 final-cost-per-meter-card">
-                <div class="stat-card final-cost-per-meter-card">
-                    <div class="info-icon" data-tooltip="هزینه تمام شده نهایی تقسیم بر مجموع متراژ مفید. این عدد نشان‌دهنده هزینه واقعی هر متر مربع از فضای مفید است">
-                        <i class="fas fa-info"></i>
-                    </div>
-                    <div class="stat-icon">
-                        <i class="fas fa-calculator"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value" id="finalCostPerMeter">-</div>
-                        <div class="stat-label">هزینه تمام شده(متری) (تومان/متر مربع)</div>
                     </div>
                 </div>
             </div>
@@ -1772,11 +1739,6 @@
                 valuePerMeter = totalValue / totalArea;
             }
 
-            // Calculate final cost per meter (final cost / total area)
-            let finalCostPerMeter = 0;
-            if (totalArea > 0) {
-                finalCostPerMeter = finalCost / totalArea;
-            }
 
             // Calculate final profit amount (total value - final cost)
             let finalProfitAmount = 0;
@@ -1810,8 +1772,6 @@
             const valuePerMeterEl = document.getElementById('valuePerMeter');
             if (valuePerMeterEl) valuePerMeterEl.textContent = formatNumber(valuePerMeter);
             
-            const finalCostPerMeterEl = document.getElementById('finalCostPerMeter');
-            if (finalCostPerMeterEl) finalCostPerMeterEl.textContent = formatNumber(finalCostPerMeter);
             
             const finalProfitAmountEl = document.getElementById('finalProfitAmount');
             if (finalProfitAmountEl) finalProfitAmountEl.textContent = formatNumber(finalProfitAmount);
@@ -1830,7 +1790,6 @@
                 costPerMeterNet,
                 costPerMeterGross,
                 valuePerMeter,
-                finalCostPerMeter,
                 finalProfitAmount,
                 totalProfitPercentage
             });
