@@ -474,7 +474,55 @@ class InvestorViewSet(viewsets.ModelViewSet):
         """دریافت خلاصه آمار تمام سرمایه‌گذاران"""
         try:
             project_id = request.query_params.get('project_id')
-            summary = calculations.InvestorCalculations.get_all_investors_summary(project_id)
+            
+            # دریافت پروژه فعال
+            project = models.Project.get_active_project() if not project_id else models.Project.objects.get(id=project_id)
+            
+            if not project:
+                return Response({'error': 'هیچ پروژه فعالی یافت نشد'}, status=404)
+            
+            # دریافت سرمایه‌گذاران از طریق تراکنش‌ها
+            investor_ids = models.Transaction.objects.filter(project=project).values_list('investor_id', flat=True).distinct()
+            investors = models.Investor.objects.filter(id__in=investor_ids)
+            
+            summary = []
+            
+            for investor in investors:
+                try:
+                    # محاسبه آمار ساده
+                    transactions = models.Transaction.objects.filter(investor=investor, project=project)
+                    
+                    from django.db.models import Sum
+                    
+                    total_deposits = transactions.filter(transaction_type='principal_deposit').aggregate(
+                        total=Sum('amount'))['total'] or 0
+                    
+                    total_withdrawals = transactions.filter(transaction_type='principal_withdrawal').aggregate(
+                        total=Sum('amount'))['total'] or 0
+                    
+                    total_profits = transactions.filter(transaction_type='profit_accrual').aggregate(
+                        total=Sum('amount'))['total'] or 0
+                    
+                    net_principal = float(total_deposits) + float(total_withdrawals)  # withdrawal منفی است
+                    grand_total = net_principal + float(total_profits)
+                    
+                    summary.append({
+                        'id': investor.id,
+                        'name': f"{investor.first_name} {investor.last_name}",
+                        'participation_type': investor.participation_type,
+                        'total_deposits': float(total_deposits),
+                        'total_withdrawals': abs(float(total_withdrawals)),  # مقدار مثبت
+                        'net_principal': net_principal,
+                        'total_profit': float(total_profits),
+                        'grand_total': grand_total,
+                        'capital_ratio': 0,  # موقتاً 0
+                        'profit_ratio': 0,   # موقتاً 0
+                        'profit_index': 0    # موقتاً 0
+                    })
+                    
+                except Exception as e:
+                    print(f"خطا در محاسبه آمار سرمایه‌گذار {investor.id}: {e}")
+                    continue
             
             return Response(summary)
             
