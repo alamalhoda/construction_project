@@ -61,6 +61,65 @@ globs: *
     *   Alternate row colors in tables by adding the `table-striped` class to the `<table>` element.
     *   Display numbers in tables in English format with a 3-digit separator (thousands separator). Apply the `number-format` class to the `<td>` elements containing numbers.
     *   Implement JavaScript to format numbers with the `number-format` class using `new Intl.NumberFormat('en-US').format(Math.round(number))`. The JS must search for a number within the text content of the cell and replace it with the formatted number.
+*   **Role-Based Coloring for Expense Types:**
+    *   To visually distinguish different expense types in tables, apply background colors based on the role associated with the expense.
+    *   Define CSS variables for each role's background color in the template's `<style>` section:
+        ```css
+        :root {
+            /* Background colors for expense types */
+            --project-manager-bg: rgba(102, 126, 234, 0.1);     /* Light Purple */
+            --supervisor-bg: rgba(255, 193, 7, 0.1);           /* Light Yellow */
+            --procurement-bg: rgba(33, 133, 208, 0.1);         /* Light Blue */
+            --warehouse-bg: rgba(40, 167, 69, 0.1);            /* Light Green */
+            --contractor-bg: rgba(255, 152, 0, 0.1);           /* Light Orange */
+            --other-bg: rgba(255, 255, 255, 0.1);              /* Light White */
+        }
+        ```
+    *   Create CSS classes for each role, applying the corresponding background color:
+        ```css
+        .expense-table .project-manager-cell { background: var(--project-manager-bg) !important; }
+        .expense-table .supervisor-cell { background: var(--supervisor-bg) !important; }
+        .expense-table .procurement-cell { background: var(--procurement-bg) !important; }
+        .expense-table .warehouse-cell { background: var(--warehouse-bg) !important; }
+        .expense-table .contractor-cell { background: var(--contractor-bg) !important; }
+        .expense-table .other-cell { background: var(--other-bg) !important; }
+        ```
+    *   Implement a JavaScript function `getExpenseTypeClass` to determine the appropriate CSS class based on the expense type name:
+        ```javascript
+        function getExpenseTypeClass(expenseTypeName) {
+            const typeName = expenseTypeName.toLowerCase();
+            if (typeName.includes('مدیر پروژه') || typeName.includes('مدیریت پروژه')) {
+                return 'project-manager-cell';
+            } else if (typeName.includes('سرپرست') || typeName.includes('سرپرست کارگاه')) {
+                return 'supervisor-cell';
+            } else if (typeName.includes('کارپرداز') || typeName.includes('خرید')) {
+                return 'procurement-cell';
+            } else if (typeName.includes('انباردار') || typeName.includes('انبار')) {
+                return 'warehouse-cell';
+            } else if (typeName.includes('پیمان') || typeName.includes('پیمانکار')) {
+                return 'contractor-cell';
+            } else {
+                return 'other-cell';
+            }
+        }
+        ```
+    *   Apply the CSS class to the relevant table cells using the `getExpenseTypeClass` function:
+        ```html
+        <td class="editable-cell expense-cell ${getExpenseTypeClass(type[1])}" data-period-id="${period.period_id}" data-expense-type="${type[0]}">
+        ```
+    *   Apply the CSS class to the total row cells as well:
+        ```html
+        <td class="${getExpenseTypeClass(type[1])}"><strong>${formatNumber(dashboardData.column_totals[type[0]])}</strong></td>
+        ```
+    *   Ensure the "مجموع تجمعی" (cumulative total) column has a red background, achieved by setting the background color of the `.cumulative-cell` class to a red gradient and the text color to white:
+        ```css
+        .expense-table .cumulative-cell {
+            background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%);
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        ```
 
 ### NUMBER FORMATTING
 *   All numbers in the application must **always** be displayed in English with a 3-digit separator (thousands separator). Use `new Intl.NumberFormat('en-US').format(Math.round(num))` to achieve this.
