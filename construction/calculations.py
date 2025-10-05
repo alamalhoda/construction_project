@@ -390,7 +390,7 @@ class InvestorCalculations(FinancialCalculationService):
                 'total_balance': total_balance
             },
             'amounts_toman': {
-                # دقیقاً همان مقادیر دیتابیس بدون تبدیل
+                # حالا که داده‌ها در دیتابیس به تومان هستند، نیازی به تقسیم بر 10 نیست
                 'total_principal': float(total_principal),
                 'total_withdrawal': abs(float(total_withdrawal)),
                 'total_profit': float(total_profit),

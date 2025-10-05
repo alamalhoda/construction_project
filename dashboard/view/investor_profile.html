@@ -1474,7 +1474,7 @@
             const netPrincipal = totalPrincipal + totalWithdrawal; // withdrawal معمولاً منفی است
             const totalBalance = netPrincipal + totalProfit;
 
-            // ذخیره محاسبات قدیمی برای مقایسه (دقیقاً همان مقادیر دیتابیس)
+            // ذخیره محاسبات قدیمی برای مقایسه (حالا که داده‌ها در تومان هستند، تقسیم بر 10 نمی‌کنیم)
             backupCalculations = {
                 totalPrincipal: totalPrincipal,
                 totalWithdrawal: Math.abs(totalWithdrawal),
