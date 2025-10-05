@@ -1108,7 +1108,7 @@
 
                 <!-- Period Chart - نمودار ستونی دوره‌ای -->
                 <div class="chart-container">
-                    <h3><i class="fas fa-chart-bar"></i> نمودار دوره‌ای (سرمایه، هزینه، فروش، مانده صندوق)</h3>
+                    <h3><i class="fas fa-chart-bar"></i> نمودار دوره‌ای (سرمایه، هزینه،مرجوعی، مانده صندوق)</h3>
                     <div class="chart-wrapper">
                         <canvas id="periodChart"></canvas>
                     </div>
@@ -2653,8 +2653,8 @@
                         {
                             label: 'سرمایه (میلیون تومان)',
                             data: capitalData,
-                            backgroundColor: 'rgba(33, 133, 208, 0.6)', // آبی - آورده
-                            borderColor: 'rgba(33, 133, 208, 1)',
+                            backgroundColor: 'rgba(128, 0, 128, 0.6)', // بنفش - سرمایه از استاندارد پروژه (--capital-color)
+                            borderColor: 'rgba(128, 0, 128, 1)',
                             borderWidth: 1
                         },
                         {
@@ -2743,13 +2743,13 @@
                         {
                             label: 'سرمایه تجمعی (میلیون تومان)',
                             data: cumulativeCapitalData,
-                            borderColor: 'rgba(33, 133, 208, 1)', // آبی
-                            backgroundColor: 'rgba(33, 133, 208, 0.1)',
+                            borderColor: 'rgba(128, 0, 128, 1)', // بنفش - سرمایه از استاندارد پروژه (--capital-color)
+                            backgroundColor: 'rgba(128, 0, 128, 0.1)',
                             fill: false,
                             tension: 0.3,
                             borderWidth: 3,
                             pointRadius: 5,
-                            pointBackgroundColor: 'rgba(33, 133, 208, 1)',
+                            pointBackgroundColor: 'rgba(128, 0, 128, 1)',
                             pointBorderColor: '#ffffff',
                             pointBorderWidth: 2
                         },
@@ -2767,7 +2767,7 @@
                             pointBorderWidth: 2
                         },
                         {
-                            label: 'فروش تجمعی (میلیون تومان)',
+                            label: 'مرجوعی تجمعی (میلیون تومان)',
                             data: cumulativeSalesData,
                             borderColor: 'rgba(33, 186, 69, 1)', // سبز
                             backgroundColor: 'rgba(33, 186, 69, 0.1)',
