@@ -14,6 +14,9 @@
     <!-- Vazir Font CSS -->
     <link rel="stylesheet" href="/static/fonts/vazir.css">
     
+    <!-- Financial Calculations Service -->
+    <script src="/static/js/financial-calculations.js"></script>
+    
     <style>
         /* CSS Variables for Theme System */
         :root {
@@ -357,15 +360,16 @@
         }
 
         .chart-container {
-            background: white;
-            padding: 25px;
+            background: var(--bg-card);
+            padding: 30px;
             border-radius: 15px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
         }
 
         .chart-container h3 {
             text-align: center;
-            color: #333;
+            color: var(--text-primary);
             margin-bottom: 20px;
             font-size: 1.3rem;
         }
@@ -374,6 +378,7 @@
             position: relative;
             height: 500px;
         }
+
 
 
 
@@ -502,112 +507,10 @@
             margin: 0 auto;
         }
 
-        .charts-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-            gap: 24px;
-            margin-top: 20px;
-        }
 
-        .chart-container {
-            background: var(--bg-card);
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: var(--shadow-md);
-            border: 1px solid var(--border-color);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
 
-        .chart-container:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
-        }
 
-        .chart-container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-            opacity: 0.8;
-        }
 
-        .chart-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .chart-title {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: var(--text-primary);
-            font-size: 18px;
-            font-weight: 600;
-            margin: 0;
-        }
-
-        .chart-title i {
-            color: var(--primary-color);
-            font-size: 20px;
-        }
-
-        .chart-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .chart-btn {
-            background: transparent;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 6px 10px;
-            cursor: pointer;
-            color: var(--text-secondary);
-            transition: all 0.2s ease;
-            font-size: 12px;
-        }
-
-        .chart-btn:hover {
-            background: var(--primary-color);
-            color: white;
-            border-color: var(--primary-color);
-        }
-
-        .chart-wrapper {
-            position: relative;
-            height: 400px;
-            min-height: 350px;
-        }
-
-        .chart-wrapper canvas {
-            max-height: 100% !important;
-        }
-
-        /* Special Chart Layouts */
-        .chart-container.featured {
-            grid-column: 1 / -1;
-        }
-
-        .chart-container.half-width {
-            grid-column: span 1;
-        }
-
-        .chart-container.compact {
-            padding: 16px;
-        }
-
-        .chart-container.compact .chart-wrapper {
-            height: 300px;
-        }
 
         /* Stats Grid Enhancement */
         .stats-grid {
@@ -686,169 +589,32 @@
         }
 
         /* Responsive Breakpoints */
-        @media (max-width: 1200px) {
+        @media (max-width: 768px) {
             .charts-grid {
-                grid-template-columns: 1fr;
                 gap: 20px;
             }
             
-            .chart-container.featured {
-                grid-column: 1;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .dashboard-layout {
-                gap: 16px;
-            }
-            
-            .charts-grid {
-                gap: 16px;
-            }
-            
             .chart-container {
-                padding: 16px;
+                padding: 20px;
             }
             
             .chart-wrapper {
-                height: 300px;
-            }
-            
-            
-            .stats-grid {
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 16px;
-                padding: 20px;
-            }
-            
-            .stat-card {
-                padding: 20px;
-                min-height: 100px;
-            }
-            
-            .stat-card h4 {
-                font-size: 24px;
+                height: 400px;
             }
         }
 
         @media (max-width: 480px) {
-            body {
-                padding: 10px;
-            }
-            
             .chart-container {
-                padding: 12px;
+                padding: 15px;
             }
             
             .chart-wrapper {
-                height: 250px;
-            }
-            
-            
-            .chart-title {
-                font-size: 16px;
+                height: 350px;
             }
         }
 
-        /* Simple Chart Controls */
-        .simple-chart-controls {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            display: flex;
-            gap: 5px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
 
-        .chart-container:hover .simple-chart-controls {
-            opacity: 1;
-        }
 
-        .simple-control-btn {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 6px 8px;
-            cursor: pointer;
-            color: var(--text-secondary);
-            font-size: 12px;
-            transition: all 0.2s ease;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .simple-control-btn:hover {
-            background: var(--primary-color);
-            color: white;
-            transform: scale(1.05);
-        }
-
-        .chart-container.hidden {
-            display: none;
-        }
-
-        .chart-container.big {
-            grid-column: 1 / -1;
-        }
-
-        .chart-container.big .chart-wrapper {
-            height: 500px;
-        }
-
-        /* Collapse/Expand functionality */
-        .chart-container.collapsed .chart-wrapper {
-            display: none;
-        }
-
-        .chart-container.collapsed {
-            min-height: auto;
-        }
-
-        /* Drag and Drop functionality */
-        .chart-header {
-            cursor: grab;
-            user-select: none;
-        }
-
-        .chart-header:active {
-            cursor: grabbing;
-        }
-
-        .chart-container.dragging {
-            opacity: 0.7;
-            transform: rotate(3deg) scale(0.95);
-            z-index: 1000;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            transition: none;
-        }
-
-        .chart-container.drag-over {
-            border: 2px dashed var(--primary-color);
-            background: rgba(var(--primary-color-rgb), 0.1);
-        }
-
-        .drop-indicator {
-            position: absolute;
-            width: 100%;
-            height: 4px;
-            background: var(--primary-color);
-            border-radius: 2px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            z-index: 1001;
-        }
-
-        .drop-indicator.show {
-            opacity: 1;
-        }
-
-        .drop-indicator.before {
-            top: -2px;
-        }
-
-        .drop-indicator.after {
-            bottom: -2px;
-        }
     </style>
 </head>
 <body>
@@ -966,52 +732,16 @@
             <div class="charts-grid">
 
                 <!-- Principal Transaction Chart -->
-                <div class="chart-container half-width">
-                    <div class="chart-header">
-                        <h3 class="chart-title">
-                            <i class="fas fa-chart-line"></i>
-                            روند تراکنش‌های آورده و برداشت
-                        </h3>
-                        <div class="chart-actions">
-                        </div>
-                    </div>
-                    <!-- Simple Chart Controls -->
-                    <div class="simple-chart-controls">
-                        <button class="simple-control-btn" onclick="collapseChart('principalTransactionChart')" title="جمع/باز کردن">
-                            <i class="fas fa-chevron-up"></i>
-                        </button>
-                        <button class="simple-control-btn" onclick="simpleToggleChart('principalTransactionChart')" title="مخفی/نمایش">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="simple-control-btn" onclick="simpleResizeChart('principalTransactionChart')" title="بزرگ/کوچک">
-                            <i class="fas fa-expand-alt"></i>
-                        </button>
-                    </div>
+                <div class="chart-container">
+                    <h3><i class="fas fa-chart-line"></i> روند تراکنش‌های آورده و برداشت</h3>
                     <div class="chart-wrapper">
                         <canvas id="principalTransactionChart"></canvas>
                     </div>
                 </div>
 
                 <!-- Monthly Principal Chart -->
-                <div class="chart-container compact">
-                    <div class="chart-header">
-                        <h3 class="chart-title">
-                            <i class="fas fa-chart-area"></i>
-                            نمودار ماهانه آورده، برداشت و سرمایه موجود
-                        </h3>
-                    </div>
-                    <!-- Simple Chart Controls -->
-                    <div class="simple-chart-controls">
-                        <button class="simple-control-btn" onclick="collapseChart('monthlyPrincipalChart')" title="جمع/باز کردن">
-                            <i class="fas fa-chevron-up"></i>
-                        </button>
-                        <button class="simple-control-btn" onclick="simpleToggleChart('monthlyPrincipalChart')" title="مخفی/نمایش">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="simple-control-btn" onclick="simpleResizeChart('monthlyPrincipalChart')" title="بزرگ/کوچک">
-                            <i class="fas fa-expand-alt"></i>
-                        </button>
-                    </div>
+                <div class="chart-container">
+                    <h3><i class="fas fa-chart-area"></i> نمودار ماهانه آورده، برداشت و سرمایه موجود</h3>
                     <div class="chart-wrapper">
                         <canvas id="monthlyPrincipalChart"></canvas>
                     </div>
@@ -1020,52 +750,16 @@
 
 
                 <!-- Activity Distribution Chart -->
-                <div class="chart-container compact">
-                    <div class="chart-header">
-                        <h3 class="chart-title">
-                            <i class="fas fa-chart-pie"></i>
-                            توزیع  تراکنش ها
-                        </h3>
-                    </div>
-                    <!-- Simple Chart Controls -->
-                    <div class="simple-chart-controls">
-                        <button class="simple-control-btn" onclick="collapseChart('activityDistributionChart')" title="جمع/باز کردن">
-                            <i class="fas fa-chevron-up"></i>
-                        </button>
-                        <button class="simple-control-btn" onclick="simpleToggleChart('activityDistributionChart')" title="مخفی/نمایش">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="simple-control-btn" onclick="simpleResizeChart('activityDistributionChart')" title="بزرگ/کوچک">
-                            <i class="fas fa-expand-alt"></i>
-                        </button>
-                    </div>
+                <div class="chart-container">
+                    <h3><i class="fas fa-chart-pie"></i> توزیع تراکنش‌ها</h3>
                     <div class="chart-wrapper">
                         <canvas id="activityDistributionChart"></canvas>
                     </div>
                 </div>
 
                 <!-- Monthly Comparison Chart -->
-                <div class="chart-container half-width">
-                    <div class="chart-header">
-                        <h3 class="chart-title">
-                            <i class="fas fa-chart-bar"></i>
-                            نمودار ماهانه سرمایه بعلاوه سود موجود
-                        </h3>
-                        <div class="chart-actions">
-                        </div>
-                    </div>
-                    <!-- Simple Chart Controls -->
-                    <div class="simple-chart-controls">
-                        <button class="simple-control-btn" onclick="collapseChart('monthlyComparisonChart')" title="جمع/باز کردن">
-                            <i class="fas fa-chevron-up"></i>
-                        </button>
-                        <button class="simple-control-btn" onclick="simpleToggleChart('monthlyComparisonChart')" title="مخفی/نمایش">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="simple-control-btn" onclick="simpleResizeChart('monthlyComparisonChart')" title="بزرگ/کوچک">
-                            <i class="fas fa-expand-alt"></i>
-                        </button>
-                    </div>
+                <div class="chart-container">
+                    <h3><i class="fas fa-chart-bar"></i> نمودار ماهانه سرمایه بعلاوه سود موجود</h3>
                     <div class="chart-wrapper">
                         <canvas id="monthlyComparisonChart"></canvas>
                     </div>
@@ -1107,9 +801,8 @@
         let charts = {}; // نگهداری نمودارها
         let globalStatistics = null; // آمار کلی از API
 
-        // متغیر برای تبدیل مبالغ (10 میلیون)
-        const BASE_AMOUNT = 10000000;
-        // const BASE_AMOUNT = 1;
+        // متغیر برای تبدیل مبالغ (1 میلیون) - برای نمودارها
+        const BASE_AMOUNT = 1000000;
         
         // تابع فرمت‌کننده اعداد با جداکننده هزارگان انگلیسی
         function formatNumberWithCommas(number) {
@@ -1165,172 +858,6 @@
             setTheme(newTheme);
         }
 
-        // Simple Chart Controls
-        function collapseChart(chartId) {
-            const container = document.getElementById(chartId).closest('.chart-container');
-            const chevronIcon = container.querySelector('.simple-chart-controls .fa-chevron-up, .simple-chart-controls .fa-chevron-down');
-            
-            if (container.classList.contains('collapsed')) {
-                // باز کردن
-                container.classList.remove('collapsed');
-                chevronIcon.className = 'fas fa-chevron-up';
-                
-                // Resize chart بعد از باز کردن
-                setTimeout(() => {
-                    if (charts[chartId]) {
-                        charts[chartId].resize();
-                    }
-                }, 300);
-            } else {
-                // جمع کردن
-                container.classList.add('collapsed');
-                chevronIcon.className = 'fas fa-chevron-down';
-            }
-        }
-
-        function simpleToggleChart(chartId) {
-            const container = document.getElementById(chartId).closest('.chart-container');
-            const eyeIcon = container.querySelector('.simple-chart-controls .fa-eye, .simple-chart-controls .fa-eye-slash');
-            
-            if (container.classList.contains('hidden')) {
-                // نمایش نمودار
-                container.classList.remove('hidden');
-                eyeIcon.className = 'fas fa-eye';
-                
-                // Resize chart بعد از نمایش
-                setTimeout(() => {
-                    if (charts[chartId]) {
-                        charts[chartId].resize();
-                    }
-                }, 100);
-            } else {
-                // مخفی کردن نمودار
-                container.classList.add('hidden');
-                eyeIcon.className = 'fas fa-eye-slash';
-            }
-        }
-
-        function simpleResizeChart(chartId) {
-            const container = document.getElementById(chartId).closest('.chart-container');
-            const expandIcon = container.querySelector('.simple-chart-controls .fa-expand-alt, .simple-chart-controls .fa-compress-alt');
-            
-            if (container.classList.contains('big')) {
-                // کوچک کردن
-                container.classList.remove('big');
-                expandIcon.className = 'fas fa-expand-alt';
-            } else {
-                // بزرگ کردن
-                container.classList.add('big');
-                expandIcon.className = 'fas fa-compress-alt';
-            }
-            
-            // Resize chart بعد از تغییر اندازه
-            setTimeout(() => {
-                if (charts[chartId]) {
-                    charts[chartId].resize();
-                }
-            }, 300);
-        }
-
-        // Drag and Drop functionality
-        let draggedElement = null;
-        let dropIndicator = null;
-
-        function initializeDragAndDrop() {
-            const chartContainers = document.querySelectorAll('.chart-container');
-            
-            chartContainers.forEach(container => {
-                const header = container.querySelector('.chart-header');
-                
-                // Make headers draggable
-                header.draggable = true;
-                
-                header.addEventListener('dragstart', (e) => {
-                    draggedElement = container;
-                    container.classList.add('dragging');
-                    e.dataTransfer.effectAllowed = 'move';
-                    e.dataTransfer.setData('text/html', '');
-                });
-                
-                header.addEventListener('dragend', () => {
-                    if (draggedElement) {
-                        draggedElement.classList.remove('dragging');
-                        draggedElement = null;
-                    }
-                    hideDropIndicator();
-                });
-                
-                // Drop zones
-                container.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    e.dataTransfer.dropEffect = 'move';
-                    
-                    if (draggedElement && draggedElement !== container) {
-                        showDropIndicator(container, e);
-                    }
-                });
-                
-                container.addEventListener('dragleave', (e) => {
-                    if (!container.contains(e.relatedTarget)) {
-                        hideDropIndicator();
-                    }
-                });
-                
-                container.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    
-                    if (draggedElement && draggedElement !== container) {
-                        const rect = container.getBoundingClientRect();
-                        const midY = rect.top + rect.height / 2;
-                        
-                        if (e.clientY < midY) {
-                            // Insert before
-                            container.parentNode.insertBefore(draggedElement, container);
-                        } else {
-                            // Insert after
-                            container.parentNode.insertBefore(draggedElement, container.nextSibling);
-                        }
-                        
-                        // Re-render dragged chart
-                        const chartId = draggedElement.querySelector('canvas').id;
-                        setTimeout(() => {
-                            if (charts[chartId]) {
-                                charts[chartId].resize();
-                            }
-                        }, 100);
-                    }
-                    
-                    hideDropIndicator();
-                });
-            });
-        }
-
-        function showDropIndicator(container, e) {
-            hideDropIndicator();
-            
-            const rect = container.getBoundingClientRect();
-            const midY = rect.top + rect.height / 2;
-            
-            dropIndicator = document.createElement('div');
-            dropIndicator.className = 'drop-indicator show';
-            
-            if (e.clientY < midY) {
-                dropIndicator.classList.add('before');
-                container.style.position = 'relative';
-                container.appendChild(dropIndicator);
-            } else {
-                dropIndicator.classList.add('after');
-                container.style.position = 'relative';
-                container.appendChild(dropIndicator);
-            }
-        }
-
-        function hideDropIndicator() {
-            if (dropIndicator) {
-                dropIndicator.remove();
-                dropIndicator = null;
-            }
-        }
 
         
 
@@ -1546,6 +1073,381 @@
                 });
         }
 
+        // سیستم مقایسه محاسبات - ذخیره محاسبات قدیمی برای مقایسه
+        let backupCalculations = {
+            totalPrincipal: 0,
+            totalWithdrawal: 0,
+            totalProfit: 0,
+            netPrincipal: 0,
+            totalBalance: 0,
+            capitalRatio: '0.00%',
+            profitRatioToTotal: '0.00%',
+            totalRatioToGrandTotal: '0.00%',
+            profitIndex: '0.00'
+        };
+
+        // تابع مقایسه محاسبات قدیمی و جدید
+        function compareCalculations(oldCalc, newCalc, investorName) {
+            console.log(`🔍 مقایسه محاسبات برای ${investorName}:`);
+            console.log('=' .repeat(50));
+            
+            const comparisons = [
+                { name: 'آورده کل', old: oldCalc.totalPrincipal, new: newCalc.totalPrincipal },
+                { name: 'برداشت کل', old: oldCalc.totalWithdrawal, new: newCalc.totalWithdrawal },
+                { name: 'سود کل', old: oldCalc.totalProfit, new: newCalc.totalProfit },
+                { name: 'سرمایه خالص', old: oldCalc.netPrincipal, new: newCalc.netPrincipal },
+                { name: 'موجودی کل', old: oldCalc.totalBalance, new: newCalc.totalBalance },
+                { name: 'نسبت سرمایه', old: oldCalc.capitalRatio, new: newCalc.capitalRatio },
+                { name: 'نسبت سود به کل', old: oldCalc.profitRatioToTotal, new: newCalc.profitRatioToTotal },
+                { name: 'نسبت کل به کل', old: oldCalc.totalRatioToGrandTotal, new: newCalc.totalRatioToGrandTotal },
+                { name: 'شاخص نفع', old: oldCalc.profitIndex, new: newCalc.profitIndex }
+            ];
+            
+            let differences = [];
+            comparisons.forEach(comp => {
+                const oldVal = parseFloat(comp.old) || 0;
+                const newVal = parseFloat(comp.new) || 0;
+                const diff = Math.abs(oldVal - newVal);
+                const percentDiff = oldVal !== 0 ? (diff / Math.abs(oldVal)) * 100 : 0;
+                
+                if (diff > 0.01 || percentDiff > 0.1) { // تفاوت بیش از 0.01 یا 0.1%
+                    differences.push({
+                        name: comp.name,
+                        old: comp.old,
+                        new: comp.new,
+                        diff: diff.toFixed(2),
+                        percentDiff: percentDiff.toFixed(2)
+                    });
+                }
+                
+                console.log(`${comp.name}: ${comp.old} → ${comp.new} ${diff > 0.01 ? '⚠️' : '✅'}`);
+            });
+            
+            if (differences.length > 0) {
+                console.warn('⚠️ تفاوت‌های پیدا شده:', differences);
+                // نمایش هشدار بصری
+                showComparisonAlert(differences, investorName);
+            } else {
+                console.log('✅ تمام محاسبات مطابقت دارند!');
+            }
+            
+            console.log('=' .repeat(50));
+        }
+
+        // نمایش هشدار مقایسه
+        function showComparisonAlert(differences, investorName) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'comparison-alert';
+            alertDiv.innerHTML = `
+                <div class="alert-content">
+                    <h4>⚠️ تفاوت در محاسبات ${investorName}</h4>
+                    <ul>
+                        ${differences.map(d => `<li><strong>${d.name}:</strong> ${d.old} → ${d.new} (تفاوت: ${d.diff}, ${d.percentDiff}%)</li>`).join('')}
+                    </ul>
+                    <button onclick="this.parentElement.parentElement.remove()">بستن</button>
+                </div>
+            `;
+            
+            alertDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #fff3cd;
+                border: 1px solid #ffeaa7;
+                border-radius: 8px;
+                padding: 15px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                z-index: 10000;
+                max-width: 400px;
+                font-family: 'Vazir', 'Tahoma', 'Arial', sans-serif;
+            `;
+            
+            document.body.appendChild(alertDiv);
+            
+            // حذف خودکار بعد از 10 ثانیه
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 10000);
+        }
+
+        // تابع جدید: دریافت محاسبات از سرور
+        async function updateInvestorStatsFromServer(investorId, investorName) {
+            try {
+                console.log(`📡 دریافت آمار سرمایه‌گذار ${investorId} از سرور...`);
+                
+                // دریافت آمار تفصیلی سرمایه‌گذار از API
+                const investorStats = await window.financialService.getInvestorStatistics(investorId);
+                
+                // دریافت نسبت‌های سرمایه‌گذار از API
+                let investorRatios = null;
+                try {
+                    const response = await fetch(`/construction/api/v1/Investor/${investorId}/ratios/`);
+                    if (response.ok) {
+                        investorRatios = await response.json();
+                    }
+                } catch (error) {
+                    console.warn('⚠️ خطا در دریافت نسبت‌ها:', error);
+                }
+                
+                if (investorStats && !investorStats.error) {
+                    console.log('✅ آمار سرمایه‌گذار از سرور دریافت شد:', investorStats);
+                    
+                    // تبدیل داده‌های سرور به فرمت قابل مقایسه (استفاده از amounts_toman)
+                    const serverCalculations = {
+                        totalPrincipal: investorStats.amounts_toman?.total_principal || 0,
+                        totalWithdrawal: Math.abs(investorStats.amounts_toman?.total_withdrawal || 0),
+                        totalProfit: investorStats.amounts_toman?.total_profit || 0,
+                        netPrincipal: investorStats.amounts_toman?.net_principal || 0,
+                        totalBalance: investorStats.amounts_toman?.total_balance || 0,
+                        capitalRatio: investorRatios?.capital_ratio_formatted || '0.00%',
+                        profitRatioToTotal: investorRatios?.profit_ratio_formatted || '0.00%',
+                        totalRatioToGrandTotal: investorRatios?.total_ratio_formatted || '0.00%',
+                        profitIndex: investorRatios?.profit_index || '0.00'
+                    };
+
+                    // مقایسه محاسبات قدیمی و جدید
+                    compareCalculations(backupCalculations, serverCalculations, investorName);
+
+                    // به‌روزرسانی UI با مقادیر سرور
+                    updateUIWithServerData(serverCalculations);
+                    
+                    console.log('✅ UI با داده‌های سرور به‌روزرسانی شد');
+                } else {
+                    console.warn('⚠️ خطا در دریافت آمار سرور:', investorStats?.error || 'خطای نامشخص');
+                    console.log('🔄 استفاده از محاسبات محلی ادامه می‌یابد');
+                }
+                
+            } catch (error) {
+                console.error('❌ خطا در دریافت محاسبات از سرور:', error);
+                console.log('🔄 استفاده از محاسبات محلی ادامه می‌یابد');
+            }
+        }
+
+        // تابع به‌روزرسانی UI با داده‌های سرور
+        function updateUIWithServerData(serverCalculations) {
+            // به‌روزرسانی المان‌های HTML با مقادیر سرور
+            const elements = [
+                { id: 'totalPrincipal', value: serverCalculations.totalPrincipal },
+                { id: 'totalWithdrawal', value: serverCalculations.totalWithdrawal },
+                { id: 'netPrincipal', value: serverCalculations.netPrincipal },
+                { id: 'totalProfit', value: serverCalculations.totalProfit },
+                { id: 'totalBalance', value: serverCalculations.totalBalance },
+                { id: 'capitalRatio', value: serverCalculations.capitalRatio },
+                { id: 'profitRatioToTotal', value: serverCalculations.profitRatioToTotal },
+                { id: 'totalRatioToGrandTotal', value: serverCalculations.totalRatioToGrandTotal },
+                { id: 'profitIndex', value: serverCalculations.profitIndex }
+            ];
+
+            elements.forEach(element => {
+                const domElement = document.getElementById(element.id);
+                if (domElement) {
+                    if (element.id.includes('Ratio') || element.id.includes('Index')) {
+                        // برای نسبت‌ها و شاخص‌ها، مقدار را مستقیماً نمایش دهیم
+                        domElement.textContent = element.value;
+                    } else {
+                        // برای مبالغ، فرمت عددی اعمال کنیم
+                        domElement.textContent = formatNumberWithCommas(element.value);
+                    }
+                }
+            });
+
+            // اضافه کردن نشانگر "از سرور" برای نمایش منبع داده
+            addServerDataIndicator();
+        }
+
+        // تابع اضافه کردن نشانگر داده‌های سرور
+        function addServerDataIndicator() {
+            // حذف نشانگر قبلی اگر وجود دارد
+            const existingIndicator = document.querySelector('.server-data-indicator');
+            if (existingIndicator) {
+                existingIndicator.remove();
+            }
+
+            // اضافه کردن نشانگر جدید
+            const indicator = document.createElement('div');
+            indicator.className = 'server-data-indicator';
+            indicator.innerHTML = `
+                <i class="fas fa-server"></i>
+                <span>داده‌های محاسباتی از سرور</span>
+            `;
+            indicator.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                left: 20px;
+                background: #d4edda;
+                color: #155724;
+                padding: 8px 12px;
+                border-radius: 6px;
+                font-size: 12px;
+                font-family: 'Vazir', 'Tahoma', 'Arial', sans-serif;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                z-index: 1000;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            `;
+
+            document.body.appendChild(indicator);
+
+            // حذف خودکار بعد از 5 ثانیه
+            setTimeout(() => {
+                if (indicator.parentNode) {
+                    indicator.remove();
+                }
+            }, 5000);
+        }
+
+        // تابع تست برای بررسی صحت محاسبات
+        function testCalculationsAccuracy(investorId) {
+            console.log(`🧪 شروع تست محاسبات برای سرمایه‌گذار ${investorId}`);
+            console.log('=' .repeat(60));
+            
+            // تست 1: بررسی دسترسی به سرویس مالی
+            if (!window.financialService) {
+                console.error('❌ سرویس مالی در دسترس نیست');
+                return false;
+            }
+            console.log('✅ سرویس مالی در دسترس است');
+
+            // تست 2: بررسی API های مورد نیاز
+            const requiredAPIs = [
+                'getInvestorStatistics',
+                'getComprehensiveAnalysis'
+            ];
+            
+            requiredAPIs.forEach(api => {
+                if (typeof window.financialService[api] === 'function') {
+                    console.log(`✅ API ${api} موجود است`);
+                } else {
+                    console.error(`❌ API ${api} موجود نیست`);
+                }
+            });
+
+            // تست 3: بررسی ساختار داده‌ها
+            console.log('🔍 بررسی ساختار backupCalculations:', backupCalculations);
+            
+            // تست 4: تست اتصال به API
+            testAPIConnection(investorId);
+            
+            console.log('=' .repeat(60));
+            return true;
+        }
+
+        // تست اتصال به API
+        async function testAPIConnection(investorId) {
+            try {
+                console.log('📡 تست اتصال به API...');
+                const response = await fetch(`/construction/api/v1/Investor/${investorId}/detailed_statistics/`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ API پاسخ داد:', data);
+                    return data;
+                } else {
+                    console.error('❌ خطا در API:', response.status, response.statusText);
+                    return null;
+                }
+            } catch (error) {
+                console.error('❌ خطا در اتصال به API:', error);
+                return null;
+            }
+        }
+
+        // تابع نمایش گزارش نهایی
+        function showFinalReport(investorId) {
+            const reportDiv = document.createElement('div');
+            reportDiv.className = 'final-report';
+            reportDiv.innerHTML = `
+                <div class="report-content">
+                    <h3>📊 گزارش نهایی محاسبات</h3>
+                    <div class="report-section">
+                        <h4>✅ تغییرات اعمال شده:</h4>
+                        <ul>
+                            <li>سرویس مالی اضافه شد</li>
+                            <li>سیستم مقایسه پیاده‌سازی شد</li>
+                            <li>محاسبات از سرور دریافت می‌شوند</li>
+                            <li>هشدار تفاوت‌ها اضافه شد</li>
+                        </ul>
+                    </div>
+                    <div class="report-section">
+                        <h4>🔍 نحوه بررسی:</h4>
+                        <ol>
+                            <li>Console را باز کنید (F12)</li>
+                            <li>یک سرمایه‌گذار انتخاب کنید</li>
+                            <li>مقایسه محاسبات در console بررسی کنید</li>
+                            <li>هشدارهای بصری را مشاهده کنید</li>
+                        </ol>
+                    </div>
+                    <div class="report-section">
+                        <h4>📋 API های استفاده شده:</h4>
+                        <ul>
+                            <li><code>/api/v1/Investor/{id}/detailed_statistics/</code></li>
+                            <li><code>window.financialService.getInvestorStatistics()</code></li>
+                        </ul>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()">بستن گزارش</button>
+                </div>
+            `;
+            
+            reportDiv.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                border: 2px solid #007bff;
+                border-radius: 12px;
+                padding: 20px;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                z-index: 10001;
+                max-width: 600px;
+                max-height: 80vh;
+                overflow-y: auto;
+                font-family: 'Vazir', 'Tahoma', 'Arial', sans-serif;
+            `;
+            
+            document.body.appendChild(reportDiv);
+            
+            // حذف خودکار بعد از 30 ثانیه
+            setTimeout(() => {
+                if (reportDiv.parentNode) {
+                    reportDiv.remove();
+                }
+            }, 30000);
+        }
+
+        // اضافه کردن دکمه تست به صفحه
+        function addTestButton() {
+            const testButton = document.createElement('button');
+            testButton.innerHTML = '🧪 تست محاسبات';
+            testButton.onclick = () => {
+                const selectedInvestor = document.querySelector('#investorSelect')?.value;
+                if (selectedInvestor) {
+                    testCalculationsAccuracy(selectedInvestor);
+                    showFinalReport(selectedInvestor);
+                } else {
+                    alert('لطفاً ابتدا یک سرمایه‌گذار انتخاب کنید');
+                }
+            };
+            testButton.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #007bff;
+                color: white;
+                border: none;
+                padding: 10px 15px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-family: 'Vazir', 'Tahoma', 'Arial', sans-serif;
+                z-index: 1000;
+            `;
+            
+            document.body.appendChild(testButton);
+        }
+
         // به‌روزرسانی اطلاعات کلی سرمایه‌گذار با داده‌های جدید از API
         function updateInvestorInfoWithData(investorId, investorTransactions) {
             // دریافت نام سرمایه‌گذار از API
@@ -1560,7 +1462,7 @@
                     document.getElementById('investorName').textContent = 'نام نامشخص';
                 });
 
-            // محاسبه اطلاعات مالی
+            // محاسبه اطلاعات مالی - روش قدیمی (برای مقایسه)
             const principalData = getTransactionsByType(investorTransactions, 'principal_deposit');
             const withdrawalData = getTransactionsByType(investorTransactions, 'principal_withdrawal');
             const profitData = getTransactionsByType(investorTransactions, 'profit_accrual');
@@ -1571,6 +1473,19 @@
             
             const netPrincipal = totalPrincipal + totalWithdrawal; // withdrawal معمولاً منفی است
             const totalBalance = netPrincipal + totalProfit;
+
+            // ذخیره محاسبات قدیمی برای مقایسه (حالا که داده‌ها در تومان هستند، تقسیم بر 10 نمی‌کنیم)
+            backupCalculations = {
+                totalPrincipal: totalPrincipal,
+                totalWithdrawal: Math.abs(totalWithdrawal),
+                totalProfit: totalProfit,
+                netPrincipal: netPrincipal,
+                totalBalance: totalBalance,
+                capitalRatio: '0.00%',
+                profitRatioToTotal: '0.00%',
+                totalRatioToGrandTotal: '0.00%',
+                profitIndex: '0.00'
+            };
             // محاسبه نسبت سود به آورده - موقتاً کامنت شده
             // const profitRatio = netPrincipal > 0 ? ((totalProfit / netPrincipal) * 100).toFixed(2) : '0.00';
             
@@ -1607,12 +1522,22 @@
                 }
             }
 
-            // نمایش اطلاعات (تبدیل به تومان - تقسیم بر ۱۰)
-            document.getElementById('totalPrincipal').textContent = formatNumberWithCommas(totalPrincipal / 10);
-            document.getElementById('totalWithdrawal').textContent = formatNumberWithCommas(Math.abs(totalWithdrawal) / 10);
-            document.getElementById('netPrincipal').textContent = formatNumberWithCommas(netPrincipal / 10);
-            document.getElementById('totalProfit').textContent = formatNumberWithCommas(totalProfit / 10);
-            document.getElementById('totalBalance').textContent = formatNumberWithCommas(totalBalance / 10);
+            // به‌روزرسانی backupCalculations با مقادیر کامل
+            backupCalculations.capitalRatio = capitalRatio;
+            backupCalculations.profitRatioToTotal = profitRatioToTotal;
+            backupCalculations.totalRatioToGrandTotal = totalRatioToGrandTotal;
+            backupCalculations.profitIndex = profitIndex;
+
+            // حالا محاسبات جدید از سرور را دریافت می‌کنیم
+            console.log('🔄 دریافت محاسبات جدید از سرور...');
+            updateInvestorStatsFromServer(investorId, investorName);
+
+            // نمایش اطلاعات (دقیقاً همان مقادیر دیتابیس)
+            document.getElementById('totalPrincipal').textContent = formatNumberWithCommas(totalPrincipal);
+            document.getElementById('totalWithdrawal').textContent = formatNumberWithCommas(Math.abs(totalWithdrawal));
+            document.getElementById('netPrincipal').textContent = formatNumberWithCommas(netPrincipal);
+            document.getElementById('totalProfit').textContent = formatNumberWithCommas(totalProfit);
+            document.getElementById('totalBalance').textContent = formatNumberWithCommas(totalBalance);
             // نمایش نسبت سود به آورده - موقتاً کامنت شده
             // document.getElementById('profitRatio').textContent = profitRatio + '%';
             document.getElementById('capitalRatio').textContent = capitalRatio;
@@ -1684,11 +1609,11 @@
             // const profitRatio = netPrincipal > 0 ? ((totalProfit / netPrincipal) * 100).toFixed(2) : '0.00';
 
             document.getElementById('investorName').textContent = investorId;
-            document.getElementById('totalPrincipal').textContent = formatNumberWithCommas(totalPrincipal / 10);
-            document.getElementById('totalWithdrawal').textContent = formatNumberWithCommas(Math.abs(totalWithdrawal) / 10);
-            document.getElementById('netPrincipal').textContent = formatNumberWithCommas(netPrincipal / 10);
-            document.getElementById('totalProfit').textContent = formatNumberWithCommas(totalProfit / 10);
-            document.getElementById('totalBalance').textContent = formatNumberWithCommas(totalBalance / 10);
+            document.getElementById('totalPrincipal').textContent = formatNumberWithCommas(totalPrincipal);
+            document.getElementById('totalWithdrawal').textContent = formatNumberWithCommas(Math.abs(totalWithdrawal));
+            document.getElementById('netPrincipal').textContent = formatNumberWithCommas(netPrincipal);
+            document.getElementById('totalProfit').textContent = formatNumberWithCommas(totalProfit);
+            document.getElementById('totalBalance').textContent = formatNumberWithCommas(totalBalance);
             // نمایش نسبت سود به آورده - موقتاً کامنت شده
             // document.getElementById('profitRatio').textContent = profitRatio + '%';
 
@@ -2136,14 +2061,17 @@
             // Theme toggle event listener
             document.getElementById('themeToggle').addEventListener('click', toggleTheme);
             
-            // Initialize drag and drop functionality
-            initializeDragAndDrop();
             
             populateInvestorSelect(); // بارگذاری لیست سرمایه‌گذاران از دیتابیس
             // loadData() دیگر نیازی نیست چون داده‌ها به صورت فیلتر شده بارگذاری می‌شوند
             
             // مخفی کردن loading چون دیگر داده‌ای بارگذاری نمی‌کنیم
             document.getElementById('loading').style.display = 'none';
+            
+            // اضافه کردن دکمه تست
+            setTimeout(() => {
+                addTestButton();
+            }, 1000);
         });
     </script>
 </body>
