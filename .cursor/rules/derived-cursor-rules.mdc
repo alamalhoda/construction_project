@@ -151,7 +151,7 @@ globs: *
             color: #667eea; /* Example: Purple */
         }
         ```
-*   **Investor Profile Charts:** The charts in the investor profile page (`dashboard/view/investor_profile.html`) must be simplified to resemble those on the project dashboard, with each chart occupying a full row. Remove any interactive management features like closing, hiding, maximizing, or moving charts. Each chart must occupy a full row. Charts in the investor profile page (`dashboard/view/investor_profile.html`) must occupy a full row. Each chart in the investor profile page (`dashboard/view/investor_profile.html`) must occupy a full row. Ensure each chart in the investor profile page (`dashboard/view/investor_profile.html`) occupies a full row.
+*   Ensure each chart in the investor profile page (`dashboard/view/investor_profile.html`) occupies a full row.
 
 ### NUMBER FORMATTING
 *   All numbers in the application must **always** be displayed in English with a 3-digit separator (thousands separator). Use `new Intl.NumberFormat('en-US').format(Math.round(num))` to achieve this.
@@ -175,7 +175,6 @@ globs: *
 *   When requested to remove a specific card and its associated JavaScript code (e.g., "هزینه تمام شده(متری)"), perform the following steps:
     1.  Locate and remove the corresponding HTML element (card) from the relevant template file.
     2.  Identify and remove any JavaScript code that is specifically related to the removed card. This includes event listeners, data processing functions, and any other code that directly interacts with the card.
-*   **Chart Simplification:** Remove interactive management features such as closing, hiding, maximizing, and moving charts from the investor profile page (`dashboard/view/investor_profile.html`).
 *   Ensure each chart in the investor profile page (`dashboard/view/investor_profile.html`) occupies a full row.
 
 ### SERVER-SIDE CALCULATIONS
@@ -401,3 +400,12 @@ globs: *
 
 ## TRANSACTION MANAGER RULES
 *   The cards in the transaction manager page (`dashboard/view/transaction_manager.html`) and the transaction table must display the exact database values without unit conversion (no division by 10).
+*   When receiving transaction data from users:
+    *   The system must store the user-provided value in the database exactly as it is, without any unit conversions.
+    *   The system must send the user-provided value to the server, and from there into the database, with all commas removed.
+*   **Data Display:** Display exactly what is in the database without unit conversion.
+*   **Data Input:** The system must store the user-provided value in the database exactly as it is, without any unit conversions.
+*   **Server Communication:** The system must send the user-provided value to the server, and from there into the database, with all commas removed.
+
+## PROJECT DASHBOARD RULES
+*   All data displayed on the project dashboard, including card statistics, must accurately reflect the values stored in the database, without any unit conversions or modifications.
