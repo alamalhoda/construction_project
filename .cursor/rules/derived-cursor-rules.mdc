@@ -130,9 +130,11 @@ globs: *
     *   **Period Chart:**
         *   Displays capital, expenses, sales, and fund balance for each period.
         *   Uses standard project colors (blue for capital, red for expenses, green for sales, purple for fund balance).
+        *   Capital should be displayed in purple, matching the project's standard color (--capital-color).
     *   **Cumulative Trend Chart:**
         *   Displays the cumulative trend of capital, expenses, sales, and fund balance over time.
         *   Uses standard project colors and a dashed line for fund balance to distinguish.
+        *   Capital should be displayed in purple, matching the project's standard color (--capital-color).
         *   Numbers should be displayed in millions of Toman.
         *   Tooltips should display accurate values in millions of Toman.
 
@@ -330,6 +332,7 @@ globs: *
     *   Charts should be responsive and work on different screen sizes.
     *   Use the Vazir font for all text elements.
     *   Ensure that tooltips display numbers in millions of Toman when the chart label indicates "(Million Toman)".
+    *   In the Period Chart and Cumulative Trend Chart, the capital color must be purple, matching the project's standard color (--capital-color).
 
 ## MANAGEMENT COMMAND RULES
 *   When creating management commands for database operations:
