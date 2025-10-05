@@ -132,7 +132,7 @@ globs: *
         *   Uses standard project colors (blue for capital, red for expenses, green for sales, purple for fund balance).
     *   **Cumulative Trend Chart:**
         *   Displays the cumulative trend of capital, expenses, sales, and fund balance over time.
-        *   Uses standard project colors and a dashed line for fund balance to distinguish it.
+        *   Uses standard project colors and a dashed line for fund balance to distinguish.
         *   Numbers should be displayed in millions of Toman.
         *   Tooltips should display accurate values in millions of Toman.
 
@@ -249,6 +249,40 @@ globs: *
 ## WORKFLOW & RELEASE RULES
 *   (Define the project workflow, including branching strategies, pull request procedures, and code review guidelines.)
 *   (Specify the release process, including versioning, testing, and deployment.)
+*   **Database Migration Scripts:**
+    *   Management commands should be used for database migrations, such as converting Rial to Toman.
+    *   These scripts must include dry-run and backup options.
+    *   Ensure atomic transactions are used to prevent data corruption.
+    *   Log all changes during the migration process.
+    *   Include statistics on the number of records converted.
+    *   Provide sample converted values in the output.
+    *   When creating management commands for database operations:
+        *   Include a clear docstring explaining the command's purpose.
+        *   Add arguments for `dry-run` and `backup` options.
+        *   Use atomic transactions for data consistency.
+        *   Implement comprehensive logging.
+        *   Provide conversion statistics.
+        *   Display sample converted values.
+*   **Rial to Toman Conversion Scripts**
+    *   A set of scripts are available for converting database values from Rial to Toman (dividing by 10).
+    *   These scripts consist of:
+        *   A Django management command (`construction/management/commands/convert_rial_to_toman.py`).
+        *   A simple Python script (`scripts/convert_rial_to_toman.py`).
+        *   A Bash script (`scripts/convert_rial_to_toman.sh`).
+        *   A test script (`test_conversion.py`).
+        *   Comprehensive documentation (`RIAL_TO_TOMAN_CONVERSION.md`).
+        *   A quick start guide (`QUICK_START_CONVERSION.md`).
+    *   **Usage:**
+        *   It is highly recommended to run the test script first to view current database statistics: `source env/bin/activate && python3 test_conversion.py`
+        *   To perform a dry run (testing without applying changes): `source env/bin/activate && python3 manage.py convert_rial_to_toman --dry-run`
+        *   To convert with a backup (recommended for server environments): `source env/bin/activate && python3 manage.py convert_rial_to_toman --backup`
+        *   For direct conversion (use with caution): `source env/bin/activate && python3 manage.py convert_rial_to_toman`
+    *   **Important Notes:**
+        *   Always back up the database before running any conversion script.
+        *   Test the conversion using the `--dry-run` option first.
+        *   The scripts utilize Django transactions for data integrity and include rollback capabilities in case of errors.
+        *   Detailed logs of all changes are displayed during the conversion process.
+        *   The `Project` model has been excluded from the conversion process as the `total_infrastructure` field represents area (square meters) and not a monetary value.
 
 ## DEBUGGING
 *   (Describe debugging strategies and tools.)
@@ -260,7 +294,7 @@ globs: *
 *   Ensure that the backup process covers all models defined in the `construction` app.
 *   Verify that the backup process includes models defined in the `backup` app.
 *   The backup process must include the following models:
-    *   Models in `construction`: `Project`, `Unit`, `Investor`, `Period`, `InterestRate`, `Transaction`, `Expense`, `Sale`, `UserProfile`.
+    *   Models in `construction`: `Unit`, `Investor`, `Period`, `InterestRate`, `Transaction`, `Expense`, `Sale`, `UserProfile`.
     *   Models in `backup`: `BackupRecord`, `BackupSettings`.
     *   Models in `security_monitoring`: `SecurityEvent`.
 *   When creating a new backup, if the process stops and throws an error related to `SecurityEvent`, follow these steps:
@@ -283,3 +317,18 @@ globs: *
     *   Charts should be responsive and work on different screen sizes.
     *   Use the Vazir font for all text elements.
     *   Ensure that tooltips display numbers in millions of Toman when the chart label indicates "(Million Toman)".
+
+## MANAGEMENT COMMAND RULES
+*   When creating management commands for database operations:
+    *   Include a clear docstring explaining the command's purpose.
+    *   Add arguments for `dry-run` and `backup` options.
+    *   Use atomic transactions for data consistency.
+    *   Implement comprehensive logging.
+    *   Provide conversion statistics.
+    *   Display sample converted values.
+*   When creating management commands for database migrations, such as converting Rial to Toman:
+    *   These scripts must include dry-run and backup options.
+    *   Ensure atomic transactions are used to prevent data corruption.
+    *   Log all changes during the migration process.
+    *   Include statistics on the number of records converted.
+    *   Provide sample converted values in the output.
