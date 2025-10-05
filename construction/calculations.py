@@ -377,7 +377,9 @@ class InvestorCalculations(FinancialCalculationService):
         return {
             'investor': {
                 'id': investor.id,
-                'name': investor.name,
+                'name': f"{investor.first_name} {investor.last_name}",
+                'first_name': investor.first_name,
+                'last_name': investor.last_name,
                 'participation_type': investor.participation_type
             },
             'amounts': {
@@ -388,11 +390,12 @@ class InvestorCalculations(FinancialCalculationService):
                 'total_balance': total_balance
             },
             'amounts_toman': {
-                'total_principal': FinancialCalculationService.convert_to_toman(float(total_principal)),
-                'total_withdrawal': FinancialCalculationService.convert_to_toman(abs(float(total_withdrawal))),
-                'total_profit': FinancialCalculationService.convert_to_toman(float(total_profit)),
-                'net_principal': FinancialCalculationService.convert_to_toman(net_principal),
-                'total_balance': FinancialCalculationService.convert_to_toman(total_balance)
+                # دقیقاً همان مقادیر دیتابیس بدون تبدیل
+                'total_principal': float(total_principal),
+                'total_withdrawal': abs(float(total_withdrawal)),
+                'total_profit': float(total_profit),
+                'net_principal': net_principal,
+                'total_balance': total_balance
             }
         }
     
