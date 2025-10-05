@@ -396,11 +396,8 @@ globs: *
     *   If discrepancies are found during the comparison, display a visual alert on the page.
 *   **Chart Simplification:** Remove interactive management features such as closing, hiding, maximizing, and moving charts from the investor profile page (`dashboard/view/investor_profile.html`).
 *   Ensure each chart in the investor profile page (`dashboard/view/investor_profile.html`) occupies a full row.
-*   **Rial to Toman Conversion:** The following rules apply depending on the state of the Rial to Toman conversion in the database:
-    *   **If the database has NOT been converted from Rial to Toman:**
-        *   The JavaScript code must display exactly what is in the database without unit conversion.
-    *   **If the database HAS been converted from Rial to Toman:**
-        *   Remove any code that displays exactly what is in the database without unit conversion.
-*   **Investor Statistics API Endpoints:** Use the amounts_toman field from the `/api/v1/Investor/{id}/detailed_statistics/` API to display values in Toman.
-*   **Investor Ratios API Endpoints:**  Use the formatted fields (e.g., `capital_ratio_formatted`) from the `/api/v1/Investor/{id}/ratios/` API for displaying ratios.
-*   **Data Display:** Display exactly what is in the database without unit conversion.
+*   **Rial to Toman Conversion:**
+    *   **Data Display:** Display exactly what is in the database without unit conversion.
+
+## TRANSACTION MANAGER RULES
+*   The cards in the transaction manager page (`dashboard/view/transaction_manager.html`) and the transaction table must display the exact database values without unit conversion (no division by 10).
