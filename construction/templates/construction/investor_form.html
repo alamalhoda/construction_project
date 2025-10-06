@@ -75,6 +75,16 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
+                                    <label for="contract_date_shamsi" class="form-label">تاریخ قرارداد (شمسی)</label>
+                                    <input class="form-control" id="contract_date_shamsi" type="text" name="contract_date_shamsi"
+                                           placeholder="YYYY-MM-DD" value="{{ object.contract_date_shamsi|default:'' }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
                                     <label for="participation_type" class="form-label">نوع مشارکت <span class="text-danger">*</span></label>
                                     <select class="form-control" id="participation_type" name="participation_type" required>
                                         <option value="">انتخاب کنید...</option>
