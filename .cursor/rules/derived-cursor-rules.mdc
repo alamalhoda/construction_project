@@ -35,6 +35,7 @@ globs: *
     *   `Investor/all_investors_summary/`: Provides a summary of all investors.
     *   `Transaction/detailed_statistics/`: Provides detailed transaction statistics.
     *   `Period/chart_data/`: Provides period data (capital, expenses, sales, fund balance) for charts.
+    *   `Transaction/recalculate_profits/`: Recalculates investor profits based on the current interest rates.
 
 ### COPYRIGHT NOTICE
 *   Always include a copyright notice at the bottom of each page, linking to royasoftteam.ir, formatted as a professional footer. The footer should include the copyright year (currently 2024), a link to RoyaSoftTeam with a code icon, and be styled appropriately for the page (e.g., using Bootstrap). The footer should also be responsive and support dark/light themes where applicable, using CSS variables. The footer on authentication pages (e.g., login, registration) must be fixed to the bottom of the page.
@@ -152,6 +153,16 @@ globs: *
         }
         ```
 *   Ensure each chart in the investor profile page (`dashboard/view/investor_profile.html`) occupies a full row.
+*   When adding a "Recalculate Profits" button to the `interestrate_manager.html` template:
+    *   Add the button with the class `ui orange button` and the `onclick="showRecalculateModal()"` attribute.
+    *   Style the button using CSS to match the existing design, including hover effects and loading states.
+    *   Include a modal for confirming the recalculation with appropriate warnings and prompts.
+    *   Implement JavaScript functions to:
+        *   Initialize and retrieve the CSRF token.
+        *   Show and close the recalculation modal.
+        *   Handle the recalculation process via an API call to `/construction/api/v1/Transaction/recalculate_profits/`.
+        *   Display success or error messages using the `showAlert` function.
+        *   Refresh financial summary and project statistics after a successful recalculation.
 
 ### NUMBER FORMATTING
 *   All numbers in the application must **always** be displayed in English with a 3-digit separator (thousands separator). Use `new Intl.NumberFormat('en-US').format(Math.round(num))` to achieve this.
@@ -409,3 +420,4 @@ globs: *
 
 ## PROJECT DASHBOARD RULES
 *   All data displayed on the project dashboard, including card statistics, must accurately reflect the values stored in the database, without any unit conversions or modifications.
+*   **Building Fund Balance Display:** The building fund balance on the project dashboard must be displayed without decimal places by rounding to the nearest whole number before formatting. Use `Math.round(buildingFundBalance).toLocaleString('en-US')` to achieve this.
