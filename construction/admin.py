@@ -50,10 +50,12 @@ class InvestorAdmin(admin.ModelAdmin):
         "phone",
         "email",
         "participation_type",
+        "contract_date_shamsi",
         "created_at",
     ]
     list_filter = [
         "participation_type",
+        "contract_date_shamsi",
         "created_at",
     ]
     search_fields = [

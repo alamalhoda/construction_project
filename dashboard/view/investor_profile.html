@@ -705,6 +705,7 @@
                     <h4 id="totalBalance">-</h4>
                     <p>سرمایه+سود مشارکت (تومان)</p>
                 </div>
+
                 <!-- کارت نسبت سود به آورده - موقتاً مخفی شده -->
                 <!-- <div class="stat-card">
                     <h4 id="profitRatio">-</h4>
@@ -725,6 +726,10 @@
                 <div class="stat-card profit-index-card">
                     <h4 id="profitIndex">-</h4>
                     <p>شاخص نفع (نسبت سود به سودکل/ نسبت سرمایه به سرمایه کل )</p>
+                </div>
+                <div class="stat-card" style="border: 2px solid #6c757d; background: linear-gradient(135deg, rgba(108, 117, 125, 0.1), rgba(73, 80, 87, 0.1));">
+                    <h4 id="contractDate">-</h4>
+                    <p>تاریخ قرارداد</p>
                 </div>
             </div>
 
@@ -1456,6 +1461,10 @@
                 .then(investorData => {
                     const investorName = `${investorData.first_name} ${investorData.last_name}`;
                     document.getElementById('investorName').textContent = investorName;
+                    const contractDateEl = document.getElementById('contractDate');
+                    if (contractDateEl) {
+                        contractDateEl.textContent = investorData.contract_date_shamsi || '-';
+                    }
                 })
                 .catch(error => {
                     console.error('خطا در دریافت نام سرمایه‌گذار:', error);
