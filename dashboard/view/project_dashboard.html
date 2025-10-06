@@ -1634,7 +1634,7 @@
                 // استفاده از داده‌های cost_metrics از سمت سرور
                 if (comprehensiveAnalysis && comprehensiveAnalysis.cost_metrics) {
                     const buildingFundBalance = comprehensiveAnalysis.cost_metrics.building_fund_balance;
-                    buildingFundBalanceElement.textContent = buildingFundBalance.toLocaleString('en-US');
+                    buildingFundBalanceElement.textContent = Math.round(buildingFundBalance).toLocaleString('en-US');
                 } else {
                     buildingFundBalanceElement.textContent = '-';
                 }
