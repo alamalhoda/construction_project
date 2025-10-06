@@ -23,6 +23,7 @@
                                         <th>شماره تماس</th>
                                         <th>ایمیل</th>
                                         <th>نوع مشارکت</th>
+                                        <th>تاریخ قرارداد</th>
                                         <th>تعداد واحدها</th>
                                         <th>عملیات</th>
                                     </tr>
@@ -47,6 +48,13 @@
                                                 <span class="badge badge-{% if investor.participation_type == 'owner' %}primary{% else %}info{% endif %}">
                                                     {{ investor.get_participation_type_display }}
                                                 </span>
+                                            </td>
+                                            <td>
+                                                {% if investor.contract_date_shamsi %}
+                                                    {{ investor.contract_date_shamsi }}
+                                                {% else %}
+                                                    <span class="text-muted">-</span>
+                                                {% endif %}
                                             </td>
                                             <td>
                                                 <span class="badge badge-secondary">

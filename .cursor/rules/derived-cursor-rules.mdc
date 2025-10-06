@@ -35,6 +35,7 @@ globs: *
     *   `Investor/all_investors_summary/`: Provides a summary of all investors.
     *   `Transaction/detailed_statistics/`: Provides detailed transaction statistics.
     *   `Period/chart_data/`: Provides period data (capital, expenses, sales, fund balance) for charts.
+    *   `Transaction/recalculate_profits/`: Recalculates investor profits based on the current interest rates.
 
 ### COPYRIGHT NOTICE
 *   Always include a copyright notice at the bottom of each page, linking to royasoftteam.ir, formatted as a professional footer. The footer should include the copyright year (currently 2024), a link to RoyaSoftTeam with a code icon, and be styled appropriately for the page (e.g., using Bootstrap). The footer should also be responsive and support dark/light themes where applicable, using CSS variables. The footer on authentication pages (e.g., login, registration) must be fixed to the bottom of the page.
@@ -44,6 +45,13 @@ globs: *
     *   For "Total_Infrastructure", use `max_digits=15` and `decimal_places=2`.
     *   For "Correction_factor", use `max_digits=20` and `decimal_places=10`.
 *   Always include verbose names and help texts for each field to improve readability and usability in forms and admin interfaces.
+*   When adding a new Jalali date field (e.g., "contract_date_jalali" or "contract_date_shamsi") to the `Investor` model, ensure that it is properly integrated into all relevant parts of the project, including:
+    *   Model definition (`construction/models.py`).
+    *   Forms for creating and editing investors (`construction/forms.py`, `construction/templates/construction/investor_form.html`).
+    *   Admin interface (`construction/admin.py`).
+    *   API endpoints and serializers (`construction/api.py`, `construction/serializers.py`).
+    *   Templates for displaying investor information (`construction/templates/construction/investor_list.html`).
+    *   Database migrations.
 
 ### FORM HANDLING
 *   When creating forms, ensure that new model fields are included and properly configured.
@@ -71,8 +79,8 @@ globs: *
             --project-manager-bg: rgba(102, 126, 234, 0.1);     /* Light Purple */
             --supervisor-bg: rgba(255, 193, 7, 0.1);           /* Light Yellow */
             --procurement-bg: rgba(33, 133, 208, 0.1);         /* Light Blue */
-            --warehouse-bg: rgba(40, 167, 69, 0.1);            /* Light Green */
-            --contractor-bg: rgba(255, 152, 0, 0.1);           /* Light Orange */
+            --warehouse-bg: rgba(255, 152, 0, 0.1);            /* Light Orange */
+            --contractor-bg: rgba(40, 167, 69, 0.1);           /* Light Green */
             --other-bg: rgba(255, 255, 255, 0.1);              /* Light White */
         }
         ```
@@ -152,6 +160,19 @@ globs: *
         }
         ```
 *   Ensure each chart in the investor profile page (`dashboard/view/investor_profile.html`) occupies a full row.
+*   When adding a "Recalculate Profits" button to the `interestrate_manager.html` template:
+    *   Add the button with the class `ui orange button` and the `onclick="showRecalculateModal()"` attribute.
+    *   Style the button using CSS to match the existing design, including hover effects and loading states.
+    *   Include a modal for confirming the recalculation with appropriate warnings and prompts.
+    *   Implement JavaScript functions to:
+        *   Initialize and retrieve the CSRF token.
+        *   Show and close the recalculation modal.
+        *   Handle the recalculation process via an API call to `/construction/api/v1/Transaction/recalculate_profits/`.
+        *   Display success or error messages using the `showAlert` function.
+        *   Refresh financial summary and project statistics after a successful recalculation.
+*   **Commenting out columns in `period_list.html`**: When requested to comment out specific columns in a template (e.g., "تاریخ شروع" and "تاریخ پایان" in `period_list.html`), perform the following steps:
+    1.  Locate the corresponding `<th>` elements in the table header and comment them out using HTML comments (`<!-- -->`).
+    2.  Locate the corresponding `<td>` elements in the table body and comment them out using HTML comments (`<!-- -->`).
 
 ### NUMBER FORMATTING
 *   All numbers in the application must **always** be displayed in English with a 3-digit separator (thousands separator). Use `new Intl.NumberFormat('en-US').format(Math.round(num))` to achieve this.
@@ -334,7 +355,7 @@ globs: *
 *   When creating a new backup, if the process stops and throws an error related to `SecurityEvent`, follow these steps:
     1.  Check the import statements in `create_backup.py` for `SecurityEvent`. Ensure that the import path is correct, pointing to the correct location of the `SecurityEvent` model (e.g., `security_monitoring.py`).
     2.  If the `SecurityEvent` model is causing issues, exclude it from the backup process by:
-        *   Removing or commenting out the import statement for `SecurityEvent` in `create_backup.py`.
+        *   Removing or commenting out the import statement for `SecurityEvent`` in `create_backup.py`.
         *   Removing or commenting out the lines related to `security_events` in the `get_database_stats` function within `create_backup.py`.
         *   Removing or commenting out the lines related to `security_events.json` in the list of files created by the backup script within `create_backup.py`.
         *   Excluding the `construction.securityevent` model when creating the complete database fixture using the `--exclude` option.
@@ -409,3 +430,33 @@ globs: *
 
 ## PROJECT DASHBOARD RULES
 *   All data displayed on the project dashboard, including card statistics, must accurately reflect the values stored in the database, without any unit conversions or modifications.
+*   **Building Fund Balance Display:** The building fund balance on the project dashboard must be displayed without decimal places by rounding to the nearest whole number before formatting. Use `Math.round(buildingFundBalance).toLocaleString('en-US')` to achieve this.
+*   **New Cards:** The following cards should be added to the project dashboard, with values calculated server-side:
+    *   تعداد واحدها (Number of Units)
+    *   مجموع متراژ مفید (متر مربع) (Total Net Area (m²))
+    *   ارزش ساختمان (تومان) (Building Value (Toman))
+
+## INTEREST RATE MANAGER RULES
+*   When adding a "Recalculate Profits" button to the `interestrate_manager.html` template:
+    *   Add the button with the class `ui orange button` and the `onclick="showRecalculateModal()"` attribute.
+    *   Style the button using CSS to match the existing design, including hover effects and loading states.
+    *   Include a modal for confirming the recalculation with appropriate warnings and prompts.
+    *   Implement JavaScript functions to:
+        *   Initialize and retrieve the CSRF token.
+        *   Show and close the recalculation modal.
+        *   Handle the recalculation process via an API call to `/construction/api/v1/Transaction/recalculate_profits/`.
+        *   Display success or error messages using the `showAlert` function.
+        *   Refresh financial summary and project statistics after a successful recalculation.
+*   When the "اعمال نرخ سود جدید" (Apply New Interest Rate) button is clicked, a modal window should open. This modal should:
+    *   Fetch the daily interest rate from the server and populate the corresponding field.
+    *   Set the application date to the current date.
+
+## COLOR SCHEME RULES
+*   In the financial summary and all other sections:
+    *   "مرجوعی" (refund) should be displayed in yellow.
+    *   "مانده" (balance) should be displayed in gray.
+    *   **Refund:** Use yellow (#ffc107) for better visibility and differentiation.
+    *   **Balance:** Use gray (#6c757d) for a neutral and balanced display.
+
+## PROJECT DASHBOARD RULES (CONTINUED)
+*   To ensure the new cards "تعداد واحدها (Number of Units)", "مجموع متراژ مفید (متر مربع) (Total

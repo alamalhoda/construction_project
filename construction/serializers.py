@@ -55,6 +55,7 @@ class InvestorSerializer(serializers.ModelSerializer):
             "email",
             "participation_type",
             "units",
+            "contract_date_shamsi",
             "created_at",
         ]
 
