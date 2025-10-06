@@ -436,3 +436,8 @@ globs: *
 *   When the "اعمال نرخ سود جدید" (Apply New Interest Rate) button is clicked, a modal window should open. This modal should:
     *   Fetch the daily interest rate from the server and populate the corresponding field.
     *   Set the application date to the current date.
+
+## COLOR SCHEME RULES
+*   In the financial summary and all other sections:
+    *   "مرجوعی" (refund) should be displayed in yellow.
+    *   "مانده" (balance) should be displayed in gray.

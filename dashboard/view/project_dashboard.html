@@ -52,6 +52,10 @@
             --capital-color-light: rgba(102, 126, 234, 0.1);
             --expense-color: #dc3545;           /* قرمز تیره - هزینه‌ها */
             --expense-color-light: rgba(220, 53, 69, 0.1);
+            --refund-color: #ffc107;            /* زرد - مرجوعی */
+            --refund-color-light: rgba(255, 193, 7, 0.1);
+            --balance-color: #6c757d;           /* خاکستری - مانده */
+            --balance-color-light: rgba(108, 117, 125, 0.1);
             --total-color: #6c757d;             /* خاکستری - مجموع */
             --total-color-light: rgba(108, 117, 125, 0.1);
             
@@ -100,6 +104,10 @@
             --capital-color-light: rgba(149, 117, 205, 0.2);
             --expense-color: #f48fb1;           /* قرمز روشن‌تر - هزینه‌ها */
             --expense-color-light: rgba(244, 143, 177, 0.2);
+            --refund-color: #ffeb3b;            /* زرد روشن‌تر - مرجوعی */
+            --refund-color-light: rgba(255, 235, 59, 0.2);
+            --balance-color: #b0bec5;           /* خاکستری روشن‌تر - مانده */
+            --balance-color-light: rgba(176, 190, 197, 0.2);
             --total-color: #b0bec5;             /* خاکستری روشن‌تر - مجموع */
             --total-color-light: rgba(176, 190, 197, 0.2);
             
@@ -411,9 +419,9 @@
 
         .stat-card.sales-card {
             grid-column: span 2;
-            background: linear-gradient(135deg, var(--profit-color) 0%, #1e7e34 100%);
+            background: linear-gradient(135deg, var(--refund-color) 0%, #e6ac00 100%);
             color: white;
-            box-shadow: 0 12px 40px var(--profit-color-light);
+            box-shadow: 0 12px 40px var(--refund-color-light);
             margin: 10px;
         }
 
@@ -435,9 +443,9 @@
 
         .stat-card.building-fund-card {
             grid-column: span 2;
-            background: linear-gradient(135deg, var(--capital-color) 0%, #5a67d8 100%);
+            background: linear-gradient(135deg, var(--balance-color) 0%, #495057 100%);
             color: white;
-            box-shadow: 0 12px 40px var(--capital-color-light);
+            box-shadow: 0 12px 40px var(--balance-color-light);
             margin: 10px;
         }
 
@@ -2667,15 +2675,15 @@
                         {
                             label: 'فروش/مرجوعی (میلیون تومان)',
                             data: salesData,
-                            backgroundColor: 'rgba(33, 186, 69, 0.6)', // سبز - فروش
-                            borderColor: 'rgba(33, 186, 69, 1)',
+                            backgroundColor: 'rgba(255, 193, 7, 0.6)', // زرد - مرجوعی
+                            borderColor: 'rgba(255, 193, 7, 1)',
                             borderWidth: 1
                         },
                         {
                             label: 'مانده صندوق (میلیون تومان)',
                             data: fundBalanceData,
-                            backgroundColor: 'rgba(102, 126, 234, 0.6)', // بنفش - سرمایه موجود
-                            borderColor: 'rgba(102, 126, 234, 1)',
+                            backgroundColor: 'rgba(108, 117, 125, 0.6)', // خاکستری - مانده
+                            borderColor: 'rgba(108, 117, 125, 1)',
                             borderWidth: 1
                         }
                     ]
@@ -2769,26 +2777,26 @@
                         {
                             label: 'مرجوعی تجمعی (میلیون تومان)',
                             data: cumulativeSalesData,
-                            borderColor: 'rgba(33, 186, 69, 1)', // سبز
-                            backgroundColor: 'rgba(33, 186, 69, 0.1)',
+                            borderColor: 'rgba(255, 193, 7, 1)', // زرد
+                            backgroundColor: 'rgba(255, 193, 7, 0.1)',
                             fill: false,
                             tension: 0.3,
                             borderWidth: 3,
                             pointRadius: 5,
-                            pointBackgroundColor: 'rgba(33, 186, 69, 1)',
+                            pointBackgroundColor: 'rgba(255, 193, 7, 1)',
                             pointBorderColor: '#ffffff',
                             pointBorderWidth: 2
                         },
                         {
                             label: 'مانده صندوق (میلیون تومان)',
                             data: fundBalanceData,
-                            borderColor: 'rgba(102, 126, 234, 1)', // بنفش
-                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            borderColor: 'rgba(108, 117, 125, 1)', // خاکستری
+                            backgroundColor: 'rgba(108, 117, 125, 0.1)',
                             fill: false,
                             tension: 0.3,
                             borderWidth: 4,
                             pointRadius: 6,
-                            pointBackgroundColor: 'rgba(102, 126, 234, 1)',
+                            pointBackgroundColor: 'rgba(108, 117, 125, 1)',
                             pointBorderColor: '#ffffff',
                             pointBorderWidth: 3,
                             borderDash: [5, 5] // خط چین برای تمایز
