@@ -421,6 +421,10 @@ globs: *
 ## PROJECT DASHBOARD RULES
 *   All data displayed on the project dashboard, including card statistics, must accurately reflect the values stored in the database, without any unit conversions or modifications.
 *   **Building Fund Balance Display:** The building fund balance on the project dashboard must be displayed without decimal places by rounding to the nearest whole number before formatting. Use `Math.round(buildingFundBalance).toLocaleString('en-US')` to achieve this.
+*   **New Cards:** The following cards should be added to the project dashboard, with values calculated server-side:
+    *   تعداد واحدها (Number of Units)
+    *   مجموع متراژ مفید (متر مربع) (Total Net Area (m²))
+    *   ارزش ساختمان (تومان) (Building Value (Toman))
 
 ## INTEREST RATE MANAGER RULES
 *   When adding a "Recalculate Profits" button to the `interestrate_manager.html` template:
@@ -441,3 +445,22 @@ globs: *
 *   In the financial summary and all other sections:
     *   "مرجوعی" (refund) should be displayed in yellow.
     *   "مانده" (balance) should be displayed in gray.
+    *   **Refund:** Use yellow (#ffc107) for better visibility and differentiation.
+    *   **Balance:** Use gray (#6c757d) for a neutral and balanced display.
+
+## PROJECT DASHBOARD RULES (CONTINUED)
+*   To ensure the new cards "تعداد واحدها (Number of Units)", "مجموع متراژ مفید (متر مربع) (Total Net Area (m²))", and "ارزش ساختمان (تومان) (Building Value (Toman))" are correctly displayed on the project dashboard:
+    *   The project statistics API must be called in both the old and new financial service methods.
+    *   The `processData` function must accept a `projectStatsData` parameter.
+    *   The `updateStats` function must accept a `projectStatsData` parameter.
+    *   The HTML elements for the new cards must be updated with the data from the `projectStatsData` object.
+*   The new cards added to the project dashboard have the following characteristics:
+    *   **تعداد واحدها (Number of Units)**:
+        *   Icon: building
+        *   Color: purple (standard capital color)
+    *   **مجموع متراژ مفید (متر مربع) (Total Net Area (m²))**:
+        *   Icon: ruler
+        *   Color: green (standard profit color)
+    *   **ارزش ساختمان (تومان) (Building Value (Toman))**:
+        *   Icon: dollar
+        *   Color: blue (standard deposit color)
