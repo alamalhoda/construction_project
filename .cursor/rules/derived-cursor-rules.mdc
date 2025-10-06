@@ -72,8 +72,8 @@ globs: *
             --project-manager-bg: rgba(102, 126, 234, 0.1);     /* Light Purple */
             --supervisor-bg: rgba(255, 193, 7, 0.1);           /* Light Yellow */
             --procurement-bg: rgba(33, 133, 208, 0.1);         /* Light Blue */
-            --warehouse-bg: rgba(40, 167, 69, 0.1);            /* Light Green */
-            --contractor-bg: rgba(255, 152, 0, 0.1);           /* Light Orange */
+            --warehouse-bg: rgba(255, 152, 0, 0.1);            /* Light Orange */
+            --contractor-bg: rgba(40, 167, 69, 0.1);           /* Light Green */
             --other-bg: rgba(255, 255, 255, 0.1);              /* Light White */
         }
         ```
@@ -464,3 +464,6 @@ globs: *
     *   **ارزش ساختمان (تومان) (Building Value (Toman))**:
         *   Icon: dollar
         *   Color: blue (standard deposit color)
+
+## EXPENSE TYPE COLORING RULES
+*   The background colors for "انباردار" (warehouse) and
