@@ -421,3 +421,18 @@ globs: *
 ## PROJECT DASHBOARD RULES
 *   All data displayed on the project dashboard, including card statistics, must accurately reflect the values stored in the database, without any unit conversions or modifications.
 *   **Building Fund Balance Display:** The building fund balance on the project dashboard must be displayed without decimal places by rounding to the nearest whole number before formatting. Use `Math.round(buildingFundBalance).toLocaleString('en-US')` to achieve this.
+
+## INTEREST RATE MANAGER RULES
+*   When adding a "Recalculate Profits" button to the `interestrate_manager.html` template:
+    *   Add the button with the class `ui orange button` and the `onclick="showRecalculateModal()"` attribute.
+    *   Style the button using CSS to match the existing design, including hover effects and loading states.
+    *   Include a modal for confirming the recalculation with appropriate warnings and prompts.
+    *   Implement JavaScript functions to:
+        *   Initialize and retrieve the CSRF token.
+        *   Show and close the recalculation modal.
+        *   Handle the recalculation process via an API call to `/construction/api/v1/Transaction/recalculate_profits/`.
+        *   Display success or error messages using the `showAlert` function.
+        *   Refresh financial summary and project statistics after a successful recalculation.
+*   When the "اعمال نرخ سود جدید" (Apply New Interest Rate) button is clicked, a modal window should open. This modal should:
+    *   Fetch the daily interest rate from the server and populate the corresponding field.
+    *   Set the application date to the current date.

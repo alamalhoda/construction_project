@@ -1341,7 +1341,7 @@
             <div class="section-title">
                 <span>
                     <i class="fas fa-list"></i>
-                    لیست سودها(<a style="color:black;font-size:14px;" href="../../construction/InterestRate/">ویرایش سود</a>)
+                    لیست سودها
                 </span>
                 <br> <span style="color:black;font-size:1.2rem;"></span>
 
@@ -1396,7 +1396,7 @@
                 <div class="modal-header">
                     <h5 class="modal-title" id="addRateModalLabel">
                         <i class="fas fa-plus-circle"></i>
-                        افزودن نرخ سود جدید
+                        اعمال نرخ سود جدید
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -1509,6 +1509,7 @@
             loadProjectStatistics();
             initializeTooltips();
             initializeCSRFToken();
+            initializeModalEvents();
         });
 
         // Initialize Persian date pickers
@@ -1668,7 +1669,7 @@
 
         // Display current rate
         function displayCurrentRate(rate) {
-            const rateValue = (rate.rate * 100).toFixed(6) + '%';
+            const rateValue = (rate.rate * 100).toFixed(12) + '%';
             const rateDate = rate.effective_date_display || rate.effective_date;
             
             document.getElementById('currentRateValue').textContent = rateValue;
@@ -2399,6 +2400,90 @@
             .finally(() => {
                 recalculateBtn.removeClass('loading');
             });
+        }
+
+        // Initialize modal events
+        function initializeModalEvents() {
+            // Add event listener for when the add rate modal is shown
+            const addRateModal = document.getElementById('addRateModal');
+            if (addRateModal) {
+                addRateModal.addEventListener('show.bs.modal', function () {
+                    fillAddRateForm();
+                });
+            }
+        }
+
+        // Fill add rate form with current data
+        async function fillAddRateForm() {
+            try {
+                // Get current rate from server
+                const currentRate = await getCurrentRateFromServer();
+                
+                // Set today's date
+                const today = getTodayPersianDate();
+                
+                // Fill the form fields
+                const rateInput = document.getElementById('rate');
+                const effectiveDateInput = document.getElementById('effective_date');
+                const isActiveSelect = document.getElementById('is_active');
+                
+                if (rateInput && currentRate) {
+                    rateInput.value = currentRate.rate;
+                }
+                
+                if (effectiveDateInput) {
+                    effectiveDateInput.value = today;
+                }
+                
+                if (isActiveSelect) {
+                    isActiveSelect.value = 'true'; // Default to active
+                }
+                
+                console.log('Form filled with:', {
+                    rate: currentRate ? currentRate.rate : 'No current rate',
+                    effective_date: today
+                });
+                
+            } catch (error) {
+                console.error('Error filling form:', error);
+                // Still set today's date even if getting current rate fails
+                const today = getTodayPersianDate();
+                const effectiveDateInput = document.getElementById('effective_date');
+                if (effectiveDateInput) {
+                    effectiveDateInput.value = today;
+                }
+            }
+        }
+
+        // Get current rate from server
+        async function getCurrentRateFromServer() {
+            try {
+                const response = await fetch(`${API_BASE}InterestRate/current/`);
+                if (response.ok) {
+                    const currentRate = await response.json();
+                    return currentRate;
+                } else {
+                    console.warn('No current rate found');
+                    return null;
+                }
+            } catch (error) {
+                console.error('Error fetching current rate:', error);
+                return null;
+            }
+        }
+
+        // Get today's date in Persian format
+        function getTodayPersianDate() {
+            try {
+                // Create Persian date object for today
+                const today = new persianDate();
+                const persianDateString = today.format('YYYY-MM-DD');
+                return persianDateString;
+            } catch (error) {
+                console.error('Error getting Persian date:', error);
+                // Fallback to a default date
+                return '1403-01-01';
+            }
         }
     </script>
 </body>
