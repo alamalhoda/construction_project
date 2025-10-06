@@ -52,6 +52,10 @@
             --capital-color-light: rgba(102, 126, 234, 0.1);
             --expense-color: #dc3545;           /* قرمز تیره - هزینه‌ها */
             --expense-color-light: rgba(220, 53, 69, 0.1);
+            --refund-color: #ffc107;            /* زرد - مرجوعی */
+            --refund-color-light: rgba(255, 193, 7, 0.1);
+            --balance-color: #6c757d;           /* خاکستری - مانده */
+            --balance-color-light: rgba(108, 117, 125, 0.1);
             --total-color: #6c757d;             /* خاکستری - مجموع */
             --total-color-light: rgba(108, 117, 125, 0.1);
             
@@ -100,6 +104,10 @@
             --capital-color-light: rgba(149, 117, 205, 0.2);
             --expense-color: #f48fb1;           /* قرمز روشن‌تر - هزینه‌ها */
             --expense-color-light: rgba(244, 143, 177, 0.2);
+            --refund-color: #ffeb3b;            /* زرد روشن‌تر - مرجوعی */
+            --refund-color-light: rgba(255, 235, 59, 0.2);
+            --balance-color: #b0bec5;           /* خاکستری روشن‌تر - مانده */
+            --balance-color-light: rgba(176, 190, 197, 0.2);
             --total-color: #b0bec5;             /* خاکستری روشن‌تر - مجموع */
             --total-color-light: rgba(176, 190, 197, 0.2);
             
@@ -411,9 +419,9 @@
 
         .stat-card.sales-card {
             grid-column: span 2;
-            background: linear-gradient(135deg, var(--profit-color) 0%, #1e7e34 100%);
+            background: linear-gradient(135deg, var(--refund-color) 0%, #e6ac00 100%);
             color: white;
-            box-shadow: 0 12px 40px var(--profit-color-light);
+            box-shadow: 0 12px 40px var(--refund-color-light);
             margin: 10px;
         }
 
@@ -435,9 +443,9 @@
 
         .stat-card.building-fund-card {
             grid-column: span 2;
-            background: linear-gradient(135deg, var(--capital-color) 0%, #5a67d8 100%);
+            background: linear-gradient(135deg, var(--balance-color) 0%, #495057 100%);
             color: white;
-            box-shadow: 0 12px 40px var(--capital-color-light);
+            box-shadow: 0 12px 40px var(--balance-color-light);
             margin: 10px;
         }
 
@@ -453,6 +461,78 @@
         }
 
         .stat-card.building-fund-card p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+        }
+
+        .stat-card.units-card {
+            grid-column: span 1;
+            background: linear-gradient(135deg, var(--capital-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            box-shadow: 0 12px 40px var(--capital-color-light);
+            margin: 10px;
+        }
+
+        .stat-card.units-card i {
+            color: white;
+            font-size: 3rem;
+        }
+
+        .stat-card.units-card h3 {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+
+        .stat-card.units-card p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+        }
+
+        .stat-card.area-card {
+            grid-column: span 1;
+            background: linear-gradient(135deg, var(--profit-color) 0%, #1e7e34 100%);
+            color: white;
+            box-shadow: 0 12px 40px var(--profit-color-light);
+            margin: 10px;
+        }
+
+        .stat-card.area-card i {
+            color: white;
+            font-size: 3rem;
+        }
+
+        .stat-card.area-card h3 {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+
+        .stat-card.area-card p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+        }
+
+        .stat-card.value-card {
+            grid-column: span 2;
+            background: linear-gradient(135deg, var(--deposit-color) 0%, #1a5490 100%);
+            color: white;
+            box-shadow: 0 12px 40px var(--deposit-color-light);
+            margin: 10px;
+        }
+
+        .stat-card.value-card i {
+            color: white;
+            font-size: 3rem;
+        }
+
+        .stat-card.value-card h3 {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+
+        .stat-card.value-card p {
             color: rgba(255, 255, 255, 0.9);
             font-size: 1.1rem;
         }
@@ -1017,7 +1097,24 @@
                     <p>مانده صندوق ساختمان (تومان)</p>
                 </div>
                 
-                <!-- ردیف چهارم: نرخ سود -->
+                <!-- ردیف چهارم: آمار واحدها -->
+                <div class="stat-card units-card">
+                    <i class="fas fa-building"></i>
+                    <h3 id="totalUnits">-</h3>
+                    <p>تعداد واحدها</p>
+                </div>
+                <div class="stat-card area-card">
+                    <i class="fas fa-ruler-combined"></i>
+                    <h3 id="totalArea">-</h3>
+                    <p>مجموع متراژ مفید (متر مربع)</p>
+                </div>
+                <div class="stat-card value-card">
+                    <i class="fas fa-dollar-sign"></i>
+                    <h3 id="totalValue">-</h3>
+                    <p>ارزش ساختمان (تومان)</p>
+                </div>
+                
+                <!-- ردیف پنجم: نرخ سود -->
                 <div class="stat-card interest-rate-card">
                     <i class="fas fa-percentage"></i>
                     <h3 id="currentInterestRate">-</h3>
@@ -1204,7 +1301,7 @@
                 }
                 
                 // بارگذاری موازی همه داده‌ها (روش قدیمی)
-                const [transactionsResponse, investorsResponse, projectsResponse, interestRateResponse, expensesResponse, timelineResponse, statisticsResponse, participationStatsResponse] = await Promise.all([
+                const [transactionsResponse, investorsResponse, projectsResponse, interestRateResponse, expensesResponse, timelineResponse, statisticsResponse, participationStatsResponse, projectStatsResponse] = await Promise.all([
                     fetch('/construction/api/v1/Transaction/'),
                     fetch('/construction/api/v1/Investor/'),
                     fetch('/construction/api/v1/Project/').catch(err => {
@@ -1229,6 +1326,10 @@
                     }),
                     fetch('/construction/api/v1/Investor/participation_stats/').catch(err => {
                         console.warn('خطا در دسترسی به API آمار مشارکت:', err);
+                        return { ok: false, status: 404 }; // fallback response
+                    }),
+                    fetch('/construction/api/v1/Project/project_statistics_detailed/').catch(err => {
+                        console.warn('خطا در دسترسی به API آمار پروژه:', err);
                         return { ok: false, status: 404 }; // fallback response
                     })
                 ]);
@@ -1287,6 +1388,15 @@
                 } else {
                     console.warn('API زمان‌بندی پروژه دسترسی ندارد');
                     timelineData = null;
+                }
+                
+                // اگر project statistics API دسترسی داشت، آن را بارگذاری کن
+                let projectStatsData = null;
+                if (projectStatsResponse.ok) {
+                    projectStatsData = await projectStatsResponse.json();
+                    console.log('داده‌های آمار پروژه بارگذاری شدند:', projectStatsData);
+                } else {
+                    console.warn('API آمار پروژه دسترسی ندارد');
                 }
                 
                 // اگر آمار کلی API دسترسی داشت، آن را بارگذاری کن
@@ -1368,11 +1478,15 @@
                     grand_total: projectStats.transaction_statistics.grand_total
                 };
                 
-                // بارگذاری تراکنش‌ها، سرمایه‌گذاران و داده‌های نمودار دوره‌ای
-                const [transactionsResponse, investorsResponse, periodChartResponse] = await Promise.all([
+                // بارگذاری تراکنش‌ها، سرمایه‌گذاران، داده‌های نمودار دوره‌ای و آمار پروژه
+                const [transactionsResponse, investorsResponse, periodChartResponse, projectStatsResponse] = await Promise.all([
                     fetch('/construction/api/v1/Transaction/'),
                     fetch('/construction/api/v1/Investor/'),
-                    fetch('/construction/api/v1/Period/chart_data/')
+                    fetch('/construction/api/v1/Period/chart_data/'),
+                    fetch('/construction/api/v1/Project/project_statistics_detailed/').catch(err => {
+                        console.warn('خطا در دسترسی به API آمار پروژه:', err);
+                        return { ok: false, status: 404 }; // fallback response
+                    })
                 ]);
                 
                 if (transactionsResponse.ok && investorsResponse.ok) {
@@ -1442,8 +1556,17 @@
                     active_investor: projectStats.investor_statistics.investors_count
                 };
                 
+                // بارگذاری آمار پروژه (واحدها، متراژ، ارزش)
+                let projectStatsData = null;
+                if (projectStatsResponse.ok) {
+                    projectStatsData = await projectStatsResponse.json();
+                    console.log('📊 داده‌های آمار پروژه بارگذاری شدند:', projectStatsData);
+                } else {
+                    console.warn('⚠️ API آمار پروژه دسترسی ندارد');
+                }
+                
                 console.log('✅ تمام داده‌ها از سرویس محاسبات مالی بارگذاری شدند');
-                processData(comprehensiveAnalysis);
+                processData(comprehensiveAnalysis, projectStatsData);
                 
             } catch (error) {
                 console.error('❌ خطا در بارگذاری داده‌ها از سرویس محاسبات مالی:', error);
@@ -1458,11 +1581,11 @@
             document.getElementById('error').style.display = 'block';
         }
 
-        async function processData(comprehensiveAnalysis = null) {
+        async function processData(comprehensiveAnalysis = null, projectStatsData = null) {
             document.getElementById('loading').style.display = 'none';
             document.getElementById('content').style.display = 'block';
 
-            updateStats(comprehensiveAnalysis);
+            updateStats(comprehensiveAnalysis, projectStatsData);
             createInvestorDistributionChart();
             
             // نمودارهای جدید از investor_profile
@@ -1478,11 +1601,11 @@
             await createSummaryTable();
         }
 
-        function updateStats(comprehensiveAnalysis = null) {
+        function updateStats(comprehensiveAnalysis = null, projectStatsData = null) {
             // بررسی اینکه آیا از سرویس محاسبات مالی استفاده می‌کنیم یا نه
             if (globalStatistics && globalStatistics.net_principal !== undefined) {
                 // استفاده از محاسبات سمت سرور
-                updateStatsFromServer(comprehensiveAnalysis);
+                updateStatsFromServer(comprehensiveAnalysis, projectStatsData);
                 return;
             }
             
@@ -1491,7 +1614,7 @@
         }
         
         // تابع جدید برای به‌روزرسانی آمار از سمت سرور
-        function updateStatsFromServer(comprehensiveAnalysis = null) {
+        function updateStatsFromServer(comprehensiveAnalysis = null, projectStatsData = null) {
             console.log('📊 به‌روزرسانی آمار از سمت سرور...');
             
             // دریافت داده‌ها از متغیرهای سراسری
@@ -1532,7 +1655,23 @@
             if (participationStats) {
                 document.getElementById('ownerCount').textContent = participationStats.active_owner.toLocaleString('en-US');
                 document.getElementById('investorCount').textContent = participationStats.active_investor.toLocaleString('en-US');
+            }
+            
+            // به‌روزرسانی آمار واحدها، متراژ و ارزش ساختمان
+            if (projectStatsData && projectStatsData.units_statistics) {
+                const unitsStats = projectStatsData.units_statistics;
+                document.getElementById('totalUnits').textContent = (unitsStats.total_units || 0).toLocaleString('en-US');
+                document.getElementById('totalArea').textContent = Math.round(unitsStats.total_area || 0).toLocaleString('en-US');
+                document.getElementById('totalValue').textContent = Math.round(unitsStats.total_price || 0).toLocaleString('en-US');
             } else {
+                // Fallback values if API is not available
+                document.getElementById('totalUnits').textContent = '0';
+                document.getElementById('totalArea').textContent = '0';
+                document.getElementById('totalValue').textContent = '0';
+            }
+            
+            // Fallback for participation stats if not available from API
+            if (!participationStats) {
                 const ownerCount = allInvestors.filter(inv => inv.participation_type === 'owner').length;
                 const investorCount = allInvestors.filter(inv => inv.participation_type === 'investor').length;
                 document.getElementById('ownerCount').textContent = ownerCount.toLocaleString('en-US');
@@ -1634,7 +1773,7 @@
                 // استفاده از داده‌های cost_metrics از سمت سرور
                 if (comprehensiveAnalysis && comprehensiveAnalysis.cost_metrics) {
                     const buildingFundBalance = comprehensiveAnalysis.cost_metrics.building_fund_balance;
-                    buildingFundBalanceElement.textContent = buildingFundBalance.toLocaleString('en-US');
+                    buildingFundBalanceElement.textContent = Math.round(buildingFundBalance).toLocaleString('en-US');
                 } else {
                     buildingFundBalanceElement.textContent = '-';
                 }
@@ -1732,6 +1871,19 @@
                 const investorCount = allInvestors.filter(inv => inv.participation_type === 'investor').length;
                 document.getElementById('ownerCount').textContent = ownerCount.toLocaleString('en-US');
                 document.getElementById('investorCount').textContent = investorCount.toLocaleString('en-US');
+            }
+            
+            // به‌روزرسانی آمار واحدها، متراژ و ارزش ساختمان (روش دوم)
+            if (projectStatsData && projectStatsData.units_statistics) {
+                const unitsStats = projectStatsData.units_statistics;
+                document.getElementById('totalUnits').textContent = (unitsStats.total_units || 0).toLocaleString('en-US');
+                document.getElementById('totalArea').textContent = Math.round(unitsStats.total_area || 0).toLocaleString('en-US');
+                document.getElementById('totalValue').textContent = Math.round(unitsStats.total_price || 0).toLocaleString('en-US');
+            } else {
+                // Fallback values if API is not available
+                document.getElementById('totalUnits').textContent = '0';
+                document.getElementById('totalArea').textContent = '0';
+                document.getElementById('totalValue').textContent = '0';
             }
             
             // به‌روزرسانی timeline data اگر موجود باشد
@@ -2667,15 +2819,15 @@
                         {
                             label: 'فروش/مرجوعی (میلیون تومان)',
                             data: salesData,
-                            backgroundColor: 'rgba(33, 186, 69, 0.6)', // سبز - فروش
-                            borderColor: 'rgba(33, 186, 69, 1)',
+                            backgroundColor: 'rgba(255, 193, 7, 0.6)', // زرد - مرجوعی
+                            borderColor: 'rgba(255, 193, 7, 1)',
                             borderWidth: 1
                         },
                         {
                             label: 'مانده صندوق (میلیون تومان)',
                             data: fundBalanceData,
-                            backgroundColor: 'rgba(102, 126, 234, 0.6)', // بنفش - سرمایه موجود
-                            borderColor: 'rgba(102, 126, 234, 1)',
+                            backgroundColor: 'rgba(108, 117, 125, 0.6)', // خاکستری - مانده
+                            borderColor: 'rgba(108, 117, 125, 1)',
                             borderWidth: 1
                         }
                     ]
@@ -2769,26 +2921,26 @@
                         {
                             label: 'مرجوعی تجمعی (میلیون تومان)',
                             data: cumulativeSalesData,
-                            borderColor: 'rgba(33, 186, 69, 1)', // سبز
-                            backgroundColor: 'rgba(33, 186, 69, 0.1)',
+                            borderColor: 'rgba(255, 193, 7, 1)', // زرد
+                            backgroundColor: 'rgba(255, 193, 7, 0.1)',
                             fill: false,
                             tension: 0.3,
                             borderWidth: 3,
                             pointRadius: 5,
-                            pointBackgroundColor: 'rgba(33, 186, 69, 1)',
+                            pointBackgroundColor: 'rgba(255, 193, 7, 1)',
                             pointBorderColor: '#ffffff',
                             pointBorderWidth: 2
                         },
                         {
                             label: 'مانده صندوق (میلیون تومان)',
                             data: fundBalanceData,
-                            borderColor: 'rgba(102, 126, 234, 1)', // بنفش
-                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            borderColor: 'rgba(108, 117, 125, 1)', // خاکستری
+                            backgroundColor: 'rgba(108, 117, 125, 0.1)',
                             fill: false,
                             tension: 0.3,
                             borderWidth: 4,
                             pointRadius: 6,
-                            pointBackgroundColor: 'rgba(102, 126, 234, 1)',
+                            pointBackgroundColor: 'rgba(108, 117, 125, 1)',
                             pointBorderColor: '#ffffff',
                             pointBorderWidth: 3,
                             borderDash: [5, 5] // خط چین برای تمایز

@@ -66,6 +66,7 @@ class InvestorForm(forms.ModelForm):
             "email",
             "participation_type",
             "units",
+            "contract_date_shamsi",
         ]
 
 
