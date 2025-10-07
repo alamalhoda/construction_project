@@ -450,13 +450,8 @@ globs: *
 *   When the "اعمال نرخ سود جدید" (Apply New Interest Rate) button is clicked, a modal window should open. This modal should:
     *   Fetch the daily interest rate from the server and populate the corresponding field.
     *   Set the application date to the current date.
-
-## COLOR SCHEME RULES
-*   In the financial summary and all other sections:
-    *   "مرجوعی" (refund) should be displayed in yellow.
-    *   "مانده" (balance) should be displayed in gray.
-    *   **Refund:** Use yellow (#ffc107) for better visibility and differentiation.
-    *   **Balance:** Use gray (#6c757d) for a neutral and balanced display.
-
-## PROJECT DASHBOARD RULES (CONTINUED)
-*   To ensure the new cards "تعداد واحدها (Number of Units)", "مجموع متراژ مفید (متر مربع) (Total
+    *   The daily interest rate is fetched from the server via the API endpoint `/api/v1/InterestRate/current/`.
+    *   The API endpoint in `construction/api.py` retrieves the current active interest rate from the database.
+    *   The current date is set as the application date in the modal form, using the `getTodayPersianDate()` function to format it as a Jalali date.
+*   When the "اعمال نرخ سود جدید" (Apply New Interest Rate) button is clicked, the modal window should display the calculated `dailyProfitPercentage` instead of the rate stored in the database.
+    *   The `dailyProfitPercentage
