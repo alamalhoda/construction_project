@@ -362,6 +362,9 @@ globs: *
         *   Returns sale statistics by period, including cumulative sales for each period.
     *   `/Expense/with_periods/`:
         *   Returns expenses with period information and statistics.
+*   **Investor Activity Status**:
+    *   An **active investor** is defined as an investor with at least one financial transaction in the project.
+    *   An **inactive investor** is defined as an investor without any financial transactions in the project.
 
 ## TECH STACK
 *   (Add the used technologies, frameworks, libraries, versions, etc. Example: Python 3.9, Django 3.2, React 17, Bootstrap 5)
@@ -463,7 +466,4 @@ globs: *
     *   Ensure that tooltips display numbers in millions of Toman when the chart label indicates "(Million Toman)".
     *   In the Period Chart and Cumulative Trend Chart, the capital color must be purple, matching the project's standard color (`--capital-color`).
 *   **Investor Profile Charts:** The charts in the investor profile page (`dashboard/view/investor_profile.html`) must be simplified to resemble the charts on the project dashboard. This involves removing interactive management features such as closing, hiding, maximizing, and moving charts. Each chart must occupy a full row. The charts in the investor profile page (`dashboard/view/investor_profile.html`) must occupy a full row.
-*   **Investor Trend Chart Colors:**
-    *   The investor capital line should be purple.
-    *   The investor unit cost line should be red.
-    *   **Investor Trend Chart Data:** The investor capital data displayed in the investor trend chart must be
+*
