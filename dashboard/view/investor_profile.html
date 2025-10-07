@@ -2297,26 +2297,43 @@
 
                 console.log('🔍 داده‌های ماهانه:', monthlyData);
 
-                // محاسبه سرمایه موجود تجمعی (همان منطق نمودار ماهانه)
-                const months = Object.keys(monthlyData).sort();
+                // دریافت تمام دوره‌ها از API (مبنا دوره است، نه تراکنش‌ها)
+                const periodsResponse = await fetch(`/construction/api/v1/Period/chart_data/`);
+                const periodsData = await periodsResponse.json();
+                
+                if (!periodsData.success) {
+                    console.warn('⚠️ API دوره‌ها موفق نبود');
+                    return;
+                }
+                
+                // تبدیل دوره‌ها به فرمت ماهانه (شمسی)
+                const allMonths = periodsData.data.map(period => `${period.year}-${String(period.month_number).padStart(2, '0')}`).sort();
+                
+                console.log('🔍 تمام دوره‌ها:', allMonths);
+                
+                // محاسبه سرمایه موجود تجمعی برای تمام دوره‌ها
                 const cumulativePrincipalTotals = [];
                 let cumulativeSum = 0;
-                months.forEach(month => {
-                    const monthlyNet = monthlyData[month].principal + monthlyData[month].withdrawal;
-                    cumulativeSum += monthlyNet;
+                
+                allMonths.forEach(month => {
+                    // اگر تراکنش در این ماه وجود دارد، از آن استفاده کن
+                    if (monthlyData[month]) {
+                        const monthlyNet = monthlyData[month].principal + monthlyData[month].withdrawal;
+                        cumulativeSum += monthlyNet;
+                    }
+                    // اگر تراکنش وجود ندارد، همان مقدار قبلی را نگه دار
                     cumulativePrincipalTotals.push(cumulativeSum / BASE_AMOUNT);
                 });
 
-                console.log('🔍 ماه‌ها:', months);
-                console.log('🔍 سرمایه موجود تجمعی:', cumulativePrincipalTotals);
+                console.log('🔍 سرمایه موجود تجمعی برای تمام دوره‌ها:', cumulativePrincipalTotals);
 
-                // محاسبه هزینه واحد برای هر ماه
-                const unitCostData = await calculateUnitCostForMonths(months, investorId);
+                // محاسبه هزینه واحد برای تمام دوره‌ها
+                const unitCostData = await calculateUnitCostForMonths(allMonths, investorId);
                 
                 console.log('🔍 هزینه واحد:', unitCostData);
                 
                 // ایجاد نمودار با داده‌های محاسبه شده
-                createInvestorTrendChart(months, cumulativePrincipalTotals, unitCostData);
+                createInvestorTrendChart(allMonths, cumulativePrincipalTotals, unitCostData);
                 
             } catch (error) {
                 console.error('خطا در بارگذاری داده‌های ترند:', error);
