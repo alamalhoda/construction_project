@@ -1403,7 +1403,7 @@
                 <div class="modal-body">
                     <form id="addRateForm">
                         <div class="form-group">
-                            <label for="rate" class="form-label">نرخ سود روزانه</label>
+                            <label for="rate" class="form-label">نرخ سود روزانه محاسبه شده</label>
                             <input type="number" 
                                    class="form-control" 
                                    id="rate" 
@@ -1411,7 +1411,7 @@
                                    step="0.000000000000001"
                                    placeholder="مثال: 0.000481925679775"
                                    required>
-                            <small class="form-text text-muted">نرخ سود روزانه به صورت اعشاری</small>
+                            <small class="form-text text-muted">نرخ سود روزانه محاسبه شده بر اساس تحلیل جامع پروژه (به صورت اعشاری)</small>
                         </div>
                         
                         <div class="form-group">
@@ -2014,8 +2014,8 @@
                     annualProfitPercentage
                 });
                 
-                // Calculate monthly and daily profit percentages
-                calculateMonthlyAndDailyProfitPercentage(annualProfitPercentage);
+                // Monthly and daily profit percentages are now calculated by server API
+                // calculateMonthlyAndDailyProfitPercentage(annualProfitPercentage); // Disabled - using server API instead
                 
             } catch (error) {
                 console.error('Error calculating annual profit percentage:', error);
@@ -2416,8 +2416,8 @@
         // Fill add rate form with current data
         async function fillAddRateForm() {
             try {
-                // Get current rate from server
-                const currentRate = await getCurrentRateFromServer();
+                // Get calculated daily profit percentage from server
+                const dailyProfitPercentage = await getDailyProfitPercentageFromServer();
                 
                 // Set today's date
                 const today = getTodayPersianDate();
@@ -2427,8 +2427,9 @@
                 const effectiveDateInput = document.getElementById('effective_date');
                 const isActiveSelect = document.getElementById('is_active');
                 
-                if (rateInput && currentRate) {
-                    rateInput.value = currentRate.rate;
+                if (rateInput && dailyProfitPercentage !== null) {
+                    // dailyProfitPercentage is already in decimal format from server
+                    rateInput.value = dailyProfitPercentage.toFixed(15);
                 }
                 
                 if (effectiveDateInput) {
@@ -2439,14 +2440,15 @@
                     isActiveSelect.value = 'true'; // Default to active
                 }
                 
-                console.log('Form filled with:', {
-                    rate: currentRate ? currentRate.rate : 'No current rate',
+                console.log('Form filled with calculated daily profit percentage:', {
+                    dailyProfitPercentage: dailyProfitPercentage,
+                    rate: dailyProfitPercentage !== null ? dailyProfitPercentage.toFixed(15) : 'No calculated rate',
                     effective_date: today
                 });
                 
             } catch (error) {
                 console.error('Error filling form:', error);
-                // Still set today's date even if getting current rate fails
+                // Still set today's date even if getting calculated rate fails
                 const today = getTodayPersianDate();
                 const effectiveDateInput = document.getElementById('effective_date');
                 if (effectiveDateInput) {
@@ -2455,7 +2457,29 @@
             }
         }
 
-        // Get current rate from server
+        // Get calculated daily profit percentage from server
+        async function getDailyProfitPercentageFromServer() {
+            try {
+                const response = await fetch(`${API_BASE}Project/profit_metrics/`);
+                if (response.ok) {
+                    const profitMetrics = await response.json();
+                    if (profitMetrics && profitMetrics.daily_profit_percentage !== undefined) {
+                        return profitMetrics.daily_profit_percentage;
+                    } else {
+                        console.warn('Daily profit percentage not found in response');
+                        return null;
+                    }
+                } else {
+                    console.warn('Failed to fetch profit metrics');
+                    return null;
+                }
+            } catch (error) {
+                console.error('Error fetching daily profit percentage:', error);
+                return null;
+            }
+        }
+
+        // Get current rate from server (kept for backward compatibility)
         async function getCurrentRateFromServer() {
             try {
                 const response = await fetch(`${API_BASE}InterestRate/current/`);
