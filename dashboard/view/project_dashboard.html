@@ -1618,7 +1618,9 @@
             console.log('📊 به‌روزرسانی آمار از سمت سرور...');
             
             // دریافت داده‌ها از متغیرهای سراسری
-            const totalInvestors = allInvestors.length;
+            const totalInvestors = participationStats ? 
+                (participationStats.active_owner + participationStats.active_investor) : 
+                allInvestors.length;
             const currentCapital = globalStatistics.net_principal;
             const totalProfit = globalStatistics.total_profits;
             const grandTotal = globalStatistics.grand_total;
@@ -1780,7 +1782,9 @@
             }
             
             console.log('✅ آمار از سمت سرور به‌روزرسانی شد:', {
-                totalInvestors: totalInvestors + ' نفر',
+                totalInvestors: totalInvestors + ' نفر (فعال)',
+                activeOwners: participationStats ? participationStats.active_owner + ' نفر' : 'نامشخص',
+                activeInvestors: participationStats ? participationStats.active_investor + ' نفر' : 'نامشخص',
                 currentCapital: currentCapital.toLocaleString('en-US') + ' تومان',
                 totalProfit: Math.round(totalProfit).toLocaleString('en-US') + ' تومان',
                 grandTotal: grandTotal.toLocaleString('en-US') + ' تومان',
@@ -1803,8 +1807,10 @@
         function updateStatsLegacy() {
             console.log('🔄 استفاده از روش قدیمی برای به‌روزرسانی آمار...');
             
-            // 1. تعداد سرمایه‌گذاران از جدول Investor
-            const totalInvestors = allInvestors.length;
+            // 1. تعداد سرمایه‌گذاران فعال
+            const totalInvestors = participationStats ? 
+                (participationStats.active_owner + participationStats.active_investor) : 
+                allInvestors.length;
             
             // 2. محاسبه سرمایه موجود (آورده - برداشت)
             const principalDeposits = chartData.filter(row => row.entry_type === 'principal_deposit');
@@ -1926,9 +1932,9 @@
             }
 
             console.log('آمار محاسبه شده:', {
-                totalInvestors: totalInvestors + ' نفر',
-                ownerCount: participationStats ? participationStats.active_owner + ' نفر' : allInvestors.filter(inv => inv.participation_type === 'owner').length + ' نفر',
-                investorCount: participationStats ? participationStats.active_investor + ' نفر' : allInvestors.filter(inv => inv.participation_type === 'investor').length + ' نفر',
+                totalInvestors: totalInvestors + ' نفر (فعال)',
+                ownerCount: participationStats ? participationStats.active_owner + ' نفر (فعال)' : allInvestors.filter(inv => inv.participation_type === 'owner').length + ' نفر (کل)',
+                investorCount: participationStats ? participationStats.active_investor + ' نفر (فعال)' : allInvestors.filter(inv => inv.participation_type === 'investor').length + ' نفر (کل)',
                 totalDeposits: totalDeposits.toLocaleString('en-US') + ' تومان',
                 totalWithdrawals: totalWithdrawals.toLocaleString('en-US') + ' تومان',
                 currentCapital: currentCapital.toLocaleString('en-US') + ' تومان',
