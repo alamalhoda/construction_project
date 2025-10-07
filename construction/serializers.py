@@ -44,6 +44,7 @@ class ExpenseSerializer(serializers.ModelSerializer):
         return 0
 
 class InvestorSerializer(serializers.ModelSerializer):
+    units = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Investor
@@ -58,6 +59,26 @@ class InvestorSerializer(serializers.ModelSerializer):
             "contract_date_shamsi",
             "created_at",
         ]
+    
+    def get_units(self, obj):
+        """دریافت اطلاعات کامل واحدها"""
+        from .serializers import UnitSerializer
+        return UnitSerializer(obj.units.all(), many=True).data
+
+class UnitSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.Unit
+        fields = [
+            "id",
+            "name",
+            "area",
+            "price_per_meter",
+            "total_price",
+            "project",
+            "created_at",
+        ]
+
 
 class ProjectSerializer(serializers.ModelSerializer):
 
@@ -363,15 +384,3 @@ class InterestRateSerializer(serializers.ModelSerializer):
             return str(obj.effective_date)
         return None
 
-class UnitSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = models.Unit
-        fields = [
-            "id",
-            "name",
-            "area",
-            "price_per_meter",
-            "total_price",
-            "created_at",
-        ]
