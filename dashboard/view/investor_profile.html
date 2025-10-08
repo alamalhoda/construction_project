@@ -374,11 +374,43 @@
             border: 1px solid var(--border-color);
         }
 
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
         .chart-container h3 {
             text-align: center;
             color: var(--text-primary);
-            margin-bottom: 20px;
+            margin: 0;
             font-size: 1.3rem;
+            flex: 1;
+        }
+
+        .chart-download-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-family: 'Vazir', 'Tahoma', Arial, sans-serif;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .chart-download-btn:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .chart-download-btn i {
+            font-size: 0.9rem;
         }
 
         .chart-wrapper {
@@ -553,8 +585,8 @@
         }
 
         .stats-section.unit-section {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.03), rgba(118, 75, 162, 0.03));
-            border: 2px solid rgba(102, 126, 234, 0.2);
+            background: linear-gradient(135deg, rgba(170, 38, 255, 0.03), rgba(118, 75, 162, 0.03));
+            border: 2px solid rgba(170, 38, 255, 0.2);
         }
 
         .section-title {
@@ -664,6 +696,17 @@
             .chart-wrapper {
                 height: 400px;
             }
+
+            .chart-header {
+                flex-direction: column;
+                gap: 10px;
+                align-items: center;
+            }
+
+            .chart-download-btn {
+                width: 100%;
+                justify-content: center;
+            }
         }
 
         @media (max-width: 480px) {
@@ -673,6 +716,21 @@
             
             .chart-wrapper {
                 height: 350px;
+            }
+        }
+
+        /* Print Styles */
+        @media print {
+            .chart-download-btn {
+                display: none !important;
+            }
+
+            .theme-toggle {
+                display: none !important;
+            }
+
+            .pdf-report-btn {
+                display: none !important;
             }
         }
 
@@ -729,9 +787,9 @@
             <div class="unified-header-content">
                 <h1>
                     <i class="fas fa-user-tie"></i>
-                    پروفایل مالی سرمایه‌گذار
+                    پروفایل مالی مشارکت کننده
                 </h1>
-                <p class="subtitle">نمایش جامع وضعیت مالی و فعالیت‌های سرمایه‌گذاری</p>
+                <p class="subtitle">نمایش جامع وضعیت مالی </p>
                 <div class="navigation-links">
                     <a href="/user-dashboard/" class="nav-link">
                         <i class="fas fa-home"></i>
@@ -798,7 +856,7 @@
             <div class="stats-section">
                 <h3 class="section-title">
                     <i class="fas fa-wallet"></i>
-                    اطلاعات مالی سرمایه‌گذار
+                    اطلاعات مالی
                 </h3>
                 <div class="stats-grid">
                     <div class="stat-card" style="border: 2px solid #007bff; background: linear-gradient(135deg, rgba(0, 123, 255, 0.1), rgba(0, 86, 179, 0.1));">
@@ -809,7 +867,7 @@
                         <h4 id="totalWithdrawal">-</h4>
                         <p>کل برداشت (تومان)</p>
                     </div>
-                    <div class="stat-card" style="border: 2px solid #6f42c1; background: linear-gradient(135deg, rgba(111, 66, 193, 0.1), rgba(95, 39, 205, 0.1));">
+                    <div class="stat-card" style="border: 2px solid #aa26ff; background: linear-gradient(135deg, rgba(170, 38, 255, 0.1), rgba(170, 38, 255, 0.05));">
                         <h4 id="netPrincipal">-</h4>
                         <p>سرمایه موجود (تومان)</p>
                     </div>
@@ -853,7 +911,7 @@
                 <div class="stats-grid">
                     <div class="stat-card" style="border: 2px solid #17a2b8; background: linear-gradient(135deg, rgba(23, 162, 184, 0.1), rgba(20, 143, 163, 0.1));">
                         <h4 id="unitName">-</h4>
-                        <p>نام واحد سرمایه‌گذار</p>
+                        <p>نام واحد</p>
                     </div>
                     <div class="stat-card" style="border: 2px solid #fd7e14; background: linear-gradient(135deg, rgba(253, 126, 20, 0.1), rgba(230, 109, 8, 0.1));">
                         <h4 id="unitArea">-</h4>
@@ -881,33 +939,23 @@
             <!-- Charts Section with New Grid Layout -->
             <div class="charts-grid">
 
-                <!-- Principal Transaction Chart -->
-                <div class="chart-container">
-                    <h3><i class="fas fa-chart-line"></i> روند تراکنش‌های آورده و برداشت</h3>
-                    <div class="chart-wrapper">
-                        <canvas id="principalTransactionChart"></canvas>
-                    </div>
-                </div>
-
-                <!-- Monthly Principal Chart -->
-                <div class="chart-container">
-                    <h3><i class="fas fa-chart-area"></i> نمودار ماهانه آورده، برداشت و سرمایه موجود</h3>
-                    <div class="chart-wrapper">
-                        <canvas id="monthlyPrincipalChart"></canvas>
-                    </div>
-                </div>
-
                 <!-- Investor Trend Chart -->
                 <div class="chart-container">
-                    <h3><i class="fas fa-chart-line"></i> ترند سرمایه موجود و هزینه واحد</h3>
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-line"></i> ترند سرمایه موجود و هزینه واحد</h3>
+                        <button class="chart-download-btn" onclick="downloadChart('investorTrendChart', 'ترند_سرمایه_و_هزینه')">
+                            <i class="fas fa-download"></i>
+                            دانلود تصویر
+                        </button>
+                    </div>
                     <div class="chart-legend">
                         <div class="legend-item">
-                            <div class="legend-color" style="background: rgba(102, 126, 234, 1);"></div>
-                            <span>سرمایه موجود سرمایه‌گذار</span>
+                            <div class="legend-color" style="background: rgba(170, 38, 255, 1);"></div>
+                            <span>سرمایه موجود</span>
                         </div>
                         <div class="legend-item">
                             <div class="legend-color" style="background: rgba(220, 53, 69, 1);"></div>
-                            <span>هزینه واحد سرمایه‌گذار</span>
+                            <span>هزینه واحد</span>
                         </div>
                     </div>
                     <div class="chart-wrapper">
@@ -916,24 +964,64 @@
                     <div class="chart-info">
                         <small class="text-muted">
                             <i class="fas fa-info-circle"></i>
-                            هزینه واحد = (هزینه خالص تجمعی ÷ کل متراژ مفید) × متراژ واحد سرمایه‌گذار
+                            هزینه واحد = (هزینه خالص تجمعی ÷ کل متراژ مفید) × متراژ واحد
                         </small>
-                    </div>
-                </div>
-
-                <!-- Activity Distribution Chart -->
-                <div class="chart-container">
-                    <h3><i class="fas fa-chart-pie"></i> توزیع تراکنش‌ها</h3>
-                    <div class="chart-wrapper">
-                        <canvas id="activityDistributionChart"></canvas>
                     </div>
                 </div>
 
                 <!-- Monthly Comparison Chart -->
                 <div class="chart-container">
-                    <h3><i class="fas fa-chart-bar"></i> نمودار ماهانه سرمایه بعلاوه سود موجود</h3>
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-bar"></i> نمودار ماهانه سرمایه بعلاوه سود موجود</h3>
+                        <button class="chart-download-btn" onclick="downloadChart('monthlyComparisonChart', 'نمودار_ماهانه_سرمایه_و_سود')">
+                            <i class="fas fa-download"></i>
+                            دانلود تصویر
+                        </button>
+                    </div>
                     <div class="chart-wrapper">
                         <canvas id="monthlyComparisonChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Principal Transaction Chart -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-line"></i> روند تراکنش‌های آورده و برداشت</h3>
+                        <button class="chart-download-btn" onclick="downloadChart('principalTransactionChart', 'روند_تراکنش_ها')">
+                            <i class="fas fa-download"></i>
+                            دانلود تصویر
+                        </button>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="principalTransactionChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Monthly Principal Chart -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-area"></i> نمودار ماهانه آورده، برداشت و سرمایه موجود</h3>
+                        <button class="chart-download-btn" onclick="downloadChart('monthlyPrincipalChart', 'نمودار_ماهانه_آورده_برداشت')">
+                            <i class="fas fa-download"></i>
+                            دانلود تصویر
+                        </button>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="monthlyPrincipalChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Activity Distribution Chart -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-pie"></i> توزیع تراکنش‌ها</h3>
+                        <button class="chart-download-btn" onclick="downloadChart('activityDistributionChart', 'توزیع_تراکنش_ها')">
+                            <i class="fas fa-download"></i>
+                            دانلود تصویر
+                        </button>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="activityDistributionChart"></canvas>
                     </div>
                 </div>
                     </div>
@@ -1000,6 +1088,39 @@
                 console.error('خطا در فراخوانی API آمار کلی:', error);
                 return null;
             }
+        }
+
+        // Download Chart as Image
+        function downloadChart(chartId, fileName) {
+            const chart = charts[chartId];
+            if (!chart) {
+                alert('نمودار یافت نشد');
+                return;
+            }
+
+            try {
+                // دریافت نام سرمایه‌گذار
+                const investorNameElement = document.getElementById('investorName');
+                const investorName = investorNameElement ? investorNameElement.textContent.trim() : 'نامشخص';
+                
+                // تبدیل نمودار به تصویر با کیفیت بالا
+                const url = chart.toBase64Image('image/png', 1);
+                
+                // ایجاد لینک دانلود با نام سرمایه‌گذار
+                const link = document.createElement('a');
+                link.download = `${investorName}_${fileName}_${getCurrentPersianDate()}.png`;
+                link.href = url;
+                link.click();
+            } catch (error) {
+                console.error('خطا در دانلود نمودار:', error);
+                alert('خطا در دانلود نمودار');
+            }
+        }
+
+        // Get current Persian date for file naming
+        function getCurrentPersianDate() {
+            const date = new Date();
+            return date.toLocaleDateString('fa-IR').replace(/\//g, '-');
         }
 
         // Theme Management
@@ -1755,7 +1876,11 @@
                     labels: ['آورده', 'برداشت', 'سود'],
                     datasets: [{
                         data: [totalPrincipal, totalWithdrawal, totalProfit].map(amount => amount / BASE_AMOUNT),
-                        backgroundColor: ['#36A2EB', '#FF6384', '#28a745']
+                        backgroundColor: [
+                            '#2185d0', // آبی - آورده
+                            '#db2828', // قرمز - برداشت
+                            '#21ba45'  // سبز - سود مشارکت
+                        ]
                     }]
                 },
                 options: {
@@ -1826,8 +1951,8 @@
                             type: 'bar',
                             label: 'آورده (میلیون تومان)',
                             data: principals,
-                            backgroundColor: 'rgba(54, 162, 235, 0.8)',
-                            borderColor: 'rgba(54, 162, 235, 1)',
+                            backgroundColor: 'rgba(33, 133, 208, 0.8)', // آبی - آورده
+                            borderColor: 'rgba(33, 133, 208, 1)',
                             borderWidth: 1,
                             yAxisID: 'y'
                         },
@@ -1835,8 +1960,8 @@
                             type: 'bar',
                             label: 'برداشت (میلیون تومان)',
                             data: withdrawals,
-                            backgroundColor: 'rgba(255, 99, 132, 0.8)',
-                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: 'rgba(219, 40, 40, 0.8)', // قرمز - برداشت
+                            borderColor: 'rgba(219, 40, 40, 1)',
                             borderWidth: 1,
                             yAxisID: 'y'
                         },
@@ -1844,8 +1969,8 @@
                             type: 'bar',
                             label: 'سود (میلیون تومان)',
                             data: profits,
-                            backgroundColor: 'rgba(40, 167, 69, 0.8)',
-                            borderColor: 'rgba(40, 167, 69, 1)',
+                            backgroundColor: 'rgba(33, 186, 69, 0.8)', // سبز - سود مشارکت
+                            borderColor: 'rgba(33, 186, 69, 1)',
                             borderWidth: 1,
                             yAxisID: 'y'
                         },
@@ -1853,8 +1978,8 @@
                             type: 'line',
                             label: 'سرمایه + سود (میلیون تومان)',
                             data: cumulativeTotals,
-                            borderColor: 'rgba(90, 0, 90, 1)',
-                            backgroundColor: 'rgba(90, 0, 90, 0.5)',
+                            borderColor: 'rgba(170, 38, 255, 1)', // بنفش - سرمایه موجود
+                            backgroundColor: 'rgba(170, 38, 255, 0.2)',
                             borderWidth: 3,
                             fill: false,
                             tension: 0.1,
@@ -1959,8 +2084,8 @@
                             type: 'bar',
                             label: 'آورده',
                             data: depositAmounts,
-                            backgroundColor: 'rgba(54, 162, 235, 0.8)',
-                            borderColor: 'rgba(54, 162, 235, 1)',
+                            backgroundColor: 'rgba(33, 133, 208, 0.8)', // آبی - آورده
+                            borderColor: 'rgba(33, 133, 208, 1)',
                             borderWidth: 1,
                             yAxisID: 'y'
                         },
@@ -1968,8 +2093,8 @@
                             type: 'bar', 
                             label: 'برداشت',
                             data: withdrawalAmounts,
-                            backgroundColor: 'rgba(255, 99, 132, 0.8)',
-                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: 'rgba(219, 40, 40, 0.8)', // قرمز - برداشت
+                            borderColor: 'rgba(219, 40, 40, 1)',
                             borderWidth: 1,
                             yAxisID: 'y'
                         },
@@ -1977,8 +2102,8 @@
                             type: 'line',
                             label: 'سرمایه موجود',
                             data: cumulativeAmounts,
-                            borderColor: 'rgba(102, 126, 234, 1)', // بنفش - سرمایه موجود
-                            backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                            borderColor: 'rgba(170, 38, 255, 1)', // بنفش - سرمایه موجود
+                            backgroundColor: 'rgba(170, 38, 255, 0.2)',
                             borderWidth: 3,
                             fill: false,
                             tension: 0.1,
@@ -2081,8 +2206,8 @@
                             type: 'bar',
                             label: 'آورده (میلیون تومان)',
                             data: principals,
-                            backgroundColor: 'rgba(54, 162, 235, 0.8)',
-                            borderColor: 'rgba(54, 162, 235, 1)',
+                            backgroundColor: 'rgba(33, 133, 208, 0.8)', // آبی - آورده
+                            borderColor: 'rgba(33, 133, 208, 1)',
                             borderWidth: 1,
                             yAxisID: 'y'
                         },
@@ -2090,8 +2215,8 @@
                             type: 'bar',
                             label: 'برداشت (میلیون تومان)',
                             data: withdrawals,
-                            backgroundColor: 'rgba(255, 99, 132, 0.8)',
-                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: 'rgba(219, 40, 40, 0.8)', // قرمز - برداشت
+                            borderColor: 'rgba(219, 40, 40, 1)',
                             borderWidth: 1,
                             yAxisID: 'y'
                         },
@@ -2099,8 +2224,8 @@
                             type: 'line',
                             label: 'سرمایه موجود (میلیون تومان)',
                             data: cumulativePrincipalTotals,
-                            borderColor: 'rgba(102, 126, 234, 1)', // بنفش - سرمایه موجود
-                            backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                            borderColor: 'rgba(170, 38, 255, 1)', // بنفش - سرمایه موجود
+                            backgroundColor: 'rgba(170, 38, 255, 0.2)',
                             borderWidth: 3,
                             fill: false,
                             tension: 0.1,
@@ -2175,8 +2300,8 @@
                             type: 'line',
                             label: 'سرمایه موجود (میلیون تومان)',
                             data: capitalData,
-                            borderColor: 'rgba(102, 126, 234, 1)', // بنفش - سرمایه موجود
-                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            borderColor: 'rgba(170, 38, 255, 1)', // بنفش - سرمایه موجود
+                            backgroundColor: 'rgba(170, 38, 255, 0.1)',
                             borderWidth: 3,
                             fill: false,
                             tension: 0.1,
@@ -2201,7 +2326,7 @@
                     plugins: {
                         title: {
                             display: true,
-                            text: 'ترند سرمایه موجود و هزینه واحد سرمایه‌گذار'
+                            text: 'ترند سرمایه موجود و هزینه واحد'
                         },
                         legend: { position: 'top' }
                     },
