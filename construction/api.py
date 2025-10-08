@@ -56,7 +56,7 @@ class ExpenseViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def dashboard_data(self, request):
-        """دریافت داده‌های داشبورد هزینه‌ها"""
+        """دریافت داده‌های لیست هزینه ها"""
         try:
             # دریافت پروژه فعال
             active_project = models.Project.get_active_project()
