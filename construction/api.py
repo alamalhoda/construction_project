@@ -645,6 +645,137 @@ class PeriodViewSet(viewsets.ModelViewSet):
                 'error': f'خطا در دریافت داده‌های نمودار: {str(e)}'
             }, status=500)
 
+    @action(detail=False, methods=['get'])
+    def period_summary(self, request):
+        """دریافت خلاصه کامل دوره‌ای شامل تمام فاکتورها و مقادیر تجمعی"""
+        try:
+            # دریافت پروژه فعال
+            active_project = models.Project.get_active_project()
+            if not active_project:
+                return Response({
+                    'error': 'هیچ پروژه فعالی یافت نشد'
+                }, status=400)
+
+            # دریافت تمام دوره‌ها مرتب شده
+            periods = models.Period.objects.filter(
+                project=active_project
+            ).order_by('year', 'month_number')
+
+            summary_data = []
+            
+            # متغیرهای تجمعی
+            cumulative_deposits = 0
+            cumulative_withdrawals = 0
+            cumulative_net_capital = 0
+            cumulative_profits = 0
+            cumulative_expenses = 0
+            cumulative_sales = 0
+            cumulative_fund_balance = 0
+
+            for period in periods:
+                # محاسبه تراکنش‌های دوره
+                period_transactions = models.Transaction.objects.filter(
+                    project=active_project,
+                    period=period
+                )
+                
+                # آورده (deposits)
+                deposits = period_transactions.filter(
+                    transaction_type='principal_deposit'
+                ).aggregate(total=Sum('amount'))['total'] or 0
+                deposits = float(deposits)
+                cumulative_deposits += deposits
+                
+                # برداشت (withdrawals)
+                withdrawals = period_transactions.filter(
+                    transaction_type='principal_withdrawal'
+                ).aggregate(total=Sum('amount'))['total'] or 0
+                withdrawals = float(withdrawals)
+                cumulative_withdrawals += withdrawals
+                
+                # سود (profits)
+                profits = period_transactions.filter(
+                    transaction_type='profit_payment'
+                ).aggregate(total=Sum('amount'))['total'] or 0
+                profits = float(profits)
+                cumulative_profits += profits
+                
+                # سرمایه خالص دوره (net capital)
+                net_capital = deposits - withdrawals
+                cumulative_net_capital += net_capital
+
+                # هزینه‌های دوره
+                expenses = models.Expense.objects.filter(
+                    project=active_project,
+                    period=period
+                ).aggregate(total=Sum('amount'))['total'] or 0
+                expenses = float(expenses)
+                cumulative_expenses += expenses
+
+                # فروش/مرجوعی دوره
+                sales = models.Sale.objects.filter(
+                    project=active_project,
+                    period=period
+                ).aggregate(total=Sum('amount'))['total'] or 0
+                sales = float(sales)
+                cumulative_sales += sales
+
+                # محاسبه مانده صندوق
+                # مانده صندوق = سرمایه موجود - هزینه‌ها + فروش
+                fund_balance = cumulative_net_capital - cumulative_expenses + cumulative_sales
+
+                # اضافه کردن داده‌های دوره
+                summary_data.append({
+                    'period_id': period.id,
+                    'period_label': period.label,
+                    'year': period.year,
+                    'month_number': period.month_number,
+                    'month_name': period.month_name,
+                    'weight': period.weight,
+                    
+                    # فاکتورهای دوره
+                    'deposits': deposits,
+                    'withdrawals': withdrawals,
+                    'net_capital': net_capital,
+                    'profits': profits,
+                    'expenses': expenses,
+                    'sales': sales,
+                    'fund_balance': fund_balance,
+                    
+                    # مقادیر تجمعی
+                    'cumulative_deposits': cumulative_deposits,
+                    'cumulative_withdrawals': cumulative_withdrawals,
+                    'cumulative_net_capital': cumulative_net_capital,
+                    'cumulative_profits': cumulative_profits,
+                    'cumulative_expenses': cumulative_expenses,
+                    'cumulative_sales': cumulative_sales,
+                    'cumulative_fund_balance': fund_balance
+                })
+
+            # محاسبه خلاصه کلی
+            totals = {
+                'total_deposits': cumulative_deposits,
+                'total_withdrawals': cumulative_withdrawals,
+                'total_net_capital': cumulative_net_capital,
+                'total_profits': cumulative_profits,
+                'total_expenses': cumulative_expenses,
+                'total_sales': cumulative_sales,
+                'final_fund_balance': cumulative_fund_balance,
+                'total_periods': periods.count()
+            }
+
+            return Response({
+                'success': True,
+                'data': summary_data,
+                'totals': totals,
+                'active_project': active_project.name
+            })
+
+        except Exception as e:
+            return Response({
+                'error': f'خطا در دریافت خلاصه دوره‌ای: {str(e)}'
+            }, status=500)
+
 
 
 class ProjectViewSet(viewsets.ModelViewSet):
