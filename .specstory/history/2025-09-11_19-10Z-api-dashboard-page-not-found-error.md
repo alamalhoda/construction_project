@@ -1212,7 +1212,7 @@ Lines added: 20, lines removed: undefined
 +                 <i class="fas fa-user-tie"></i> پروفایل سرمایه‌گذاران
 +             </a>
 +             <a href="/dashboard/expense-dashboard/" class="bg-white text-blue-600 px-4 py-2 rounded hover:bg-gray-100 transition">
-+                 <i class="fas fa-chart-pie"></i> داشبورد هزینه‌ها
++                 <i class="fas fa-chart-pie"></i> لیست هزینه ها
 +             </a>
 +             <a href="/dashboard/interest-rate-manager/" class="bg-white text-blue-600 px-4 py-2 rounded hover:bg-gray-100 transition">
 +                 <i class="fas fa-percentage"></i> مدیریت نرخ سود
@@ -1306,7 +1306,7 @@ Lines added: 25, lines removed: undefined
 
 ```diff
 @@ -352,4 +352,29 @@
-              <h1>💰 داشبورد هزینه‌ها</h1>
+              <h1>💰 لیست هزینه ها</h1>
               <p id="projectName">در حال بارگذاری...</p>
 +             
 +             <!-- Navigation Menu -->
@@ -1475,7 +1475,7 @@ Lines added: 25, lines removed: undefined
 +                     <i class="fas fa-user-tie"></i> پروفایل سرمایه‌گذاران
 +                 </a>
 +                 <a href="/dashboard/expense-dashboard/" class="nav-btn">
-+                     <i class="fas fa-chart-pie"></i> داشبورد هزینه‌ها
++                     <i class="fas fa-chart-pie"></i> لیست هزینه ها
 +                 </a>
 +                 <a href="/dashboard/csv-viewer/" class="nav-btn">
 +                     <i class="fas fa-table"></i> نمایشگر CSV ساده
@@ -1635,7 +1635,7 @@ Lines added: 28, lines removed: undefined
 +                 <i class="fas fa-user-tie"></i> پروفایل سرمایه‌گذاران
 +             </a>
 +             <a href="/dashboard/expense-dashboard/" class="nav-btn">
-+                 <i class="fas fa-chart-pie"></i> داشبورد هزینه‌ها
++                 <i class="fas fa-chart-pie"></i> لیست هزینه ها
 +             </a>
 +             <a href="/dashboard/interest-rate-manager/" class="nav-btn">
 +                 <i class="fas fa-percentage"></i> مدیریت نرخ سود
@@ -1771,7 +1771,7 @@ Lines added: 28, lines removed: undefined
 +                 <i class="fas fa-user-tie"></i> پروفایل سرمایه‌گذاران
 +             </a>
 +             <a href="/dashboard/expense-dashboard/" class="nav-btn">
-+                 <i class="fas fa-chart-pie"></i> داشبورد هزینه‌ها
++                 <i class="fas fa-chart-pie"></i> لیست هزینه ها
 +             </a>
 +             <a href="/dashboard/interest-rate-manager/" class="nav-btn">
 +                 <i class="fas fa-percentage"></i> مدیریت نرخ سود
@@ -1907,7 +1907,7 @@ Lines added: 28, lines removed: undefined
 +                 <i class="fas fa-user-tie"></i> پروفایل سرمایه‌گذاران
 +             </a>
 +             <a href="/dashboard/expense-dashboard/" class="nav-btn">
-+                 <i class="fas fa-chart-pie"></i> داشبورد هزینه‌ها
++                 <i class="fas fa-chart-pie"></i> لیست هزینه ها
 +             </a>
 +             <a href="/dashboard/interest-rate-manager/" class="nav-btn">
 +                 <i class="fas fa-percentage"></i> مدیریت نرخ سود
@@ -2038,7 +2038,7 @@ Lines added: 28, lines removed: undefined
 +                 <i class="fas fa-user-tie"></i> پروفایل سرمایه‌گذاران
 +             </a>
 +             <a href="/dashboard/expense-dashboard/" class="nav-btn">
-+                 <i class="fas fa-chart-pie"></i> داشبورد هزینه‌ها
++                 <i class="fas fa-chart-pie"></i> لیست هزینه ها
 +             </a>
 +             <a href="/dashboard/interest-rate-manager/" class="nav-btn">
 +                 <i class="fas fa-percentage"></i> مدیریت نرخ سود
@@ -2236,7 +2236,7 @@ Lines added: 25, lines removed: undefined
 +                     <i class="user tie icon"></i> پروفایل سرمایه‌گذاران
 +                 </a>
 +                 <a href="/dashboard/expense-dashboard/" class="ui button">
-+                     <i class="chart pie icon"></i> داشبورد هزینه‌ها
++                     <i class="chart pie icon"></i> لیست هزینه ها
 +                 </a>
 +                 <a href="/dashboard/interest-rate-manager/" class="ui button">
 +                     <i class="percentage icon"></i> مدیریت نرخ سود
@@ -2332,7 +2332,7 @@ Lint results
 - 📊 **داشبورد پروژه** (`/dashboard/project/`)
 - 💰 **مدیریت تراکنش‌ها** (`/dashboard/transaction-manager/`)
 - �� **پروفایل سرمایه‌گذاران** (`/dashboard/investor-profile/`)
-- 📈 **داشبورد هزینه‌ها** (`/dashboard/expense-dashboard/`)
+- 📈 **لیست هزینه ها** (`/dashboard/expense-dashboard/`)
 - 📊 **مدیریت نرخ سود** (`/dashboard/interest-rate-manager/`)
 - �� **نمایشگر CSV ساده** (`/dashboard/csv-viewer/`)
 - 📊 **نمایشگر CSV پیشرفته** (`/dashboard/csv-tabulator/`)
@@ -2787,7 +2787,7 @@ Lines added: undefined, lines removed: 6
 
 ```diff
 @@ -411,10 +411,4 @@
-                      <i class="fas fa-chart-pie"></i> داشبورد هزینه‌ها
+                      <i class="fas fa-chart-pie"></i> لیست هزینه ها
                   </a>
 -                 <a href="/dashboard/csv-viewer/" class="nav-btn">
 -                     <i class="fas fa-table"></i> نمایشگر CSV ساده

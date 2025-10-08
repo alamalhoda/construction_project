@@ -1045,7 +1045,7 @@
                     </a>
                     <a href="/dashboard/expense-dashboard/" class="nav-link">
                         <i class="fas fa-chart-pie"></i>
-                        داشبورد هزینه‌ها
+                        لیست هزینه ها
                     </a>
                     <a href="/dashboard/interest-rate-manager/" class="nav-link">
                         <i class="fas fa-percentage"></i>
@@ -1130,7 +1130,7 @@
                             <span id="ownerCount" style="font-weight: bold;color:black">-</span>
                         </div>
                         <div style="display: flex; justify-content: space-between;">
-                            <span style="color:#8B4513;">سرمایه‌گذار:</span>
+                            <span style="color:#8B4513;">مشارکت کننده:</span>
                             <span id="investorCount" style="font-weight: bold;color:#8B4513">-</span>
                         </div>
                     </div>
@@ -1339,7 +1339,7 @@
                     throw new Error(`خطا در بارگذاری تراکنش‌ها: ${transactionsResponse.status}`);
                 }
                 if (!investorsResponse.ok) {
-                    throw new Error(`خطا در بارگذاری سرمایه‌گذاران: ${investorsResponse.status}`);
+                    throw new Error(`خطا در بارگذاری مشارکت کنندگان: ${investorsResponse.status}`);
                 }
                 
                 // دریافت داده‌ها
@@ -1516,11 +1516,11 @@
                         description: transaction.description || ''
                     })).filter(row => row.project_id && row.project_id.toString().trim() !== '');
                     
-                    console.log('✅ داده‌های تراکنش و سرمایه‌گذار بارگذاری شدند');
+                    console.log('✅ داده‌های تراکنش و مشارکت کننده بارگذاری شدند');
                     console.log('📊 chartData count:', chartData.length);
                     console.log('📊 chartData sample:', chartData.slice(0, 3));
                 } else {
-                    console.warn('⚠️ خطا در بارگذاری تراکنش‌ها یا سرمایه‌گذاران');
+                    console.warn('⚠️ خطا در بارگذاری تراکنش‌ها یا مشارکت کنندگان');
                     console.warn('⚠️ transactionsResponse.ok:', transactionsResponse.ok);
                     console.warn('⚠️ investorsResponse.ok:', investorsResponse.ok);
                     chartData = [];
@@ -1651,7 +1651,7 @@
             document.getElementById('startDate').textContent = projectStartDate;
             document.getElementById('endDate').textContent = projectEndDate === '-' ? 'ادامه دارد' : projectEndDate;
             
-            // به‌روزرسانی آمار مشارکت کنندگان (همه سرمایه‌گذاران)
+            // به‌روزرسانی آمار مشارکت کنندگان (همه مشارکت کنندگان)
             const ownerCount = allInvestors.filter(inv => inv.participation_type === 'owner').length;
             const investorCount = allInvestors.filter(inv => inv.participation_type === 'investor').length;
             document.getElementById('ownerCount').textContent = ownerCount.toLocaleString('en-US');
@@ -1797,7 +1797,7 @@
         function updateStatsLegacy() {
             console.log('🔄 استفاده از روش قدیمی برای به‌روزرسانی آمار...');
             
-            // 1. تعداد سرمایه‌گذاران (همه)
+            // 1. تعداد مشارکت کنندگان (همه)
             const totalInvestors = allInvestors.length;
             
             // 2. محاسبه سرمایه موجود (آورده - برداشت)
@@ -1964,7 +1964,7 @@
 
 
         function createInvestorDistributionChart() {
-            console.log('📊 ایجاد نمودار توزیع سرمایه‌گذاران...');
+            console.log('📊 ایجاد نمودار توزیع مشارکت کنندگان...');
             console.log('📊 chartData length:', chartData.length);
             console.log('📊 chartData sample:', chartData.slice(0, 3));
             
@@ -1981,7 +1981,7 @@
             console.log('📊 principalData length:', principalData.length);
             console.log('📊 withdrawalData length:', withdrawalData.length);
             
-            // محاسبه آورده خالص هر سرمایه‌گذار
+            // محاسبه آورده خالص هر مشارکت کننده
             principalData.forEach(row => {
                 const investor = row.investor_name;
                 if (investor) {
@@ -2062,7 +2062,7 @@
 
         async function createSummaryTable() {
             try {
-                console.log('🔄 بارگذاری خلاصه سرمایه‌گذاران از سرور...');
+                console.log('🔄 بارگذاری خلاصه مشارکت کنندگان از سرور...');
                 
                 let summaryData = [];
                 
@@ -2182,7 +2182,7 @@
                 document.getElementById('summaryTable').innerHTML = tableHTML;
                 
             } catch (error) {
-                console.error('❌ خطا در دریافت خلاصه سرمایه‌گذاران:', error);
+                console.error('❌ خطا در دریافت خلاصه مشارکت کنندگان:', error);
                 document.getElementById('summaryTable').innerHTML = 
                     '<p style="text-align: center; color: #d32f2f;">خطا در بارگذاری جدول خلاصه</p>';
             }

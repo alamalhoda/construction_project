@@ -165,10 +165,10 @@
                 <i class="fas fa-money-bill-wave"></i> مدیریت تراکنش‌ها
             </a>
             <a href="/dashboard/investor-profile/" class="nav-btn">
-                <i class="fas fa-user-tie"></i> پروفایل سرمایه‌گذاران
+                <i class="fas fa-user-tie"></i> پروفایل مشارکت کنندگان
             </a>
             <a href="/dashboard/expense-dashboard/" class="nav-btn">
-                <i class="fas fa-chart-pie"></i> داشبورد هزینه‌ها
+                <i class="fas fa-chart-pie"></i> لیست هزینه ها
             </a>
             <a href="/dashboard/interest-rate-manager/" class="nav-btn">
                 <i class="fas fa-percentage"></i> مدیریت نرخ سود
@@ -205,9 +205,9 @@
         </div>
         
         <div class="test-item">
-            <h3>2. تست API سرمایه‌گذاران</h3>
-            <button class="test-button" onclick="testInvestorsAPI()">تست API سرمایه‌گذاران</button>
-            <button class="test-button" onclick="testInvestorSummary()">تست خلاصه سرمایه‌گذاران</button>
+            <h3>2. تست API مشارکت کنندگان</h3>
+            <button class="test-button" onclick="testInvestorsAPI()">تست API مشارکت کنندگان</button>
+            <button class="test-button" onclick="testInvestorSummary()">تست خلاصه مشارکت کنندگان</button>
             <div id="investorsResult" class="result"></div>
         </div>
         
@@ -290,11 +290,11 @@ ${JSON.stringify(sampleData, null, 2)}`;
         }
         
         function testInvestorsAPI() {
-            testAPI('Investor/', 'investorsResult', 'API سرمایه‌گذاران');
+            testAPI('Investor/', 'investorsResult', 'API مشارکت کنندگان');
         }
         
         function testInvestorSummary() {
-            testAPI('Investor/summary/', 'investorsResult', 'خلاصه سرمایه‌گذاران');
+            testAPI('Investor/summary/', 'investorsResult', 'خلاصه مشارکت کنندگان');
         }
         
         function testProjectsAPI() {
@@ -312,8 +312,8 @@ ${JSON.stringify(sampleData, null, 2)}`;
             const apis = [
                 { endpoint: 'Transaction/', name: 'تراکنش‌ها' },
                 { endpoint: 'Transaction/statistics/', name: 'آمار تراکنش‌ها' },
-                { endpoint: 'Investor/', name: 'سرمایه‌گذاران' },
-                { endpoint: 'Investor/summary/', name: 'خلاصه سرمایه‌گذاران' },
+                { endpoint: 'Investor/', name: 'مشارکت کنندگان' },
+                { endpoint: 'Investor/summary/', name: 'خلاصه مشارکت کنندگان' },
                 { endpoint: 'Project/', name: 'پروژه‌ها' },
                 { endpoint: 'Period/', name: 'دوره‌ها' }
             ];
