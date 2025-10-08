@@ -780,6 +780,10 @@
                     <h4 id="contractDate">-</h4>
                     <p>تاریخ قرارداد</p>
                 </div>
+                <div class="stat-card" style="border: 2px solid #ff8c00; background: linear-gradient(135deg, rgba(255, 140, 0, 0.1), rgba(255, 165, 0, 0.1));">
+                    <h4 id="ownershipArea">-</h4>
+                    <p>مالکیت (متر مربع)</p>
+                </div>
             </div>
 
             <!-- Charts Section with New Grid Layout -->
@@ -1269,6 +1273,18 @@
                     console.warn('⚠️ خطا در دریافت نسبت‌ها:', error);
                 }
                 
+                // دریافت مالکیت سرمایه‌گذار از API
+                let investorOwnership = null;
+                try {
+                    const response = await fetch(`/construction/api/v1/Investor/${investorId}/ownership/`);
+                    if (response.ok) {
+                        investorOwnership = await response.json();
+                        console.log('✅ مالکیت سرمایه‌گذار از سرور دریافت شد:', investorOwnership);
+                    }
+                } catch (error) {
+                    console.warn('⚠️ خطا در دریافت مالکیت:', error);
+                }
+                
                 if (investorStats && !investorStats.error) {
                     console.log('✅ آمار سرمایه‌گذار از سرور دریافت شد:', investorStats);
                     
@@ -1282,7 +1298,9 @@
                         capitalRatio: investorRatios?.capital_ratio_formatted || '0.00%',
                         profitRatioToTotal: investorRatios?.profit_ratio_formatted || '0.00%',
                         totalRatioToGrandTotal: investorRatios?.total_ratio_formatted || '0.00%',
-                        profitIndex: investorRatios?.profit_index || '0.00'
+                        profitIndex: investorRatios?.profit_index || '0.00',
+                        ownershipArea: investorOwnership?.ownership_area || 0,
+                        ownershipPercentage: investorOwnership?.ownership_percentage || 0
                     };
 
                     // مقایسه محاسبات قدیمی و جدید
@@ -1315,7 +1333,8 @@
                 { id: 'capitalRatio', value: serverCalculations.capitalRatio },
                 { id: 'profitRatioToTotal', value: serverCalculations.profitRatioToTotal },
                 { id: 'totalRatioToGrandTotal', value: serverCalculations.totalRatioToGrandTotal },
-                { id: 'profitIndex', value: serverCalculations.profitIndex }
+                { id: 'profitIndex', value: serverCalculations.profitIndex },
+                { id: 'ownershipArea', value: serverCalculations.ownershipArea }
             ];
 
             elements.forEach(element => {
@@ -1324,6 +1343,13 @@
                     if (element.id.includes('Ratio') || element.id.includes('Index')) {
                         // برای نسبت‌ها و شاخص‌ها، مقدار را مستقیماً نمایش دهیم
                         domElement.textContent = element.value;
+                    } else if (element.id === 'ownershipArea') {
+                        // برای مالکیت، فرمت اعشار با 2 رقم
+                        const formatted = parseFloat(element.value).toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        });
+                        domElement.textContent = formatted;
                     } else {
                         // برای مبالغ، فرمت عددی اعمال کنیم
                         domElement.textContent = formatNumberWithCommas(element.value);

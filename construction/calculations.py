@@ -463,6 +463,93 @@ class InvestorCalculations(FinancialCalculationService):
         }
     
     @staticmethod
+    def calculate_investor_ownership(investor_id: int, project_id: Optional[int] = None) -> Dict:
+        """
+        محاسبه مالکیت سرمایه‌گذار به متر مربع
+        
+        فرمول: (آورده + سود) / قیمت هر متر مربع واحد انتخابی
+        
+        Args:
+            investor_id: شناسه سرمایه‌گذار
+            project_id: شناسه پروژه
+            
+        Returns:
+            Dict: اطلاعات مالکیت سرمایه‌گذار
+        """
+        project = models.Project.objects.get(id=project_id) if project_id else FinancialCalculationService.get_active_project()
+        
+        if not project:
+            return {'error': 'هیچ پروژه فعالی یافت نشد'}
+        
+        # دریافت سرمایه‌گذار
+        try:
+            investor = models.Investor.objects.get(id=investor_id)
+        except models.Investor.DoesNotExist:
+            return {'error': 'سرمایه‌گذار یافت نشد'}
+        
+        # آمار مالی سرمایه‌گذار
+        investor_stats = InvestorCalculations.calculate_investor_statistics(investor_id, project_id)
+        
+        if 'error' in investor_stats:
+            return investor_stats
+        
+        # محاسبه آورده + سود
+        net_principal = investor_stats['amounts']['net_principal']
+        total_profit = investor_stats['amounts']['total_profit']
+        total_amount = net_principal + total_profit
+        
+        # دریافت واحدهای سرمایه‌گذار
+        units = investor.units.all()
+        
+        if not units.exists():
+            return {
+                'ownership_area': 0,
+                'total_amount': total_amount,
+                'average_price_per_meter': 0,
+                'units_count': 0,
+                'units': [],
+                'message': 'این سرمایه‌گذار هیچ واحدی ندارد'
+            }
+        
+        # محاسبه میانگین وزنی قیمت هر متر
+        total_area = 0
+        total_value = 0
+        units_list = []
+        
+        for unit in units:
+            unit_area = float(unit.area)
+            unit_price_per_meter = float(unit.price_per_meter)
+            
+            total_area += unit_area
+            total_value += unit_area * unit_price_per_meter
+            
+            units_list.append({
+                'id': unit.id,
+                'name': unit.name,
+                'area': unit_area,
+                'price_per_meter': unit_price_per_meter,
+                'total_price': float(unit.total_price)
+            })
+        
+        # محاسبه میانگین وزنی قیمت هر متر
+        average_price_per_meter = total_value / total_area if total_area > 0 else 0
+        
+        # محاسبه مالکیت (متر مربع)
+        ownership_area = total_amount / average_price_per_meter if average_price_per_meter > 0 else 0
+        
+        return {
+            'ownership_area': round(ownership_area, 2),
+            'total_amount': total_amount,
+            'net_principal': net_principal,
+            'total_profit': total_profit,
+            'average_price_per_meter': round(average_price_per_meter, 2),
+            'units_count': units.count(),
+            'units': units_list,
+            'total_units_area': total_area,
+            'ownership_percentage': round((ownership_area / total_area * 100), 2) if total_area > 0 else 0
+        }
+    
+    @staticmethod
     def get_all_investors_summary(project_id: Optional[int] = None) -> List[Dict]:
         """
         دریافت خلاصه آمار تمام سرمایه‌گذاران
