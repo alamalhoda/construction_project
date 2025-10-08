@@ -33,17 +33,19 @@ alwaysApply: false
 --deposit-color: #2185d0;           /* آبی - آورده */
 --withdrawal-color: #db2828;        /* قرمز - برداشت */
 --profit-color: #21ba45;            /* سبز - سود مشارکت */
---capital-color: #667eea;           /* بنفش - سرمایه موجود */
+--capital-color: #aa26ff;           /* بنفش - سرمایه موجود */
 --expense-color: #dc3545;           /* قرمز تیره - هزینه‌ها */
 --total-color: #6c757d;             /* خاکستری - مجموع */
+--gold-color: #ffd700;              /* طلایی - شاخص نفع */
 
 /* نسخه‌های شفاف برای پس‌زمینه */
 --deposit-color-light: rgba(33, 133, 208, 0.1);
 --withdrawal-color-light: rgba(219, 40, 40, 0.1);
 --profit-color-light: rgba(33, 186, 69, 0.1);
---capital-color-light: rgba(102, 126, 234, 0.1);
+--capital-color-light: rgba(170, 38, 255, 0.1);
 --expense-color-light: rgba(220, 53, 69, 0.1);
 --total-color-light: rgba(108, 117, 125, 0.1);
+--gold-color-light: rgba(255, 215, 0, 0.1);
 ```
 
 ### حالت تاریک:
@@ -52,9 +54,12 @@ alwaysApply: false
     --deposit-color: #4fc3f7;           /* آبی روشن‌تر */
     --withdrawal-color: #f48fb1;        /* قرمز روشن‌تر */
     --profit-color: #81c784;            /* سبز روشن‌تر */
-    --capital-color: #9575cd;           /* بنفش روشن‌تر */
+    --capital-color: #c77dff;           /* بنفش روشن‌تر */
     --expense-color: #f48fb1;           /* قرمز روشن‌تر */
+    --refund-color: #ffeb3b;            /* زرد روشن‌تر */
+    --balance-color: #b0bec5;           /* خاکستری روشن‌تر */
     --total-color: #b0bec5;             /* خاکستری روشن‌تر */
+    --gold-color: #ffed4e;              /* طلایی روشن‌تر */
 }
 ```
 
@@ -131,17 +136,19 @@ background-color: green;  /* غیراستاندارد */
 --deposit-color: #2185d0;           /* آبی - آورده */
 --withdrawal-color: #db2828;        /* قرمز - برداشت */
 --profit-color: #21ba45;            /* سبز - سود مشارکت */
---capital-color: #667eea;           /* بنفش - سرمایه موجود */
+--capital-color: #aa26ff;           /* بنفش - سرمایه موجود */
 --expense-color: #dc3545;           /* قرمز تیره - هزینه‌ها */
 --total-color: #6c757d;             /* خاکستری - مجموع */
+--gold-color: #ffd700;              /* طلایی - شاخص نفع */
 
 /* نسخه‌های شفاف برای پس‌زمینه */
 --deposit-color-light: rgba(33, 133, 208, 0.1);
 --withdrawal-color-light: rgba(219, 40, 40, 0.1);
 --profit-color-light: rgba(33, 186, 69, 0.1);
---capital-color-light: rgba(102, 126, 234, 0.1);
+--capital-color-light: rgba(170, 38, 255, 0.1);
 --expense-color-light: rgba(220, 53, 69, 0.1);
 --total-color-light: rgba(108, 117, 125, 0.1);
+--gold-color-light: rgba(255, 215, 0, 0.1);
 ```
 
 ### حالت تاریک:
@@ -150,9 +157,12 @@ background-color: green;  /* غیراستاندارد */
     --deposit-color: #4fc3f7;           /* آبی روشن‌تر */
     --withdrawal-color: #f48fb1;        /* قرمز روشن‌تر */
     --profit-color: #81c784;            /* سبز روشن‌تر */
-    --capital-color: #9575cd;           /* بنفش روشن‌تر */
+    --capital-color: #c77dff;           /* بنفش روشن‌تر */
     --expense-color: #f48fb1;           /* قرمز روشن‌تر */
+    --refund-color: #ffeb3b;            /* زرد روشن‌تر */
+    --balance-color: #b0bec5;           /* خاکستری روشن‌تر */
     --total-color: #b0bec5;             /* خاکستری روشن‌تر */
+    --gold-color: #ffed4e;              /* طلایی روشن‌تر */
 }
 ```
 
