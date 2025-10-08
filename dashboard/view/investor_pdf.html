@@ -698,8 +698,6 @@
                 const investorResponse = await fetch(`/construction/api/v1/Investor/${investorId}/`);
                 if (!investorResponse.ok) throw new Error('خطا در دریافت اطلاعات سرمایه‌گذار');
                 const investor = await investorResponse.json();
-                console.log('🔍 داده‌های سرمایه‌گذار:', investor);
-                console.log('🏢 واحدهای سرمایه‌گذار:', investor.units);
 
                 // Fetch transactions
                 const transactionsResponse = await fetch(`/construction/api/v1/Transaction/?investor=${investorId}`);
@@ -720,7 +718,6 @@
                     const interestRates = await interestRateResponse.json();
                     // Find active interest rate
                     activeInterestRate = interestRates.find(rate => rate.is_active === true);
-                    console.log('💰 نرخ سود فعال:', activeInterestRate);
                 }
 
                 // Calculate financial metrics
@@ -857,13 +854,6 @@
                         const priorityB = transactionTypePriority[b.transaction_type] || 999;
                         return priorityA - priorityB;
                     });
-
-                    console.log('📊 تراکنش‌های مرتب شده:', sortedTransactions.map(t => ({
-                        date_shamsi: t.date_shamsi,
-                        day_from_start: t.day_from_start,
-                        type: t.transaction_type,
-                        amount: t.amount
-                    })));
 
                     tableBody.innerHTML = sortedTransactions.map((t, index) => `
                         <tr>
