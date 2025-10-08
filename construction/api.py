@@ -468,6 +468,27 @@ class InvestorViewSet(viewsets.ModelViewSet):
             return Response({
                 'error': f'خطا در محاسبه نسبت‌های سرمایه‌گذار: {str(e)}'
             }, status=500)
+    
+    @action(detail=True, methods=['get'])
+    def ownership(self, request, pk=None):
+        """
+        دریافت مالکیت سرمایه‌گذار به متر مربع
+        
+        محاسبه: (آورده + سود) / قیمت هر متر مربع واحد انتخابی
+        """
+        try:
+            project_id = request.query_params.get('project_id')
+            ownership = calculations.InvestorCalculations.calculate_investor_ownership(pk, project_id)
+            
+            if 'error' in ownership:
+                return Response(ownership, status=400)
+            
+            return Response(ownership)
+            
+        except Exception as e:
+            return Response({
+                'error': f'خطا در محاسبه مالکیت سرمایه‌گذار: {str(e)}'
+            }, status=500)
 
     @action(detail=False, methods=['get'])
     def all_investors_summary(self, request):

@@ -36,6 +36,7 @@ globs: *
     *   `Transaction/detailed_statistics/`: Provides detailed transaction statistics.
     *   `Period/chart_data/`: Provides period data (capital, expenses, sales, fund balance) for charts.
     *   `Transaction/recalculate_profits/`: Recalculates investor profits based on the current interest rates.
+    *   `Investor/{id}/trend_data/`: Provides trend data for an investor based on the period, including investor capital and unit cost. (Deprecated, trend data is now calculated using the same logic as the 'نمودار ماهانه آورده، برداشت و سرمایه موجود' chart.)
 
 ### COPYRIGHT NOTICE
 *   Always include a copyright notice at the bottom of each page, linking to royasoftteam.ir, formatted as a professional footer. The footer should include the copyright year (currently 2024), a link to RoyaSoftTeam with a code icon, and be styled appropriately for the page (e.g., using Bootstrap). The footer should also be responsive and support dark/light themes where applicable, using CSS variables. The footer on authentication pages (e.g., login, registration) must be fixed to the bottom of the page.
@@ -137,7 +138,7 @@ globs: *
         *   Ensure that the chart is responsive and displays data accurately.
     *   **Period Chart:**
         *   Displays capital, expenses, sales, and fund balance for each period.
-        *   Uses standard project colors (blue for capital, red for expenses, green for sales, purple for fund balance).
+        *   Uses standard project colors (blue for expenses, green for sales, purple for fund balance).
         *   Capital should be displayed in purple, matching the project's standard color (--capital-color).
     *   **Cumulative Trend Chart:**
         *   Displays the cumulative trend of capital, expenses, sales, and fund balance over time.
@@ -173,6 +174,19 @@ globs: *
 *   **Commenting out columns in `period_list.html`**: When requested to comment out specific columns in a template (e.g., "تاریخ شروع" and "تاریخ پایان" in `period_list.html`), perform the following steps:
     1.  Locate the corresponding `<th>` elements in the table header and comment them out using HTML comments (`<!-- -->`).
     2.  Locate the corresponding `<td>` elements in the table body and comment them out using HTML comments (`<!-- -->`).
+*   **Chart Updating**: When updating charts in the investor profile page, ensure that the chart is properly cleared before redrawing to prevent overlapping data. Use the following code:
+    ```javascript
+    // پاک کردن نمودار قبلی
+    if (charts.investorTrendChart) {
+        charts.investorTrendChart.destroy();
+        charts.investorTrendChart = null;
+    }
+    ```
+*   **Adding Statistical Cards**: When requested to add statistical cards to the investor profile page, follow these steps:
+    1.  Add the HTML structure for the new stat cards in the appropriate section of the `dashboard/view/investor_profile.html` template.
+    2.  Ensure that the new stat cards are styled consistently with the existing cards.
+    3.  In the `updateInvestorInfoWithData` function, fetch the necessary data from the appropriate API endpoints (e.g., `/construction/api/v1/Unit/` for unit information, `/construction/api/v1/Investor/{investorId}/` for investor details).
+    4.  Update the content of the new stat cards with the fetched data, formatting the data as needed.
 
 ### NUMBER FORMATTING
 *   All numbers in the application must **always** be displayed in English with a 3-digit separator (thousands separator). Use `new Intl.NumberFormat('en-US').format(Math.round(num))` to achieve this.
@@ -191,6 +205,32 @@ globs: *
 ### SERIALIZER DEFINITIONS
 *   Ensure that serializers are defined before they are used in other serializers to avoid "not defined" errors. When encountering such errors, reorder the serializer definitions to ensure dependencies are met.
 *   When creating serializers for models, include all relevant fields (e.g. period and period_weight in ExpenseSerializer), defining methods where necessary to retrieve related data.
+*   When defining serializers, define `UnitSerializer` before `InvestorSerializer` and handle the `units` field in `InvestorSerializer` correctly. If this causes a circular dependency, use `SerializerMethodField` to define the `units` field in `InvestorSerializer`. Here's an example:
+
+    ```python
+    class InvestorSerializer(serializers.ModelSerializer):
+        units = serializers.SerializerMethodField()
+
+        class Meta:
+            model = models.Investor
+            fields = [
+                "id",
+                "first_name",
+                "last_name",
+                "phone",
+                "email",
+                "participation_type",
+                "units",
+                "contract_date_shamsi",
+                "created_at",
+            ]
+
+        def get_units(self, obj):
+            """دریافت اطلاعات کامل واحدها"""
+            from .serializers import UnitSerializer  # Import here to avoid circular import
+            return UnitSerializer(obj.units.all(), many=True).data
+    ```
+    Ensure that you import `UnitSerializer` locally within the `get_units` method to prevent circular import issues.
 
 ### TEMPLATE MODIFICATIONS
 *   When requested to remove a specific card and its associated JavaScript code (e.g., "هزینه تمام شده(متری)"), perform the following steps:
@@ -273,6 +313,58 @@ globs: *
 *   **Investor Profile Calculations:** The `investor_profile.html` page must be updated to use server-side calculations and the financial service.
     *   Ensure the financial service file (`financial-calculations.js`) is loaded in `investor_profile.html`.
     *   Implement a mechanism to compare the values calculated by JavaScript with those calculated by the server to ensure accuracy.
+*   **Cost Calculation:**
+    *   Use `calculate_cost_metrics` to calculate cost-related metrics.
+    *   The following cost metrics are available:
+        *   `final_cost`: Total expenses - total sales.
+        *   `net_cost_per_meter`: `final_cost` / total area (if total area > 0).
+        *   `gross_cost_per_meter`: `final_cost` / total infrastructure (if total infrastructure > 0).
+        *   `total_profit_percentage`: (`final_profit_amount` / `final_cost` * 100) if `final_cost` > 0.
+    *   `net_cost`: Total expenses - total sales.
+    *   `building_fund_balance`: total_capital - net_cost.
+*   **Period-Based API Endpoints and Calculations:**
+    *   The following API endpoints provide data based on periods:
+        *   `Period/chart_data/`: Returns capital, expenses, sales, and fund balance for each period, including cumulative values.
+        *   `Expense/dashboard_data/`: Returns expenses broken down by type for each period, including period totals and cumulative totals.
+        *   `Sale/statistics/`: Returns sale statistics by period, including cumulative sales for each period.
+        *   `Expense/with_periods/`: Returns expenses with period information and statistics.
+*   **Cost Calculations:**
+    *   The system includes several cost calculations:
+        *   **Final Cost:** Total expenses - total sales.
+        *   **Net Cost Per Meter:** Final cost / net area.
+        *   **Gross Cost Per Meter:** Final cost / gross area.
+        *   **Net Cost:** Total expenses - total sales.
+        *   **Building Fund Balance:** total_capital - net_cost.
+*   **Cost Definitions:**
+    *   **Final Cost:** Total expenses - total sales.
+    *   **Net Cost Per Meter:** Final cost / net area.
+    *   **Gross Cost Per Meter:** Final cost / gross area.
+    *   **Net Cost:** Total expenses - total sales.
+    *   **Building Fund Balance:** total_capital - net_cost.
+*   **Available Cost Calculations:**
+    *   **Final Cost (هزینه نهایی):**
+        *   Formula: `final_cost = total_expenses - total_sales`
+        *   Location: `ProjectCalculations.calculate_cost_metrics()`
+    *   **Net Cost Per Meter (هزینه هر متر خالص):**
+        *   Formula: `net_cost_per_meter = final_cost / total_area`
+    *   **Gross Cost Per Meter (هزینه هر متر ناخالص):**
+        *   Formula: `gross_cost_per_meter = final_cost / total_infrastructure`
+    *   **Net Cost (هزینه خالص):**
+        *   Formula: `net_cost = total_expenses - total_sales`
+    *   **Building Fund Balance (مانده صندوق ساختمان):**
+        *   Formula: `building_fund_balance = total_capital - net_cost`
+*   **Period-Based API Endpoints:**
+    *   `/Period/chart_data/`:
+        *   Returns capital, expenses, sales, and fund balance for each period, including cumulative values.
+    *   `/Expense/dashboard_data/`:
+        *   Returns expenses broken down by type for each period, including period totals and cumulative totals.
+    *   `/Sale/statistics/`:
+        *   Returns sale statistics by period, including cumulative sales for each period.
+    *   `/Expense/with_periods/`:
+        *   Returns expenses with period information and statistics.
+*   **Investor Activity Status**:
+    *   An **active investor** is defined as an investor with at least one financial transaction in the project.
+    *   An **inactive investor** is defined as an investor without any financial transactions in the project.
 
 ## TECH STACK
 *   (Add the used technologies, frameworks, libraries, versions, etc. Example: Python 3.9, Django 3.2, React 17, Bootstrap 5)
@@ -374,89 +466,4 @@ globs: *
     *   Ensure that tooltips display numbers in millions of Toman when the chart label indicates "(Million Toman)".
     *   In the Period Chart and Cumulative Trend Chart, the capital color must be purple, matching the project's standard color (`--capital-color`).
 *   **Investor Profile Charts:** The charts in the investor profile page (`dashboard/view/investor_profile.html`) must be simplified to resemble the charts on the project dashboard. This involves removing interactive management features such as closing, hiding, maximizing, and moving charts. Each chart must occupy a full row. The charts in the investor profile page (`dashboard/view/investor_profile.html`) must occupy a full row.
-
-## MANAGEMENT COMMAND RULES
-*   When creating management commands for database operations:
-    *   Include a clear docstring explaining the command's purpose.
-    *   Add arguments for `dry-run` and `backup` options.
-    *   Use atomic transactions for data consistency.
-    *   Implement comprehensive logging.
-    *   Provide conversion statistics.
-    *   Display sample converted values.
-*   When creating management commands for database migrations, such as converting Rial to Toman:
-    *   These scripts must include dry-run and backup options.
-    *   Ensure atomic transactions are used to prevent data corruption.
-    *   Log all changes during the migration process.
-    *   Include statistics on the number of records converted.
-    *   Provide sample converted values in the output.
-
-## ICON USAGE RULES
-*   Dashboard card icons should be implemented using Font Awesome or CSS icons to ensure consistent display across different operating systems and browsers.
-*   If using Font Awesome, ensure the Font Awesome library is included in the template.
-*   The icon for the "پروفایل مالی مشارکت کنندگان" card should be `<i class="fas fa-user-circle"></i>` (U+1F464 U+1F4B0) to better represent the concept of a financial profile for contributors.
-*   The icon for the "مدیریت واحدها" card should be `<i class="fas fa-building"></i>`.
-*   The default color for Font Awesome icons is black. If a different color is desired, it should be specified in the CSS:
-    ```css
-    .card-icon {
-        color: #667eea; /* Example: Purple */
-    }
-    ```
-
-## INVESTOR PROFILE RULES
-*   The investor profile page (`dashboard/view/investor_profile.html`) must be updated to use server-side calculations and the financial service.
-    *   Ensure the financial service file (`financial-calculations.js`) is loaded in `investor_profile.html`.
-    *   Implement a mechanism to compare the values calculated by JavaScript with those calculated by the server to ensure accuracy.
-    *   Follow these steps to ensure accurate server-side calculations:
-        1.  Add the financial service file to `investor_profile.html`.
-        2.  Save the current JavaScript calculations for comparison.
-        3.  Replace JavaScript calculations with server-side API calls.
-        4.  Add a system to compare old and new values.
-        5.  Test and validate the results.
-    *   To facilitate testing, add a test button to the page to run accuracy checks.
-    *   If discrepancies are found during the comparison, display a visual alert on the page.
-*   **Chart Simplification:** Remove interactive management features such as closing, hiding, maximizing, and moving charts from the investor profile page (`dashboard/view/investor_profile.html`).
-*   Ensure each chart in the investor profile page (`dashboard/view/investor_profile.html`) occupies a full row.
-*   **Rial to Toman Conversion:**
-    *   **Data Display:** Display exactly what is in the database without unit conversion.
-
-## TRANSACTION MANAGER RULES
-*   The cards in the transaction manager page (`dashboard/view/transaction_manager.html`) and the transaction table must display the exact database values without unit conversion (no division by 10).
-*   When receiving transaction data from users:
-    *   The system must store the user-provided value in the database exactly as it is, without any unit conversions.
-    *   The system must send the user-provided value to the server, and from there into the database, with all commas removed.
-*   **Data Display:** Display exactly what is in the database without unit conversion.
-*   **Data Input:** The system must store the user-provided value in the database exactly as it is, without any unit conversions.
-*   **Server Communication:** The system must send the user-provided value to the server, and from there into the database, with all commas removed.
-
-## PROJECT DASHBOARD RULES
-*   All data displayed on the project dashboard, including card statistics, must accurately reflect the values stored in the database, without any unit conversions or modifications.
-*   **Building Fund Balance Display:** The building fund balance on the project dashboard must be displayed without decimal places by rounding to the nearest whole number before formatting. Use `Math.round(buildingFundBalance).toLocaleString('en-US')` to achieve this.
-*   **New Cards:** The following cards should be added to the project dashboard, with values calculated server-side:
-    *   تعداد واحدها (Number of Units)
-    *   مجموع متراژ مفید (متر مربع) (Total Net Area (m²))
-    *   ارزش ساختمان (تومان) (Building Value (Toman))
-
-## INTEREST RATE MANAGER RULES
-*   When adding a "Recalculate Profits" button to the `interestrate_manager.html` template:
-    *   Add the button with the class `ui orange button` and the `onclick="showRecalculateModal()"` attribute.
-    *   Style the button using CSS to match the existing design, including hover effects and loading states.
-    *   Include a modal for confirming the recalculation with appropriate warnings and prompts.
-    *   Implement JavaScript functions to:
-        *   Initialize and retrieve the CSRF token.
-        *   Show and close the recalculation modal.
-        *   Handle the recalculation process via an API call to `/construction/api/v1/Transaction/recalculate_profits/`.
-        *   Display success or error messages using the `showAlert` function.
-        *   Refresh financial summary and project statistics after a successful recalculation.
-*   When the "اعمال نرخ سود جدید" (Apply New Interest Rate) button is clicked, a modal window should open. This modal should:
-    *   Fetch the daily interest rate from the server and populate the corresponding field.
-    *   Set the application date to the current date.
-
-## COLOR SCHEME RULES
-*   In the financial summary and all other sections:
-    *   "مرجوعی" (refund) should be displayed in yellow.
-    *   "مانده" (balance) should be displayed in gray.
-    *   **Refund:** Use yellow (#ffc107) for better visibility and differentiation.
-    *   **Balance:** Use gray (#6c757d) for a neutral and balanced display.
-
-## PROJECT DASHBOARD RULES (CONTINUED)
-*   To ensure the new cards "تعداد واحدها (Number of Units)", "مجموع متراژ مفید (متر مربع) (Total
+*
