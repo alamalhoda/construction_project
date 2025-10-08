@@ -2462,8 +2462,16 @@
                 const isActiveSelect = document.getElementById('is_active');
                 
                 if (rateInput && dailyProfitPercentage !== null) {
-                    // dailyProfitPercentage is already in decimal format from server
-                    rateInput.value = dailyProfitPercentage.toFixed(15);
+                    // تبدیل از درصد به اعشاری (تقسیم بر 100)
+                    // API مقدار را به صورت درصد برمی‌گرداند (مثلاً 0.0511%)
+                    // اما دیتابیس نیاز به مقدار اعشاری دارد (مثلاً 0.000511)
+                    const rateDecimal = dailyProfitPercentage / 100;
+                    rateInput.value = rateDecimal.toFixed(15);
+                    
+                    console.log('تبدیل نرخ سود:', {
+                        'درصد (از API)': dailyProfitPercentage,
+                        'اعشاری (برای دیتابیس)': rateDecimal
+                    });
                 }
                 
                 if (effectiveDateInput) {
@@ -2476,8 +2484,9 @@
                 
                 console.log('Form filled with calculated daily profit percentage:', {
                     dailyProfitPercentage: dailyProfitPercentage,
-                    rate: dailyProfitPercentage !== null ? dailyProfitPercentage.toFixed(15) : 'No calculated rate',
-                    effective_date: today
+                    rate: dailyProfitPercentage !== null ? (dailyProfitPercentage / 100).toFixed(15) : 'No calculated rate',
+                    effective_date: today,
+                    note: 'نرخ از درصد به اعشاری تبدیل شد'
                 });
                 
             } catch (error) {
