@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>گزارش مالی سرمایه‌گذار</title>
+    <title>گزارش مالی مشارکت کننده</title>
     
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -16,9 +16,21 @@
             --deposit-color: #2185d0;
             --withdrawal-color: #db2828;
             --profit-color: #21ba45;
-            --capital-color: #667eea;
+            --capital-color: #aa26ff;
             --expense-color: #dc3545;
             --balance-color: #6c757d;
+            --refund-color: #ffc107;
+            --gold-color: #ffd700;
+            
+            /* نسخه‌های شفاف برای پس‌زمینه */
+            --deposit-color-light: rgba(33, 133, 208, 0.1);
+            --withdrawal-color-light: rgba(219, 40, 40, 0.1);
+            --profit-color-light: rgba(33, 186, 69, 0.1);
+            --capital-color-light: rgba(170, 38, 255, 0.1);
+            --expense-color-light: rgba(220, 53, 69, 0.1);
+            --balance-color-light: rgba(108, 117, 125, 0.1);
+            --refund-color-light: rgba(255, 193, 7, 0.1);
+            --gold-color-light: rgba(255, 215, 0, 0.1);
             
             /* رنگ‌های پایه */
             --primary-color: #667eea;
@@ -165,7 +177,7 @@
 
         .stat-card.capital {
             border-color: var(--capital-color);
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(102, 126, 234, 0.05));
+            background: linear-gradient(135deg, var(--capital-color-light), rgba(170, 38, 255, 0.05));
         }
 
         .stat-card.capital h4 {
@@ -179,6 +191,18 @@
 
         .stat-card.profit h4 {
             color: var(--profit-color);
+        }
+
+        /* استایل ویژه برای شاخص نفع */
+        .stat-card.profit-index {
+            background: linear-gradient(135deg, var(--gold-color-light) 0%, var(--bg-card) 100%);
+            border: 2px solid var(--gold-color);
+            box-shadow: 0 8px 25px var(--gold-color-light);
+        }
+
+        .stat-card.profit-index h4 {
+            color: var(--gold-color);
+            text-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
         }
 
         /* Transactions Table */
@@ -472,7 +496,7 @@
     <div class="container" id="reportContent">
         <!-- Report Header -->
         <div class="report-header">
-            <h1><i class="fas fa-file-invoice-dollar"></i> گزارش مالی سرمایه‌گذار</h1>
+            <h1><i class="fas fa-file-invoice-dollar"></i> گزارش مالی مشارکت کننده</h1>
             <div class="date" id="reportDate">تاریخ گزارش: -</div>
         </div>
 
@@ -502,7 +526,7 @@
         <div id="mainContent" style="display: none;">
             <!-- Investor Info Box -->
             <div class="investor-info-box">
-                <div class="investor-name" id="investorName">نام سرمایه‌گذار</div>
+                <div class="investor-name" id="investorName">نام مشارکت کننده</div>
                 <div class="investor-details">
                     <div class="detail-item">
                         <i class="fas fa-phone"></i>
@@ -522,12 +546,21 @@
             <!-- Interest Rate Info -->
             <div class="stats-section" style="background: linear-gradient(135deg, rgba(33, 186, 69, 0.05), rgba(33, 186, 69, 0.02)); border: 2px solid var(--profit-color); border-radius: 10px; padding: 20px; margin-bottom: 30px;">
                 <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px;">
-                    <div>
-                        <h3 style="margin: 0; color: var(--profit-color); font-size: 1.2rem; display: flex; align-items: center; gap: 10px;">
-                            <i class="fas fa-percentage"></i>
-                            نرخ سود مشارکت روزانه
-                        </h3>
-                        <p style="margin: 10px 0 0 0; font-size: 2rem; font-weight: bold; color: var(--profit-color);" id="activeInterestRate">-</p>
+                    <div style="display: flex; gap: 30px; flex-wrap: wrap;">
+                        <div>
+                            <h3 style="margin: 0; color: var(--profit-color); font-size: 1.2rem; display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-percentage"></i>
+                                نرخ سود روزانه
+                            </h3>
+                            <p style="margin: 10px 0 0 0; font-size: 2rem; font-weight: bold; color: var(--profit-color);" id="activeInterestRate">-</p>
+                        </div>
+                        <div>
+                            <h3 style="margin: 0; color: var(--profit-color); font-size: 1.2rem; display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-chart-line"></i>
+                                درصد سود سالانه
+                            </h3>
+                            <p style="margin: 10px 0 0 0; font-size: 2rem; font-weight: bold; color: var(--profit-color);" id="annualInterestRate">-</p>
+                        </div>
                     </div>
                     <div style="flex: 1; min-width: 300px;">
                         <div style="background: rgba(255, 193, 7, 0.1); border-right: 4px solid #ffc107; padding: 15px; border-radius: 8px;">
@@ -546,7 +579,7 @@
             <div class="stats-section">
                 <h3 class="section-title">
                     <i class="fas fa-wallet"></i>
-                    اطلاعات مالی سرمایه‌گذار
+                    اطلاعات مالی مشارکت کننده
                 </h3>
                 <div class="stats-grid">
                     <div class="stat-card deposit">
@@ -581,7 +614,7 @@
                         <h4 id="totalRatioToGrandTotal">-</h4>
                         <p>نسبت (سرمایه+سود) به کل</p>
                     </div>
-                    <div class="stat-card">
+                    <div class="stat-card profit-index">
                         <h4 id="profitIndex">-</h4>
                         <p>شاخص نفع</p>
                     </div>
@@ -601,7 +634,7 @@
                     </div>
                     <div class="stat-card">
                         <h4 id="totalUnitsPrice">-</h4>
-                        <p>قیمت واحد (تومان)</p>
+                        <p>قیمت واحد انتخاب شده (تومان)</p>
                     </div>
                     <div class="stat-card">
                         <h4 id="ownershipArea">-</h4>
@@ -609,7 +642,7 @@
                     </div>
                     <div class="stat-card">
                         <h4 id="finalPayment">-</h4>
-                        <p>پرداخت نهایی جهت تسویه (تومان)</p>
+                        <p>پرداخت نهایی جهت تسویه حساب (تومان)</p>
                     </div>
                     <div class="stat-card">
                         <h4 id="transferPricePerMeter">-</h4>
@@ -686,7 +719,7 @@
                 document.getElementById('loadingState').innerHTML = `
                     <div class="empty-state">
                         <i class="fas fa-exclamation-triangle"></i>
-                        <p>شناسه سرمایه‌گذار مشخص نشده است</p>
+                        <p>شناسه مشارکت کننده مشخص نشده است</p>
                         <a href="/dashboard/investor-profile/" class="btn btn-primary">بازگشت به پروفایل</a>
                     </div>
                 `;
@@ -696,10 +729,8 @@
             try {
                 // Fetch investor data
                 const investorResponse = await fetch(`/construction/api/v1/Investor/${investorId}/`);
-                if (!investorResponse.ok) throw new Error('خطا در دریافت اطلاعات سرمایه‌گذار');
+                if (!investorResponse.ok) throw new Error('خطا در دریافت اطلاعات مشارکت کننده');
                 const investor = await investorResponse.json();
-                console.log('🔍 داده‌های سرمایه‌گذار:', investor);
-                console.log('🏢 واحدهای سرمایه‌گذار:', investor.units);
 
                 // Fetch transactions
                 const transactionsResponse = await fetch(`/construction/api/v1/Transaction/?investor=${investorId}`);
@@ -720,7 +751,13 @@
                     const interestRates = await interestRateResponse.json();
                     // Find active interest rate
                     activeInterestRate = interestRates.find(rate => rate.is_active === true);
-                    console.log('💰 نرخ سود فعال:', activeInterestRate);
+                }
+
+                // Fetch profit metrics for annual interest rate
+                const profitMetricsResponse = await fetch('/construction/api/v1/Project/profit_metrics/');
+                let profitMetrics = null;
+                if (profitMetricsResponse.ok) {
+                    profitMetrics = await profitMetricsResponse.json();
                 }
 
                 // Calculate financial metrics
@@ -763,6 +800,17 @@
                     }
                 }
 
+                // دریافت مالکیت مشارکت کننده از API
+                let ownershipData = null;
+                try {
+                    const ownershipResponse = await fetch(`/construction/api/v1/Investor/${investorId}/ownership/`);
+                    if (ownershipResponse.ok) {
+                        ownershipData = await ownershipResponse.json();
+                    }
+                } catch (error) {
+                    console.warn('خطا در دریافت مالکیت:', error);
+                }
+
                 // Get unit information
                 let unitInfo = {
                     name: 'نامشخص',
@@ -781,9 +829,11 @@
                     };
                 }
 
-                // Calculate unit-related metrics
-                const finalPayment = unitInfo.price - netPrincipal;
-                const transferPricePerMeter = unitInfo.area > 0 ? netPrincipal / unitInfo.area : 0;
+                // Calculate unit-related metrics from ownership API
+                const ownershipArea = ownershipData?.ownership_area || 0;
+                const finalPayment = ownershipData?.final_payment || 0;
+                const transferPricePerMeter = ownershipData?.transfer_price_per_meter || 0;
+                const totalUnitsPrice = ownershipData?.total_units_price || unitInfo.price;
 
                 // Update UI
                 document.getElementById('reportDate').textContent = `تاریخ گزارش: ${getCurrentPersianDate()}`;
@@ -794,11 +844,25 @@
 
                 // Interest Rate
                 if (activeInterestRate) {
-                    document.getElementById('activeInterestRate').textContent = `${activeInterestRate.rate}%`;
+                    const dailyRate = parseFloat(activeInterestRate.rate);
+                    const dailyRatePercent = (dailyRate * 100).toFixed(12);
+                    document.getElementById('activeInterestRate').textContent = `${dailyRatePercent}%`;
                     document.getElementById('interestRateEffectiveDate').textContent = activeInterestRate.effective_date_display || activeInterestRate.effective_date || '-';
                 } else {
                     document.getElementById('activeInterestRate').textContent = 'تعیین نشده';
                     document.getElementById('interestRateEffectiveDate').textContent = '-';
+                }
+
+                // Annual Interest Rate
+                if (profitMetrics && profitMetrics.annual_profit_percentage !== undefined) {
+                    document.getElementById('annualInterestRate').textContent = `${profitMetrics.annual_profit_percentage.toFixed(2)}%`;
+                } else if (activeInterestRate) {
+                    // Fallback: محاسبه تقریبی از نرخ روزانه
+                    const dailyRate = parseFloat(activeInterestRate.rate);
+                    const annualRate = (dailyRate * 365 * 100).toFixed(2);
+                    document.getElementById('annualInterestRate').textContent = `${annualRate}%`;
+                } else {
+                    document.getElementById('annualInterestRate').textContent = 'تعیین نشده';
                 }
 
                 // Financial stats
@@ -814,9 +878,23 @@
 
                 // Unit stats
                 document.getElementById('unitAreaDisplay').textContent = formatNumber(unitInfo.area);
-                document.getElementById('totalUnitsPrice').textContent = formatNumber(unitInfo.price);
-                document.getElementById('ownershipArea').textContent = formatNumber(unitInfo.ownership_area);
-                document.getElementById('finalPayment').textContent = formatNumber(finalPayment);
+                document.getElementById('totalUnitsPrice').textContent = formatNumber(totalUnitsPrice);
+                document.getElementById('ownershipArea').textContent = parseFloat(ownershipArea).toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+                
+                // پرداخت نهایی با رنگ مثبت/منفی
+                const finalPaymentFormatted = formatNumber(Math.abs(finalPayment));
+                const finalPaymentElement = document.getElementById('finalPayment');
+                if (finalPayment >= 0) {
+                    finalPaymentElement.textContent = finalPaymentFormatted;
+                    finalPaymentElement.style.color = '#28a745'; // سبز برای مثبت (اضافه پرداخت کرده)
+                } else {
+                    finalPaymentElement.textContent = '-' + finalPaymentFormatted;
+                    finalPaymentElement.style.color = '#dc3545'; // قرمز برای منفی (باید بپردازد)
+                }
+                
                 document.getElementById('transferPricePerMeter').textContent = formatNumber(transferPricePerMeter);
 
                 // Load transactions table with sorting
@@ -857,13 +935,6 @@
                         const priorityB = transactionTypePriority[b.transaction_type] || 999;
                         return priorityA - priorityB;
                     });
-
-                    console.log('📊 تراکنش‌های مرتب شده:', sortedTransactions.map(t => ({
-                        date_shamsi: t.date_shamsi,
-                        day_from_start: t.day_from_start,
-                        type: t.transaction_type,
-                        amount: t.amount
-                    })));
 
                     tableBody.innerHTML = sortedTransactions.map((t, index) => `
                         <tr>
