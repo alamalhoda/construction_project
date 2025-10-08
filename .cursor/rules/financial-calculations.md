@@ -102,6 +102,22 @@ const fetchData = async () => { /* کد تکراری */ };
 - ✅ مدت پروژه (Project Duration)
 - ✅ روزهای فعال (Active Days)
 
+### 📅 **محاسبات دوره‌ای (14 محاسبه)**
+- ✅ آورده دوره (Period Deposits)
+- ✅ برداشت دوره (Period Withdrawals)
+- ✅ سرمایه خالص دوره (Period Net Capital)
+- ✅ سود دوره (Period Profits)
+- ✅ هزینه‌های دوره (Period Expenses)
+- ✅ فروش دوره (Period Sales)
+- ✅ مانده صندوق دوره (Period Fund Balance)
+- ✅ آورده تجمعی (Cumulative Deposits)
+- ✅ برداشت تجمعی (Cumulative Withdrawals)
+- ✅ سرمایه تجمعی (Cumulative Net Capital)
+- ✅ سود تجمعی (Cumulative Profits)
+- ✅ هزینه تجمعی (Cumulative Expenses)
+- ✅ فروش تجمعی (Cumulative Sales)
+- ✅ مانده تجمعی (Cumulative Fund Balance)
+
 ### 💱 **محاسبات تبدیل واحد (4 محاسبه)**
 - ✅ تبدیل به تومان (Convert to Toman)
 - ✅ فرمت اعداد (Format Numbers)
@@ -135,6 +151,10 @@ const fetchData = async () => { /* کد تکراری */ };
 
 ### **Transaction APIs**
 1. `GET /api/v1/Transaction/detailed_statistics/` - آمار تفصیلی
+
+### **Period APIs**
+1. `GET /api/v1/Period/chart_data/` - داده‌های نمودار دوره‌ای
+2. `GET /api/v1/Period/period_summary/` - خلاصه کامل دوره‌ای (شامل تمام فاکتورها و مقادیر تجمعی)
 
 ---
 
