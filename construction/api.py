@@ -582,7 +582,7 @@ class PeriodViewSet(viewsets.ModelViewSet):
             cumulative_sales = 0
 
             for period in periods:
-                # محاسبه سرمایه دوره (آورده - برداشت)
+                # محاسبه سرمایه دوره (آورده + برداشت، چون برداشت در دیتابیس منفی است)
                 period_transactions = models.Transaction.objects.filter(
                     project=active_project,
                     period=period
@@ -596,7 +596,8 @@ class PeriodViewSet(viewsets.ModelViewSet):
                     transaction_type='principal_withdrawal'
                 ).aggregate(total=Sum('amount'))['total'] or 0
                 
-                period_capital = float(deposits - withdrawals)
+                # توجه: withdrawals در دیتابیس منفی است، پس از جمع استفاده می‌کنیم
+                period_capital = float(deposits + withdrawals)
                 cumulative_capital += period_capital
 
                 # محاسبه هزینه‌های دوره
@@ -701,7 +702,8 @@ class PeriodViewSet(viewsets.ModelViewSet):
                 cumulative_profits += profits
                 
                 # سرمایه خالص دوره (net capital)
-                net_capital = deposits - withdrawals
+                # توجه: withdrawals در دیتابیس منفی است، پس از جمع استفاده می‌کنیم
+                net_capital = deposits + withdrawals
                 cumulative_net_capital += net_capital
 
                 # هزینه‌های دوره
