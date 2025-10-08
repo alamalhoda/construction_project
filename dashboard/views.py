@@ -36,6 +36,17 @@ def investor_profile(request):
         return HttpResponse('‏‍فایل یافت نشد', status=404)
 
 @login_required
+def investor_pdf(request):
+    """نمایش صفحه گزارش PDF سرمایه‌گذار"""
+    file_path = os.path.join(settings.BASE_DIR, 'dashboard', 'view', 'investor_pdf.html')
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            content = file.read()
+        return HttpResponse(content)
+    except FileNotFoundError:
+        return HttpResponse('‏‍فایل یافت نشد', status=404)
+
+@login_required
 def transaction_manager(request):
     """نمایش صفحه مدیریت تراکنش‌های مالی"""
     from django.middleware.csrf import get_token

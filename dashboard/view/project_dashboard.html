@@ -1651,11 +1651,11 @@
             document.getElementById('startDate').textContent = projectStartDate;
             document.getElementById('endDate').textContent = projectEndDate === '-' ? 'ادامه دارد' : projectEndDate;
             
-            // به‌روزرسانی آمار مشارکت کنندگان
-            if (participationStats) {
-                document.getElementById('ownerCount').textContent = participationStats.active_owner.toLocaleString('en-US');
-                document.getElementById('investorCount').textContent = participationStats.active_investor.toLocaleString('en-US');
-            }
+            // به‌روزرسانی آمار مشارکت کنندگان (همه سرمایه‌گذاران)
+            const ownerCount = allInvestors.filter(inv => inv.participation_type === 'owner').length;
+            const investorCount = allInvestors.filter(inv => inv.participation_type === 'investor').length;
+            document.getElementById('ownerCount').textContent = ownerCount.toLocaleString('en-US');
+            document.getElementById('investorCount').textContent = investorCount.toLocaleString('en-US');
             
             // به‌روزرسانی آمار واحدها، متراژ و ارزش ساختمان
             if (projectStatsData && projectStatsData.units_statistics) {
@@ -1668,14 +1668,6 @@
                 document.getElementById('totalUnits').textContent = '0';
                 document.getElementById('totalArea').textContent = '0';
                 document.getElementById('totalValue').textContent = '0';
-            }
-            
-            // Fallback for participation stats if not available from API
-            if (!participationStats) {
-                const ownerCount = allInvestors.filter(inv => inv.participation_type === 'owner').length;
-                const investorCount = allInvestors.filter(inv => inv.participation_type === 'investor').length;
-                document.getElementById('ownerCount').textContent = ownerCount.toLocaleString('en-US');
-                document.getElementById('investorCount').textContent = investorCount.toLocaleString('en-US');
             }
             
             // نمایش نرخ سود سالانه
@@ -1781,6 +1773,8 @@
             
             console.log('✅ آمار از سمت سرور به‌روزرسانی شد:', {
                 totalInvestors: totalInvestors + ' نفر',
+                ownerCount: ownerCount + ' نفر',
+                investorCount: investorCount + ' نفر',
                 currentCapital: currentCapital.toLocaleString('en-US') + ' تومان',
                 totalProfit: Math.round(totalProfit).toLocaleString('en-US') + ' تومان',
                 grandTotal: grandTotal.toLocaleString('en-US') + ' تومان',
@@ -1803,7 +1797,7 @@
         function updateStatsLegacy() {
             console.log('🔄 استفاده از روش قدیمی برای به‌روزرسانی آمار...');
             
-            // 1. تعداد سرمایه‌گذاران از جدول Investor
+            // 1. تعداد سرمایه‌گذاران (همه)
             const totalInvestors = allInvestors.length;
             
             // 2. محاسبه سرمایه موجود (آورده - برداشت)
@@ -1861,17 +1855,11 @@
             document.getElementById('startDate').textContent = projectStartDate;
             document.getElementById('endDate').textContent = projectEndDate === '-' ? 'ادامه دارد' : projectEndDate;
             
-            // به‌روزرسانی آمار مشارکت کنندگان بر اساس نوع
-            if (participationStats) {
-                document.getElementById('ownerCount').textContent = participationStats.active_owner.toLocaleString('en-US');
-                document.getElementById('investorCount').textContent = participationStats.active_investor.toLocaleString('en-US');
-            } else {
-                // اگر API در دسترس نبود، از داده‌های محلی محاسبه کن
-                const ownerCount = allInvestors.filter(inv => inv.participation_type === 'owner').length;
-                const investorCount = allInvestors.filter(inv => inv.participation_type === 'investor').length;
-                document.getElementById('ownerCount').textContent = ownerCount.toLocaleString('en-US');
-                document.getElementById('investorCount').textContent = investorCount.toLocaleString('en-US');
-            }
+            // به‌روزرسانی آمار مشارکت کنندگان بر اساس نوع (همه)
+            const ownerCount = allInvestors.filter(inv => inv.participation_type === 'owner').length;
+            const investorCount = allInvestors.filter(inv => inv.participation_type === 'investor').length;
+            document.getElementById('ownerCount').textContent = ownerCount.toLocaleString('en-US');
+            document.getElementById('investorCount').textContent = investorCount.toLocaleString('en-US');
             
             // به‌روزرسانی آمار واحدها، متراژ و ارزش ساختمان (روش دوم)
             if (projectStatsData && projectStatsData.units_statistics) {
@@ -1927,8 +1915,8 @@
 
             console.log('آمار محاسبه شده:', {
                 totalInvestors: totalInvestors + ' نفر',
-                ownerCount: participationStats ? participationStats.active_owner + ' نفر' : allInvestors.filter(inv => inv.participation_type === 'owner').length + ' نفر',
-                investorCount: participationStats ? participationStats.active_investor + ' نفر' : allInvestors.filter(inv => inv.participation_type === 'investor').length + ' نفر',
+                ownerCount: ownerCount + ' نفر',
+                investorCount: investorCount + ' نفر',
                 totalDeposits: totalDeposits.toLocaleString('en-US') + ' تومان',
                 totalWithdrawals: totalWithdrawals.toLocaleString('en-US') + ' تومان',
                 currentCapital: currentCapital.toLocaleString('en-US') + ' تومان',
