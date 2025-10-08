@@ -537,6 +537,19 @@ class InvestorCalculations(FinancialCalculationService):
         # محاسبه مالکیت (متر مربع)
         ownership_area = total_amount / average_price_per_meter if average_price_per_meter > 0 else 0
         
+        # محاسبه قیمت کل واحدها (مجموع قیمت نهایی همه واحدها)
+        total_units_price = sum(float(unit.total_price) for unit in units)
+        
+        # محاسبه پرداخت نهایی جهت تسویه حساب
+        # فرمول: (آورده + سود) - قیمت کل واحد
+        final_payment = total_amount - total_units_price
+        
+        # محاسبه قیمت واگذار شده (متر/تومان)
+        # فرمول: (کل آورده + پرداخت نهایی) / متراژ واحد
+        # توجه: اگر پرداخت نهایی منفی باشد (یعنی باید بپردازد)، باید به آورده اضافه شود
+        actual_paid = net_principal + final_payment
+        transfer_price_per_meter = actual_paid / total_area if total_area > 0 else 0
+        
         return {
             'ownership_area': round(ownership_area, 2),
             'total_amount': total_amount,
@@ -546,7 +559,11 @@ class InvestorCalculations(FinancialCalculationService):
             'units_count': units.count(),
             'units': units_list,
             'total_units_area': total_area,
-            'ownership_percentage': round((ownership_area / total_area * 100), 2) if total_area > 0 else 0
+            'total_units_price': total_units_price,
+            'ownership_percentage': round((ownership_area / total_area * 100), 2) if total_area > 0 else 0,
+            'final_payment': round(final_payment, 2),
+            'transfer_price_per_meter': round(transfer_price_per_meter, 2),
+            'actual_paid': round(actual_paid, 2)
         }
     
     @staticmethod
