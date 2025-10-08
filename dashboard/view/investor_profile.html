@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>پروفایل مالی سرمایه‌گذار</title>
+    <title>پروفایل مالی مشارکت کننده</title>
     
     <!-- Chart.js for charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -842,7 +842,7 @@
         <div id="investorInfo" class="investor-info">
 
             <div class="investor-header">
-                <div class="investor-name" id="investorName">نام سرمایه‌گذار</div>
+                <div class="investor-name" id="investorName">نام مشارکت کننده</div>
                 <div class="investor-actions">
                     <a href="#" class="pdf-report-btn" id="pdfReportBtn" style="display: none;">
                         <i class="fas fa-file-pdf"></i>
@@ -852,7 +852,7 @@
                 </div>
             </div>
 
-            <!-- اطلاعات مالی سرمایه‌گذار -->
+            <!-- اطلاعات مالی مشارکت کننده -->
             <div class="stats-section">
                 <h3 class="section-title">
                     <i class="fas fa-wallet"></i>
@@ -1099,14 +1099,14 @@
             }
 
             try {
-                // دریافت نام سرمایه‌گذار
+                // دریافت نام مشارکت کننده
                 const investorNameElement = document.getElementById('investorName');
                 const investorName = investorNameElement ? investorNameElement.textContent.trim() : 'نامشخص';
                 
                 // تبدیل نمودار به تصویر با کیفیت بالا
                 const url = chart.toBase64Image('image/png', 1);
                 
-                // ایجاد لینک دانلود با نام سرمایه‌گذار
+                // ایجاد لینک دانلود با نام مشارکت کننده
                 const link = document.createElement('a');
                 link.download = `${investorName}_${fileName}_${getCurrentPersianDate()}.png`;
                 link.href = url;
@@ -1155,11 +1155,11 @@
         
 
         // تابع loadData() حذف شد چون دیگر نیازی نیست
-        // داده‌ها به صورت فیلتر شده و تنها هنگام انتخاب سرمایه‌گذار بارگذاری می‌شوند
+        // داده‌ها به صورت فیلتر شده و تنها هنگام انتخاب مشارکت کننده بارگذاری می‌شوند
 
-        // پر کردن select سرمایه‌گذاران
+        // پر کردن select مشارکت کنندگان
         function populateInvestorSelectFromAPI() {
-            // بارگذاری موازی لیست سرمایه‌گذاران و آمار کلی
+            // بارگذاری موازی لیست مشارکت کنندگان و آمار کلی
             Promise.all([
                 fetch('/construction/api/v1/Investor/'),
                 fetchGlobalStatistics()
@@ -1177,9 +1177,9 @@
             const select = document.getElementById('investorSelect');
             
                     // پاک کردن گزینه‌های قبلی
-                    select.innerHTML = '<option value="">انتخاب سرمایه‌گذار...</option>';
+                    select.innerHTML = '<option value="">انتخاب مشارکت کننده...</option>';
                     
-                    // اضافه کردن سرمایه‌گذاران جدید
+                    // اضافه کردن مشارکت کنندگان جدید
             investors.forEach(investor => {
                 const option = document.createElement('option');
                         option.value = investor.id;
@@ -1197,14 +1197,14 @@
                     });
                 })
                 .catch(error => {
-                    console.error('خطا در بارگذاری سرمایه‌گذاران:', error);
-                    showError('خطا در ارتباط با سرور برای دریافت لیست سرمایه‌گذاران');
+                    console.error('خطا در بارگذاری مشارکت کنندگان:', error);
+                    showError('خطا در ارتباط با سرور برای دریافت لیست مشارکت کنندگان');
                 });
         }
 
         // جایگزین: استفاده از HTML view موجود  
         function populateInvestorSelectFromHTML() {
-            // خواندن لیست سرمایه‌گذاران از HTML view موجود در construction
+            // خواندن لیست مشارکت کنندگان از HTML view موجود در construction
             fetch('/construction/Investor/')
                 .then(response => {
                     if (!response.ok) {
@@ -1218,9 +1218,9 @@
                     const doc = parser.parseFromString(htmlContent, 'text/html');
                     
             const select = document.getElementById('investorSelect');
-                    select.innerHTML = '<option value="">انتخاب سرمایه‌گذار...</option>';
+                    select.innerHTML = '<option value="">انتخاب مشارکت کننده...</option>';
                     
-                    // فرض می‌کنم که در HTML view، لیست سرمایه‌گذاران در جدولی نمایش داده می‌شود
+                    // فرض می‌کنم که در HTML view، لیست مشارکت کنندگان در جدولی نمایش داده می‌شود
                     // باید ساختار واقعی HTML view را ببینیم
                     const rows = doc.querySelectorAll('table tbody tr'); // نمونه selector
                     
@@ -1247,8 +1247,8 @@
                     });
                 })
                 .catch(error => {
-                    console.error('خطا در بارگذاری سرمایه‌گذاران:', error);
-                    showError('خطا در ارتباط با سرور برای دریافت لیست سرمایه‌گذاران');
+                    console.error('خطا در بارگذاری مشارکت کنندگان:', error);
+                    showError('خطا در ارتباط با سرور برای دریافت لیست مشارکت کنندگان');
                 });
         }
 
@@ -1258,9 +1258,9 @@
             populateInvestorSelectFromAPI();
         }
 
-        // تابع جدید: بارگذاری تراکنش‌های یک سرمایه‌گذار خاص از سرور
+        // تابع جدید: بارگذاری تراکنش‌های یک مشارکت کننده خاص از سرور
         function loadInvestorTransactions(investorId) {
-            console.log('بارگذاری تراکنش‌های سرمایه‌گذار:', investorId);
+            console.log('بارگذاری تراکنش‌های مشارکت کننده:', investorId);
             
             // نمایش loading برای بخش پروفایل
             const investorInfo = document.getElementById('investorInfo');
@@ -1268,11 +1268,11 @@
                 const loadingDiv = document.createElement('div');
                 loadingDiv.id = 'investor-loading';
                 loadingDiv.className = 'loading-overlay';
-                loadingDiv.innerHTML = '<div class="spinner"></div><p>در حال بارگذاری اطلاعات سرمایه‌گذار...</p>';
+                loadingDiv.innerHTML = '<div class="spinner"></div><p>در حال بارگذاری اطلاعات مشارکت کننده...</p>';
                 investorInfo.appendChild(loadingDiv);
             }
             
-            // بارگذاری تراکنش‌های این سرمایه‌گذار با فیلتر
+            // بارگذاری تراکنش‌های این مشارکت کننده با فیلتر
             return fetch(`/construction/api/v1/Transaction/?investor=${investorId}`)
                 .then(response => {
                     if (!response.ok) {
@@ -1298,7 +1298,7 @@
                         day_from_start: transaction.day_from_start || 0
                     }));
                     
-                    console.log(`${investorTransactions.length} تراکنش برای سرمایه‌گذار بارگذاری شد`);
+                    console.log(`${investorTransactions.length} تراکنش برای مشارکت کننده بارگذاری شد`);
                     
                     // حذف loading
                     const loadingElement = document.getElementById('investor-loading');
@@ -1309,7 +1309,7 @@
                     return investorTransactions;
                 })
                 .catch(error => {
-                    console.error('خطا در بارگذاری تراکنش‌های سرمایه‌گذار:', error);
+                    console.error('خطا در بارگذاری تراکنش‌های مشارکت کننده:', error);
                     
                     // حذف loading
                     const loadingElement = document.getElementById('investor-loading');
@@ -1317,7 +1317,7 @@
                         loadingElement.remove();
                     }
                     
-                    showError('خطا در بارگذاری اطلاعات سرمایه‌گذار: ' + error.message);
+                    showError('خطا در بارگذاری اطلاعات مشارکت کننده: ' + error.message);
                     return [];
                 });
         }
@@ -1329,7 +1329,7 @@
             );
         }
 
-        // نمایش پروفایل سرمایه‌گذار
+        // نمایش پروفایل مشارکت کننده
         function showInvestorProfile(investorId) {
             console.log('نمایش پروفایل برای:', investorId);
             selectedInvestor = investorId;
@@ -1338,7 +1338,7 @@
             // پاک کردن نمودارهای قبلی
             destroyCharts();
             
-            // بارگذاری تراکنش‌های این سرمایه‌گذار از سرور
+            // بارگذاری تراکنش‌های این مشارکت کننده از سرور
             loadInvestorTransactions(investorId)
                 .then(investorTransactions => {
                     if (investorTransactions && investorTransactions.length > 0) {
@@ -1351,7 +1351,7 @@
                             createMonthlyComparisonChart(investorTransactions);
                             createPrincipalTransactionChart(investorTransactions);
                             createMonthlyPrincipalChart(investorTransactions);
-                            // بارگذاری نمودار ترند سرمایه‌گذار با استفاده از همان داده‌های تراکنش‌ها
+                            // بارگذاری نمودار ترند مشارکت کننده با استفاده از همان داده‌های تراکنش‌ها
                             loadInvestorTrendData(investorId, investorTransactions);
                         } catch (error) {
                             console.log('خطا در ایجاد نمودارها:', error);
@@ -1359,12 +1359,12 @@
                     } else {
                         // اگر تراکنشی وجود نداشت
                         updateInvestorInfoWithData(investorId, []);
-                        showError('هیچ تراکنشی برای این سرمایه‌گذار یافت نشد');
+                        showError('هیچ تراکنشی برای این مشارکت کننده یافت نشد');
                     }
                 })
                 .catch(error => {
-                    console.error('خطا در نمایش پروفایل سرمایه‌گذار:', error);
-                    showError('خطا در بارگذاری پروفایل سرمایه‌گذار');
+                    console.error('خطا در نمایش پروفایل مشارکت کننده:', error);
+                    showError('خطا در بارگذاری پروفایل مشارکت کننده');
                 });
         }
 
@@ -1470,12 +1470,12 @@
         // تابع جدید: دریافت محاسبات از سرور
         async function updateInvestorStatsFromServer(investorId, investorName) {
             try {
-                console.log(`📡 دریافت آمار سرمایه‌گذار ${investorId} از سرور...`);
+                console.log(`📡 دریافت آمار مشارکت کننده ${investorId} از سرور...`);
                 
-                // دریافت آمار تفصیلی سرمایه‌گذار از API
+                // دریافت آمار تفصیلی مشارکت کننده از API
                 const investorStats = await window.financialService.getInvestorStatistics(investorId);
                 
-                // دریافت نسبت‌های سرمایه‌گذار از API
+                // دریافت نسبت‌های مشارکت کننده از API
                 let investorRatios = null;
                 try {
                     const response = await fetch(`/construction/api/v1/Investor/${investorId}/ratios/`);
@@ -1486,20 +1486,20 @@
                     console.warn('⚠️ خطا در دریافت نسبت‌ها:', error);
                 }
                 
-                // دریافت مالکیت سرمایه‌گذار از API
+                // دریافت مالکیت مشارکت کننده از API
                 let investorOwnership = null;
                 try {
                     const response = await fetch(`/construction/api/v1/Investor/${investorId}/ownership/`);
                     if (response.ok) {
                         investorOwnership = await response.json();
-                        console.log('✅ مالکیت سرمایه‌گذار از سرور دریافت شد:', investorOwnership);
+                        console.log('✅ مالکیت مشارکت کننده از سرور دریافت شد:', investorOwnership);
                     }
                 } catch (error) {
                     console.warn('⚠️ خطا در دریافت مالکیت:', error);
                 }
                 
                 if (investorStats && !investorStats.error) {
-                    console.log('✅ آمار سرمایه‌گذار از سرور دریافت شد:', investorStats);
+                    console.log('✅ آمار مشارکت کننده از سرور دریافت شد:', investorStats);
                     
                     // تبدیل داده‌های سرور به فرمت قابل مقایسه (استفاده از amounts_toman)
                     const serverCalculations = {
@@ -1636,7 +1636,7 @@
             }, 5000);
         }
 
-        // به‌روزرسانی اطلاعات کلی سرمایه‌گذار با داده‌های جدید از API
+        // به‌روزرسانی اطلاعات کلی مشارکت کننده با داده‌های جدید از API
         function updateInvestorInfoWithData(investorId, investorTransactions) {
             // فعال‌سازی دکمه گزارش PDF
             const pdfBtn = document.getElementById('pdfReportBtn');
@@ -1645,7 +1645,7 @@
                 pdfBtn.style.display = 'inline-flex';
             }
 
-            // دریافت نام سرمایه‌گذار از API
+            // دریافت نام مشارکت کننده از API
             fetch(`/construction/api/v1/Investor/${investorId}/`)
                 .then(response => response.json())
                 .then(investorData => {
@@ -1657,16 +1657,16 @@
                     }
                 })
                 .catch(error => {
-                    console.error('خطا در دریافت نام سرمایه‌گذار:', error);
+                    console.error('خطا در دریافت نام مشارکت کننده:', error);
                     document.getElementById('investorName').textContent = 'نام نامشخص';
                 });
 
-            // دریافت اطلاعات سرمایه‌گذار شامل واحدهایش
+            // دریافت اطلاعات مشارکت کننده شامل واحدهایش
             fetch(`/construction/api/v1/Investor/${investorId}/`)
                 .then(response => response.json())
                 .then(investorData => {
-                    console.log('🔍 اطلاعات کامل سرمایه‌گذار:', investorData);
-                    console.log('🔍 واحدهای سرمایه‌گذار:', investorData.units);
+                    console.log('🔍 اطلاعات کامل مشارکت کننده:', investorData);
+                    console.log('🔍 واحدهای مشارکت کننده:', investorData.units);
                     
                     if (investorData.units && investorData.units.length > 0) {
                         // اگر چند واحد دارد، همه را نمایش دهیم
@@ -1681,7 +1681,7 @@
                     } else {
                         document.getElementById('unitName').textContent = 'هیچ واحدی یافت نشد';
                         document.getElementById('unitArea').textContent = '0';
-                        console.warn('⚠️ هیچ واحدی برای سرمایه‌گذار یافت نشد');
+                        console.warn('⚠️ هیچ واحدی برای مشارکت کننده یافت نشد');
                     }
                 })
                 .catch(error => {
@@ -1785,7 +1785,7 @@
                 }
             }
             
-            console.log('اطلاعات سرمایه‌گذار به‌روزرسانی شد:', {
+            console.log('اطلاعات مشارکت کننده به‌روزرسانی شد:', {
                 totalPrincipal: totalPrincipal / BASE_AMOUNT,
                 totalWithdrawal: totalWithdrawal / BASE_AMOUNT,
                 netPrincipal: netPrincipal / BASE_AMOUNT,
@@ -1820,7 +1820,7 @@
             document.getElementById('investorInfo').classList.remove('show');
         }
 
-        // به‌روزرسانی اطلاعات کلی سرمایه‌گذار
+        // به‌روزرسانی اطلاعات کلی مشارکت کننده
         function updateInvestorInfo(investorId) {
             const investorData = chartData.filter(row => row.investor_name === investorId);
             const principalData = investorData.filter(row => row.entry_type === 'principal_deposit');
@@ -2278,7 +2278,7 @@
             });
         }
 
-        // نمودار ترند سرمایه‌گذار
+        // نمودار ترند مشارکت کننده
         function createInvestorTrendChart(months, capitalData, unitCostData) {
             // پاک کردن نمودار قبلی
             if (charts.investorTrendChart) {
@@ -2365,10 +2365,10 @@
             });
         }
 
-        // بارگذاری داده‌های ترند سرمایه‌گذار - استفاده از همان منطق نمودار ماهانه
+        // بارگذاری داده‌های ترند مشارکت کننده - استفاده از همان منطق نمودار ماهانه
         async function loadInvestorTrendData(investorId, investorTransactions) {
             try {
-                console.log('🔍 بارگذاری داده‌های ترند برای سرمایه‌گذار:', investorId);
+                console.log('🔍 بارگذاری داده‌های ترند برای مشارکت کننده:', investorId);
                 console.log('🔍 تعداد تراکنش‌ها:', investorTransactions.length);
                 
                 if (!investorTransactions || investorTransactions.length === 0) {
@@ -2477,7 +2477,7 @@
                     return new Array(months.length).fill(0);
                 }
                 
-                // دریافت اطلاعات سرمایه‌گذار برای محاسبه متراژ واحد
+                // دریافت اطلاعات مشارکت کننده برای محاسبه متراژ واحد
                 const investorResponse = await fetch(`/construction/api/v1/Investor/${investorId}/`);
                 const investorData = await investorResponse.json();
                 
@@ -2485,20 +2485,20 @@
                 const projectStatsResponse = await fetch(`/construction/api/v1/Project/statistics/`);
                 const projectStatsData = await projectStatsResponse.json();
                 
-                console.log('🔍 اطلاعات سرمایه‌گذار:', investorData);
+                console.log('🔍 اطلاعات مشارکت کننده:', investorData);
                 console.log('🔍 آمار پروژه:', projectStatsData);
                 
-                // محاسبه متراژ واحد سرمایه‌گذار (از اطلاعات سرمایه‌گذار)
+                // محاسبه متراژ واحد مشارکت کننده (از اطلاعات مشارکت کننده)
                 const investorUnitArea = investorData.units ? 
                     investorData.units.reduce((sum, unit) => sum + (parseFloat(unit.area) || 0), 0) : 0;
                 
-                console.log('🔍 واحدهای سرمایه‌گذار برای محاسبه هزینه:', investorData.units);
-                console.log('🔍 متراژ واحد سرمایه‌گذار:', investorUnitArea);
+                console.log('🔍 واحدهای مشارکت کننده برای محاسبه هزینه:', investorData.units);
+                console.log('🔍 متراژ واحد مشارکت کننده:', investorUnitArea);
                 
                 // کل متراژ مفید از آمار پروژه
                 const totalNetArea = projectStatsData.units_statistics?.total_area || 1;
                 
-                console.log('🔍 متراژ واحد سرمایه‌گذار:', investorUnitArea);
+                console.log('🔍 متراژ واحد مشارکت کننده:', investorUnitArea);
                 console.log('🔍 کل متراژ مفید:', totalNetArea);
                 
                 const unitCostData = [];
@@ -2521,8 +2521,8 @@
                     console.log(`🔍 دوره یافت شده:`, periodData);
                     
                     if (periodData) {
-                        // محاسبه هزینه واحد سرمایه‌گذار
-                        // فرمول: (هزینه خالص تجمعی ÷ کل متراژ مفید) × متراژ واحد سرمایه‌گذار
+                        // محاسبه هزینه واحد مشارکت کننده
+                        // فرمول: (هزینه خالص تجمعی ÷ کل متراژ مفید) × متراژ واحد مشارکت کننده
                         const cumulativeNetCost = periodData.cumulative_expenses - periodData.cumulative_sales;
                         const unitCostPerMeter = (cumulativeNetCost / totalNetArea) * investorUnitArea;
                         const unitCostInMillions = unitCostPerMeter / 1000000; // تبدیل به میلیون تومان
@@ -2566,7 +2566,7 @@
             document.getElementById('themeToggle').addEventListener('click', toggleTheme);
             
             
-            populateInvestorSelect(); // بارگذاری لیست سرمایه‌گذاران از دیتابیس
+            populateInvestorSelect(); // بارگذاری لیست مشارکت کنندگان از دیتابیس
             // loadData() دیگر نیازی نیست چون داده‌ها به صورت فیلتر شده بارگذاری می‌شوند
             
             // مخفی کردن loading چون دیگر داده‌ای بارگذاری نمی‌کنیم

@@ -526,7 +526,7 @@
         <div id="mainContent" style="display: none;">
             <!-- Investor Info Box -->
             <div class="investor-info-box">
-                <div class="investor-name" id="investorName">نام سرمایه‌گذار</div>
+                <div class="investor-name" id="investorName">نام مشارکت کننده</div>
                 <div class="investor-details">
                     <div class="detail-item">
                         <i class="fas fa-phone"></i>
@@ -719,7 +719,7 @@
                 document.getElementById('loadingState').innerHTML = `
                     <div class="empty-state">
                         <i class="fas fa-exclamation-triangle"></i>
-                        <p>شناسه سرمایه‌گذار مشخص نشده است</p>
+                        <p>شناسه مشارکت کننده مشخص نشده است</p>
                         <a href="/dashboard/investor-profile/" class="btn btn-primary">بازگشت به پروفایل</a>
                     </div>
                 `;
@@ -729,7 +729,7 @@
             try {
                 // Fetch investor data
                 const investorResponse = await fetch(`/construction/api/v1/Investor/${investorId}/`);
-                if (!investorResponse.ok) throw new Error('خطا در دریافت اطلاعات سرمایه‌گذار');
+                if (!investorResponse.ok) throw new Error('خطا در دریافت اطلاعات مشارکت کننده');
                 const investor = await investorResponse.json();
 
                 // Fetch transactions
@@ -800,7 +800,7 @@
                     }
                 }
 
-                // دریافت مالکیت سرمایه‌گذار از API
+                // دریافت مالکیت مشارکت کننده از API
                 let ownershipData = null;
                 try {
                     const ownershipResponse = await fetch(`/construction/api/v1/Investor/${investorId}/ownership/`);
