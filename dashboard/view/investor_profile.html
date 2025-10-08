@@ -303,6 +303,37 @@
             border-bottom: 2px solid #f0f0f0;
         }
 
+        .investor-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .pdf-report-btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-family: 'Vazir', 'Tahoma', Arial, sans-serif;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .pdf-report-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .pdf-report-btn i {
+            font-size: 1rem;
+        }
+
         .investor-name {
             font-size: 2rem;
             color: #333;
@@ -448,6 +479,17 @@
             .investor-header {
                 flex-direction: column;
                 gap: 15px;
+                align-items: flex-start;
+            }
+
+            .investor-actions {
+                width: 100%;
+                flex-direction: column;
+            }
+
+            .pdf-report-btn {
+                width: 100%;
+                justify-content: center;
             }
 
             .investor-selector select {
@@ -743,7 +785,13 @@
 
             <div class="investor-header">
                 <div class="investor-name" id="investorName">نام سرمایه‌گذار</div>
-                <div class="investor-status" id="investorStatus">وضعیت</div>
+                <div class="investor-actions">
+                    <a href="#" class="pdf-report-btn" id="pdfReportBtn" style="display: none;">
+                        <i class="fas fa-file-pdf"></i>
+                        گزارش PDF
+                    </a>
+                    <div class="investor-status" id="investorStatus">وضعیت</div>
+                </div>
             </div>
 
             <!-- اطلاعات مالی سرمایه‌گذار -->
@@ -1618,6 +1666,13 @@
 
         // به‌روزرسانی اطلاعات کلی سرمایه‌گذار با داده‌های جدید از API
         function updateInvestorInfoWithData(investorId, investorTransactions) {
+            // فعال‌سازی دکمه گزارش PDF
+            const pdfBtn = document.getElementById('pdfReportBtn');
+            if (pdfBtn) {
+                pdfBtn.href = `/dashboard/investor-pdf/?investor_id=${investorId}`;
+                pdfBtn.style.display = 'inline-flex';
+            }
+
             // دریافت نام سرمایه‌گذار از API
             fetch(`/construction/api/v1/Investor/${investorId}/`)
                 .then(response => response.json())
