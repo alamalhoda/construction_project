@@ -784,6 +784,18 @@
                     <h4 id="ownershipArea">-</h4>
                     <p>مالکیت (متر مربع)</p>
                 </div>
+                <div class="stat-card" style="border: 2px solid #20c997; background: linear-gradient(135deg, rgba(32, 201, 151, 0.1), rgba(16, 172, 132, 0.1));">
+                    <h4 id="finalPayment">-</h4>
+                    <p>پرداخت نهایی جهت تسویه حساب (تومان)</p>
+                </div>
+                <div class="stat-card" style="border: 2px solid #e83e8c; background: linear-gradient(135deg, rgba(232, 62, 140, 0.1), rgba(219, 30, 118, 0.1));">
+                    <h4 id="transferPricePerMeter">-</h4>
+                    <p>قیمت واگذار شده (تومان/متر مربع)</p>
+                </div>
+                <div class="stat-card" style="border: 2px solid #9c27b0; background: linear-gradient(135deg, rgba(156, 39, 176, 0.1), rgba(142, 36, 170, 0.1));">
+                    <h4 id="totalUnitsPrice">-</h4>
+                    <p>قیمت واحد انتخاب شده (تومان)</p>
+                </div>
             </div>
 
             <!-- Charts Section with New Grid Layout -->
@@ -1300,7 +1312,10 @@
                         totalRatioToGrandTotal: investorRatios?.total_ratio_formatted || '0.00%',
                         profitIndex: investorRatios?.profit_index || '0.00',
                         ownershipArea: investorOwnership?.ownership_area || 0,
-                        ownershipPercentage: investorOwnership?.ownership_percentage || 0
+                        ownershipPercentage: investorOwnership?.ownership_percentage || 0,
+                        finalPayment: investorOwnership?.final_payment || 0,
+                        transferPricePerMeter: investorOwnership?.transfer_price_per_meter || 0,
+                        totalUnitsPrice: investorOwnership?.total_units_price || 0
                     };
 
                     // مقایسه محاسبات قدیمی و جدید
@@ -1334,7 +1349,10 @@
                 { id: 'profitRatioToTotal', value: serverCalculations.profitRatioToTotal },
                 { id: 'totalRatioToGrandTotal', value: serverCalculations.totalRatioToGrandTotal },
                 { id: 'profitIndex', value: serverCalculations.profitIndex },
-                { id: 'ownershipArea', value: serverCalculations.ownershipArea }
+                { id: 'ownershipArea', value: serverCalculations.ownershipArea },
+                { id: 'finalPayment', value: serverCalculations.finalPayment },
+                { id: 'transferPricePerMeter', value: serverCalculations.transferPricePerMeter },
+                { id: 'totalUnitsPrice', value: serverCalculations.totalUnitsPrice }
             ];
 
             elements.forEach(element => {
@@ -1344,12 +1362,26 @@
                         // برای نسبت‌ها و شاخص‌ها، مقدار را مستقیماً نمایش دهیم
                         domElement.textContent = element.value;
                     } else if (element.id === 'ownershipArea') {
-                        // برای مالکیت، فرمت اعشار با 2 رقم
+                        // برای مالکیت (متر مربع)، فرمت اعشار با 2 رقم
                         const formatted = parseFloat(element.value).toLocaleString('en-US', {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                         });
                         domElement.textContent = formatted;
+                    } else if (element.id === 'transferPricePerMeter') {
+                        // برای قیمت واگذار شده، فرمت عددی با جداکننده
+                        domElement.textContent = formatNumberWithCommas(element.value);
+                    } else if (element.id === 'finalPayment') {
+                        // برای پرداخت نهایی، نمایش با علامت مثبت/منفی
+                        const value = parseFloat(element.value);
+                        const formatted = formatNumberWithCommas(Math.abs(value));
+                        if (value >= 0) {
+                            domElement.textContent = formatted;
+                            domElement.style.color = '#28a745'; // سبز برای مثبت (اضافه پرداخت کرده)
+                        } else {
+                            domElement.textContent = '-' + formatted;
+                            domElement.style.color = '#dc3545'; // قرمز برای منفی (باید بپردازد)
+                        }
                     } else {
                         // برای مبالغ، فرمت عددی اعمال کنیم
                         domElement.textContent = formatNumberWithCommas(element.value);
