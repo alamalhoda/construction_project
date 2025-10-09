@@ -668,6 +668,34 @@
             border: 1px solid var(--border-color);
         }
 
+        /* wrapper برای اسکرول افقی جدول */
+        .table-wrapper {
+            overflow-x: auto;
+            overflow-y: visible;
+            margin-top: 15px;
+            border-radius: 8px;
+            -webkit-overflow-scrolling: touch; /* اسکرول روان در موبایل */
+        }
+
+        /* استایل اسکرول‌بار */
+        .table-wrapper::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .table-wrapper::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+            border-radius: 10px;
+        }
+
+        .table-wrapper::-webkit-scrollbar-thumb {
+            background: var(--capital-color);
+            border-radius: 10px;
+        }
+
+        .table-wrapper::-webkit-scrollbar-thumb:hover {
+            background: var(--profit-color);
+        }
+
         .table-container h3 {
             text-align: center;
             color: var(--text-primary);
@@ -679,6 +707,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
+            min-width: 1400px; /* حداقل عرض جدول برای جلوگیری از فشردگی */
         }
 
         th, td {
@@ -780,6 +809,18 @@
             color: var(--total-color) !important;
         }
 
+        .summary-table .ownership-header {
+            color: var(--capital-color) !important;
+        }
+
+        .summary-table .payment-header {
+            color: var(--profit-color) !important;
+        }
+
+        .summary-table .price-header {
+            color: var(--deposit-color) !important;
+        }
+
         /* استایل برای header جدول خلاصه */
         .table-header {
             display: flex;
@@ -849,6 +890,26 @@
             .excel-export-btn {
                 width: 100%;
                 justify-content: center;
+            }
+
+            .table-container {
+                padding: 15px;
+            }
+
+            /* جدول در موبایل کوچکتر */
+            table {
+                font-size: 0.85rem;
+                min-width: 1200px; /* کمی کوچکتر برای موبایل */
+            }
+
+            th, td {
+                padding: 8px 6px;
+                font-size: 0.8rem;
+            }
+
+            /* اسکرول‌بار بزرگتر برای لمسی */
+            .table-wrapper::-webkit-scrollbar {
+                height: 10px;
             }
         }
 
@@ -1049,7 +1110,7 @@
                     </a>
                     <a href="/dashboard/interest-rate-manager/" class="nav-link">
                         <i class="fas fa-percentage"></i>
-                        مدیریت نرخ سود
+                        مدیریت سود
                     </a>
                 </div>
             </div>
@@ -2103,6 +2164,9 @@
                                 <th>نسبت سرمایه به سرمایه کل</th>
                                 <th>نسبت سود به سود کل</th>
                                 <th>شاخص نفع</th>
+                                <th class="ownership-header"><i class="fas fa-ruler-combined"></i> متراژ مالکیت (m²)</th>
+                                <th class="payment-header"><i class="fas fa-hand-holding-usd"></i> پرداخت نهایی</th>
+                                <th class="price-header"><i class="fas fa-tags"></i> قیمت واگذاری/متر</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -2148,6 +2212,16 @@
                         }
                     }
                     
+                    // دریافت اطلاعات مالکیت
+                    const ownership = investor.ownership || {};
+                    const ownershipArea = ownership.ownership_area || 0;
+                    const finalPayment = ownership.final_payment || 0;
+                    const transferPricePerMeter = ownership.transfer_price_per_meter || 0;
+                    
+                    // رنگ‌بندی پرداخت نهایی (سبز=دریافتی، قرمز=پرداختی)
+                    const paymentColor = finalPayment >= 0 ? '#21ba45' : '#db2828';
+                    const paymentSign = finalPayment >= 0 ? '+' : '';
+                    
                     tableHTML += `
                         <tr>
                             <td>${investor.name}</td>
@@ -2159,11 +2233,28 @@
                             <td style="color: #667eea; font-weight: bold;">${capitalRatio}</td>
                             <td style="color: #21ba45; font-weight: bold;">${profitToTotalRatio}%</td>
                             <td style="color: #ff9800; font-weight: bold;">${profitIndex}</td>
+                            <td style="color: #aa26ff; font-weight: bold;">${ownershipArea.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                            <td style="color: ${paymentColor}; font-weight: bold;">${paymentSign}${Math.round(finalPayment).toLocaleString('en-US')}</td>
+                            <td style="color: #2185d0; font-weight: bold;">${Math.round(transferPricePerMeter).toLocaleString('en-US')}</td>
                         </tr>
                     `;
                 });
 
                 // اضافه کردن ردیف خلاصه در انتهای جدول
+                // محاسبه مجموع متراژ مالکیت
+                const totalOwnershipArea = summaryData.reduce((sum, inv) => {
+                    return sum + ((inv.ownership && inv.ownership.ownership_area) || 0);
+                }, 0);
+                
+                // محاسبه مجموع پرداخت نهایی
+                const totalFinalPayment = summaryData.reduce((sum, inv) => {
+                    return sum + ((inv.ownership && inv.ownership.final_payment) || 0);
+                }, 0);
+                
+                // رنگ‌بندی مجموع پرداخت نهایی
+                const totalPaymentColor = totalFinalPayment >= 0 ? '#21ba45' : '#db2828';
+                const totalPaymentSign = totalFinalPayment >= 0 ? '+' : '';
+                
                 tableHTML += `
                     <tr class="summary-row">
                         <td><i class="fas fa-sum"></i> مجموع</td>
@@ -2175,11 +2266,20 @@
                         <td style="color: #28a745; font-weight: bold;">100.00%</td>
                         <td style="color: #21ba45; font-weight: bold;">100.00%</td>
                         <td style="color: #ff9800; font-weight: bold;"></td>
+                        <td style="color: #aa26ff; font-weight: bold;">${totalOwnershipArea.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                        <td style="color: ${totalPaymentColor}; font-weight: bold;">${totalPaymentSign}${Math.round(totalFinalPayment).toLocaleString('en-US')}</td>
+                        <td style="color: #6c757d; font-weight: bold;">-</td>
                     </tr>
                 `;
 
                 tableHTML += '</tbody></table>';
-                document.getElementById('summaryTable').innerHTML = tableHTML;
+                
+                // قرار دادن جدول داخل wrapper اسکرول‌پذیر
+                document.getElementById('summaryTable').innerHTML = `
+                    <div class="table-wrapper">
+                        ${tableHTML}
+                    </div>
+                `;
                 
             } catch (error) {
                 console.error('❌ خطا در دریافت خلاصه مشارکت کنندگان:', error);
@@ -2224,7 +2324,10 @@
                     'مجموع (سرمایه+سود) (تومان)',
                     'نسبت سرمایه به سرمایه کل (%)',
                     'نسبت سود به سود کل (%)',
-                    'شاخص نفع'
+                    'شاخص نفع',
+                    'متراژ مالکیت (m²)',
+                    'پرداخت نهایی (تومان)',
+                    'قیمت واگذاری/متر (تومان)'
                 ];
 
                 // ایجاد داده‌های جدول
@@ -2257,6 +2360,12 @@
                         }
                     }
 
+                    // دریافت اطلاعات مالکیت برای Excel
+                    const ownership = investor.ownership || {};
+                    const ownershipArea = ownership.ownership_area || 0;
+                    const finalPayment = ownership.final_payment || 0;
+                    const transferPricePerMeter = ownership.transfer_price_per_meter || 0;
+                    
                     excelData.push([
                         investor.name,
                         investor.total_deposits,
@@ -2266,11 +2375,24 @@
                         Math.round(investor.grand_total),
                         capitalRatio,
                         profitToTotalRatio,
-                        profitIndex
+                        profitIndex,
+                        ownershipArea.toFixed(2),
+                        Math.round(finalPayment),
+                        Math.round(transferPricePerMeter)
                     ]);
                 });
 
                 // اضافه کردن ردیف مجموع
+                // محاسبه مجموع متراژ مالکیت برای Excel
+                const totalOwnershipAreaExcel = summaryData.reduce((sum, inv) => {
+                    return sum + ((inv.ownership && inv.ownership.ownership_area) || 0);
+                }, 0);
+                
+                // محاسبه مجموع پرداخت نهایی برای Excel
+                const totalFinalPaymentExcel = summaryData.reduce((sum, inv) => {
+                    return sum + ((inv.ownership && inv.ownership.final_payment) || 0);
+                }, 0);
+                
                 excelData.push([
                     'مجموع',
                     summaryData.reduce((sum, inv) => sum + inv.total_deposits, 0),
@@ -2280,7 +2402,10 @@
                     Math.round(summaryData.reduce((sum, inv) => sum + inv.grand_total, 0)),
                     '100.00',
                     '100.00',
-                    ''
+                    '',
+                    totalOwnershipAreaExcel.toFixed(2),
+                    Math.round(totalFinalPaymentExcel),
+                    '-'
                 ]);
 
                 // ایجاد worksheet
@@ -2296,7 +2421,10 @@
                     { wch: 22 }, // مجموع
                     { wch: 25 }, // نسبت سرمایه
                     { wch: 22 }, // نسبت سود
-                    { wch: 15 }  // شاخص نفع
+                    { wch: 15 }, // شاخص نفع
+                    { wch: 20 }, // متراژ مالکیت
+                    { wch: 20 }, // پرداخت نهایی
+                    { wch: 22 }  // قیمت واگذاری/متر
                 ];
                 ws['!cols'] = colWidths;
 
