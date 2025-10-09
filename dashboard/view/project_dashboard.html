@@ -2152,6 +2152,14 @@
                 
                 console.log('📊 آمار کلی:', globalStatistics);
                 
+                // بررسی نمونه داده اولین سرمایه‌گذار
+                if (summaryData.length > 0) {
+                    console.log('🔍 نمونه داده سرمایه‌گذار اول:', summaryData[0]);
+                    console.log('📊 capital_ratio از سرور:', summaryData[0].capital_ratio);
+                    console.log('📊 profit_ratio از سرور:', summaryData[0].profit_ratio);
+                    console.log('📊 profit_index از سرور:', summaryData[0].profit_index);
+                }
+                
                 // محاسبه مجموع کل سود از داده‌های خلاصه
                 const totalProfitFromSummary = summaryData.reduce((sum, inv) => sum + inv.total_profit, 0);
                 console.log('💰 مجموع سود از خلاصه:', totalProfitFromSummary);
@@ -2178,44 +2186,10 @@
                 `;
 
                 summaryData.forEach(investor => {
-                    // محاسبه نسبت سود فرد به سود کل
-                    let profitToTotalRatio = '0.00';
-                    
-                    // اول از API آمار کلی استفاده کن
-                    let totalProfit = 0;
-                    if (globalStatistics && globalStatistics.total_profit > 0) {
-                        totalProfit = globalStatistics.total_profit;
-                        console.log('🔄 از API آمار کلی:', totalProfit);
-                    } else {
-                        // اگر API در دسترس نبود، از مجموع محلی استفاده کن
-                        totalProfit = totalProfitFromSummary;
-                        console.log('🔄 از مجموع محلی:', totalProfit);
-                    }
-                    
-                    if (totalProfit > 0) {
-                        const ratio = (investor.total_profit / totalProfit) * 100;
-                        profitToTotalRatio = ratio.toFixed(2);
-                        console.log(`📊 ${investor.name}: ${investor.total_profit} / ${totalProfit} = ${profitToTotalRatio}%`);
-                    }
-                    
-                    // محاسبه نسبت سرمایه فرد به سرمایه کل (از API آمار کلی)
-                    let capitalRatio = '0.00%';
-                    if (globalStatistics && globalStatistics.net_principal > 0) {
-                        const ratio = (investor.net_principal / globalStatistics.net_principal) * 100;
-                        capitalRatio = ratio.toFixed(2) + '%';
-                    }
-                    
-                    // محاسبه شاخص نفع = (نسبت سود به سود کل) ÷ (نسبت سرمایه به سرمایه کل)
-                    let profitIndex = '0.00';
-                    if (globalStatistics && globalStatistics.net_principal > 0 && totalProfit > 0 && investor.net_principal > 0) {
-                        const capitalRatioDecimal = investor.net_principal / globalStatistics.net_principal;
-                        const profitRatioDecimal = investor.total_profit / totalProfit;
-                        
-                        if (capitalRatioDecimal > 0) {
-                            const index = profitRatioDecimal / capitalRatioDecimal;
-                            profitIndex = index.toFixed(2);
-                        }
-                    }
+                    // استفاده مستقیم از نسبت‌ها و شاخص‌های محاسبه شده از سرور
+                    const capitalRatio = (investor.capital_ratio || 0).toFixed(2) + '%';
+                    const profitToTotalRatio = (investor.profit_ratio || 0).toFixed(2);
+                    const profitIndex = (investor.profit_index || 0).toFixed(2);
                     
                     // دریافت اطلاعات مالکیت
                     const ownership = investor.ownership || {};
@@ -2347,31 +2321,10 @@
                 const excelData = [headers];
                 
                 summaryData.forEach(investor => {
-                    // محاسبه نسبت سود فرد به سود کل
-                    let profitToTotalRatio = '0.00';
-                    if (totalProfit > 0) {
-                        const ratio = (investor.total_profit / totalProfit) * 100;
-                        profitToTotalRatio = ratio.toFixed(2);
-                    }
-                    
-                    // محاسبه نسبت سرمایه فرد به سرمایه کل
-                    let capitalRatio = '0.00';
-                    if (globalStatistics && globalStatistics.net_principal > 0) {
-                        const ratio = (investor.net_principal / globalStatistics.net_principal) * 100;
-                        capitalRatio = ratio.toFixed(2);
-                    }
-                    
-                    // محاسبه شاخص نفع
-                    let profitIndex = '0.00';
-                    if (globalStatistics && globalStatistics.net_principal > 0 && totalProfit > 0 && investor.net_principal > 0) {
-                        const capitalRatioDecimal = investor.net_principal / globalStatistics.net_principal;
-                        const profitRatioDecimal = investor.total_profit / totalProfit;
-                        
-                        if (capitalRatioDecimal > 0) {
-                            const index = profitRatioDecimal / capitalRatioDecimal;
-                            profitIndex = index.toFixed(2);
-                        }
-                    }
+                    // استفاده مستقیم از نسبت‌ها و شاخص‌های محاسبه شده از سرور
+                    const capitalRatio = (investor.capital_ratio || 0).toFixed(2);
+                    const profitToTotalRatio = (investor.profit_ratio || 0).toFixed(2);
+                    const profitIndex = (investor.profit_index || 0).toFixed(2);
 
                     // دریافت اطلاعات مالکیت برای Excel
                     const ownership = investor.ownership || {};
