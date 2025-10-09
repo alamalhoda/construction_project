@@ -918,7 +918,7 @@
                         </a>
                         <a href="/dashboard/interest-rate-manager/" class="nav-link">
                             <i class="fas fa-percentage"></i>
-                            مدیریت نرخ سود
+                            مدیریت سود
                         </a>
                     </div>
                 </div>
@@ -930,6 +930,13 @@
                 <i class="fas fa-table"></i>
                 جدول هزینه‌ها بر اساس دوره‌ها
             </h2>
+            
+            <!-- دکمه صادرات Excel -->
+            <div class="mb-3 text-end">
+                <button class="btn btn-success" onclick="exportData()">
+                    <i class="fas fa-file-excel"></i> دریافت Excel
+                </button>
+            </div>
             
             <!-- Loading Spinner -->
             <div class="loading-spinner" id="loadingSpinner">
@@ -949,16 +956,6 @@
                         <!-- داده‌ها از طریق JavaScript بارگذاری می‌شوند -->
                     </tbody>
                 </table>
-            </div>
-
-            <!-- دکمه‌های عملیات -->
-            <div class="mt-4 text-center">
-                <button class="btn btn-success me-2" onclick="refreshData()">
-                    <i class="fas fa-sync"></i> به‌روزرسانی
-                </button>
-                <button class="btn btn-warning" onclick="exportData()">
-                    <i class="fas fa-download"></i> صادرات
-                </button>
             </div>
         </div>
     </div>
@@ -1332,92 +1329,14 @@
             }
         }
 
-        // تابع به‌روزرسانی داده‌ها
-        function refreshData() {
-            loadDashboardData();
-        }
-
-        // تابع صادرات داده‌ها
+        // تابع صادرات به Excel
         function exportData() {
             if (!dashboardData) {
                 showAlert('ابتدا داده‌ها را بارگذاری کنید', 'warning');
                 return;
             }
-
-            // ایجاد منوی انتخاب فرمت
-            const exportMenu = document.createElement('div');
-            exportMenu.className = 'export-menu';
-            exportMenu.innerHTML = `
-                <div class="export-menu-content">
-                    <h4>انتخاب فرمت صادرات:</h4>
-                    <button class="btn btn-success" onclick="exportToExcel()">
-                        <i class="fas fa-file-excel"></i> Excel
-                    </button>
-                    <button class="btn btn-info" onclick="exportToCSV()">
-                        <i class="fas fa-file-csv"></i> CSV
-                    </button>
-                    <button class="btn btn-secondary" onclick="closeExportMenu()">
-                        <i class="fas fa-times"></i> انصراف
-                    </button>
-                </div>
-            `;
             
-            // استایل‌های منوی صادرات
-            exportMenu.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0,0,0,0.5);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 10000;
-            `;
-            
-            exportMenu.querySelector('.export-menu-content').style.cssText = `
-                background: white;
-                padding: 30px;
-                border-radius: 10px;
-                box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-                text-align: center;
-                min-width: 300px;
-            `;
-            
-            exportMenu.querySelector('h4').style.cssText = `
-                margin-bottom: 20px;
-                color: #333;
-            `;
-            
-            exportMenu.querySelectorAll('button').forEach(btn => {
-                btn.style.cssText = `
-                    margin: 10px;
-                    padding: 12px 20px;
-                    border: none;
-                    border-radius: 5px;
-                    cursor: pointer;
-                    font-size: 14px;
-                    min-width: 120px;
-                `;
-            });
-            
-            document.body.appendChild(exportMenu);
-        }
-
-        // بستن منوی صادرات
-        function closeExportMenu() {
-            const menu = document.querySelector('.export-menu');
-            if (menu) {
-                menu.remove();
-            }
-        }
-
-        // صادرات به Excel
-        function exportToExcel() {
             try {
-                closeExportMenu();
-                
                 // ایجاد داده‌های Excel
                 const workbook = XLSX.utils.book_new();
                 
@@ -1478,56 +1397,6 @@
             } catch (error) {
                 console.error('خطا در صادرات Excel:', error);
                 showAlert('خطا در صادرات فایل Excel', 'danger');
-            }
-        }
-
-        // صادرات به CSV
-        function exportToCSV() {
-            try {
-                closeExportMenu();
-                
-                let csvContent = '\uFEFF'; // BOM برای پشتیبانی از فارسی
-                
-                // هدر جدول
-                const header = ['دوره', ...dashboardData.expense_types.map(type => type[1]), 'مجموع دوره', 'درصد از کل'];
-                csvContent += header.join(',') + '\n';
-                
-                // داده‌های هر دوره
-                dashboardData.periods.forEach(period => {
-                    const row = [
-                        `"${period.period_label}"`,
-                        ...dashboardData.expense_types.map(type => period.expenses[type[0]]?.amount || 0),
-                        period.period_total || 0,
-                        ((period.period_total || 0) / dashboardData.grand_total * 100).toFixed(1) + '%'
-                    ];
-                    csvContent += row.join(',') + '\n';
-                });
-                
-                // ردیف مجموع
-                const totalRow = [
-                    '"مجموع کل"',
-                    ...dashboardData.expense_types.map(type => dashboardData.column_totals[type[0]]),
-                    dashboardData.grand_total,
-                    '100%'
-                ];
-                csvContent += totalRow.join(',') + '\n';
-                
-                // ایجاد و دانلود فایل
-                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                const link = document.createElement('a');
-                const url = URL.createObjectURL(blob);
-                link.setAttribute('href', url);
-                link.setAttribute('download', `expense_report_${dashboardData.project_name}_${new Date().toISOString().split('T')[0]}.csv`);
-                link.style.visibility = 'hidden';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                
-                showAlert('فایل CSV با موفقیت صادر شد', 'success');
-                
-            } catch (error) {
-                console.error('خطا در صادرات CSV:', error);
-                showAlert('خطا در صادرات فایل CSV', 'danger');
             }
         }
 
