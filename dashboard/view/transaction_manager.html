@@ -664,10 +664,6 @@
                 <div class="actions-row">
                     <!-- بخش اول: عملیات مدیریت داده‌ها -->
                     <div class="ui buttons">
-                        <button class="ui green button" onclick="exportToCSV()">
-                            <i class="download icon"></i>
-                            دانلود CSV
-                        </button>
                         
                         <button class="ui teal button" onclick="exportToExcelAdvanced()">
                             <i class="file excel icon"></i>
@@ -1899,49 +1895,6 @@
         }
         
         // Export functions
-        function exportToCSV() {
-            if (!table) {
-                showError('هیچ داده‌ای برای دانلود موجود نیست');
-                return;
-            }
-            
-            // نمایش پیام در حال پردازش
-            showLoadingState(true);
-            
-            try {
-                // دریافت داده‌های فعلی جدول
-                const tableData = table.getData();
-                
-                if (!tableData || tableData.length === 0) {
-                    showError('هیچ داده‌ای برای دانلود موجود نیست');
-                    showLoadingState(false);
-                    return;
-                }
-                
-                // ایجاد نام فایل با تاریخ و زمان
-                const now = new Date();
-                const timestamp = now.toISOString().slice(0, 19).replace(/:/g, '-');
-                const filename = `transactions_${timestamp}.csv`;
-                
-                // دانلود فایل
-                table.download("csv", filename, {
-                    bom: true, // اضافه کردن BOM برای پشتیبانی از UTF-8
-                    delimiter: ",", // جداکننده کاما
-                    quote: '"', // علامت نقل قول
-                    escape: '"', // escape character
-                });
-                
-                // نمایش پیام موفقیت
-                showSuccessMessage(`فایل CSV با ${tableData.length} رکورد با موفقیت دانلود شد`);
-                
-            } catch (error) {
-                console.error('Error exporting CSV:', error);
-                showError('خطا در دانلود فایل CSV: ' + error.message);
-            } finally {
-                showLoadingState(false);
-            }
-        }
-        
         // توابع کمکی برای تبدیل و دانلود CSV
         function convertToCSV(data) {
             if (!data || data.length === 0) return '';
