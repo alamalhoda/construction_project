@@ -569,13 +569,16 @@ class InvestorCalculations(FinancialCalculationService):
     @staticmethod
     def get_all_investors_summary(project_id: Optional[int] = None) -> List[Dict]:
         """
-        دریافت خلاصه آمار تمام سرمایه‌گذاران
+        دریافت خلاصه آمار تمام سرمایه‌گذاران شامل اطلاعات مالکیت
         
         Args:
             project_id: شناسه پروژه
             
         Returns:
-            List[Dict]: لیست آمار سرمایه‌گذاران
+            List[Dict]: لیست آمار سرمایه‌گذاران شامل:
+                - اطلاعات مالی (آورده، برداشت، سود)
+                - نسبت‌ها (capital_ratio, profit_ratio, profit_index)
+                - اطلاعات مالکیت (متراژ، واحدها، قیمت‌ها)
         """
         project = models.Project.objects.get(id=project_id) if project_id else FinancialCalculationService.get_active_project()
         
@@ -597,15 +600,18 @@ class InvestorCalculations(FinancialCalculationService):
                 # آمار سرمایه‌گذار
                 investor_stats = InvestorCalculations.calculate_investor_statistics(investor.id, project_id)
                 investor_ratios = InvestorCalculations.calculate_investor_ratios(investor.id, project_id)
+                investor_ownership = InvestorCalculations.calculate_investor_ownership(investor.id, project_id)
                 
                 print(f"🔍 investor_stats: {investor_stats}")
                 print(f"🔍 investor_ratios: {investor_ratios}")
+                print(f"🔍 investor_ownership: {investor_ownership}")
                 
                 if 'error' not in investor_stats and 'error' not in investor_ratios:
                     # محاسبه مجموع کل (سرمایه + سود)
                     grand_total = investor_stats['amounts']['net_principal'] + investor_stats['amounts']['total_profit']
                     
-                    summary.append({
+                    # ساخت خلاصه اطلاعات
+                    investor_summary = {
                         'id': investor.id,
                         'name': f"{investor.first_name} {investor.last_name}",
                         'participation_type': investor.participation_type,
@@ -617,7 +623,39 @@ class InvestorCalculations(FinancialCalculationService):
                         'capital_ratio': investor_ratios.get('capital_ratio', 0),
                         'profit_ratio': investor_ratios.get('profit_ratio', 0),
                         'profit_index': investor_ratios.get('profit_index', 0)
-                    })
+                    }
+                    
+                    # افزودن اطلاعات مالکیت (در صورت عدم خطا)
+                    if 'error' not in investor_ownership:
+                        investor_summary['ownership'] = {
+                            'ownership_area': investor_ownership.get('ownership_area', 0),
+                            'average_price_per_meter': investor_ownership.get('average_price_per_meter', 0),
+                            'units_count': investor_ownership.get('units_count', 0),
+                            'units': investor_ownership.get('units', []),
+                            'total_units_area': investor_ownership.get('total_units_area', 0),
+                            'total_units_price': investor_ownership.get('total_units_price', 0),
+                            'ownership_percentage': investor_ownership.get('ownership_percentage', 0),
+                            'final_payment': investor_ownership.get('final_payment', 0),
+                            'transfer_price_per_meter': investor_ownership.get('transfer_price_per_meter', 0),
+                            'actual_paid': investor_ownership.get('actual_paid', 0)
+                        }
+                    else:
+                        # اگر خطا داشت، اطلاعات پیش‌فرض قرار بده
+                        investor_summary['ownership'] = {
+                            'ownership_area': 0,
+                            'average_price_per_meter': 0,
+                            'units_count': 0,
+                            'units': [],
+                            'total_units_area': 0,
+                            'total_units_price': 0,
+                            'ownership_percentage': 0,
+                            'final_payment': 0,
+                            'transfer_price_per_meter': 0,
+                            'actual_paid': 0,
+                            'message': investor_ownership.get('message', 'اطلاعات مالکیت موجود نیست')
+                        }
+                    
+                    summary.append(investor_summary)
             except Exception as e:
                 print(f"خطا در محاسبه آمار سرمایه‌گذار {investor.id}: {e}")
                 continue

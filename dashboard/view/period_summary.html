@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>خلاصه دوره‌ای پروژه</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --info-color: #17a2b8;
+            --bg-primary: #f8f9fa;
+            --bg-secondary: #ffffff;
+            --text-primary: #2c3e50;
+            --text-secondary: #6c757d;
+            --border-color: #e9ecef;
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 8px 25px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 15px 35px rgba(0, 0, 0, 0.12);
+            
+            /* رنگ‌های استاندارد مالی پروژه */
+            --deposit-color: #2185d0;
+            --deposit-color-light: rgba(33, 133, 208, 0.1);
+            --withdrawal-color: #db2828;
+            --withdrawal-color-light: rgba(219, 40, 40, 0.1);
+            --profit-color: #21ba45;
+            --profit-color-light: rgba(33, 186, 69, 0.1);
+            --capital-color: #aa26ff;
+            --capital-color-light: rgba(170, 38, 255, 0.1);
+            --expense-color: #dc3545;
+            --expense-color-light: rgba(220, 53, 69, 0.1);
+            --refund-color: #ffc107;
+            --refund-color-light: rgba(255, 193, 7, 0.1);
+            --balance-color: #6c757d;
+            --balance-color-light: rgba(108, 117, 125, 0.1);
+        }
+
+        * {
+            font-family: 'Vazir', 'Segoe UI', Tahoma, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            direction: rtl;
+            padding: 20px;
+            color: var(--text-primary);
+        }
+
+        .main-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            margin-bottom: 40px;
+        }
+
+        /* Header */
+        .page-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .page-header-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .page-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .page-header .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* Navigation */
+        .navigation-bar {
+            background: white;
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+        }
+
+        .nav-btn:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* Summary Cards */
+        .summary-cards {
+            padding: 30px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            background: var(--bg-primary);
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 15px;
+            padding: 35px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s;
+            border-right: 4px solid;
+            min-height: 160px;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .summary-card.deposits { border-color: var(--deposit-color); }
+        .summary-card.withdrawals { border-color: var(--withdrawal-color); }
+        .summary-card.profits { border-color: var(--profit-color); }
+        .summary-card.capital { border-color: var(--capital-color); }
+        .summary-card.expenses { border-color: var(--expense-color); }
+        .summary-card.sales { border-color: var(--refund-color); }
+        .summary-card.balance { border-color: var(--balance-color); }
+
+        .summary-card h4 {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .summary-card h4 i {
+            font-size: 1.3rem;
+        }
+
+        .summary-card .value {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            line-height: 1.2;
+        }
+
+        .summary-card.deposits .value { color: var(--deposit-color); }
+        .summary-card.withdrawals .value { color: var(--withdrawal-color); }
+        .summary-card.profits .value { color: var(--profit-color); }
+        .summary-card.capital .value { color: var(--capital-color); }
+        .summary-card.expenses .value { color: var(--expense-color); }
+        .summary-card.sales .value { color: var(--refund-color); }
+        .summary-card.balance .value { color: var(--balance-color); }
+
+        .summary-card .label {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        /* Table Container */
+        .table-container {
+            padding: 30px;
+        }
+
+        .table-wrapper {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .table-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-header h3 {
+            margin: 0;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: var(--bg-primary);
+        }
+
+        th {
+            padding: 15px 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 12px 10px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+
+        tbody tr {
+            transition: background 0.2s;
+        }
+
+        tbody tr:hover {
+            background: var(--bg-primary);
+        }
+
+        /* Column Colors */
+        .deposits-col { color: var(--deposit-color); font-weight: 600; }
+        .withdrawals-col { color: var(--withdrawal-color); font-weight: 600; }
+        .profits-col { color: var(--profit-color); font-weight: 600; }
+        .capital-col { color: var(--capital-color); font-weight: 600; }
+        .expenses-col { color: var(--expense-color); font-weight: 600; }
+        .sales-col { color: var(--refund-color); font-weight: 600; }
+        .balance-col { color: var(--balance-color); font-weight: 600; }
+
+        /* Loading */
+        .loading-container {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .spinner {
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Alert */
+        .alert-custom {
+            margin: 30px;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        /* Footer */
+        .page-footer {
+            text-align: center;
+            padding: 25px;
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+
+        .page-footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .page-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .summary-cards {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .page-header h1 {
+                font-size: 1.8rem;
+            }
+
+            .summary-cards {
+                grid-template-columns: 1fr;
+                padding: 20px;
+                gap: 15px;
+            }
+
+            .summary-card {
+                padding: 25px;
+                min-height: 130px;
+            }
+
+            .summary-card .value {
+                font-size: 1.8rem;
+            }
+
+            .summary-card h4 {
+                font-size: 0.95rem;
+            }
+
+            .table-container {
+                padding: 20px;
+            }
+
+            th, td {
+                font-size: 0.8rem;
+                padding: 10px 5px;
+            }
+        }
+
+        /* Toggle Button for Cumulative Columns */
+        .toggle-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 2px solid white;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toggle-btn:hover {
+            background: white;
+            color: var(--primary-color);
+        }
+
+        .toggle-btn i {
+            font-size: 1rem;
+        }
+
+        .cumulative-column {
+            background: rgba(102, 126, 234, 0.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Header -->
+        <div class="page-header">
+            <div class="page-header-content">
+                <h1>
+                    <i class="fas fa-calendar-alt"></i>
+                    خلاصه دوره‌ای پروژه
+                </h1>
+                <p class="subtitle">نمایش جامع تمام فاکتورهای مالی در هر دوره</p>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="navigation-bar">
+            <a href="/user-dashboard/" class="nav-btn">
+                <i class="fas fa-home"></i>
+                داشبورد اصلی
+            </a>
+            <a href="/dashboard/project/" class="nav-btn">
+                <i class="fas fa-chart-line"></i>
+خلاصه مالی
+            </a>
+            <a href="/dashboard/expense-dashboard/" class="nav-btn">
+                <i class="fas fa-receipt"></i>
+                لیست هزینه‌ها
+            </a>
+            <a href="/dashboard/transaction-manager/" class="nav-btn">
+                <i class="fas fa-exchange-alt"></i>
+                مدیریت تراکنش‌ها
+            </a>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="summary-cards" id="summaryCards">
+            <div class="summary-card deposits">
+                <h4><i class="fas fa-plus-circle"></i> مجموع آورده</h4>
+                <div class="value" id="totalDeposits">...</div>
+                <div class="label">تومان</div>
+            </div>
+            <div class="summary-card withdrawals">
+                <h4><i class="fas fa-minus-circle"></i> مجموع برداشت</h4>
+                <div class="value" id="totalWithdrawals">...</div>
+                <div class="label">تومان</div>
+            </div>
+            <div class="summary-card capital">
+                <h4><i class="fas fa-wallet"></i> سرمایه خالص</h4>
+                <div class="value" id="totalCapital">...</div>
+                <div class="label">تومان</div>
+            </div>
+            <div class="summary-card profits">
+                <h4><i class="fas fa-chart-line"></i> مجموع سود</h4>
+                <div class="value" id="totalProfits">...</div>
+                <div class="label">تومان</div>
+            </div>
+            <div class="summary-card expenses">
+                <h4><i class="fas fa-file-invoice-dollar"></i> مجموع هزینه‌ها</h4>
+                <div class="value" id="totalExpenses">...</div>
+                <div class="label">تومان</div>
+            </div>
+            <div class="summary-card sales">
+                <h4><i class="fas fa-undo"></i> مجموع فروش/مرجوعی</h4>
+                <div class="value" id="totalSales">...</div>
+                <div class="label">تومان</div>
+            </div>
+            <div class="summary-card balance">
+                <h4><i class="fas fa-building"></i> مانده صندوق نهایی</h4>
+                <div class="value" id="finalBalance">...</div>
+                <div class="label">تومان</div>
+            </div>
+            <div class="summary-card">
+                <h4><i class="fas fa-calendar-check"></i> تعداد دوره‌ها</h4>
+                <div class="value" id="totalPeriods" style="color: var(--info-color);">...</div>
+                <div class="label">دوره</div>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-container">
+            <div class="table-wrapper">
+                <div class="table-header">
+                    <h3>
+                        <i class="fas fa-table"></i>
+                        جدول دوره‌ای
+                    </h3>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="toggle-btn" onclick="exportToExcel()">
+                            <i class="fas fa-file-excel"></i>
+                            <span>خروجی Excel</span>
+                        </button>
+                        <button class="toggle-btn" onclick="toggleCumulativeColumns()">
+                            <i class="fas fa-eye"></i>
+                            <span id="toggleBtnText">نمایش ستون‌های تجمعی</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="loadingContainer" class="loading-container">
+                    <div class="spinner"></div>
+                    <p>در حال بارگذاری داده‌ها...</p>
+                </div>
+
+                <div id="tableContainer" style="display: none;">
+                    <div class="table-responsive">
+                        <table id="periodTable">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2">دوره</th>
+                                    <th rowspan="2">سال</th>
+                                    <th rowspan="2">ماه</th>
+                                    <th colspan="7">فاکتورهای دوره</th>
+                                    <th colspan="7" class="cumulative-column" style="display: none;">مقادیر تجمعی</th>
+                                </tr>
+                                <tr>
+                                    <!-- Period Columns -->
+                                    <th>آورده</th>
+                                    <th>برداشت</th>
+                                    <th>سرمایه خالص</th>
+                                    <th>سود</th>
+                                    <th>هزینه</th>
+                                    <th>فروش</th>
+                                    <th>مانده صندوق</th>
+                                    
+                                    <!-- Cumulative Columns -->
+                                    <th class="cumulative-column" style="display: none;">آورده تجمعی</th>
+                                    <th class="cumulative-column" style="display: none;">برداشت تجمعی</th>
+                                    <th class="cumulative-column" style="display: none;">سرمایه تجمعی</th>
+                                    <th class="cumulative-column" style="display: none;">سود تجمعی</th>
+                                    <th class="cumulative-column" style="display: none;">هزینه تجمعی</th>
+                                    <th class="cumulative-column" style="display: none;">فروش تجمعی</th>
+                                    <th class="cumulative-column" style="display: none;">مانده تجمعی</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                                <!-- Data will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="errorContainer" style="display: none;">
+                    <div class="alert alert-danger alert-custom">
+                        <h4><i class="fas fa-exclamation-triangle"></i> خطا در بارگذاری داده‌ها</h4>
+                        <p id="errorMessage"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer
+        <div class="page-footer">
+            <p>
+                © 2024 سیستم مدیریت پروژه ساختمانی | 
+                طراحی و توسعه توسط 
+                <a href="https://royasoftteam.ir" target="_blank">
+                    <i class="fas fa-code"></i> تیم رویا سافت
+                </a>
+            </p>
+        </div> -->
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <!-- SheetJS for Excel Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <script>
+        // Format number with thousand separator
+        function formatNumber(num) {
+            if (num === null || num === undefined) return '0';
+            return new Intl.NumberFormat('en-US').format(Math.round(num));
+        }
+
+        // Format number for display (absolute value)
+        function formatAbsoluteNumber(num) {
+            if (num === null || num === undefined) return '0';
+            return formatNumber(Math.abs(num));
+        }
+
+        // Toggle cumulative columns visibility
+        let cumulativeVisible = false;
+        function toggleCumulativeColumns() {
+            cumulativeVisible = !cumulativeVisible;
+            const cumulativeColumns = document.querySelectorAll('.cumulative-column');
+            const toggleBtnText = document.getElementById('toggleBtnText');
+            
+            cumulativeColumns.forEach(col => {
+                col.style.display = cumulativeVisible ? '' : 'none';
+            });
+            
+            toggleBtnText.textContent = cumulativeVisible ? 'مخفی کردن ستون‌های تجمعی' : 'نمایش ستون‌های تجمعی';
+        }
+
+        // Export to Excel
+        async function exportToExcel() {
+            try {
+                // دریافت داده‌ها از API
+                const response = await fetch('/construction/api/v1/Period/period_summary/');
+                if (!response.ok) {
+                    throw new Error(`خطای HTTP: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                if (!result.success) {
+                    throw new Error(result.error || 'خطا در دریافت داده‌ها');
+                }
+
+                // آماده‌سازی داده‌ها برای Excel
+                const excelData = [];
+                
+                // هدر جدول
+                excelData.push([
+                    'دوره',
+                    'سال',
+                    'ماه',
+                    'آورده (تومان)',
+                    'برداشت (تومان)',
+                    'سرمایه خالص (تومان)',
+                    'سود (تومان)',
+                    'هزینه (تومان)',
+                    'فروش (تومان)',
+                    'مانده صندوق (تومان)',
+                    'آورده تجمعی (تومان)',
+                    'برداشت تجمعی (تومان)',
+                    'سرمایه تجمعی (تومان)',
+                    'سود تجمعی (تومان)',
+                    'هزینه تجمعی (تومان)',
+                    'فروش تجمعی (تومان)',
+                    'مانده تجمعی (تومان)'
+                ]);
+
+                // داده‌های دوره‌ها
+                result.data.forEach(period => {
+                    excelData.push([
+                        period.period_label,
+                        period.year,
+                        period.month_name,
+                        Math.round(period.deposits),
+                        Math.round(Math.abs(period.withdrawals)),
+                        Math.round(period.net_capital),
+                        Math.round(period.profits),
+                        Math.round(period.expenses),
+                        Math.round(period.sales),
+                        Math.round(period.fund_balance),
+                        Math.round(period.cumulative_deposits),
+                        Math.round(Math.abs(period.cumulative_withdrawals)),
+                        Math.round(period.cumulative_net_capital),
+                        Math.round(period.cumulative_profits),
+                        Math.round(period.cumulative_expenses),
+                        Math.round(period.cumulative_sales),
+                        Math.round(period.cumulative_fund_balance)
+                    ]);
+                });
+
+                // ایجاد workbook و worksheet
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.aoa_to_sheet(excelData);
+
+                // تنظیم عرض ستون‌ها
+                ws['!cols'] = [
+                    { wch: 15 }, // دوره
+                    { wch: 8 },  // سال
+                    { wch: 10 }, // ماه
+                    { wch: 18 }, // آورده
+                    { wch: 18 }, // برداشت
+                    { wch: 20 }, // سرمایه خالص
+                    { wch: 18 }, // سود
+                    { wch: 18 }, // هزینه
+                    { wch: 18 }, // فروش
+                    { wch: 20 }, // مانده صندوق
+                    { wch: 20 }, // آورده تجمعی
+                    { wch: 20 }, // برداشت تجمعی
+                    { wch: 20 }, // سرمایه تجمعی
+                    { wch: 18 }, // سود تجمعی
+                    { wch: 18 }, // هزینه تجمعی
+                    { wch: 18 }, // فروش تجمعی
+                    { wch: 20 }  // مانده تجمعی
+                ];
+
+                // اضافه کردن worksheet به workbook
+                XLSX.utils.book_append_sheet(wb, ws, 'خلاصه دوره‌ای');
+
+                // دانلود فایل
+                const today = new Date();
+                const fileName = `خلاصه_دوره‌ای_${today.getFullYear()}_${today.getMonth()+1}_${today.getDate()}.xlsx`;
+                XLSX.writeFile(wb, fileName);
+
+                console.log('فایل Excel با موفقیت ایجاد شد');
+            } catch (error) {
+                console.error('خطا در ایجاد فایل Excel:', error);
+                alert('خطا در ایجاد فایل Excel: ' + error.message);
+            }
+        }
+
+        // Load period summary data
+        async function loadPeriodSummary() {
+            try {
+                const response = await fetch('/construction/api/v1/Period/period_summary/');
+                
+                if (!response.ok) {
+                    throw new Error(`خطای HTTP: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    displaySummaryCards(result.totals);
+                    displayPeriodTable(result.data);
+                    
+                    // Hide loading, show table
+                    document.getElementById('loadingContainer').style.display = 'none';
+                    document.getElementById('tableContainer').style.display = 'block';
+                } else {
+                    throw new Error(result.error || 'خطای نامشخص');
+                }
+            } catch (error) {
+                console.error('Error loading data:', error);
+                document.getElementById('loadingContainer').style.display = 'none';
+                document.getElementById('errorContainer').style.display = 'block';
+                document.getElementById('errorMessage').textContent = error.message;
+            }
+        }
+
+        // Display summary cards
+        function displaySummaryCards(totals) {
+            document.getElementById('totalDeposits').textContent = formatNumber(totals.total_deposits);
+            document.getElementById('totalWithdrawals').textContent = formatAbsoluteNumber(totals.total_withdrawals);
+            document.getElementById('totalCapital').textContent = formatNumber(totals.total_net_capital);
+            document.getElementById('totalProfits').textContent = formatNumber(totals.total_profits);
+            document.getElementById('totalExpenses').textContent = formatNumber(totals.total_expenses);
+            document.getElementById('totalSales').textContent = formatNumber(totals.total_sales);
+            document.getElementById('finalBalance').textContent = formatNumber(totals.final_fund_balance);
+            document.getElementById('totalPeriods').textContent = totals.total_periods;
+        }
+
+        // Display period table
+        function displayPeriodTable(data) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            
+            data.forEach(period => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${period.period_label}</strong></td>
+                    <td>${period.year}</td>
+                    <td>${period.month_name}</td>
+                    
+                    <!-- Period Columns -->
+                    <td class="deposits-col">${formatNumber(period.deposits)}</td>
+                    <td class="withdrawals-col">${formatAbsoluteNumber(period.withdrawals)}</td>
+                    <td class="capital-col">${formatNumber(period.net_capital)}</td>
+                    <td class="profits-col">${formatNumber(period.profits)}</td>
+                    <td class="expenses-col">${formatNumber(period.expenses)}</td>
+                    <td class="sales-col">${formatNumber(period.sales)}</td>
+                    <td class="balance-col">${formatNumber(period.fund_balance)}</td>
+                    
+                    <!-- Cumulative Columns -->
+                    <td class="cumulative-column deposits-col" style="display: none;">${formatNumber(period.cumulative_deposits)}</td>
+                    <td class="cumulative-column withdrawals-col" style="display: none;">${formatAbsoluteNumber(period.cumulative_withdrawals)}</td>
+                    <td class="cumulative-column capital-col" style="display: none;">${formatNumber(period.cumulative_net_capital)}</td>
+                    <td class="cumulative-column profits-col" style="display: none;">${formatNumber(period.cumulative_profits)}</td>
+                    <td class="cumulative-column expenses-col" style="display: none;">${formatNumber(period.cumulative_expenses)}</td>
+                    <td class="cumulative-column sales-col" style="display: none;">${formatNumber(period.cumulative_sales)}</td>
+                    <td class="cumulative-column balance-col" style="display: none;">${formatNumber(period.cumulative_fund_balance)}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', loadPeriodSummary);
+    </script>
+</body>
+</html>
