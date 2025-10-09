@@ -969,20 +969,6 @@
                     </div>
                 </div>
 
-                <!-- Monthly Comparison Chart -->
-                <div class="chart-container">
-                    <div class="chart-header">
-                        <h3><i class="fas fa-chart-bar"></i> نمودار ماهانه سرمایه بعلاوه سود موجود</h3>
-                        <button class="chart-download-btn" onclick="downloadChart('monthlyComparisonChart', 'نمودار_ماهانه_سرمایه_و_سود')">
-                            <i class="fas fa-download"></i>
-                            دانلود تصویر
-                        </button>
-                    </div>
-                    <div class="chart-wrapper">
-                        <canvas id="monthlyComparisonChart"></canvas>
-                    </div>
-                </div>
-
                 <!-- Principal Transaction Chart -->
                 <div class="chart-container">
                     <div class="chart-header">
@@ -1060,6 +1046,10 @@
         let selectedInvestor = null;
         let charts = {}; // نگهداری نمودارها
         let globalStatistics = null; // آمار کلی از API
+        
+        // کش داده‌ها برای جلوگیری از فراخوانی تکراری API
+        let cachedInvestorData = {}; // کش اطلاعات مشارکت‌کنندگان
+        let cachedPeriodData = null; // کش داده‌های دوره‌ای
 
         // متغیر برای تبدیل مبالغ (1 میلیون) - برای نمودارها
         const BASE_AMOUNT = 1000000;
@@ -1348,13 +1338,13 @@
                         // ایجاد نمودارها با داده‌های فیلتر شده
                         try {
                             createActivityDistributionChart(investorTransactions);
-                            createMonthlyComparisonChart(investorTransactions);
+                            // createMonthlyComparisonChart(investorTransactions); // حذف شده
                             createPrincipalTransactionChart(investorTransactions);
                             createMonthlyPrincipalChart(investorTransactions);
                             // بارگذاری نمودار ترند مشارکت کننده با استفاده از همان داده‌های تراکنش‌ها
                             loadInvestorTrendData(investorId, investorTransactions);
                         } catch (error) {
-                            console.log('خطا در ایجاد نمودارها:', error);
+                            console.error('خطا در ایجاد نمودارها:', error);
                         }
                     } else {
                         // اگر تراکنشی وجود نداشت
@@ -1383,8 +1373,7 @@
 
         // تابع مقایسه محاسبات قدیمی و جدید
         function compareCalculations(oldCalc, newCalc, investorName) {
-            console.log(`🔍 مقایسه محاسبات برای ${investorName}:`);
-            console.log('=' .repeat(50));
+            // مقایسه محاسبات (لاگ‌ها حذف شده برای بهبود عملکرد)
             
             const comparisons = [
                 { name: 'آورده کل', old: oldCalc.totalPrincipal, new: newCalc.totalPrincipal },
@@ -1414,19 +1403,12 @@
                         percentDiff: percentDiff.toFixed(2)
                     });
                 }
-                
-                console.log(`${comp.name}: ${comp.old} → ${comp.new} ${diff > 0.01 ? '⚠️' : '✅'}`);
             });
             
             if (differences.length > 0) {
-                console.warn('⚠️ تفاوت‌های پیدا شده:', differences);
                 // نمایش هشدار بصری
                 showComparisonAlert(differences, investorName);
-            } else {
-                console.log('✅ تمام محاسبات مطابقت دارند!');
             }
-            
-            console.log('=' .repeat(50));
         }
 
         // نمایش هشدار مقایسه
@@ -1637,7 +1619,7 @@
         }
 
         // به‌روزرسانی اطلاعات کلی مشارکت کننده با داده‌های جدید از API
-        function updateInvestorInfoWithData(investorId, investorTransactions) {
+        async function updateInvestorInfoWithData(investorId, investorTransactions) {
             // فعال‌سازی دکمه گزارش PDF
             const pdfBtn = document.getElementById('pdfReportBtn');
             if (pdfBtn) {
@@ -1645,51 +1627,65 @@
                 pdfBtn.style.display = 'inline-flex';
             }
 
-            // دریافت نام مشارکت کننده از API
-            fetch(`/construction/api/v1/Investor/${investorId}/`)
-                .then(response => response.json())
-                .then(investorData => {
-                    const investorName = `${investorData.first_name} ${investorData.last_name}`;
-                    document.getElementById('investorName').textContent = investorName;
-                    const contractDateEl = document.getElementById('contractDate');
-                    if (contractDateEl) {
-                        contractDateEl.textContent = investorData.contract_date_shamsi || '-';
-                    }
-                })
-                .catch(error => {
-                    console.error('خطا در دریافت نام مشارکت کننده:', error);
-                    document.getElementById('investorName').textContent = 'نام نامشخص';
-                });
+            // بررسی کش: اگر اطلاعات قبلاً دریافت شده، از کش استفاده کن
+            if (cachedInvestorData[investorId]) {
+                console.log('✅ استفاده از کش برای مشارکت‌کننده', investorId);
+                updateInvestorUI(cachedInvestorData[investorId]);
+                return;
+            }
 
-            // دریافت اطلاعات مشارکت کننده شامل واحدهایش
-            fetch(`/construction/api/v1/Investor/${investorId}/`)
-                .then(response => response.json())
-                .then(investorData => {
-                    console.log('🔍 اطلاعات کامل مشارکت کننده:', investorData);
-                    console.log('🔍 واحدهای مشارکت کننده:', investorData.units);
-                    
-                    if (investorData.units && investorData.units.length > 0) {
-                        // اگر چند واحد دارد، همه را نمایش دهیم
-                        const unitNames = investorData.units.map(unit => unit.name).join(', ');
-                        const totalArea = investorData.units.reduce((sum, unit) => sum + (parseFloat(unit.area) || 0), 0);
-                        
-                        document.getElementById('unitName').textContent = unitNames;
-                        document.getElementById('unitArea').textContent = totalArea.toLocaleString('en-US');
-                        
-                        console.log('🔍 نام واحدها:', unitNames);
-                        console.log('🔍 مساحت کل:', totalArea);
-                    } else {
-                        document.getElementById('unitName').textContent = 'هیچ واحدی یافت نشد';
-                        document.getElementById('unitArea').textContent = '0';
-                        console.warn('⚠️ هیچ واحدی برای مشارکت کننده یافت نشد');
-                    }
-                })
-                .catch(error => {
-                    console.error('خطا در دریافت اطلاعات واحد:', error);
-                    document.getElementById('unitName').textContent = 'خطا در بارگذاری';
-                    document.getElementById('unitArea').textContent = '0';
-                });
+            // دریافت یکباره اطلاعات مشارکت کننده (نام، تاریخ، واحدها)
+            try {
+                const response = await fetch(`/construction/api/v1/Investor/${investorId}/`);
+                const investorData = await response.json();
+                
+                // ذخیره در کش
+                cachedInvestorData[investorId] = investorData;
+                
+                console.log('🔍 اطلاعات کامل مشارکت کننده:', investorData);
+                console.log('🔍 واحدهای مشارکت کننده:', investorData.units);
+                
+                updateInvestorUI(investorData);
+            } catch (error) {
+                console.error('خطا در دریافت اطلاعات مشارکت کننده:', error);
+                document.getElementById('investorName').textContent = 'نام نامشخص';
+                document.getElementById('unitName').textContent = 'خطا در بارگذاری';
+                document.getElementById('unitArea').textContent = '0';
+            }
+            
+            // انجام محاسبات مالی
+            await performFinancialCalculations(investorId, investorTransactions);
+        }
+        
+        // تابع کمکی برای به‌روزرسانی UI با اطلاعات مشارکت‌کننده
+        function updateInvestorUI(investorData) {
+            // به‌روزرسانی نام و تاریخ قرارداد
+            const investorName = `${investorData.first_name} ${investorData.last_name}`;
+            document.getElementById('investorName').textContent = investorName;
+            const contractDateEl = document.getElementById('contractDate');
+            if (contractDateEl) {
+                contractDateEl.textContent = investorData.contract_date_shamsi || '-';
+            }
+            
+            // به‌روزرسانی اطلاعات واحدها
+            if (investorData.units && investorData.units.length > 0) {
+                const unitNames = investorData.units.map(unit => unit.name).join(', ');
+                const totalArea = investorData.units.reduce((sum, unit) => sum + (parseFloat(unit.area) || 0), 0);
+                
+                document.getElementById('unitName').textContent = unitNames;
+                document.getElementById('unitArea').textContent = totalArea.toLocaleString('en-US');
+                
+                console.log('🔍 نام واحدها:', unitNames);
+                console.log('🔍 مساحت کل:', totalArea);
+            } else {
+                document.getElementById('unitName').textContent = 'هیچ واحدی یافت نشد';
+                document.getElementById('unitArea').textContent = '0';
+                console.warn('⚠️ هیچ واحدی برای مشارکت کننده یافت نشد');
+            }
+        }
 
+        // ادامه تابع updateInvestorInfoWithData - محاسبات مالی
+        async function performFinancialCalculations(investorId, investorTransactions) {
             // محاسبه اطلاعات مالی - روش قدیمی (برای مقایسه)
             const principalData = getTransactionsByType(investorTransactions, 'principal_deposit');
             const withdrawalData = getTransactionsByType(investorTransactions, 'principal_withdrawal');
@@ -1894,138 +1890,6 @@
                                     return context.label + ': ' + context.parsed.toFixed(1) + ' میلیون تومان';
                                 }
                             }
-                        }
-                    }
-                }
-            });
-        }
-
-        // نمودار مقایسه ماهانه
-        function createMonthlyComparisonChart(investorTransactions) {
-            // داده‌های فیلتر شده از سرور استفاده می‌کنیم
-            
-            const monthlyData = {};
-            investorTransactions.forEach(row => {
-                if (row.date_shamsi) {
-                    const month = row.date_shamsi.substring(0, 7); // YYYY-MM
-                    if (!monthlyData[month]) {
-                        monthlyData[month] = { principal: 0, withdrawal: 0, profit: 0 };
-                    }
-                    
-                    const amount = parseFloat(row.amount || 0);
-                    switch (row.entry_type) {
-                        case 'principal_deposit':
-                            monthlyData[month].principal += amount;
-                            break;
-                        case 'principal_withdrawal':
-                            monthlyData[month].withdrawal += amount;
-                            break;
-                        case 'profit_accrual':
-                            monthlyData[month].profit += amount;
-                            break;
-                    }
-                }
-            });
-
-            const months = Object.keys(monthlyData).sort();
-            const principals = months.map(month => monthlyData[month].principal / BASE_AMOUNT);
-            const withdrawals = months.map(month => Math.abs(monthlyData[month].withdrawal) / BASE_AMOUNT);
-            const profits = months.map(month => monthlyData[month].profit / BASE_AMOUNT);
-            
-            // محاسبه سرمایه موجود ماهانه
-            const cumulativeTotals = [];
-            let cumulativeSum = 0;
-            months.forEach(month => {
-                const monthlyNet = monthlyData[month].principal + monthlyData[month].withdrawal + monthlyData[month].profit;
-                cumulativeSum += monthlyNet;
-                cumulativeTotals.push(cumulativeSum / BASE_AMOUNT);
-            });
-
-            const ctx = document.getElementById('monthlyComparisonChart').getContext('2d');
-            charts.monthlyComparisonChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: months,
-                    datasets: [
-                        {
-                            type: 'bar',
-                            label: 'آورده (میلیون تومان)',
-                            data: principals,
-                            backgroundColor: 'rgba(33, 133, 208, 0.8)', // آبی - آورده
-                            borderColor: 'rgba(33, 133, 208, 1)',
-                            borderWidth: 1,
-                            yAxisID: 'y'
-                        },
-                        {
-                            type: 'bar',
-                            label: 'برداشت (میلیون تومان)',
-                            data: withdrawals,
-                            backgroundColor: 'rgba(219, 40, 40, 0.8)', // قرمز - برداشت
-                            borderColor: 'rgba(219, 40, 40, 1)',
-                            borderWidth: 1,
-                            yAxisID: 'y'
-                        },
-                        {
-                            type: 'bar',
-                            label: 'سود (میلیون تومان)',
-                            data: profits,
-                            backgroundColor: 'rgba(33, 186, 69, 0.8)', // سبز - سود مشارکت
-                            borderColor: 'rgba(33, 186, 69, 1)',
-                            borderWidth: 1,
-                            yAxisID: 'y'
-                        },
-                        {
-                            type: 'line',
-                            label: 'سرمایه + سود (میلیون تومان)',
-                            data: cumulativeTotals,
-                            borderColor: 'rgba(170, 38, 255, 1)', // بنفش - سرمایه موجود
-                            backgroundColor: 'rgba(170, 38, 255, 0.2)',
-                            borderWidth: 3,
-                            fill: false,
-                            tension: 0.1,
-                            yAxisID: 'y1'
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'نمودار ماهانه سرمایه بعلاوه سود موجود'
-                        },
-                        legend: { position: 'top' }
-                    },
-                    scales: {
-                        x: {
-                            title: { 
-                                display: true, 
-                                text: 'ماه' 
-                            }
-                        },
-                        y: {
-                            type: 'linear',
-                            display: true,
-                            position: 'left',
-                            beginAtZero: true,
-                            title: { 
-                                display: true, 
-                                text: 'مبلغ ماهانه (میلیون تومان)' 
-                            }
-                        },
-                        y1: {
-                            type: 'linear',
-                            display: true,
-                            position: 'right',
-                            beginAtZero: false,
-                            title: { 
-                                display: true, 
-                                text: 'سرمایه موجود (میلیون تومان)' 
-                            },
-                            grid: {
-                                drawOnChartArea: false,
-                            },
                         }
                     }
                 }
@@ -2382,12 +2246,9 @@
 
                 // پردازش تراکنش‌ها به صورت ماهانه (همان منطق نمودار ماهانه)
                 investorTransactions.forEach(row => {
-                    console.log('🔍 پردازش تراکنش:', row);
-                    console.log('🔍 date_shamsi:', row.date_shamsi);
                     
                     if (row.date_shamsi) {
                         const month = row.date_shamsi.substring(0, 7); // YYYY-MM
-                        console.log('🔍 ماه محاسبه شده:', month);
                         
                         if (!monthlyData[month]) {
                             monthlyData[month] = {
@@ -2398,7 +2259,6 @@
                         }
                         
                         const amount = parseFloat(row.amount || 0);
-                        console.log('🔍 مبلغ:', amount, 'نوع:', row.entry_type);
                         
                         switch (row.entry_type) {
                             case 'principal_deposit':
@@ -2416,11 +2276,18 @@
                     }
                 });
 
-                console.log('🔍 داده‌های ماهانه:', monthlyData);
-
-                // دریافت تمام دوره‌ها از API (مبنا دوره است، نه تراکنش‌ها)
-                const periodsResponse = await fetch(`/construction/api/v1/Period/chart_data/`);
-                const periodsData = await periodsResponse.json();
+                // دریافت تمام دوره‌ها از API یا کش (مبنا دوره است، نه تراکنش‌ها)
+                let periodsData;
+                if (cachedPeriodData) {
+                    console.log('✅ استفاده از کش برای داده‌های دوره‌ای');
+                    periodsData = cachedPeriodData;
+                } else {
+                    console.log('🔍 دریافت داده‌های دوره‌ای از API');
+                    const periodsResponse = await fetch(`/construction/api/v1/Period/chart_data/`);
+                    periodsData = await periodsResponse.json();
+                    // ذخیره در کش
+                    cachedPeriodData = periodsData;
+                }
                 
                 if (!periodsData.success) {
                     console.warn('⚠️ API دوره‌ها موفق نبود');
@@ -2446,12 +2313,8 @@
                     cumulativePrincipalTotals.push(cumulativeSum / BASE_AMOUNT);
                 });
 
-                console.log('🔍 سرمایه موجود تجمعی برای تمام دوره‌ها:', cumulativePrincipalTotals);
-
-                // محاسبه هزینه واحد برای تمام دوره‌ها
-                const unitCostData = await calculateUnitCostForMonths(allMonths, investorId);
-                
-                console.log('🔍 هزینه واحد:', unitCostData);
+                // محاسبه هزینه واحد برای تمام دوره‌ها (با پاس دادن periodsData)
+                const unitCostData = await calculateUnitCostForMonths(allMonths, investorId, periodsData);
                 
                 // ایجاد نمودار با داده‌های محاسبه شده
                 createInvestorTrendChart(allMonths, cumulativePrincipalTotals, unitCostData);
@@ -2462,63 +2325,44 @@
         }
 
         // محاسبه هزینه واحد برای ماه‌های مختلف
-        async function calculateUnitCostForMonths(months, investorId) {
+        async function calculateUnitCostForMonths(months, investorId, periodsData) {
             try {
-                console.log('🔍 محاسبه هزینه واحد برای ماه‌ها:', months);
-                
-                // دریافت داده‌های دوره‌ای از API موجود
-                const response = await fetch(`/construction/api/v1/Period/chart_data/`);
-                const data = await response.json();
-                
-                console.log('🔍 پاسخ API دوره‌ها:', data);
-                
-                if (!data.success) {
-                    console.warn('⚠️ API دوره‌ها موفق نبود');
+                if (!periodsData || !periodsData.success) {
                     return new Array(months.length).fill(0);
                 }
                 
-                // دریافت اطلاعات مشارکت کننده برای محاسبه متراژ واحد
-                const investorResponse = await fetch(`/construction/api/v1/Investor/${investorId}/`);
-                const investorData = await investorResponse.json();
+                // دریافت اطلاعات مشارکت کننده از کش یا API
+                let investorData;
+                if (cachedInvestorData[investorId]) {
+                    investorData = cachedInvestorData[investorId];
+                } else {
+                    const investorResponse = await fetch(`/construction/api/v1/Investor/${investorId}/`);
+                    investorData = await investorResponse.json();
+                    cachedInvestorData[investorId] = investorData;
+                }
                 
                 // دریافت کل متراژ مفید پروژه از API آمار
                 const projectStatsResponse = await fetch(`/construction/api/v1/Project/statistics/`);
                 const projectStatsData = await projectStatsResponse.json();
                 
-                console.log('🔍 اطلاعات مشارکت کننده:', investorData);
-                console.log('🔍 آمار پروژه:', projectStatsData);
-                
                 // محاسبه متراژ واحد مشارکت کننده (از اطلاعات مشارکت کننده)
                 const investorUnitArea = investorData.units ? 
                     investorData.units.reduce((sum, unit) => sum + (parseFloat(unit.area) || 0), 0) : 0;
                 
-                console.log('🔍 واحدهای مشارکت کننده برای محاسبه هزینه:', investorData.units);
-                console.log('🔍 متراژ واحد مشارکت کننده:', investorUnitArea);
-                
                 // کل متراژ مفید از آمار پروژه
                 const totalNetArea = projectStatsData.units_statistics?.total_area || 1;
                 
-                console.log('🔍 متراژ واحد مشارکت کننده:', investorUnitArea);
-                console.log('🔍 کل متراژ مفید:', totalNetArea);
-                
                 const unitCostData = [];
-                
-                // Debug: نمایش تمام دوره‌های موجود
-                console.log('🔍 تمام دوره‌های موجود:', data.data.map(p => `${p.year}-${p.month_number}`));
                 
                 for (const month of months) {
                     // ماه در فرمت شمسی است: 1402-05
                     const [shamsiYear, shamsiMonth] = month.split('-');
                     
-                    console.log(`🔍 جستجوی دوره برای ${shamsiYear}-${shamsiMonth}`);
-                    
                     // پیدا کردن دوره مربوط به این ماه شمسی (مقایسه عددی)
-                    const periodData = data.data.find(p => 
+                    const periodData = periodsData.data.find(p => 
                         parseInt(p.year) === parseInt(shamsiYear) && 
                         parseInt(p.month_number) === parseInt(shamsiMonth)
                     );
-                    
-                    console.log(`🔍 دوره یافت شده:`, periodData);
                     
                     if (periodData) {
                         // محاسبه هزینه واحد مشارکت کننده
@@ -2527,22 +2371,12 @@
                         const unitCostPerMeter = (cumulativeNetCost / totalNetArea) * investorUnitArea;
                         const unitCostInMillions = unitCostPerMeter / 1000000; // تبدیل به میلیون تومان
                         
-                        console.log(`🔍 محاسبه هزینه واحد برای ${month}:`, {
-                            cumulativeNetCost,
-                            totalNetArea,
-                            investorUnitArea,
-                            unitCostPerMeter,
-                            unitCostInMillions
-                        });
-                        
                         unitCostData.push(unitCostInMillions);
                     } else {
-                        console.warn(`⚠️ دوره ${shamsiYear}-${shamsiMonth} یافت نشد`);
                         unitCostData.push(0);
                     }
                 }
                 
-                console.log('🔍 نتیجه نهایی هزینه واحد:', unitCostData);
                 return unitCostData;
             } catch (error) {
                 console.error('خطا در محاسبه هزینه واحد:', error);

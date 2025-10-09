@@ -8,9 +8,11 @@ urlpatterns = [
     path('project/', views.project_dashboard, name='project_dashboard'),
     path('investor-profile/', views.investor_profile, name='investor_profile'),
     path('investor-pdf/', views.investor_pdf, name='investor_pdf'),
+    path('investors-summary-print/', views.investors_summary_print, name='investors_summary_print'),
     path('transaction-manager/', views.transaction_manager, name='transaction_manager'),
     path('expense-dashboard/', views.expense_dashboard, name='expense_dashboard'),
     path('interest-rate-manager/', views.interest_rate_manager, name='interest_rate_manager'),
+    path('period-summary/', views.period_summary, name='period_summary'),
     path('data/<str:filename>', views.serve_csv_file, name='serve_csv_file'),
     
     # Test pages
