@@ -671,7 +671,7 @@ class PeriodViewSet(viewsets.ModelViewSet):
             cumulative_profits = 0
             cumulative_expenses = 0
             cumulative_sales = 0
-            cumulative_fund_balance = 0
+            final_fund_balance = 0  # مانده صندوق نهایی
 
             for period in periods:
                 # محاسبه تراکنش‌های دوره
@@ -696,7 +696,7 @@ class PeriodViewSet(viewsets.ModelViewSet):
                 
                 # سود (profits)
                 profits = period_transactions.filter(
-                    transaction_type='profit_payment'
+                    transaction_type='profit_accrual'
                 ).aggregate(total=Sum('amount'))['total'] or 0
                 profits = float(profits)
                 cumulative_profits += profits
@@ -725,6 +725,7 @@ class PeriodViewSet(viewsets.ModelViewSet):
                 # محاسبه مانده صندوق
                 # مانده صندوق = سرمایه موجود - هزینه‌ها + فروش
                 fund_balance = cumulative_net_capital - cumulative_expenses + cumulative_sales
+                final_fund_balance = fund_balance  # ذخیره آخرین مقدار
 
                 # اضافه کردن داده‌های دوره
                 summary_data.append({
@@ -762,7 +763,7 @@ class PeriodViewSet(viewsets.ModelViewSet):
                 'total_profits': cumulative_profits,
                 'total_expenses': cumulative_expenses,
                 'total_sales': cumulative_sales,
-                'final_fund_balance': cumulative_fund_balance,
+                'final_fund_balance': final_fund_balance,
                 'total_periods': periods.count()
             }
 

@@ -168,7 +168,9 @@
     - `final_fund_balance`: مانده صندوق نهایی
     - `total_periods`: تعداد دوره‌ها
 
-**نکته مهم**: مقدار `withdrawals` در دیتابیس منفی است، بنابراین `net_capital = deposits + withdrawals`
+**نکات مهم**:
+1. مقدار `withdrawals` در دیتابیس منفی است، بنابراین `net_capital = deposits + withdrawals`
+2. نوع تراکنش سود `profit_accrual` است (نه `profit_payment`)
 
 ---
 

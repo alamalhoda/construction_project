@@ -92,8 +92,9 @@ GET /construction/api/v1/Period/period_summary/
    - ⚠️ **نکته مهم**: چون withdrawals منفی است، از جمع استفاده می‌کنیم نه تفریق
 
 4. **سود (profits)**
-   - فرمول: `SUM(amount) WHERE transaction_type = 'profit_payment'`
+   - فرمول: `SUM(amount) WHERE transaction_type = 'profit_accrual'`
    - واحد: تومان
+   - ⚠️ **نکته**: نوع تراکنش سود `profit_accrual` است نه `profit_payment`
 
 5. **هزینه‌ها (expenses)**
    - فرمول: `SUM(amount) FROM Expense WHERE period = period_id`
@@ -137,6 +138,12 @@ GET /construction/api/v1/Period/period_summary/
 ### 3️⃣ **دکمه نمایش/مخفی کردن ستون‌های تجمعی**
 - امکان نمایش یا مخفی کردن ستون‌های تجمعی
 - بهبود خوانایی جدول
+
+### 3️⃣ **دکمه خروجی Excel**
+- دانلود جدول دوره‌ای به صورت فایل Excel
+- شامل جدول کامل با تمام داده‌های دوره‌ها
+- شامل تمام ستون‌های دوره و ستون‌های تجمعی (17 ستون)
+- نام فایل: `خلاصه_دوره‌ای_[تاریخ].xlsx`
 
 ### 4️⃣ **نوار ناوبری**
 - دسترسی سریع به سایر صفحات
@@ -269,6 +276,10 @@ def get_period_summary():
         
         withdrawals = transactions.filter(
             transaction_type='principal_withdrawal'
+        ).aggregate(total=Sum('amount'))['total'] or 0
+        
+        profits = transactions.filter(
+            transaction_type='profit_accrual'
         ).aggregate(total=Sum('amount'))['total'] or 0
         
         # توجه: withdrawals منفی است
