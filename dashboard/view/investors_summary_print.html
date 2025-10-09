@@ -138,7 +138,7 @@
         }
 
         /* تعریف عرض ستون‌ها */
-        .summary-table col:nth-child(1) { width: 12%; }  /* نام */
+        .summary-table col:nth-child(1) { width: 200px; }  /* نام - عرض ثابت برای نام کامل */
         .summary-table col:nth-child(2) { width: 8%; }   /* آورده */
         .summary-table col:nth-child(3) { width: 8%; }   /* برداشت */
         .summary-table col:nth-child(4) { width: 9%; }   /* سرمایه */
@@ -150,6 +150,14 @@
         .summary-table col:nth-child(10) { width: 9%; }  /* متراژ */
         .summary-table col:nth-child(11) { width: 10%; } /* پرداخت نهایی */
         .summary-table col:nth-child(12) { width: 11%; } /* قیمت/متر */
+        
+        /* ستون نام - نمایش در یک خط */
+        .summary-table th:first-child,
+        .summary-table td:first-child {
+            white-space: nowrap;
+            text-align: right;
+            padding-right: 10px;
+        }
         
         /* رنگ‌بندی سلول‌های مالی */
         .summary-table tbody td:nth-child(2) { background-color: var(--deposit-color-light); }
@@ -198,6 +206,13 @@
             .summary-table th,
             .summary-table td {
                 padding: 6px 2px;
+            }
+            
+            /* ستون نام در چاپ */
+            .summary-table th:first-child,
+            .summary-table td:first-child {
+                min-width: 150px;
+                padding-right: 8px;
             }
 
             .summary-table thead th {
@@ -295,14 +310,6 @@
                 }
 
                 console.log('✅ داده‌ها دریافت شد:', summaryData);
-                
-                // بررسی نمونه داده اولین سرمایه‌گذار
-                if (summaryData.length > 0) {
-                    console.log('🔍 نمونه داده سرمایه‌گذار اول:', summaryData[0]);
-                    console.log('📊 capital_ratio:', summaryData[0].capital_ratio);
-                    console.log('📊 profit_ratio:', summaryData[0].profit_ratio);
-                    console.log('📊 profit_index:', summaryData[0].profit_index);
-                }
                 
                 // به‌روزرسانی تعداد سرمایه‌گذاران
                 document.getElementById('investorCount').textContent = summaryData.length;

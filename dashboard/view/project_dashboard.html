@@ -707,7 +707,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
-            min-width: 1400px; /* حداقل عرض جدول برای جلوگیری از فشردگی */
+            min-width: 1600px; /* افزایش عرض برای فضای بیشتر ستون نام */
         }
 
         th, td {
@@ -715,6 +715,15 @@
             text-align: right;
             border: 1px solid var(--border-color);
             color: var(--text-primary);
+        }
+        
+        /* ستون اول (نام) - بزرگتر و در یک خط */
+        .summary-table th:first-child,
+        .summary-table td:first-child {
+            min-width: 200px;
+            white-space: nowrap;
+            text-align: right;
+            padding-right: 15px;
         }
 
         th {
@@ -896,15 +905,21 @@
                 padding: 15px;
             }
 
-            /* جدول در موبایل کوچکتر */
+            /* جدول در موبایل */
             table {
                 font-size: 0.85rem;
-                min-width: 1200px; /* کمی کوچکتر برای موبایل */
+                min-width: 1400px; /* حفظ عرض کافی برای ستون نام */
             }
 
             th, td {
                 padding: 8px 6px;
                 font-size: 0.8rem;
+            }
+            
+            /* ستون نام در موبایل */
+            .summary-table th:first-child,
+            .summary-table td:first-child {
+                min-width: 180px;
             }
 
             /* اسکرول‌بار بزرگتر برای لمسی */
@@ -2151,14 +2166,6 @@
                 }
                 
                 console.log('📊 آمار کلی:', globalStatistics);
-                
-                // بررسی نمونه داده اولین سرمایه‌گذار
-                if (summaryData.length > 0) {
-                    console.log('🔍 نمونه داده سرمایه‌گذار اول:', summaryData[0]);
-                    console.log('📊 capital_ratio از سرور:', summaryData[0].capital_ratio);
-                    console.log('📊 profit_ratio از سرور:', summaryData[0].profit_ratio);
-                    console.log('📊 profit_index از سرور:', summaryData[0].profit_index);
-                }
                 
                 // محاسبه مجموع کل سود از داده‌های خلاصه
                 const totalProfitFromSummary = summaryData.reduce((sum, inv) => sum + inv.total_profit, 0);
