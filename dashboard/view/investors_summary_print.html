@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>خلاصه مشارکت کنندگان - نسخه چاپی</title>
+    
+    <!-- Vazir Font -->
+    <link rel="stylesheet" href="/static/fonts/vazir.css">
+    <!-- Financial Calculations Service -->
+    <script src="/static/js/financial-calculations.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Vazir', 'Tahoma', 'Arial', sans-serif;
+            background: white;
+            padding: 20px;
+            direction: rtl;
+        }
+
+        .print-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            border-bottom: 2px solid #4472c4;
+        }
+
+        .print-header h1 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .print-header .info {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .no-print {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .print-btn {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: 'Vazir', sans-serif;
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .print-btn:hover {
+            background: linear-gradient(135deg, #e74c3c 0%, #dc3545 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+        }
+
+        .print-btn i {
+            margin-left: 8px;
+        }
+
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10px;
+            table-layout: fixed;
+        }
+
+        .summary-table th,
+        .summary-table td {
+            border: 1px solid #ddd;
+            padding: 8px 4px;
+            text-align: center;
+        }
+
+        .summary-table thead th {
+            background-color: #4472c4;
+            color: white;
+            font-weight: bold;
+            padding: 10px 4px;
+            line-height: 1.4;
+        }
+
+        .summary-table tbody tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .summary-table .summary-row {
+            background-color: #e8f4f8 !important;
+            font-weight: bold;
+            border-top: 2px solid #4472c4;
+        }
+
+        /* تعریف عرض ستون‌ها */
+        .summary-table col:nth-child(1) { width: 12%; }  /* نام */
+        .summary-table col:nth-child(2) { width: 8%; }   /* آورده */
+        .summary-table col:nth-child(3) { width: 8%; }   /* برداشت */
+        .summary-table col:nth-child(4) { width: 9%; }   /* سرمایه */
+        .summary-table col:nth-child(5) { width: 8%; }   /* سود */
+        .summary-table col:nth-child(6) { width: 9%; }   /* مجموع */
+        .summary-table col:nth-child(7) { width: 6%; }   /* نسبت سرمایه */
+        .summary-table col:nth-child(8) { width: 5%; }   /* نسبت سود */
+        .summary-table col:nth-child(9) { width: 5%; }   /* شاخص نفع */
+        .summary-table col:nth-child(10) { width: 9%; }  /* متراژ */
+        .summary-table col:nth-child(11) { width: 10%; } /* پرداخت نهایی */
+        .summary-table col:nth-child(12) { width: 11%; } /* قیمت/متر */
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 18px;
+            color: #666;
+        }
+
+        .error {
+            text-align: center;
+            padding: 50px;
+            font-size: 16px;
+            color: #dc3545;
+            background: #ffe6e6;
+            border-radius: 8px;
+            margin: 20px;
+        }
+
+        /* استایل‌های چاپ */
+        @media print {
+            body {
+                padding: 0;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            .print-header {
+                border-bottom: 2px solid #000;
+            }
+
+            .summary-table {
+                font-size: 8px;
+                page-break-inside: avoid;
+            }
+
+            .summary-table th,
+            .summary-table td {
+                padding: 6px 2px;
+            }
+
+            .summary-table thead th {
+                background-color: #4472c4 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .summary-table tbody tr:nth-child(even) {
+                background-color: #f8f9fa !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .summary-table .summary-row {
+                background-color: #e8f4f8 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            @page {
+                size: A4 landscape;
+                margin: 10mm;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print">
+        <button class="print-btn" onclick="window.print()">
+            <i>🖨️</i> چاپ / ذخیره PDF
+        </button>
+    </div>
+
+    <div class="print-header">
+        <h1>خلاصه مشارکت کنندگان (تومان)</h1>
+        <div class="info">
+            <span>تاریخ: <strong id="printDate"></strong></span>
+            <!-- <span>تعداد سرمایه‌گذاران: <strong id="investorCount">...</strong></span> -->
+        </div>
+    </div>
+
+    <div id="tableContainer">
+        <div class="loading">در حال بارگذاری اطلاعات...</div>
+    </div>
+
+    <script>
+        // تنظیم تاریخ
+        document.getElementById('printDate').textContent = new Date().toLocaleDateString('fa-IR');
+
+        // بارگذاری داده‌ها
+        async function loadData() {
+            try {
+                console.log('📡 بارگذاری داده‌های خلاصه سرمایه‌گذاران...');
+                
+                // دریافت داده از API
+                let summaryData = [];
+                let globalStatistics = null;
+                
+                try {
+                    summaryData = await window.financialService.getAllInvestorsSummary();
+                    globalStatistics = await window.financialService.getProjectStatistics();
+                } catch (error) {
+                    console.warn('استفاده از API قدیمی:', error);
+                    const response = await fetch('/construction/api/v1/Investor/summary/');
+                    if (!response.ok) throw new Error('خطا در دریافت داده');
+                    summaryData = await response.json();
+                }
+
+                console.log('✅ داده‌ها دریافت شد:', summaryData);
+                
+                // به‌روزرسانی تعداد سرمایه‌گذاران
+                // document.getElementById('investorCount').textContent = summaryData.length;
+
+                // محاسبه مجموع کل سود
+                const totalProfitFromSummary = summaryData.reduce((sum, inv) => sum + inv.total_profit, 0);
+                const totalProfit = (globalStatistics && globalStatistics.total_profit > 0) 
+                    ? globalStatistics.total_profit 
+                    : totalProfitFromSummary;
+
+                // ساخت جدول
+                let tableHTML = `
+                    <table class="summary-table">
+                        <colgroup>
+                            <col><col><col><col><col><col><col><col><col><col><col><col>
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th>نام مشارکت کننده</th>
+                                <th>آورده</th>
+                                <th>برداشت</th>
+                                <th>سرمایه موجود</th>
+                                <th>سود مشارکت</th>
+                                <th>مجموع (سرمایه+سود)</th>
+                                <th>نسبت سرمایه</th>
+                                <th>نسبت سود</th>
+                                <th>شاخص نفع</th>
+                                <th>متراژ مالکیت (m²)</th>
+                                <th>پرداخت نهایی</th>
+                                <th>قیمت واگذاری/متر</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                summaryData.forEach(investor => {
+                    // محاسبه نسبت‌ها
+                    let profitToTotalRatio = '0.00';
+                    if (totalProfit > 0) {
+                        const ratio = (investor.total_profit / totalProfit) * 100;
+                        profitToTotalRatio = ratio.toFixed(2);
+                    }
+                    
+                    let capitalRatio = '0.00';
+                    if (globalStatistics && globalStatistics.net_principal > 0) {
+                        const ratio = (investor.net_principal / globalStatistics.net_principal) * 100;
+                        capitalRatio = ratio.toFixed(2);
+                    }
+                    
+                    let profitIndex = '0.00';
+                    if (globalStatistics && globalStatistics.net_principal > 0 && totalProfit > 0 && investor.net_principal > 0) {
+                        const capitalRatioDecimal = investor.net_principal / globalStatistics.net_principal;
+                        const profitRatioDecimal = investor.total_profit / totalProfit;
+                        if (capitalRatioDecimal > 0) {
+                            const index = profitRatioDecimal / capitalRatioDecimal;
+                            profitIndex = index.toFixed(2);
+                        }
+                    }
+
+                    // دریافت اطلاعات مالکیت
+                    const ownership = investor.ownership || {};
+                    const ownershipArea = ownership.ownership_area || 0;
+                    const finalPayment = ownership.final_payment || 0;
+                    const transferPricePerMeter = ownership.transfer_price_per_meter || 0;
+                    
+                    const paymentStyle = finalPayment >= 0 ? 'color: #21ba45; font-weight: bold;' : 'color: #db2828; font-weight: bold;';
+
+                    tableHTML += `
+                        <tr>
+                            <td style="text-align: right;">${investor.name}</td>
+                            <td>${investor.total_deposits.toLocaleString('en-US')}</td>
+                            <td>${investor.total_withdrawals.toLocaleString('en-US')}</td>
+                            <td>${investor.net_principal.toLocaleString('en-US')}</td>
+                            <td>${Math.round(investor.total_profit).toLocaleString('en-US')}</td>
+                            <td>${Math.round(investor.grand_total).toLocaleString('en-US')}</td>
+                            <td>${capitalRatio}%</td>
+                            <td>${profitToTotalRatio}%</td>
+                            <td>${profitIndex}</td>
+                            <td>${ownershipArea.toFixed(2)}</td>
+                            <td style="${paymentStyle}">${Math.round(finalPayment).toLocaleString('en-US')}</td>
+                            <td>${Math.round(transferPricePerMeter).toLocaleString('en-US')}</td>
+                        </tr>
+                    `;
+                });
+
+                // ردیف مجموع
+                const totalOwnershipArea = summaryData.reduce((sum, inv) => {
+                    return sum + ((inv.ownership && inv.ownership.ownership_area) || 0);
+                }, 0);
+                
+                const totalFinalPayment = summaryData.reduce((sum, inv) => {
+                    return sum + ((inv.ownership && inv.ownership.final_payment) || 0);
+                }, 0);
+
+                tableHTML += `
+                    <tr class="summary-row">
+                        <td><strong>مجموع</strong></td>
+                        <td><strong>${summaryData.reduce((sum, inv) => sum + inv.total_deposits, 0).toLocaleString('en-US')}</strong></td>
+                        <td><strong>${summaryData.reduce((sum, inv) => sum + inv.total_withdrawals, 0).toLocaleString('en-US')}</strong></td>
+                        <td><strong>${summaryData.reduce((sum, inv) => sum + inv.net_principal, 0).toLocaleString('en-US')}</strong></td>
+                        <td><strong>${Math.round(summaryData.reduce((sum, inv) => sum + inv.total_profit, 0)).toLocaleString('en-US')}</strong></td>
+                        <td><strong>${Math.round(summaryData.reduce((sum, inv) => sum + inv.grand_total, 0)).toLocaleString('en-US')}</strong></td>
+                        <td><strong>100.00%</strong></td>
+                        <td><strong>100.00%</strong></td>
+                        <td><strong>-</strong></td>
+                        <td><strong>${totalOwnershipArea.toFixed(2)}</strong></td>
+                        <td><strong>${Math.round(totalFinalPayment).toLocaleString('en-US')}</strong></td>
+                        <td><strong>-</strong></td>
+                    </tr>
+                `;
+
+                tableHTML += '</tbody></table>';
+                
+                document.getElementById('tableContainer').innerHTML = tableHTML;
+                
+                console.log('✅ جدول با موفقیت ساخته شد');
+                
+            } catch (error) {
+                console.error('❌ خطا در بارگذاری داده:', error);
+                document.getElementById('tableContainer').innerHTML = `
+                    <div class="error">
+                        <strong>خطا در بارگذاری اطلاعات</strong><br>
+                        ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // بارگذاری داده‌ها هنگام لود صفحه
+        window.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+</html>
+

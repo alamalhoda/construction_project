@@ -1286,9 +1286,14 @@
             <div class="table-container">
                 <div class="table-header">
                     <h3><i class="fas fa-table"></i>خلاصه مشارکت کنندگان (تومان)</h3>
-                    <button id="exportExcelBtn" class="excel-export-btn" onclick="exportSummaryToExcel()">
-                        <i class="fas fa-file-excel"></i> دریافت Excel
-                    </button>
+                    <div style="display: flex; gap: 10px;">
+                        <button id="exportExcelBtn" class="excel-export-btn" onclick="exportSummaryToExcel()">
+                            <i class="fas fa-file-excel"></i> دریافت Excel
+                        </button>
+                        <button class="excel-export-btn" style="background: linear-gradient(135deg, #c82333 0%, #dc3545 100%);" onclick="window.open('/dashboard/investors-summary-print/', '_blank')">
+                            <i class="fas fa-file-pdf"></i> چاپ / PDF
+                        </button>
+                    </div>
                 </div>
                 <div id="summaryTable"></div>
             </div>
@@ -2293,14 +2298,22 @@
             try {
                 console.log('📊 شروع export جدول خلاصه به Excel...');
                 
-                // دریافت داده‌های خلاصه از سرور
-                const response = await fetch('/construction/api/v1/Investor/summary/');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+                // دریافت داده‌های خلاصه از سرور (با اطلاعات ownership)
+                let summaryData = [];
                 
-                const summaryData = await response.json();
-                console.log('✅ داده‌های خلاصه برای Excel دریافت شد:', summaryData);
+                try {
+                    console.log('📡 دریافت داده از API جدید با اطلاعات مالکیت...');
+                    summaryData = await window.financialService.getAllInvestorsSummary();
+                    console.log('✅ داده‌های کامل شامل ownership دریافت شد:', summaryData);
+                } catch (error) {
+                    console.warn('⚠️ API جدید در دسترس نیست، استفاده از API قدیمی:', error);
+                    const response = await fetch('/construction/api/v1/Investor/summary/');
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    summaryData = await response.json();
+                    console.log('⚠️ داده‌های بدون ownership دریافت شد:', summaryData);
+                }
 
                 // محاسبه مجموع کل سود
                 const totalProfitFromSummary = summaryData.reduce((sum, inv) => sum + inv.total_profit, 0);
@@ -2485,6 +2498,12 @@
                             ws[cellAddress].z = '#,##0.00'; // فرمت اعشاری با 2 رقم اعشار
                         } else if (col === 8) { // ستون 8 (شاخص نفع)
                             ws[cellAddress].z = '#,##0.00'; // فرمت اعشاری با 2 رقم اعشار
+                        } else if (col === 9) { // ستون 9 (متراژ مالکیت)
+                            ws[cellAddress].z = '#,##0.00'; // فرمت اعشاری با 2 رقم اعشار
+                        } else if (col === 10) { // ستون 10 (پرداخت نهایی)
+                            ws[cellAddress].z = '#,##0'; // فرمت عدد با جداکننده هزارگان
+                        } else if (col === 11) { // ستون 11 (قیمت واگذاری/متر)
+                            ws[cellAddress].z = '#,##0'; // فرمت عدد با جداکننده هزارگان
                         }
                         
                         // تنظیم رنگ پس‌زمینه برای سلول‌های داده
@@ -2540,6 +2559,10 @@
                             ws[cellAddress].z = '#,##0';
                         } else if (col >= 6 && col <= 7) {
                             ws[cellAddress].z = '#,##0.00';
+                        } else if (col === 9) { // متراژ مالکیت
+                            ws[cellAddress].z = '#,##0.00';
+                        } else if (col === 10) { // پرداخت نهایی
+                            ws[cellAddress].z = '#,##0';
                         }
                     }
                 }
