@@ -1434,7 +1434,6 @@
 
         // متغیر سراسری برای ذخیره آمار کلی
         let globalStatistics = null;
-        let participationStats = null;
         
         // بارگذاری همه داده‌ها از API های مختلف
         async function loadData() {
@@ -1459,7 +1458,7 @@
                 }
                 
                 // بارگذاری موازی همه داده‌ها (روش fallback با endpoint های بهینه)
-                const [transactionStatsResponse, investorsSummaryResponse, projectsResponse, interestRateResponse, expensesResponse, timelineResponse, statisticsResponse, participationStatsResponse, projectStatsResponse] = await Promise.all([
+                const [transactionStatsResponse, investorsSummaryResponse, projectsResponse, interestRateResponse, expensesResponse, timelineResponse, statisticsResponse, projectStatsResponse] = await Promise.all([
                     fetch('/construction/api/v1/Transaction/statistics/'),
                     fetch('/construction/api/v1/Investor/all_investors_summary/'),
                     fetch('/construction/api/v1/Project/').catch(err => {
@@ -1480,10 +1479,6 @@
                     }),
                     fetch('/construction/api/v1/Transaction/statistics/').catch(err => {
                         console.warn('خطا در دسترسی به API آمار کلی:', err);
-                        return { ok: false, status: 404 }; // fallback response
-                    }),
-                    fetch('/construction/api/v1/Investor/participation_stats/').catch(err => {
-                        console.warn('خطا در دسترسی به API آمار مشارکت:', err);
                         return { ok: false, status: 404 }; // fallback response
                     }),
                     fetch('/construction/api/v1/Project/project_statistics_detailed/').catch(err => {
@@ -1563,15 +1558,6 @@
                 } else {
                     console.warn('API آمار کلی دسترسی ندارد');
                     globalStatistics = null;
-                }
-                
-                // اگر آمار مشارکت API دسترسی داشت، آن را بارگذاری کن
-                if (participationStatsResponse.ok) {
-                    participationStats = await participationStatsResponse.json();
-                    console.log('آمار مشارکت بارگذاری شدند:', participationStats);
-                } else {
-                    console.warn('API آمار مشارکت دسترسی ندارد');
-                    participationStats = null;
                 }
                 
                 console.log('داده‌ها بارگذاری شدند:', {
@@ -1678,12 +1664,6 @@
                 // تنظیم نرخ سود فعلی
                 window.currentInterestRate = {
                     rate: currentInterestRate / 100 // تبدیل از درصد به اعشار
-                };
-                
-                // تنظیم آمار مشارکت
-                participationStats = {
-                    active_owner: projectStats.investor_statistics.owners_count,
-                    active_investor: projectStats.investor_statistics.investors_count
                 };
                 
                 // بارگذاری آمار پروژه (واحدها، متراژ، ارزش)
