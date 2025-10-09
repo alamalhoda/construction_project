@@ -653,6 +653,53 @@
             margin-bottom: 20px;
             font-size: 1.3rem;
         }
+        
+        /* Header نمودار با دکمه دانلود */
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .chart-header h3 {
+            margin: 0;
+            flex: 1;
+        }
+        
+        /* دکمه دانلود نمودار */
+        .chart-download-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'Vazir', sans-serif;
+        }
+        
+        .chart-download-btn:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .chart-download-btn:active {
+            transform: translateY(0);
+        }
+        
+        .chart-download-btn i {
+            font-size: 12px;
+        }
 
         .chart-wrapper {
             position: relative;
@@ -925,6 +972,17 @@
             /* اسکرول‌بار بزرگتر برای لمسی */
             .table-wrapper::-webkit-scrollbar {
                 height: 10px;
+            }
+            
+            /* دکمه دانلود نمودار در موبایل */
+            .chart-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .chart-download-btn {
+                width: 100%;
+                justify-content: center;
             }
         }
 
@@ -1248,7 +1306,12 @@
 
 
                 <div class="chart-container">
-                    <h3><i class="fas fa-chart-pie"></i> توزیع مشارکت کنندگان</h3>
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-pie"></i> توزیع مشارکت کنندگان</h3>
+                        <button class="chart-download-btn" onclick="downloadChart('investorDistributionChart', 'توزیع_مشارکت_کنندگان')">
+                            <i class="fas fa-download"></i> دانلود تصویر
+                        </button>
+                    </div>
                     <div class="chart-wrapper">
                         <canvas id="investorDistributionChart"></canvas>
                     </div>
@@ -1273,7 +1336,12 @@
 
                 <!-- Monthly Principal Chart -->
                 <div class="chart-container">
-                    <h3><i class="fas fa-chart-area"></i> ماهانه آورده و برداشت</h3>
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-area"></i> ماهانه آورده و برداشت</h3>
+                        <button class="chart-download-btn" onclick="downloadChart('monthlyPrincipalChart', 'ماهانه_آورده_برداشت')">
+                            <i class="fas fa-download"></i> دانلود تصویر
+                        </button>
+                    </div>
                     <div class="chart-wrapper">
                         <canvas id="monthlyPrincipalChart"></canvas>
                     </div>
@@ -1281,7 +1349,12 @@
 
                 <!-- Period Chart - نمودار ستونی دوره‌ای -->
                 <div class="chart-container">
-                    <h3><i class="fas fa-chart-bar"></i> نمودار دوره‌ای (سرمایه، هزینه،مرجوعی، مانده صندوق)</h3>
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-bar"></i> نمودار دوره‌ای (سرمایه، هزینه،مرجوعی، مانده صندوق)</h3>
+                        <button class="chart-download-btn" onclick="downloadChart('periodChart', 'نمودار_دوره‌ای')">
+                            <i class="fas fa-download"></i> دانلود تصویر
+                        </button>
+                    </div>
                     <div class="chart-wrapper">
                         <canvas id="periodChart"></canvas>
                     </div>
@@ -1289,7 +1362,12 @@
 
                 <!-- Cumulative Trend Chart - نمودار ترند تجمعی -->
                 <div class="chart-container">
-                    <h3><i class="fas fa-chart-line"></i> نمودار ترند تجمعی دوره‌ای</h3>
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-line"></i> نمودار ترند تجمعی دوره‌ای</h3>
+                        <button class="chart-download-btn" onclick="downloadChart('cumulativeTrendChart', 'نمودار_ترند_تجمعی')">
+                            <i class="fas fa-download"></i> دانلود تصویر
+                        </button>
+                    </div>
                     <div class="chart-wrapper">
                         <canvas id="cumulativeTrendChart"></canvas>
                     </div>
@@ -2570,6 +2648,57 @@
             } catch (error) {
                 console.error('❌ خطا در export به Excel:', error);
                 showNotification('خطا در تولید فایل Excel', 'error');
+            }
+        }
+
+        // تابع دانلود نمودار به عنوان تصویر
+        function downloadChart(chartId, fileName) {
+            try {
+                console.log(`📊 دانلود نمودار: ${chartId}`);
+                
+                // پیدا کردن canvas
+                const canvas = document.getElementById(chartId);
+                if (!canvas) {
+                    showNotification('نمودار یافت نشد', 'error');
+                    return;
+                }
+                
+                // تنظیم پس‌زمینه سفید برای نمودار
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = canvas.width;
+                tempCanvas.height = canvas.height;
+                const ctx = tempCanvas.getContext('2d');
+                
+                // رسم پس‌زمینه سفید
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+                
+                // کپی نمودار روی پس‌زمینه سفید
+                ctx.drawImage(canvas, 0, 0);
+                
+                // تبدیل به URL و دانلود
+                tempCanvas.toBlob(function(blob) {
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    
+                    // تنظیم نام فایل با تاریخ
+                    const now = new Date();
+                    const persianDate = now.toLocaleDateString('fa-IR').replace(/\//g, '-');
+                    link.download = `${fileName}_${persianDate}.png`;
+                    
+                    link.href = url;
+                    link.click();
+                    
+                    // پاکسازی
+                    URL.revokeObjectURL(url);
+                    
+                    console.log(`✅ نمودار ${fileName} دانلود شد`);
+                    showNotification('تصویر نمودار دانلود شد', 'success');
+                }, 'image/png');
+                
+            } catch (error) {
+                console.error('❌ خطا در دانلود نمودار:', error);
+                showNotification('خطا در دانلود تصویر', 'error');
             }
         }
 
