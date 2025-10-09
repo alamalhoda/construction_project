@@ -11,6 +11,25 @@
     <script src="/static/js/financial-calculations.js"></script>
     
     <style>
+        :root {
+            /* رنگ‌های استاندارد پروژه */
+            --deposit-color: #2185d0;           /* آبی - آورده */
+            --withdrawal-color: #db2828;        /* قرمز - برداشت */
+            --profit-color: #21ba45;            /* سبز - سود مشارکت */
+            --capital-color: #aa26ff;           /* بنفش - سرمایه موجود */
+            --balance-color: #6c757d;           /* خاکستری - مانده صندوق */
+            --total-color: #6c757d;             /* خاکستری - مجموع */
+            --gold-color: #ffd700;              /* طلایی - شاخص نفع */
+            
+            /* نسخه‌های شفاف برای پس‌زمینه */
+            --deposit-color-light: rgba(33, 133, 208, 0.1);
+            --withdrawal-color-light: rgba(219, 40, 40, 0.1);
+            --profit-color-light: rgba(33, 186, 69, 0.1);
+            --capital-color-light: rgba(170, 38, 255, 0.1);
+            --balance-color-light: rgba(108, 117, 125, 0.1);
+            --gold-color-light: rgba(255, 215, 0, 0.1);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -90,12 +109,23 @@
         }
 
         .summary-table thead th {
-            background-color: #4472c4;
+            background-color: #667eea;
             color: white;
             font-weight: bold;
             padding: 10px 4px;
             line-height: 1.4;
         }
+        
+        /* رنگ‌بندی header‌های مالی */
+        .summary-table thead th:nth-child(2) { background-color: var(--deposit-color); }     /* آورده */
+        .summary-table thead th:nth-child(3) { background-color: var(--withdrawal-color); }  /* برداشت */
+        .summary-table thead th:nth-child(4) { background-color: var(--capital-color); }     /* سرمایه */
+        .summary-table thead th:nth-child(5) { background-color: var(--profit-color); }      /* سود */
+        .summary-table thead th:nth-child(6) { background-color: var(--total-color); }       /* مجموع */
+        .summary-table thead th:nth-child(9) { background-color: var(--gold-color); color: #333; }  /* شاخص نفع */
+        .summary-table thead th:nth-child(10) { background-color: var(--capital-color); }    /* متراژ */
+        .summary-table thead th:nth-child(11) { background-color: var(--profit-color); }     /* پرداخت */
+        .summary-table thead th:nth-child(12) { background-color: var(--deposit-color); }    /* قیمت/متر */
 
         .summary-table tbody tr:nth-child(even) {
             background-color: #f8f9fa;
@@ -104,7 +134,7 @@
         .summary-table .summary-row {
             background-color: #e8f4f8 !important;
             font-weight: bold;
-            border-top: 2px solid #4472c4;
+            border-top: 2px solid var(--capital-color);
         }
 
         /* تعریف عرض ستون‌ها */
@@ -120,6 +150,14 @@
         .summary-table col:nth-child(10) { width: 9%; }  /* متراژ */
         .summary-table col:nth-child(11) { width: 10%; } /* پرداخت نهایی */
         .summary-table col:nth-child(12) { width: 11%; } /* قیمت/متر */
+        
+        /* رنگ‌بندی سلول‌های مالی */
+        .summary-table tbody td:nth-child(2) { background-color: var(--deposit-color-light); }
+        .summary-table tbody td:nth-child(3) { background-color: var(--withdrawal-color-light); }
+        .summary-table tbody td:nth-child(4) { background-color: var(--capital-color-light); }
+        .summary-table tbody td:nth-child(5) { background-color: var(--profit-color-light); }
+        .summary-table tbody td:nth-child(6) { background-color: var(--balance-color-light); }
+        .summary-table tbody td:nth-child(9) { background-color: var(--gold-color-light); }
 
         .loading {
             text-align: center;
@@ -163,22 +201,49 @@
             }
 
             .summary-table thead th {
-                background-color: #4472c4 !important;
+                background-color: #667eea !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
+                color: white !important;
             }
+            
+            /* رنگ‌بندی header‌های مالی در چاپ */
+            .summary-table thead th:nth-child(2) { background-color: var(--deposit-color) !important; }
+            .summary-table thead th:nth-child(3) { background-color: var(--withdrawal-color) !important; }
+            .summary-table thead th:nth-child(4) { background-color: var(--capital-color) !important; }
+            .summary-table thead th:nth-child(5) { background-color: var(--profit-color) !important; }
+            .summary-table thead th:nth-child(6) { background-color: var(--total-color) !important; }
+            .summary-table thead th:nth-child(9) { background-color: var(--gold-color) !important; color: #333 !important; }
+            .summary-table thead th:nth-child(10) { background-color: var(--capital-color) !important; }
+            .summary-table thead th:nth-child(11) { background-color: var(--profit-color) !important; }
+            .summary-table thead th:nth-child(12) { background-color: var(--deposit-color) !important; }
 
             .summary-table tbody tr:nth-child(even) {
                 background-color: #f8f9fa !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
+            
+            /* رنگ‌بندی سلول‌های مالی در چاپ */
+            .summary-table tbody td:nth-child(2) { background-color: var(--deposit-color-light) !important; }
+            .summary-table tbody td:nth-child(3) { background-color: var(--withdrawal-color-light) !important; }
+            .summary-table tbody td:nth-child(4) { background-color: var(--capital-color-light) !important; }
+            .summary-table tbody td:nth-child(5) { background-color: var(--profit-color-light) !important; }
+            .summary-table tbody td:nth-child(6) { background-color: var(--balance-color-light) !important; }
+            .summary-table tbody td:nth-child(9) { background-color: var(--gold-color-light) !important; }
 
             .summary-table .summary-row {
                 background-color: #e8f4f8 !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
+            
+            /* رنگ‌بندی ردیف مجموع در چاپ */
+            .summary-table .summary-row td:nth-child(2) { background-color: var(--deposit-color-light) !important; }
+            .summary-table .summary-row td:nth-child(3) { background-color: var(--withdrawal-color-light) !important; }
+            .summary-table .summary-row td:nth-child(4) { background-color: var(--capital-color-light) !important; }
+            .summary-table .summary-row td:nth-child(5) { background-color: var(--profit-color-light) !important; }
+            .summary-table .summary-row td:nth-child(6) { background-color: var(--balance-color-light) !important; }
 
             @page {
                 size: A4 landscape;
@@ -198,7 +263,7 @@
         <h1>خلاصه مشارکت کنندگان (تومان)</h1>
         <div class="info">
             <span>تاریخ: <strong id="printDate"></strong></span>
-            <!-- <span>تعداد سرمایه‌گذاران: <strong id="investorCount">...</strong></span> -->
+            <span>تعداد مشارکت کنندگان: <strong id="investorCount">...</strong></span>
         </div>
     </div>
 
@@ -231,8 +296,16 @@
 
                 console.log('✅ داده‌ها دریافت شد:', summaryData);
                 
+                // بررسی نمونه داده اولین سرمایه‌گذار
+                if (summaryData.length > 0) {
+                    console.log('🔍 نمونه داده سرمایه‌گذار اول:', summaryData[0]);
+                    console.log('📊 capital_ratio:', summaryData[0].capital_ratio);
+                    console.log('📊 profit_ratio:', summaryData[0].profit_ratio);
+                    console.log('📊 profit_index:', summaryData[0].profit_index);
+                }
+                
                 // به‌روزرسانی تعداد سرمایه‌گذاران
-                // document.getElementById('investorCount').textContent = summaryData.length;
+                document.getElementById('investorCount').textContent = summaryData.length;
 
                 // محاسبه مجموع کل سود
                 const totalProfitFromSummary = summaryData.reduce((sum, inv) => sum + inv.total_profit, 0);
@@ -266,28 +339,10 @@
                 `;
 
                 summaryData.forEach(investor => {
-                    // محاسبه نسبت‌ها
-                    let profitToTotalRatio = '0.00';
-                    if (totalProfit > 0) {
-                        const ratio = (investor.total_profit / totalProfit) * 100;
-                        profitToTotalRatio = ratio.toFixed(2);
-                    }
-                    
-                    let capitalRatio = '0.00';
-                    if (globalStatistics && globalStatistics.net_principal > 0) {
-                        const ratio = (investor.net_principal / globalStatistics.net_principal) * 100;
-                        capitalRatio = ratio.toFixed(2);
-                    }
-                    
-                    let profitIndex = '0.00';
-                    if (globalStatistics && globalStatistics.net_principal > 0 && totalProfit > 0 && investor.net_principal > 0) {
-                        const capitalRatioDecimal = investor.net_principal / globalStatistics.net_principal;
-                        const profitRatioDecimal = investor.total_profit / totalProfit;
-                        if (capitalRatioDecimal > 0) {
-                            const index = profitRatioDecimal / capitalRatioDecimal;
-                            profitIndex = index.toFixed(2);
-                        }
-                    }
+                    // استفاده مستقیم از نسبت‌ها و شاخص‌های محاسبه شده از سرور
+                    const capitalRatio = (investor.capital_ratio || 0).toFixed(2);
+                    const profitRatio = (investor.profit_ratio || 0).toFixed(2);
+                    const profitIndex = (investor.profit_index || 0).toFixed(2);
 
                     // دریافت اطلاعات مالکیت
                     const ownership = investor.ownership || {};
@@ -300,17 +355,17 @@
                     tableHTML += `
                         <tr>
                             <td style="text-align: right;">${investor.name}</td>
-                            <td>${investor.total_deposits.toLocaleString('en-US')}</td>
-                            <td>${investor.total_withdrawals.toLocaleString('en-US')}</td>
-                            <td>${investor.net_principal.toLocaleString('en-US')}</td>
-                            <td>${Math.round(investor.total_profit).toLocaleString('en-US')}</td>
-                            <td>${Math.round(investor.grand_total).toLocaleString('en-US')}</td>
-                            <td>${capitalRatio}%</td>
-                            <td>${profitToTotalRatio}%</td>
-                            <td>${profitIndex}</td>
-                            <td>${ownershipArea.toFixed(2)}</td>
+                            <td style="background-color: var(--deposit-color-light);">${investor.total_deposits.toLocaleString('en-US')}</td>
+                            <td style="background-color: var(--withdrawal-color-light);">${investor.total_withdrawals.toLocaleString('en-US')}</td>
+                            <td style="background-color: var(--capital-color-light);">${investor.net_principal.toLocaleString('en-US')}</td>
+                            <td style="background-color: var(--profit-color-light);">${Math.round(investor.total_profit).toLocaleString('en-US')}</td>
+                            <td style="background-color: var(--balance-color-light);">${Math.round(investor.grand_total).toLocaleString('en-US')}</td>
+                            <td style="color: var(--capital-color); font-weight: 600;">${capitalRatio}%</td>
+                            <td style="color: var(--profit-color); font-weight: 600;">${profitRatio}%</td>
+                            <td style="color: var(--gold-color); font-weight: bold; background-color: var(--gold-color-light);">${profitIndex}</td>
+                            <td style="color: var(--capital-color); font-weight: 600;">${ownershipArea.toFixed(2)}</td>
                             <td style="${paymentStyle}">${Math.round(finalPayment).toLocaleString('en-US')}</td>
-                            <td>${Math.round(transferPricePerMeter).toLocaleString('en-US')}</td>
+                            <td style="color: var(--deposit-color); font-weight: 600;">${Math.round(transferPricePerMeter).toLocaleString('en-US')}</td>
                         </tr>
                     `;
                 });
@@ -324,19 +379,21 @@
                     return sum + ((inv.ownership && inv.ownership.final_payment) || 0);
                 }, 0);
 
+                const totalPaymentColor = totalFinalPayment >= 0 ? 'var(--profit-color)' : 'var(--withdrawal-color)';
+                
                 tableHTML += `
                     <tr class="summary-row">
                         <td><strong>مجموع</strong></td>
-                        <td><strong>${summaryData.reduce((sum, inv) => sum + inv.total_deposits, 0).toLocaleString('en-US')}</strong></td>
-                        <td><strong>${summaryData.reduce((sum, inv) => sum + inv.total_withdrawals, 0).toLocaleString('en-US')}</strong></td>
-                        <td><strong>${summaryData.reduce((sum, inv) => sum + inv.net_principal, 0).toLocaleString('en-US')}</strong></td>
-                        <td><strong>${Math.round(summaryData.reduce((sum, inv) => sum + inv.total_profit, 0)).toLocaleString('en-US')}</strong></td>
-                        <td><strong>${Math.round(summaryData.reduce((sum, inv) => sum + inv.grand_total, 0)).toLocaleString('en-US')}</strong></td>
-                        <td><strong>100.00%</strong></td>
-                        <td><strong>100.00%</strong></td>
+                        <td style="background-color: var(--deposit-color-light);"><strong>${summaryData.reduce((sum, inv) => sum + inv.total_deposits, 0).toLocaleString('en-US')}</strong></td>
+                        <td style="background-color: var(--withdrawal-color-light);"><strong>${summaryData.reduce((sum, inv) => sum + inv.total_withdrawals, 0).toLocaleString('en-US')}</strong></td>
+                        <td style="background-color: var(--capital-color-light);"><strong>${summaryData.reduce((sum, inv) => sum + inv.net_principal, 0).toLocaleString('en-US')}</strong></td>
+                        <td style="background-color: var(--profit-color-light);"><strong>${Math.round(summaryData.reduce((sum, inv) => sum + inv.total_profit, 0)).toLocaleString('en-US')}</strong></td>
+                        <td style="background-color: var(--balance-color-light);"><strong>${Math.round(summaryData.reduce((sum, inv) => sum + inv.grand_total, 0)).toLocaleString('en-US')}</strong></td>
+                        <td style="color: var(--capital-color); font-weight: bold;"><strong>100.00%</strong></td>
+                        <td style="color: var(--profit-color); font-weight: bold;"><strong>100.00%</strong></td>
                         <td><strong>-</strong></td>
-                        <td><strong>${totalOwnershipArea.toFixed(2)}</strong></td>
-                        <td><strong>${Math.round(totalFinalPayment).toLocaleString('en-US')}</strong></td>
+                        <td style="color: var(--capital-color); font-weight: bold;"><strong>${totalOwnershipArea.toFixed(2)}</strong></td>
+                        <td style="color: ${totalPaymentColor}; font-weight: bold;"><strong>${Math.round(totalFinalPayment).toLocaleString('en-US')}</strong></td>
                         <td><strong>-</strong></td>
                     </tr>
                 `;
