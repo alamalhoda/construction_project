@@ -396,17 +396,15 @@ class InvestorViewSet(viewsets.ModelViewSet):
                 for key in ['total_deposits', 'total_withdrawals', 'net_principal', 'total_profit', 'grand_total']:
                     if row_dict[key] is None:
                         row_dict[key] = 0
-                        
-                # فقط سرمایه‌گذارانی که فعالیت داشته‌اند
-                if row_dict['total_deposits'] > 0 or row_dict['total_withdrawals'] > 0 or row_dict['total_profit'] > 0:
-                    results.append(row_dict)
+                
+                # همه سرمایه‌گذاران را برگردان
+                results.append(row_dict)
         
         return Response(results)
 
     @action(detail=False, methods=['get'])
     def participation_stats(self, request):
         """دریافت آمار مشارکت کنندگان بر اساس نوع (مالک و سرمایه گذار)"""
-        from django.db.models import Count, Q
         
         # شمارش کل مشارکت کنندگان
         total_count = models.Investor.objects.count()
@@ -415,25 +413,10 @@ class InvestorViewSet(viewsets.ModelViewSet):
         owner_count = models.Investor.objects.filter(participation_type='owner').count()
         investor_count = models.Investor.objects.filter(participation_type='investor').count()
         
-        # شمارش مشارکت کنندگان فعال (کسانی که تراکنش داشته‌اند)
-        active_investor_ids = models.Transaction.objects.values_list('investor_id', flat=True).distinct()
-        active_total = models.Investor.objects.filter(id__in=active_investor_ids).count()
-        active_owner = models.Investor.objects.filter(
-            id__in=active_investor_ids, 
-            participation_type='owner'
-        ).count()
-        active_investor = models.Investor.objects.filter(
-            id__in=active_investor_ids, 
-            participation_type='investor'
-        ).count()
-        
         return Response({
             'total_count': total_count,
             'owner_count': owner_count,
-            'investor_count': investor_count,
-            'active_total': active_total,
-            'active_owner': active_owner,
-            'active_investor': active_investor
+            'investor_count': investor_count
         })
 
     @action(detail=True, methods=['get'])
