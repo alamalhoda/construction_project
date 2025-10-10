@@ -762,7 +762,11 @@ class InvestorAnalysisSheet:
         headers = [
             'نام سرمایه‌گذار', 'آورده کل', 'برداشت کل', 'سرمایه خالص',
             'سود کل', 'موجودی کل', 'نسبت سرمایه (%)', 'نسبت سود (%)',
-            'نسبت موجودی کل (%)', 'شاخص نفع'
+            'نسبت موجودی کل (%)', 'شاخص نفع',
+            # اطلاعات مالکیتی
+            'تعداد واحدها', 'متراژ مالکیت', 'مجموع متراژ واحدها', 'درصد مالکیت',
+            'قیمت متوسط/متر', 'مجموع قیمت واحدها', 'قیمت واگذاری/متر',
+            'پرداخت نهایی', 'مبلغ واقعی پرداختی'
         ]
         
         # نوشتن هدرها
@@ -816,6 +820,25 @@ class InvestorAnalysisSheet:
             except:
                 capital_ratio = profit_ratio = total_ratio = profit_index = 0
             
+            # محاسبه اطلاعات مالکیتی
+            try:
+                from construction.calculations import InvestorCalculations
+                ownership_data = InvestorCalculations.calculate_investor_ownership(investor.id, project.id)
+                
+                units_count = ownership_data.get('units_count', 0)
+                ownership_area = ownership_data.get('ownership_area', 0)
+                total_units_area = ownership_data.get('total_units_area', 0)
+                ownership_percentage = ownership_data.get('ownership_percentage', 0)
+                average_price_per_meter = ownership_data.get('average_price_per_meter', 0)
+                total_units_price = ownership_data.get('total_units_price', 0)
+                transfer_price_per_meter = ownership_data.get('transfer_price_per_meter', 0)
+                final_payment = ownership_data.get('final_payment', 0)
+                actual_paid = ownership_data.get('actual_paid', 0)
+            except:
+                units_count = ownership_area = total_units_area = ownership_percentage = 0
+                average_price_per_meter = total_units_price = transfer_price_per_meter = 0
+                final_payment = actual_paid = 0
+            
             data = [
                 f"{investor.first_name} {investor.last_name}",
                 float(total_principal),
@@ -827,6 +850,16 @@ class InvestorAnalysisSheet:
                 profit_ratio,
                 total_ratio,
                 profit_index,
+                # اطلاعات مالکیتی
+                units_count,
+                ownership_area,
+                total_units_area,
+                ownership_percentage,
+                average_price_per_meter,
+                total_units_price,
+                transfer_price_per_meter,
+                final_payment,
+                actual_paid,
             ]
             
             for col_num, value in enumerate(data, 1):
@@ -834,12 +867,16 @@ class InvestorAnalysisSheet:
                 ExcelStyleHelper.apply_cell_style(cell)
                 
                 # فرمت اعداد
-                if col_num in [2, 3, 4, 5, 6]:  # مبالغ
+                if col_num in [2, 3, 4, 5, 6, 16, 18, 19]:  # مبالغ (اضافه شد: مجموع قیمت، پرداخت نهایی، مبلغ واقعی)
                     cell.number_format = '#,##0.00'
-                elif col_num in [7, 8, 9]:  # درصدها
+                elif col_num in [7, 8, 9, 14]:  # درصدها (اضافه شد: درصد مالکیت)
                     cell.number_format = '0.00'
                 elif col_num == 10:  # شاخص نفع
                     cell.number_format = '0.0000'
+                elif col_num in [12, 13]:  # متراژ (متراژ مالکیت، مجموع متراژ)
+                    cell.number_format = '#,##0.00'
+                elif col_num in [15, 17]:  # قیمت هر متر (قیمت متوسط، قیمت واگذاری)
+                    cell.number_format = '#,##0.00'
         
         # تنظیم عرض ستون‌ها
         ExcelStyleHelper.auto_adjust_column_width(ws)
