@@ -585,13 +585,11 @@ class InvestorCalculations(FinancialCalculationService):
         if not project:
             return []
         
-        # دریافت سرمایه‌گذاران از طریق تراکنش‌ها
-        investor_ids = models.Transaction.objects.filter(project=project).values_list('investor_id', flat=True).distinct()
-        investors = models.Investor.objects.filter(id__in=investor_ids)
+        # دریافت همه سرمایه‌گذاران
+        investors = models.Investor.objects.all()
         summary = []
         
-        print(f"🔍 تعداد سرمایه‌گذاران یافت شده: {investors.count()}")
-        print(f"🔍 investor_ids: {list(investor_ids)}")
+        print(f"🔍 تعداد کل سرمایه‌گذاران: {investors.count()}")
         
         for investor in investors:
             try:
