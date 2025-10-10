@@ -961,6 +961,63 @@ class ProjectViewSet(viewsets.ModelViewSet):
                 'error': f'خطا در دریافت آمار تفصیلی: {str(e)}'
             }, status=500)
 
+    @action(detail=False, methods=['get'], url_path='export_excel')
+    def export_excel(self, request):
+        """
+        Export کامل اطلاعات پروژه به فرمت Excel
+        
+        این endpoint فایل Excel شامل موارد زیر را تولید می‌کند:
+        - 9 شیت داده پایه (Project, Units, Investors, Periods, InterestRates, Transactions, Expenses, Sales, UserProfiles)
+        - 6 شیت محاسباتی (Dashboard, Profit_Metrics, Cost_Metrics, Investor_Analysis, Period_Summary, Transaction_Summary)
+        
+        نوع محاسبات: Static (تمام محاسبات در سرور انجام می‌شود)
+        
+        Returns:
+            فایل Excel با 15 شیت
+        """
+        from .excel_export import ExcelExportService
+        from django.http import HttpResponse
+        
+        try:
+            # دریافت پروژه فعال
+            project = models.Project.get_active_project()
+            if not project:
+                return Response({'error': 'هیچ پروژه فعالی یافت نشد'}, status=400)
+            
+            # تولید فایل Excel
+            excel_service = ExcelExportService(project)
+            workbook = excel_service.generate_excel()
+            
+            # نام فایل با تاریخ و زمان
+            from django.utils import timezone
+            import re
+            # پاک کردن کاراکترهای غیرمجاز از نام پروژه
+            safe_project_name = re.sub(r'[^\w\-_\.]', '_', project.name)
+            timestamp = timezone.now().strftime("%Y%m%d_%H%M%S")
+            filename = f'project_{safe_project_name}_{timestamp}.xlsx'
+            
+            # آماده‌سازی response
+            response = HttpResponse(
+                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+            
+            # تنظیم header برای اطمینان از نام فایل صحیح
+            response['Content-Disposition'] = f'attachment; filename*=UTF-8\'\'{filename}'
+            
+            # ذخیره workbook در response
+            workbook.save(response)
+            
+            return response
+            
+        except ValueError as e:
+            return Response({
+                'error': str(e)
+            }, status=400)
+        except Exception as e:
+            return Response({
+                'error': f'خطا در تولید فایل Excel: {str(e)}'
+            }, status=500)
+
 
 class SaleViewSet(viewsets.ModelViewSet):
     """ViewSet for the Sale class"""
