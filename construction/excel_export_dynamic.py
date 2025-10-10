@@ -1013,6 +1013,100 @@ class ComprehensiveMetricsSheet:
         return ws
 
 
+class TransactionProfitCalculationsSheet:
+    """شیت محاسبه سود تراکنش‌ها با فرمول"""
+    
+    @staticmethod
+    def create(workbook, project):
+        """ایجاد شیت محاسبه سود تراکنش‌ها"""
+        ws = workbook.create_sheet("Transaction_Profit_Calculations")
+        
+        # عنوان
+        ws['A1'] = 'محاسبه سود تراکنش‌ها (با فرمول)'
+        ws['A1'].font = Font(name='Tahoma', size=14, bold=True)
+        ws.merge_cells('A1:H1')
+        
+        # هدرها
+        headers = [
+            'ID تراکنش', 'سرمایه‌گذار', 'تاریخ', 'نوع', 'مبلغ تراکنش',
+            'نرخ سود روزانه (%)', 'روز مانده', 'سود محاسبه شده'
+        ]
+        for col_num, header in enumerate(headers, 1):
+            cell = ws.cell(row=2, column=col_num, value=header)
+            cell.font = ExcelStyleHelper.get_header_font()
+            cell.fill = ExcelStyleHelper.get_header_fill()
+        
+        # دریافت تراکنش‌های آورده و برداشت (نه سود)
+        transactions = models.Transaction.objects.filter(
+            project=project
+        ).exclude(
+            transaction_type='profit'
+        ).select_related('investor').order_by('date_gregorian', 'id')
+        
+        row = 3
+        for trans in transactions:
+            trans_id = trans.id
+            
+            # ID تراکنش
+            ws.cell(row=row, column=1, value=trans_id)
+            
+            # نام سرمایه‌گذار (با VLOOKUP از Transactions)
+            ws.cell(row=row, column=2, value=f'=VLOOKUP(A{row},Transactions!$A:$D,4,FALSE)')
+            
+            # تاریخ (با VLOOKUP از Transactions - ستون G = 7)
+            ws.cell(row=row, column=3, value=f'=VLOOKUP(A{row},Transactions!$A:$G,7,FALSE)')
+            
+            # نوع تراکنش (با VLOOKUP از Transactions - ستون J = 10)
+            ws.cell(row=row, column=4, value=f'=VLOOKUP(A{row},Transactions!$A:$J,10,FALSE)')
+            
+            # مبلغ تراکنش (با VLOOKUP از Transactions - ستون I = 9)
+            ws.cell(row=row, column=5, value=f'=VLOOKUP(A{row},Transactions!$A:$I,9,FALSE)')
+            ws.cell(row=row, column=5).number_format = '#,##0.00'
+            
+            # نرخ سود روزانه (از Comprehensive_Metrics)
+            ws.cell(row=row, column=6, value='=DailyProfitPercentage')
+            ws.cell(row=row, column=6).number_format = '0.0000'
+            
+            # روز مانده (با VLOOKUP از Transactions - ستون L = 12)
+            ws.cell(row=row, column=7, value=f'=VLOOKUP(A{row},Transactions!$A:$L,12,FALSE)')
+            ws.cell(row=row, column=7).number_format = '#,##0'
+            
+            # سود محاسبه شده = مبلغ × (نرخ سود / 100) × روز مانده
+            ws.cell(row=row, column=8, value=f'=E{row}*(F{row}/100)*G{row}')
+            ws.cell(row=row, column=8).number_format = '#,##0.00'
+            ws.cell(row=row, column=8).font = Font(bold=True, color=ProjectColors.PROFIT)
+            
+            row += 1
+        
+        # ردیف جمع
+        ws.cell(row=row, column=7, value='جمع کل:').font = Font(bold=True)
+        ws.cell(row=row, column=8, value=f'=SUM(H3:H{row-1})')
+        ws.cell(row=row, column=8).number_format = '#,##0.00'
+        ws.cell(row=row, column=8).font = Font(bold=True, color=ProjectColors.PROFIT)
+        ws.cell(row=row, column=8).fill = ExcelStyleHelper.get_colored_fill(ProjectColors.SUBHEADER_BG)
+        
+        # Named Range برای جمع سود محاسبه شده
+        NamedRangeHelper.create_named_range(workbook, 'CalculatedTotalProfit', 'Transaction_Profit_Calculations', f'$H${row}')
+        
+        # تنظیم عرض ستون‌ها
+        ws.column_dimensions['A'].width = 12
+        ws.column_dimensions['B'].width = 25
+        ws.column_dimensions['C'].width = 15
+        ws.column_dimensions['D'].width = 15
+        ws.column_dimensions['E'].width = 18
+        ws.column_dimensions['F'].width = 20
+        ws.column_dimensions['G'].width = 12
+        ws.column_dimensions['H'].width = 20
+        
+        # Freeze header
+        ws.freeze_panes = 'A3'
+        
+        # Auto-filter
+        ws.auto_filter.ref = f'A2:H{row}'
+        
+        return ws
+
+
 class DynamicTransactionSummarySheet:
     """شیت خلاصه تراکنش‌ها با فرمول"""
     
@@ -1116,6 +1210,7 @@ class ExcelDynamicExportService:
         ComprehensiveMetricsSheet.create(self.workbook, self.project)
         
         # سایر شیت‌های محاسباتی
+        TransactionProfitCalculationsSheet.create(self.workbook, self.project)
         DynamicInvestorAnalysisSheet.create(self.workbook, self.project)
         DynamicPeriodSummarySheet.create(self.workbook, self.project)
         DynamicTransactionSummarySheet.create(self.workbook, self.project)

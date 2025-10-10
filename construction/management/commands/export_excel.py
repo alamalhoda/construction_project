@@ -6,10 +6,14 @@ Django Management Command برای تولید فایل Excel از اطلاعات
     python manage.py export_excel --output /path/to/file.xlsx
     python manage.py export_excel --project-id 1
     python manage.py export_excel --open
+    python manage.py export_excel --dynamic
 
 مثال‌ها:
-    # تولید فایل با نام پیش‌فرض در پوشه فعلی
+    # تولید فایل Static (پیش‌فرض) با نام پیش‌فرض
     python manage.py export_excel
+
+    # تولید فایل Dynamic با فرمول‌های محاسباتی
+    python manage.py export_excel --dynamic
 
     # تولید فایل با نام دلخواه
     python manage.py export_excel --output my_report.xlsx
@@ -17,20 +21,21 @@ Django Management Command برای تولید فایل Excel از اطلاعات
     # تولید فایل برای پروژه خاص
     python manage.py export_excel --project-id 2
 
-    # تولید فایل و باز کردن خودکار
-    python manage.py export_excel --open
+    # تولید فایل Dynamic و باز کردن خودکار
+    python manage.py export_excel --dynamic --open
 """
 
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 from construction.models import Project
 from construction.excel_export import ExcelExportService
+from construction.excel_export_dynamic import ExcelDynamicExportService
 import os
 import re
 
 
 class Command(BaseCommand):
-    help = 'تولید فایل Excel شامل تمام اطلاعات و محاسبات پروژه'
+    help = 'تولید فایل Excel شامل تمام اطلاعات و محاسبات پروژه (Static یا Dynamic)'
 
     def add_arguments(self, parser):
         """افزودن آرگومان‌های دستور"""
@@ -60,6 +65,13 @@ class Command(BaseCommand):
             action='store_true',
             help='بازنویسی فایل در صورت وجود',
         )
+        
+        parser.add_argument(
+            '--dynamic',
+            '-d',
+            action='store_true',
+            help='تولید فایل Dynamic با فرمول‌های محاسباتی (پیش‌فرض: Static)',
+        )
 
     def handle(self, *args, **options):
         """اجرای دستور"""
@@ -67,15 +79,20 @@ class Command(BaseCommand):
             # دریافت پروژه
             project = self._get_project(options.get('project_id'))
             
+            # تعیین نوع Excel
+            is_dynamic = options.get('dynamic', False)
+            excel_type = 'Dynamic' if is_dynamic else 'Static'
+            
             # نمایش اطلاعات پروژه
             self.stdout.write(self.style.SUCCESS(f'📊 پروژه: {project.name}'))
             self.stdout.write(f'   ID: {project.id}')
             if hasattr(project, 'start_date') and project.start_date:
                 self.stdout.write(f'   تاریخ شروع: {project.start_date}')
+            self.stdout.write(f'   نوع فایل: {excel_type}')
             self.stdout.write('')
             
             # تعیین نام فایل خروجی
-            output_path = self._get_output_path(options.get('output'), project)
+            output_path = self._get_output_path(options.get('output'), project, is_dynamic)
             
             # بررسی وجود فایل
             if os.path.exists(output_path) and not options.get('force'):
@@ -85,8 +102,13 @@ class Command(BaseCommand):
                 )
             
             # تولید فایل Excel
-            self.stdout.write('🔄 در حال تولید فایل Excel...')
-            excel_service = ExcelExportService(project)
+            self.stdout.write(f'🔄 در حال تولید فایل Excel {excel_type}...')
+            
+            if is_dynamic:
+                excel_service = ExcelDynamicExportService(project)
+            else:
+                excel_service = ExcelExportService(project)
+            
             workbook = excel_service.generate_excel()
             
             # ذخیره فایل
@@ -129,7 +151,7 @@ class Command(BaseCommand):
             self.stdout.write('✅ از پروژه فعال استفاده می‌شود')
             return project
 
-    def _get_output_path(self, output, project):
+    def _get_output_path(self, output, project, is_dynamic=False):
         """تعیین مسیر فایل خروجی"""
         if output:
             # اگر مسیر مشخص شده، از همان استفاده کن
@@ -138,7 +160,8 @@ class Command(BaseCommand):
             # تولید نام پیش‌فرض
             safe_project_name = re.sub(r'[^\w\-_\.]', '_', project.name)
             timestamp = timezone.now().strftime("%Y%m%d_%H%M%S")
-            filename = f'project_{safe_project_name}_{timestamp}.xlsx'
+            excel_type = 'dynamic' if is_dynamic else 'static'
+            filename = f'project_{safe_project_name}_{excel_type}_{timestamp}.xlsx'
             output_path = filename
         
         # تبدیل به مسیر مطلق
@@ -151,25 +174,48 @@ class Command(BaseCommand):
         self.stdout.write('')
         self.stdout.write('📋 محتویات فایل:')
         
-        sheet_categories = {
-            'شیت‌های داده پایه': [
-                'Project', 'Units', 'Investors', 'Periods', 
-                'InterestRates', 'Transactions', 'Expenses', 'Sales', 'UserProfiles'
-            ],
-            'شیت‌های محاسباتی': [
-                'Dashboard', 'Profit_Metrics', 'Cost_Metrics', 
-                'Investor_Analysis', 'Period_Summary', 'Transaction_Summary'
-            ]
-        }
+        # شناسایی نوع فایل
+        is_dynamic = 'Comprehensive_Metrics' in workbook.sheetnames
+        
+        if is_dynamic:
+            sheet_categories = {
+                'شیت‌های راهنما': [
+                    '📋 فهرست', '📖 راهنمای فرمول‌ها'
+                ],
+                'شیت‌های داده پایه': [
+                    'Project', 'Units', 'Investors', 'Periods', 
+                    'InterestRates', 'Transactions', 'Expenses', 'Sales', 'UserProfiles'
+                ],
+                'شیت‌های محاسباتی': [
+                    'Comprehensive_Metrics', 'Transaction_Profit_Calculations',
+                    'PeriodExpenseSummary', 'Investor_Analysis_Dynamic',
+                    'Period_Summary_Dynamic', 'Transaction_Summary_Dynamic'
+                ]
+            }
+        else:
+            sheet_categories = {
+                'شیت‌های داده پایه': [
+                    'Project', 'Units', 'Investors', 'Periods', 
+                    'InterestRates', 'Transactions', 'Expenses', 'Sales', 'UserProfiles'
+                ],
+                'شیت‌های محاسباتی': [
+                    'Dashboard', 'Profit_Metrics', 'Cost_Metrics', 
+                    'Investor_Analysis', 'Period_Summary', 'Transaction_Summary'
+                ]
+            }
         
         for category, sheets in sheet_categories.items():
             self.stdout.write(f'\n   {category}:')
             for sheet_name in sheets:
                 if sheet_name in workbook.sheetnames:
                     sheet = workbook[sheet_name]
-                    rows = sheet.max_row - 1  # منهای هدر
+                    rows = sheet.max_row - 1 if sheet.max_row > 0 else 0  # منهای هدر
                     cols = sheet.max_column
-                    self.stdout.write(f'     ✓ {sheet_name:20s} - {rows:4d} ردیف × {cols:2d} ستون')
+                    self.stdout.write(f'     ✓ {sheet_name:30s} - {rows:4d} ردیف × {cols:2d} ستون')
+        
+        # نمایش اطلاعات اضافی برای Dynamic
+        if is_dynamic:
+            self.stdout.write(f'\n   📌 Named Ranges: {len(workbook.defined_names)} مورد')
 
     def _open_file(self, file_path):
         """باز کردن فایل با برنامه پیش‌فرض"""
