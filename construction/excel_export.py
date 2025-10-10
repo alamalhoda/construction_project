@@ -6,9 +6,11 @@
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from openpyxl.utils import get_column_letter
+from openpyxl.chart import PieChart, BarChart, LineChart, Reference
+from openpyxl.chart.label import DataLabelList
 from decimal import Decimal
 from django.utils import timezone
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from . import models
 from .calculations import (
     ProjectCalculations,
@@ -16,6 +18,25 @@ from .calculations import (
     InvestorCalculations,
     TransactionCalculations
 )
+
+
+class ProjectColors:
+    """رنگ‌های استاندارد پروژه"""
+    # رنگ‌های اصلی
+    DEPOSIT = '2185d0'           # آبی - آورده و واریزی
+    WITHDRAWAL = 'db2828'        # قرمز - برداشت و خروجی
+    PROFIT = '21ba45'            # سبز - سود مشارکت و درآمد
+    CAPITAL = 'aa26ff'           # بنفش - سرمایه موجود و موجودی
+    EXPENSE = 'dc3545'           # قرمز تیره - هزینه‌ها و خرجی
+    SALE = 'ffc107'              # زرد - فروش/مرجوعی
+    BALANCE = '6c757d'           # خاکستری - مانده صندوق و مجموع
+    GOLD = 'ffd700'              # طلایی - شاخص نفع و عملکرد برتر
+    
+    # رنگ‌های کمکی
+    HEADER_BG = '4472C4'         # آبی تیره - هدر اصلی
+    SUBHEADER_BG = 'B4C7E7'      # آبی روشن - هدر فرعی
+    SECTION_BG = 'E7E6E6'        # خاکستری روشن - بخش‌ها
+    WHITE = 'FFFFFF'             # سفید
 
 
 class ExcelStyleHelper:
@@ -37,9 +58,16 @@ class ExcelStyleHelper:
         return Font(name='Tahoma', size=11, bold=True, color='FFFFFF')
     
     @staticmethod
-    def get_header_fill():
-        """پس‌زمینه هدر"""
-        return PatternFill(start_color='4472C4', end_color='4472C4', fill_type='solid')
+    def get_header_fill(color=None):
+        """پس‌زمینه هدر با رنگ قابل تنظیم"""
+        if color is None:
+            color = ProjectColors.HEADER_BG
+        return PatternFill(start_color=color, end_color=color, fill_type='solid')
+    
+    @staticmethod
+    def get_colored_fill(color):
+        """پس‌زمینه با رنگ مشخص"""
+        return PatternFill(start_color=color, end_color=color, fill_type='solid')
     
     @staticmethod
     def get_default_font():
@@ -87,6 +115,468 @@ class ExcelStyleHelper:
             
             adjusted_width = min(max_length + 2, 50)  # حداکثر 50
             worksheet.column_dimensions[column_letter].width = adjusted_width
+    
+    @staticmethod
+    def freeze_header_row(worksheet):
+        """فریز کردن ردیف اول (هدر)"""
+        worksheet.freeze_panes = 'A2'
+    
+    @staticmethod
+    def add_auto_filter(worksheet):
+        """اضافه کردن فیلتر خودکار"""
+        if worksheet.max_row > 1:  # فقط اگر داده وجود داشته باشد
+            worksheet.auto_filter.ref = worksheet.dimensions
+
+
+class ChartsSheet:
+    """شیت نمودارها"""
+    
+    @staticmethod
+    def create(workbook, project):
+        """ایجاد شیت با نمودارهای تحلیلی"""
+        ws = workbook.create_sheet("📊 نمودارها", 1)  # بعد از فهرست
+        
+        # عنوان
+        ws['A1'] = f'نمودارهای تحلیلی - {project.name}'
+        ws['A1'].font = Font(name='Tahoma', size=16, bold=True, color=ProjectColors.HEADER_BG)
+        ws.merge_cells('A1:H1')
+        ws['A1'].alignment = Alignment(horizontal='center')
+        
+        # دریافت داده‌ها
+        stats = ProjectCalculations.calculate_project_statistics(project.id)
+        
+        row = 3
+        
+        # === نمودار 1: نمودار دایره‌ای توزیع سرمایه بین سرمایه‌گذاران ===
+        ws[f'A{row}'] = '📊 توزیع سرمایه بین سرمایه‌گذاران (Top 10)'
+        ws[f'A{row}'].font = Font(name='Tahoma', size=12, bold=True)
+        row += 1
+        
+        # هدر داده‌ها
+        ws[f'A{row}'] = 'سرمایه‌گذار'
+        ws[f'B{row}'] = 'سرمایه (تومان)'
+        ws[f'A{row}'].font = ExcelStyleHelper.get_header_font()
+        ws[f'B{row}'].font = ExcelStyleHelper.get_header_font()
+        ws[f'A{row}'].fill = ExcelStyleHelper.get_header_fill()
+        ws[f'B{row}'].fill = ExcelStyleHelper.get_header_fill()
+        data_start_row = row + 1
+        row += 1
+        
+        # دریافت برترین سرمایه‌گذاران
+        top_investors = models.Investor.objects.annotate(
+            total_principal=Sum('transaction__amount', filter=Q(transaction__transaction_type='principal_deposit'))
+        ).filter(total_principal__isnull=False).order_by('-total_principal')[:10]
+        
+        for investor in top_investors:
+            ws[f'A{row}'] = f'{investor.first_name} {investor.last_name}'
+            ws[f'B{row}'] = float(investor.total_principal or 0)
+            ws[f'B{row}'].number_format = '#,##0'
+            row += 1
+        
+        data_end_row = row - 1
+        
+        # ایجاد نمودار دایره‌ای
+        pie_chart = PieChart()
+        pie_chart.title = "توزیع سرمایه بین سرمایه‌گذاران"
+        pie_chart.height = 12
+        pie_chart.width = 18
+        
+        labels = Reference(ws, min_col=1, min_row=data_start_row, max_row=data_end_row)
+        data = Reference(ws, min_col=2, min_row=data_start_row-1, max_row=data_end_row)
+        pie_chart.add_data(data, titles_from_data=True)
+        pie_chart.set_categories(labels)
+        
+        # تنظیمات نمایش
+        pie_chart.dataLabels = DataLabelList()
+        pie_chart.dataLabels.showPercent = True
+        
+        ws.add_chart(pie_chart, f'D{data_start_row-1}')
+        
+        row += 3
+        
+        # === نمودار 2: نمودار میله‌ای مقایسه آورده و برداشت ===
+        ws[f'A{row}'] = '📊 مقایسه آورده و برداشت سرمایه‌گذاران (Top 10)'
+        ws[f'A{row}'].font = Font(name='Tahoma', size=12, bold=True)
+        row += 1
+        
+        # هدر داده‌ها
+        ws[f'A{row}'] = 'سرمایه‌گذار'
+        ws[f'B{row}'] = 'آورده'
+        ws[f'C{row}'] = 'برداشت'
+        for col in ['A', 'B', 'C']:
+            ws[f'{col}{row}'].font = ExcelStyleHelper.get_header_font()
+            ws[f'{col}{row}'].fill = ExcelStyleHelper.get_header_fill()
+        bar_data_start = row + 1
+        row += 1
+        
+        # داده‌ها
+        top_investors_trans = models.Investor.objects.annotate(
+            total_deposits=Sum('transaction__amount', filter=Q(transaction__transaction_type='principal_deposit')),
+            total_withdrawals=Sum('transaction__amount', filter=Q(transaction__transaction_type='principal_withdrawal'))
+        ).filter(total_deposits__isnull=False).order_by('-total_deposits')[:10]
+        
+        for investor in top_investors_trans:
+            ws[f'A{row}'] = f'{investor.first_name} {investor.last_name}'
+            ws[f'B{row}'] = float(investor.total_deposits or 0)
+            ws[f'C{row}'] = abs(float(investor.total_withdrawals or 0))
+            ws[f'B{row}'].number_format = '#,##0'
+            ws[f'C{row}'].number_format = '#,##0'
+            row += 1
+        
+        bar_data_end = row - 1
+        
+        # ایجاد نمودار میله‌ای
+        bar_chart = BarChart()
+        bar_chart.type = "col"
+        bar_chart.title = "مقایسه آورده و برداشت"
+        bar_chart.height = 12
+        bar_chart.width = 18
+        bar_chart.y_axis.title = 'مبلغ (تومان)'
+        
+        data = Reference(ws, min_col=2, min_row=bar_data_start-1, max_row=bar_data_end, max_col=3)
+        cats = Reference(ws, min_col=1, min_row=bar_data_start, max_row=bar_data_end)
+        bar_chart.add_data(data, titles_from_data=True)
+        bar_chart.set_categories(cats)
+        
+        ws.add_chart(bar_chart, f'E{bar_data_start-1}')
+        
+        row += 3
+        
+        # === نمودار 3: نمودار خطی روند دوره‌ای ===
+        ws[f'A{row}'] = '📊 روند دوره‌ای (سرمایه، هزینه، فروش)'
+        ws[f'A{row}'].font = Font(name='Tahoma', size=12, bold=True)
+        row += 1
+        
+        # هدر داده‌ها
+        ws[f'A{row}'] = 'دوره'
+        ws[f'B{row}'] = 'سرمایه'
+        ws[f'C{row}'] = 'هزینه'
+        ws[f'D{row}'] = 'فروش'
+        for col in ['A', 'B', 'C', 'D']:
+            ws[f'{col}{row}'].font = ExcelStyleHelper.get_header_font()
+            ws[f'{col}{row}'].fill = ExcelStyleHelper.get_header_fill()
+        line_data_start = row + 1
+        row += 1
+        
+        # دریافت داده‌های دوره‌ای
+        from construction.api import PeriodViewSet
+        period_data = []
+        try:
+            # استفاده از API موجود
+            periods = models.Period.objects.filter(project=project).order_by('year', 'month_number')
+            
+            cumulative_capital = 0
+            cumulative_expenses = 0
+            cumulative_sales = 0
+            
+            for period in periods[:12]:  # فقط 12 دوره اول
+                # محاسبه سرمایه دوره
+                deposits = models.Transaction.objects.filter(
+                    period=period, 
+                    transaction_type='principal_deposit'
+                ).aggregate(total=Sum('amount'))['total'] or 0
+                
+                withdrawals = models.Transaction.objects.filter(
+                    period=period,
+                    transaction_type='principal_withdrawal'
+                ).aggregate(total=Sum('amount'))['total'] or 0
+                
+                period_capital = float(deposits) + float(withdrawals)
+                cumulative_capital += period_capital
+                
+                # هزینه‌های دوره
+                period_expenses = models.Expense.objects.filter(
+                    period=period
+                ).aggregate(total=Sum('amount'))['total'] or 0
+                cumulative_expenses += float(period_expenses)
+                
+                # فروش دوره
+                period_sales = models.Sale.objects.filter(
+                    period=period
+                ).aggregate(total=Sum('amount'))['total'] or 0
+                cumulative_sales += float(period_sales)
+                
+                period_data.append({
+                    'label': f'{period.year}/{period.month_number}',
+                    'capital': cumulative_capital / 1000000,  # به میلیون تومان
+                    'expenses': cumulative_expenses / 1000000,
+                    'sales': cumulative_sales / 1000000
+                })
+        except:
+            pass
+        
+        # نوشتن داده‌ها
+        for pd in period_data:
+            ws[f'A{row}'] = pd['label']
+            ws[f'B{row}'] = pd['capital']
+            ws[f'C{row}'] = pd['expenses']
+            ws[f'D{row}'] = pd['sales']
+            for col in ['B', 'C', 'D']:
+                ws[f'{col}{row}'].number_format = '#,##0.00'
+            row += 1
+        
+        line_data_end = row - 1
+        
+        if period_data:
+            # ایجاد نمودار خطی
+            line_chart = LineChart()
+            line_chart.title = "روند تجمعی دوره‌ای (میلیون تومان)"
+            line_chart.height = 12
+            line_chart.width = 18
+            line_chart.y_axis.title = 'مبلغ (میلیون تومان)'
+            line_chart.x_axis.title = 'دوره'
+            
+            data = Reference(ws, min_col=2, min_row=line_data_start-1, max_row=line_data_end, max_col=4)
+            cats = Reference(ws, min_col=1, min_row=line_data_start, max_row=line_data_end)
+            line_chart.add_data(data, titles_from_data=True)
+            line_chart.set_categories(cats)
+            
+            ws.add_chart(line_chart, f'F{line_data_start-1}')
+        
+        # تنظیم عرض ستون‌ها
+        ws.column_dimensions['A'].width = 25
+        ws.column_dimensions['B'].width = 18
+        ws.column_dimensions['C'].width = 18
+        ws.column_dimensions['D'].width = 18
+        
+        return ws
+
+
+class ExecutiveSummarySheet:
+    """شیت خلاصه اجرایی"""
+    
+    @staticmethod
+    def create(workbook, project):
+        """ایجاد شیت خلاصه اجرایی با KPI های کلیدی"""
+        ws = workbook.create_sheet("📊 خلاصه اجرایی", 1)  # بعد از فهرست
+        
+        # دریافت محاسبات
+        stats = ProjectCalculations.calculate_project_statistics(project.id)
+        profit_metrics = ProfitCalculations.calculate_profit_percentages(project.id)
+        
+        # عنوان اصلی
+        ws['A1'] = f'خلاصه اجرایی - {project.name}'
+        ws['A1'].font = Font(name='Tahoma', size=18, bold=True, color=ProjectColors.CAPITAL)
+        ws.merge_cells('A1:F1')
+        ws['A1'].alignment = Alignment(horizontal='center')
+        
+        # تاریخ
+        ws['A2'] = f'تاریخ گزارش: {timezone.now().strftime("%Y/%m/%d - %H:%M")}'
+        ws['A2'].font = Font(name='Tahoma', size=10, italic=True)
+        ws.merge_cells('A2:F2')
+        ws['A2'].alignment = Alignment(horizontal='center')
+        
+        row = 4
+        
+        # === بخش 1: KPI های کلیدی ===
+        ws[f'A{row}'] = '📈 شاخص‌های کلیدی عملکرد (KPI)'
+        ws[f'A{row}'].font = Font(name='Tahoma', size=14, bold=True, color=ProjectColors.HEADER_BG)
+        ws[f'A{row}'].fill = ExcelStyleHelper.get_colored_fill(ProjectColors.SUBHEADER_BG)
+        ws.merge_cells(f'A{row}:F{row}')
+        row += 1
+        
+        # KPI ها در قالب کارت
+        kpis = [
+            ('💰 سرمایه موجود', stats.get('transaction_statistics', {}).get('net_principal', 0), 'تومان', ProjectColors.CAPITAL),
+            ('💵 سود کل', stats.get('transaction_statistics', {}).get('total_profits', 0), 'تومان', ProjectColors.PROFIT),
+            ('💸 هزینه خالص', stats.get('cost_metrics', {}).get('net_cost', 0), 'تومان', ProjectColors.EXPENSE),
+            ('🏠 تعداد واحدها', stats.get('units_statistics', {}).get('total_units', 0), 'واحد', ProjectColors.BALANCE),
+            ('👥 سرمایه‌گذاران', stats.get('investor_statistics', {}).get('total_investors', 0), 'نفر', ProjectColors.BALANCE),
+            ('📊 درصد سود کل', profit_metrics.get('total_profit_percentage', 0), '%', ProjectColors.GOLD),
+        ]
+        
+        col = 0
+        for label, value, unit, color in kpis:
+            if col >= 3:
+                row += 2
+                col = 0
+            
+            cell_col = chr(65 + col * 2)  # A, C, E
+            ws[f'{cell_col}{row}'] = label
+            ws[f'{cell_col}{row}'].font = Font(name='Tahoma', size=10, bold=True)
+            ws[f'{cell_col}{row}'].fill = ExcelStyleHelper.get_colored_fill(color)
+            ws[f'{cell_col}{row}'].alignment = Alignment(horizontal='center', vertical='center')
+            
+            ws[f'{cell_col}{row+1}'] = value
+            ws[f'{cell_col}{row+1}'].font = Font(name='Tahoma', size=14, bold=True, color=color)
+            ws[f'{cell_col}{row+1}'].alignment = Alignment(horizontal='center', vertical='center')
+            if isinstance(value, (int, float)) and unit == 'تومان':
+                ws[f'{cell_col}{row+1}'].number_format = '#,##0'
+            elif unit == '%':
+                ws[f'{cell_col}{row+1}'].number_format = '0.00'
+            
+            next_col = chr(65 + col * 2 + 1)
+            ws.merge_cells(f'{cell_col}{row}:{next_col}{row}')
+            ws.merge_cells(f'{cell_col}{row+1}:{next_col}{row+1}')
+            
+            col += 1
+        
+        row += 3
+        
+        # === بخش 2: خلاصه مالی ===
+        ws[f'A{row}'] = '💰 خلاصه مالی'
+        ws[f'A{row}'].font = Font(name='Tahoma', size=14, bold=True, color=ProjectColors.HEADER_BG)
+        ws[f'A{row}'].fill = ExcelStyleHelper.get_colored_fill(ProjectColors.SUBHEADER_BG)
+        ws.merge_cells(f'A{row}:F{row}')
+        row += 1
+        
+        # هدر جدول مالی
+        financial_headers = ['شرح', 'مبلغ (تومان)', 'درصد']
+        for col_num, header in enumerate(financial_headers, 1):
+            cell = ws.cell(row=row, column=col_num, value=header)
+            cell.font = ExcelStyleHelper.get_header_font()
+            cell.fill = ExcelStyleHelper.get_header_fill()
+            cell.alignment = ExcelStyleHelper.get_center_alignment()
+        row += 1
+        
+        # داده‌های مالی
+        financial_data = [
+            ('آورده کل', stats.get('transaction_statistics', {}).get('total_deposits', 0), ''),
+            ('برداشت کل', stats.get('transaction_statistics', {}).get('total_withdrawals', 0), ''),
+            ('سرمایه خالص', stats.get('transaction_statistics', {}).get('net_principal', 0), '100%'),
+            ('سود کل', stats.get('transaction_statistics', {}).get('total_profits', 0), ''),
+            ('موجودی کل', stats.get('transaction_statistics', {}).get('grand_total', 0), ''),
+            ('', '', ''),  # خط جداکننده
+            ('هزینه‌ها', stats.get('cost_metrics', {}).get('total_expenses', 0), ''),
+            ('فروش/مرجوعی', stats.get('cost_metrics', {}).get('total_sales', 0), ''),
+            ('هزینه خالص', stats.get('cost_metrics', {}).get('net_cost', 0), ''),
+        ]
+        
+        for desc, amount, pct in financial_data:
+            ws.cell(row=row, column=1, value=desc).font = Font(name='Tahoma', size=10, bold=(desc == ''))
+            if isinstance(amount, (int, float)):
+                cell = ws.cell(row=row, column=2, value=float(amount))
+                cell.number_format = '#,##0'
+            ws.cell(row=row, column=3, value=pct)
+            row += 1
+        
+        row += 1
+        
+        # === بخش 3: برترین سرمایه‌گذاران ===
+        ws[f'A{row}'] = '🏆 برترین سرمایه‌گذاران (بر اساس سرمایه)'
+        ws[f'A{row}'].font = Font(name='Tahoma', size=14, bold=True, color=ProjectColors.HEADER_BG)
+        ws[f'A{row}'].fill = ExcelStyleHelper.get_colored_fill(ProjectColors.SUBHEADER_BG)
+        ws.merge_cells(f'A{row}:F{row}')
+        row += 1
+        
+        # هدر جدول سرمایه‌گذاران
+        investor_headers = ['رتبه', 'نام', 'سرمایه (تومان)', 'سود (تومان)', 'درصد مالکیت']
+        for col_num, header in enumerate(investor_headers, 1):
+            cell = ws.cell(row=row, column=col_num, value=header)
+            cell.font = ExcelStyleHelper.get_header_font()
+            cell.fill = ExcelStyleHelper.get_header_fill()
+            cell.alignment = ExcelStyleHelper.get_center_alignment()
+        row += 1
+        
+        # دریافت برترین سرمایه‌گذاران
+        from django.db.models import Sum
+        top_investors = models.Investor.objects.annotate(
+            total_principal=Sum('transaction__amount', filter=Q(transaction__transaction_type='principal_deposit')),
+            total_profit=Sum('transaction__amount', filter=Q(transaction__transaction_type='profit_accrual'))
+        ).filter(total_principal__isnull=False).order_by('-total_principal')[:5]
+        
+        for rank, investor in enumerate(top_investors, 1):
+            ws.cell(row=row, column=1, value=rank).alignment = Alignment(horizontal='center')
+            ws.cell(row=row, column=2, value=f'{investor.first_name} {investor.last_name}')
+            
+            cell = ws.cell(row=row, column=3, value=float(investor.total_principal or 0))
+            cell.number_format = '#,##0'
+            
+            cell = ws.cell(row=row, column=4, value=float(investor.total_profit or 0))
+            cell.number_format = '#,##0'
+            
+            # محاسبه درصد مالکیت
+            try:
+                ownership = InvestorCalculations.calculate_investor_ownership(investor.id, project.id)
+                ownership_pct = ownership.get('ownership_percentage', 0)
+            except:
+                ownership_pct = 0
+            
+            cell = ws.cell(row=row, column=5, value=ownership_pct)
+            cell.number_format = '0.00'
+            
+            row += 1
+        
+        # تنظیم عرض ستون‌ها
+        ws.column_dimensions['A'].width = 25
+        ws.column_dimensions['B'].width = 20
+        ws.column_dimensions['C'].width = 18
+        ws.column_dimensions['D'].width = 18
+        ws.column_dimensions['E'].width = 15
+        ws.column_dimensions['F'].width = 15
+        
+        return ws
+
+
+class TableOfContentsSheet:
+    """شیت فهرست محتوا"""
+    
+    @staticmethod
+    def create(workbook, project):
+        """ایجاد شیت فهرست محتوا"""
+        ws = workbook.create_sheet("📋 فهرست", 0)  # در ابتدا قرار می‌گیرد
+        
+        # عنوان اصلی
+        ws['A1'] = f'گزارش جامع پروژه: {project.name}'
+        ws['A1'].font = Font(name='Tahoma', size=16, bold=True, color=ProjectColors.CAPITAL)
+        ws.merge_cells('A1:C1')
+        
+        # زمان تولید
+        ws['A2'] = f'تاریخ تولید: {timezone.now().strftime("%Y/%m/%d - %H:%M:%S")}'
+        ws['A2'].font = Font(name='Tahoma', size=10, italic=True)
+        ws.merge_cells('A2:C2')
+        
+        row = 4
+        
+        # بخش داده‌های پایه
+        ws[f'A{row}'] = '📊 داده‌های پایه'
+        ws[f'A{row}'].font = Font(name='Tahoma', size=12, bold=True, color=ProjectColors.HEADER_BG)
+        row += 1
+        
+        base_sheets = [
+            ('Project', 'اطلاعات پروژه', '📁'),
+            ('Units', 'واحدها', '🏠'),
+            ('Investors', 'سرمایه‌گذاران', '👥'),
+            ('Periods', 'دوره‌ها', '📅'),
+            ('InterestRates', 'نرخ‌های سود', '💹'),
+            ('Transactions', 'تراکنش‌ها', '💳'),
+            ('Expenses', 'هزینه‌ها', '💰'),
+            ('Sales', 'فروش/مرجوعی', '🏷️'),
+            ('UserProfiles', 'پروفایل کاربران', '👤'),
+        ]
+        
+        for sheet_name, persian_name, icon in base_sheets:
+            ws[f'A{row}'] = f'{icon} {persian_name}'
+            ws[f'A{row}'].font = Font(name='Tahoma', size=10, color='0000FF', underline='single')
+            ws[f'A{row}'].hyperlink = f'#{sheet_name}!A1'
+            row += 1
+        
+        row += 1
+        
+        # بخش محاسبات
+        ws[f'A{row}'] = '📈 محاسبات و تحلیل‌ها'
+        ws[f'A{row}'].font = Font(name='Tahoma', size=12, bold=True, color=ProjectColors.PROFIT)
+        row += 1
+        
+        calc_sheets = [
+            ('Dashboard', 'داشبورد', '📊'),
+            ('Profit_Metrics', 'محاسبات سود', '💵'),
+            ('Cost_Metrics', 'محاسبات هزینه', '💸'),
+            ('Investor_Analysis', 'تحلیل سرمایه‌گذاران', '👥'),
+            ('Period_Summary', 'خلاصه دوره‌ای', '📅'),
+            ('Transaction_Summary', 'خلاصه تراکنش‌ها', '💳'),
+        ]
+        
+        for sheet_name, persian_name, icon in calc_sheets:
+            ws[f'A{row}'] = f'{icon} {persian_name}'
+            ws[f'A{row}'].font = Font(name='Tahoma', size=10, color='0000FF', underline='single')
+            ws[f'A{row}'].hyperlink = f'#{sheet_name}!A1'
+            row += 1
+        
+        # تنظیم عرض ستون
+        ws.column_dimensions['A'].width = 40
+        
+        return ws
 
 
 class ProjectSheet:
@@ -1109,6 +1599,9 @@ class ExcelExportService:
         if 'Sheet' in self.workbook.sheetnames:
             del self.workbook['Sheet']
         
+        # ایجاد شیت فهرست محتوا (در ابتدا)
+        TableOfContentsSheet.create(self.workbook, self.project)
+        
         # ایجاد شیت‌های پایه
         self.create_base_sheets()
         
@@ -1119,6 +1612,7 @@ class ExcelExportService:
     
     def create_base_sheets(self):
         """ایجاد شیت‌های داده پایه"""
+        # ایجاد شیت‌ها
         ProjectSheet.create(self.workbook, self.project)
         UnitsSheet.create(self.workbook, self.project)
         InvestorsSheet.create(self.workbook, self.project)
@@ -1128,6 +1622,15 @@ class ExcelExportService:
         ExpensesSheet.create(self.workbook, self.project)
         SalesSheet.create(self.workbook, self.project)
         UserProfilesSheet.create(self.workbook, self.project)
+        
+        # اضافه کردن فریز و فیلتر به همه شیت‌های داده پایه
+        base_sheets = ['Units', 'Investors', 'Periods', 'InterestRates', 
+                      'Transactions', 'Expenses', 'Sales', 'UserProfiles']
+        for sheet_name in base_sheets:
+            if sheet_name in self.workbook.sheetnames:
+                ws = self.workbook[sheet_name]
+                ExcelStyleHelper.freeze_header_row(ws)
+                ExcelStyleHelper.add_auto_filter(ws)
     
     def create_calculation_sheets(self):
         """ایجاد شیت‌های محاسباتی"""
