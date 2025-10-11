@@ -205,7 +205,7 @@ def test_recalculate_profits_api():
     
     # بررسی endpoint
     print("🔍 بررسی endpoint:")
-    print("   URL: /construction/api/v1/Transaction/recalculate_profits/")
+    print("   URL: /api/v1/Transaction/recalculate_profits/")
     print("   Method: POST")
     print("   Headers: Content-Type: application/json, X-CSRFToken")
     

@@ -809,7 +809,7 @@
                     </a>
                     <a href="/dashboard/interest-rate-manager/" class="nav-link">
                         <i class="fas fa-percentage"></i>
-                        مدیریت نرخ سود
+                        مدیریت سود
                     </a>
                 </div>
             </div>
@@ -1054,6 +1054,9 @@
         // متغیر برای تبدیل مبالغ (1 میلیون) - برای نمودارها
         const BASE_AMOUNT = 1000000;
         
+        // متغیر سراسری برای نام پروژه
+        let projectName = '';
+        
         // تابع فرمت‌کننده اعداد با جداکننده هزارگان انگلیسی
         function formatNumberWithCommas(number) {
             if (number === null || number === undefined || isNaN(number)) {
@@ -1065,7 +1068,7 @@
         // تابع فراخوانی API آمار کلی
         async function fetchGlobalStatistics() {
             try {
-                const response = await fetch('/construction/api/v1/Transaction/statistics/');
+                const response = await fetch('/api/v1/Transaction/statistics/');
                 if (response.ok) {
                     globalStatistics = await response.json();
                     console.log('آمار کلی دریافت شد:', globalStatistics);
@@ -1077,6 +1080,25 @@
             } catch (error) {
                 console.error('خطا در فراخوانی API آمار کلی:', error);
                 return null;
+            }
+        }
+        
+        // تابع دریافت نام پروژه از API
+        async function fetchProjectName() {
+            try {
+                const response = await fetch('/api/v1/Project/');
+                if (response.ok) {
+                    const projectsData = await response.json();
+                    const projects = Array.isArray(projectsData) ? projectsData : (projectsData.results || []);
+                    if (projects.length > 0) {
+                        projectName = projects[0].name || '';
+                        console.log('نام پروژه دریافت شد:', projectName);
+                    }
+                } else {
+                    console.warn('خطا در دریافت اطلاعات پروژه:', response.status);
+                }
+            } catch (error) {
+                console.error('خطا در فراخوانی API پروژه:', error);
             }
         }
 
@@ -1151,7 +1173,7 @@
         function populateInvestorSelectFromAPI() {
             // بارگذاری موازی لیست مشارکت کنندگان و آمار کلی
             Promise.all([
-                fetch('/construction/api/v1/Investor/'),
+                fetch('/api/v1/Investor/'),
                 fetchGlobalStatistics()
             ])
             .then(([investorsResponse, statsResponse]) => {
@@ -1263,7 +1285,7 @@
             }
             
             // بارگذاری تراکنش‌های این مشارکت کننده با فیلتر
-            return fetch(`/construction/api/v1/Transaction/?investor=${investorId}`)
+            return fetch(`/api/v1/Transaction/?investor=${investorId}`)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
@@ -1460,7 +1482,7 @@
                 // دریافت نسبت‌های مشارکت کننده از API
                 let investorRatios = null;
                 try {
-                    const response = await fetch(`/construction/api/v1/Investor/${investorId}/ratios/`);
+                    const response = await fetch(`/api/v1/Investor/${investorId}/ratios/`);
                     if (response.ok) {
                         investorRatios = await response.json();
                     }
@@ -1471,7 +1493,7 @@
                 // دریافت مالکیت مشارکت کننده از API
                 let investorOwnership = null;
                 try {
-                    const response = await fetch(`/construction/api/v1/Investor/${investorId}/ownership/`);
+                    const response = await fetch(`/api/v1/Investor/${investorId}/ownership/`);
                     if (response.ok) {
                         investorOwnership = await response.json();
                         console.log('✅ مالکیت مشارکت کننده از سرور دریافت شد:', investorOwnership);
@@ -1636,7 +1658,7 @@
 
             // دریافت یکباره اطلاعات مشارکت کننده (نام، تاریخ، واحدها)
             try {
-                const response = await fetch(`/construction/api/v1/Investor/${investorId}/`);
+                const response = await fetch(`/api/v1/Investor/${investorId}/`);
                 const investorData = await response.json();
                 
                 // ذخیره در کش
@@ -1883,6 +1905,17 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
+                        title: {
+                            display: projectName ? true : false,
+                            text: projectName ? `پروژه: ${projectName}` : '',
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            padding: {
+                                bottom: 10
+                            }
+                        },
                         legend: { position: 'right' },
                         tooltip: {
                             callbacks: {
@@ -1981,7 +2014,7 @@
                     plugins: {
                         title: {
                             display: true,
-                            text: 'روند تراکنش‌های آورده و برداشت'
+                            text: projectName ? `پروژه: ${projectName} - روند تراکنش‌های آورده و برداشت` : 'روند تراکنش‌های آورده و برداشت'
                         },
                         legend: {
                             display: true,
@@ -2103,7 +2136,7 @@
                     plugins: {
                         title: {
                             display: true,
-                            text: 'نمودار ماهانه اورده، برداشت و سرمایه موجود'
+                            text: projectName ? `پروژه: ${projectName} - نمودار ماهانه اورده، برداشت و سرمایه موجود` : 'نمودار ماهانه اورده، برداشت و سرمایه موجود'
                         },
                         legend: { position: 'top' }
                     },
@@ -2190,7 +2223,7 @@
                     plugins: {
                         title: {
                             display: true,
-                            text: 'ترند سرمایه موجود و هزینه واحد'
+                            text: projectName ? `پروژه: ${projectName} - ترند سرمایه موجود و هزینه واحد` : 'ترند سرمایه موجود و هزینه واحد'
                         },
                         legend: { position: 'top' }
                     },
@@ -2283,7 +2316,7 @@
                     periodsData = cachedPeriodData;
                 } else {
                     console.log('🔍 دریافت داده‌های دوره‌ای از API');
-                    const periodsResponse = await fetch(`/construction/api/v1/Period/chart_data/`);
+                    const periodsResponse = await fetch(`/api/v1/Period/chart_data/`);
                     periodsData = await periodsResponse.json();
                     // ذخیره در کش
                     cachedPeriodData = periodsData;
@@ -2336,13 +2369,13 @@
                 if (cachedInvestorData[investorId]) {
                     investorData = cachedInvestorData[investorId];
                 } else {
-                    const investorResponse = await fetch(`/construction/api/v1/Investor/${investorId}/`);
+                    const investorResponse = await fetch(`/api/v1/Investor/${investorId}/`);
                     investorData = await investorResponse.json();
                     cachedInvestorData[investorId] = investorData;
                 }
                 
                 // دریافت کل متراژ مفید پروژه از API آمار
-                const projectStatsResponse = await fetch(`/construction/api/v1/Project/statistics/`);
+                const projectStatsResponse = await fetch(`/api/v1/Project/statistics/`);
                 const projectStatsData = await projectStatsResponse.json();
                 
                 // محاسبه متراژ واحد مشارکت کننده (از اطلاعات مشارکت کننده)
@@ -2399,6 +2432,8 @@
             // Theme toggle event listener
             document.getElementById('themeToggle').addEventListener('click', toggleTheme);
             
+            // دریافت نام پروژه
+            fetchProjectName();
             
             populateInvestorSelect(); // بارگذاری لیست مشارکت کنندگان از دیتابیس
             // loadData() دیگر نیازی نیست چون داده‌ها به صورت فیلتر شده بارگذاری می‌شوند

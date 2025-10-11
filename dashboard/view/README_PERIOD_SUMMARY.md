@@ -22,7 +22,7 @@
 
 ### Endpoint:
 ```
-GET /construction/api/v1/Period/period_summary/
+GET /api/v1/Period/period_summary/
 ```
 
 ### پاسخ:
@@ -234,7 +234,7 @@ net_capital = deposits - withdrawals
 // دریافت خلاصه دوره‌ای
 async function loadPeriodSummary() {
     try {
-        const response = await fetch('/construction/api/v1/Period/period_summary/');
+        const response = await fetch('/api/v1/Period/period_summary/');
         const result = await response.json();
         
         if (result.success) {

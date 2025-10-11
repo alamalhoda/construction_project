@@ -952,7 +952,7 @@
         let periodsList = [];
         
         // API endpoints
-        const API_BASE = '/construction/api/v1/';
+        const API_BASE = '/api/v1/';
         const ENDPOINTS = {
             transactions: 'Transaction/',
             investors: 'Investor/',
@@ -2658,7 +2658,7 @@
                 description: description
             };
             
-            fetch('/construction/api/v1/Transaction/update_interest_rate/', {
+            fetch('/api/v1/Transaction/update_interest_rate/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
