@@ -277,6 +277,7 @@
     <div class="print-header">
         <h1>خلاصه مشارکت کنندگان (تومان)</h1>
         <div class="info">
+            <span id="projectNameDisplay" style="display: none;">پروژه: <strong id="projectName"></strong></span>
             <span>تاریخ: <strong id="printDate"></strong></span>
             <span>تعداد مشارکت کنندگان: <strong id="investorCount">...</strong></span>
         </div>
@@ -290,10 +291,31 @@
         // تنظیم تاریخ
         document.getElementById('printDate').textContent = new Date().toLocaleDateString('fa-IR');
 
+        // دریافت نام پروژه
+        async function fetchProjectName() {
+            try {
+                const response = await fetch('/api/v1/Project/');
+                if (response.ok) {
+                    const projectsData = await response.json();
+                    const projects = Array.isArray(projectsData) ? projectsData : (projectsData.results || []);
+                    if (projects.length > 0 && projects[0].name) {
+                        document.getElementById('projectName').textContent = projects[0].name;
+                        document.getElementById('projectNameDisplay').style.display = 'inline';
+                        console.log('نام پروژه دریافت شد:', projects[0].name);
+                    }
+                }
+            } catch (error) {
+                console.warn('خطا در دریافت نام پروژه:', error);
+            }
+        }
+
         // بارگذاری داده‌ها
         async function loadData() {
             try {
                 console.log('📡 بارگذاری داده‌های خلاصه سرمایه‌گذاران...');
+                
+                // دریافت نام پروژه
+                await fetchProjectName();
                 
                 // دریافت داده از API
                 let summaryData = [];

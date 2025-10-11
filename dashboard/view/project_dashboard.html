@@ -1435,6 +1435,9 @@
         // متغیر سراسری برای ذخیره آمار کلی
         let globalStatistics = null;
         
+        // متغیر سراسری برای نام پروژه
+        let projectName = '';
+        
         // بارگذاری همه داده‌ها از API های مختلف
         async function loadData() {
             try {
@@ -1510,6 +1513,12 @@
                     const projectsData = await projectsResponse.json();
                     allProjects = Array.isArray(projectsData) ? projectsData : (projectsData.results || []);
                     console.log('پروژه‌ها بارگذاری شدند:', allProjects.length);
+                    
+                    // استخراج نام پروژه
+                    if (allProjects.length > 0) {
+                        projectName = allProjects[0].name || '';
+                        console.log('نام پروژه:', projectName);
+                    }
                 } else {
                     console.warn('API پروژه‌ها دسترسی ندارد، از تراکنش‌ها تاریخ استفاده می‌شود');
                     allProjects = [];
@@ -1660,6 +1669,12 @@
                 
                 // تنظیم داده‌های پروژه
                 allProjects = [projectInfo];
+                
+                // استخراج نام پروژه
+                if (projectInfo && projectInfo.name) {
+                    projectName = projectInfo.name;
+                    console.log('نام پروژه:', projectName);
+                }
                 
                 // تنظیم نرخ سود فعلی
                 window.currentInterestRate = {
@@ -2105,6 +2120,17 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
+                        title: {
+                            display: projectName ? true : false,
+                            text: projectName ? `پروژه: ${projectName}` : '',
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            padding: {
+                                bottom: 10
+                            }
+                        },
                         legend: {
                             position: 'right',
                         },
@@ -2845,7 +2871,7 @@
                     plugins: {
                         title: {
                             display: true,
-                            text: 'ماهانه آورده، برداشت و سرمایه خالص (بدون سود)'
+                            text: projectName ? `پروژه: ${projectName} - ماهانه آورده، برداشت و سرمایه خالص` : 'ماهانه آورده، برداشت و سرمایه خالص (بدون سود)'
                         }
                     },
                     scales: {
@@ -2945,6 +2971,17 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
+                        title: {
+                            display: projectName ? true : false,
+                            text: projectName ? `پروژه: ${projectName}` : '',
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            padding: {
+                                bottom: 10
+                            }
+                        },
                         legend: {
                             position: 'top',
                         },
@@ -3060,6 +3097,17 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
+                        title: {
+                            display: projectName ? true : false,
+                            text: projectName ? `پروژه: ${projectName}` : '',
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            padding: {
+                                bottom: 10
+                            }
+                        },
                         legend: {
                             position: 'top',
                         },
