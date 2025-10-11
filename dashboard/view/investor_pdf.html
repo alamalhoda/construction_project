@@ -738,14 +738,14 @@
                 const transactions = await transactionsResponse.json();
 
                 // Fetch global statistics for ratios
-                const statsResponse = await fetch('/construction/api/v1/Transaction/statistics/');
+                const statsResponse = await fetch('/api/v1/Transaction/statistics/');
                 let globalStats = null;
                 if (statsResponse.ok) {
                     globalStats = await statsResponse.json();
                 }
 
                 // Fetch active interest rate
-                const interestRateResponse = await fetch('/construction/api/v1/InterestRate/');
+                const interestRateResponse = await fetch('/api/v1/InterestRate/');
                 let activeInterestRate = null;
                 if (interestRateResponse.ok) {
                     const interestRates = await interestRateResponse.json();
@@ -754,7 +754,7 @@
                 }
 
                 // Fetch profit metrics for annual interest rate
-                const profitMetricsResponse = await fetch('/construction/api/v1/Project/profit_metrics/');
+                const profitMetricsResponse = await fetch('/api/v1/Project/profit_metrics/');
                 let profitMetrics = null;
                 if (profitMetricsResponse.ok) {
                     profitMetrics = await profitMetricsResponse.json();

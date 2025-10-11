@@ -1459,29 +1459,29 @@
                 
                 // بارگذاری موازی همه داده‌ها (روش fallback با endpoint های بهینه)
                 const [transactionStatsResponse, investorsSummaryResponse, projectsResponse, interestRateResponse, expensesResponse, timelineResponse, statisticsResponse, projectStatsResponse] = await Promise.all([
-                    fetch('/construction/api/v1/Transaction/statistics/'),
-                    fetch('/construction/api/v1/Investor/all_investors_summary/'),
-                    fetch('/construction/api/v1/Project/').catch(err => {
+                    fetch('/api/v1/Transaction/statistics/'),
+                    fetch('/api/v1/Investor/all_investors_summary/'),
+                    fetch('/api/v1/Project/').catch(err => {
                         console.warn('خطا در دسترسی به API پروژه‌ها:', err);
                         return { ok: false, status: 403 }; // fallback response
                     }),
-                    fetch('/construction/api/v1/InterestRate/current/').catch(err => {
+                    fetch('/api/v1/InterestRate/current/').catch(err => {
                         console.warn('خطا در دسترسی به API نرخ سود:', err);
                         return { ok: false, status: 404 }; // fallback response
                     }),
-                    fetch('/construction/api/v1/Expense/total_expenses/').catch(err => {
+                    fetch('/api/v1/Expense/total_expenses/').catch(err => {
                         console.warn('خطا در دسترسی به API هزینه‌ها:', err);
                         return { ok: false, status: 404 }; // fallback response
                     }),
-                    fetch('/construction/api/v1/Project/project_timeline/').catch(err => {
+                    fetch('/api/v1/Project/project_timeline/').catch(err => {
                         console.warn('خطا در دسترسی به API زمان‌بندی پروژه:', err);
                         return { ok: false, status: 404 }; // fallback response
                     }),
-                    fetch('/construction/api/v1/Transaction/statistics/').catch(err => {
+                    fetch('/api/v1/Transaction/statistics/').catch(err => {
                         console.warn('خطا در دسترسی به API آمار کلی:', err);
                         return { ok: false, status: 404 }; // fallback response
                     }),
-                    fetch('/construction/api/v1/Project/project_statistics_detailed/').catch(err => {
+                    fetch('/api/v1/Project/project_statistics_detailed/').catch(err => {
                         console.warn('خطا در دسترسی به API آمار پروژه:', err);
                         return { ok: false, status: 404 }; // fallback response
                     })
@@ -1596,11 +1596,11 @@
                 
                 // بارگذاری خلاصه آمار تراکنش‌ها، سرمایه‌گذاران، داده‌های نمودار دوره‌ای و آمار پروژه
                 const [transactionStatsResponse, investorsSummaryResponse, periodSummaryResponse, periodChartResponse, projectStatsResponse] = await Promise.all([
-                    fetch('/construction/api/v1/Transaction/statistics/'),
-                    fetch('/construction/api/v1/Investor/all_investors_summary/'),
-                    fetch('/construction/api/v1/Period/period_summary/'),
-                    fetch('/construction/api/v1/Period/chart_data/'),
-                    fetch('/construction/api/v1/Project/project_statistics_detailed/').catch(err => {
+                    fetch('/api/v1/Transaction/statistics/'),
+                    fetch('/api/v1/Investor/all_investors_summary/'),
+                    fetch('/api/v1/Period/period_summary/'),
+                    fetch('/api/v1/Period/chart_data/'),
+                    fetch('/api/v1/Project/project_statistics_detailed/').catch(err => {
                         console.warn('خطا در دسترسی به API آمار پروژه:', err);
                         return { ok: false, status: 404 }; // fallback response
                     })
@@ -2142,7 +2142,7 @@
                     console.warn('⚠️ API جدید در دسترس نیست، استفاده از API قدیمی:', error);
                     
                     // Fallback به API قدیمی
-                    const response = await fetch('/construction/api/v1/Investor/summary/');
+                    const response = await fetch('/api/v1/Investor/summary/');
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
@@ -2274,7 +2274,7 @@
                     console.log('✅ داده‌های کامل شامل ownership دریافت شد:', summaryData);
                 } catch (error) {
                     console.warn('⚠️ API جدید در دسترس نیست، استفاده از API قدیمی:', error);
-                    const response = await fetch('/construction/api/v1/Investor/summary/');
+                    const response = await fetch('/api/v1/Investor/summary/');
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }

@@ -232,7 +232,7 @@ describe('Transaction Form Tests', () => {
             await new Promise(resolve => setTimeout(resolve, 100));
             
             expect(fetch).toHaveBeenCalledWith(
-                '/construction/api/v1/Transaction/',
+                '/api/v1/Transaction/',
                 expect.objectContaining({
                     method: 'POST',
                     headers: expect.objectContaining({
@@ -341,7 +341,7 @@ describe('Transaction Form Integration Tests', () => {
         
         // Verify API call
         expect(fetch).toHaveBeenCalledWith(
-            '/construction/api/v1/Transaction/',
+            '/api/v1/Transaction/',
             expect.objectContaining({
                 method: 'POST',
                 headers: expect.objectContaining({
@@ -382,7 +382,7 @@ describe('Transaction Form Integration Tests', () => {
         
         // Verify that Persian digits are converted
         expect(fetch).toHaveBeenCalledWith(
-            '/construction/api/v1/Transaction/',
+            '/api/v1/Transaction/',
             expect.objectContaining({
                 body: expect.stringContaining('"amount":"10000"')
             })
