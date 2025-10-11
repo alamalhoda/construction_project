@@ -11,7 +11,10 @@ from openpyxl.worksheet.datavalidation import DataValidation
 from decimal import Decimal
 from django.utils import timezone
 from django.db.models import Sum, Q
+import logging
 from . import models
+
+logger = logging.getLogger(__name__)
 from .excel_export import (
     ProjectColors,
     ExcelStyleHelper,
@@ -47,7 +50,7 @@ class NamedRangeHelper:
             
             return True
         except Exception as e:
-            print(f"خطا در ایجاد Named Range {name}: {str(e)}")
+            logger.error(f"خطا در ایجاد Named Range {name}: {str(e)}")
             return False
 
 

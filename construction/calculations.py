@@ -7,8 +7,11 @@ from decimal import Decimal, ROUND_HALF_UP
 from django.db.models import Sum, Count, Q
 from django.utils import timezone
 import jdatetime
+import logging
 from typing import Dict, List, Optional, Tuple
 from . import models
+
+logger = logging.getLogger(__name__)
 
 
 class FinancialCalculationService:
@@ -593,16 +596,10 @@ class InvestorCalculations(FinancialCalculationService):
         
         for investor in investors:
             try:
-                print(f"🔍 پردازش سرمایه‌گذار: {investor.id} - {investor.first_name} {investor.last_name}")
-                
                 # آمار سرمایه‌گذار
                 investor_stats = InvestorCalculations.calculate_investor_statistics(investor.id, project_id)
                 investor_ratios = InvestorCalculations.calculate_investor_ratios(investor.id, project_id)
                 investor_ownership = InvestorCalculations.calculate_investor_ownership(investor.id, project_id)
-                
-                print(f"🔍 investor_stats: {investor_stats}")
-                print(f"🔍 investor_ratios: {investor_ratios}")
-                print(f"🔍 investor_ownership: {investor_ownership}")
                 
                 if 'error' not in investor_stats and 'error' not in investor_ratios:
                     # محاسبه مجموع کل (سرمایه + سود)
@@ -655,7 +652,7 @@ class InvestorCalculations(FinancialCalculationService):
                     
                     summary.append(investor_summary)
             except Exception as e:
-                print(f"خطا در محاسبه آمار سرمایه‌گذار {investor.id}: {e}")
+                logger.error(f"خطا در محاسبه آمار سرمایه‌گذار {investor.id}: {e}")
                 continue
         
         return summary
