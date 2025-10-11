@@ -129,10 +129,10 @@
 **مثال استفاده:**
 ```bash
 # دانلود فایل Excel
-curl -O -J http://localhost:8000/construction/api/v1/Project/export_excel/
+curl -O -J http://localhost:8000/api/v1/Project/export_excel/
 
 # یا در مرورگر
-http://localhost:8000/construction/api/v1/Project/export_excel/
+http://localhost:8000/api/v1/Project/export_excel/
 ```
 
 **نکات مهم:**
@@ -185,10 +185,10 @@ http://localhost:8000/construction/api/v1/Project/export_excel/
 **مثال استفاده:**
 ```bash
 # دانلود فایل Static
-curl -O -J http://localhost:8000/construction/api/v1/Project/export_excel_static/
+curl -O -J http://localhost:8000/api/v1/Project/export_excel_static/
 
 # دانلود فایل Dynamic
-curl -O -J http://localhost:8000/construction/api/v1/Project/export_excel_dynamic/
+curl -O -J http://localhost:8000/api/v1/Project/export_excel_dynamic/
 ```
 
 **برنامه آینده:**

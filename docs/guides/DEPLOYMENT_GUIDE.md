@@ -84,15 +84,15 @@ gunicorn --bind 0.0.0.0:8000 construction_project.wsgi:application --settings=co
 ### Development
 ```bash
 # بدون احراز هویت
-curl http://localhost:8000/construction/api/v1/Transaction/
-curl -X POST -H "Content-Type: application/json" -d '{"name":"test"}' http://localhost:8000/construction/api/v1/Project/
+curl http://localhost:8000/api/v1/Transaction/
+curl -X POST -H "Content-Type: application/json" -d '{"name":"test"}' http://localhost:8000/api/v1/Project/
 ```
 
 ### Production
 ```bash
 # با احراز هویت
-curl -b cookies.txt http://your-domain.com/construction/api/v1/Transaction/
-curl -b cookies.txt -X POST -H "Content-Type: application/json" -d '{"name":"test"}' http://your-domain.com/construction/api/v1/Project/
+curl -b cookies.txt http://your-domain.com/api/v1/Transaction/
+curl -b cookies.txt -X POST -H "Content-Type: application/json" -d '{"name":"test"}' http://your-domain.com/api/v1/Project/
 ```
 
 ## 🛡️ نکات امنیتی

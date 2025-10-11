@@ -728,12 +728,12 @@
 
             try {
                 // Fetch investor data
-                const investorResponse = await fetch(`/construction/api/v1/Investor/${investorId}/`);
+                const investorResponse = await fetch(`/api/v1/Investor/${investorId}/`);
                 if (!investorResponse.ok) throw new Error('خطا در دریافت اطلاعات مشارکت کننده');
                 const investor = await investorResponse.json();
 
                 // Fetch transactions
-                const transactionsResponse = await fetch(`/construction/api/v1/Transaction/?investor=${investorId}`);
+                const transactionsResponse = await fetch(`/api/v1/Transaction/?investor=${investorId}`);
                 if (!transactionsResponse.ok) throw new Error('خطا در دریافت تراکنش‌ها');
                 const transactions = await transactionsResponse.json();
 
@@ -803,7 +803,7 @@
                 // دریافت مالکیت مشارکت کننده از API
                 let ownershipData = null;
                 try {
-                    const ownershipResponse = await fetch(`/construction/api/v1/Investor/${investorId}/ownership/`);
+                    const ownershipResponse = await fetch(`/api/v1/Investor/${investorId}/ownership/`);
                     if (ownershipResponse.ok) {
                         ownershipData = await ownershipResponse.json();
                     }
