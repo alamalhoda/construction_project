@@ -497,6 +497,9 @@
         <!-- Report Header -->
         <div class="report-header">
             <h1><i class="fas fa-file-invoice-dollar"></i> گزارش مالی مشارکت کننده</h1>
+            <div class="date" id="projectNameDisplay" style="display: none; margin-bottom: 5px; color: var(--primary-color); font-weight: bold;">
+                پروژه: <span id="projectName"></span>
+            </div>
             <div class="date" id="reportDate">تاریخ گزارش: -</div>
         </div>
 
@@ -701,6 +704,24 @@
             return urlParams.get('investor_id');
         }
 
+        // Fetch project name
+        async function fetchProjectName() {
+            try {
+                const response = await fetch('/api/v1/Project/');
+                if (response.ok) {
+                    const projectsData = await response.json();
+                    const projects = Array.isArray(projectsData) ? projectsData : (projectsData.results || []);
+                    if (projects.length > 0 && projects[0].name) {
+                        document.getElementById('projectName').textContent = projects[0].name;
+                        document.getElementById('projectNameDisplay').style.display = 'block';
+                        console.log('نام پروژه دریافت شد:', projects[0].name);
+                    }
+                }
+            } catch (error) {
+                console.warn('خطا در دریافت نام پروژه:', error);
+            }
+        }
+
         // Translate transaction type
         function getTransactionTypeLabel(type) {
             const types = {
@@ -727,6 +748,10 @@
             }
 
             try {
+                // دریافت نام پروژه
+                await fetchProjectName();
+                
+                // ادامه بارگذاری داده‌ها
                 // Fetch investor data
                 const investorResponse = await fetch(`/api/v1/Investor/${investorId}/`);
                 if (!investorResponse.ok) throw new Error('خطا در دریافت اطلاعات مشارکت کننده');

@@ -1054,6 +1054,9 @@
         // متغیر برای تبدیل مبالغ (1 میلیون) - برای نمودارها
         const BASE_AMOUNT = 1000000;
         
+        // متغیر سراسری برای نام پروژه
+        let projectName = '';
+        
         // تابع فرمت‌کننده اعداد با جداکننده هزارگان انگلیسی
         function formatNumberWithCommas(number) {
             if (number === null || number === undefined || isNaN(number)) {
@@ -1077,6 +1080,25 @@
             } catch (error) {
                 console.error('خطا در فراخوانی API آمار کلی:', error);
                 return null;
+            }
+        }
+        
+        // تابع دریافت نام پروژه از API
+        async function fetchProjectName() {
+            try {
+                const response = await fetch('/api/v1/Project/');
+                if (response.ok) {
+                    const projectsData = await response.json();
+                    const projects = Array.isArray(projectsData) ? projectsData : (projectsData.results || []);
+                    if (projects.length > 0) {
+                        projectName = projects[0].name || '';
+                        console.log('نام پروژه دریافت شد:', projectName);
+                    }
+                } else {
+                    console.warn('خطا در دریافت اطلاعات پروژه:', response.status);
+                }
+            } catch (error) {
+                console.error('خطا در فراخوانی API پروژه:', error);
             }
         }
 
@@ -1883,6 +1905,17 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
+                        title: {
+                            display: projectName ? true : false,
+                            text: projectName ? `پروژه: ${projectName}` : '',
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            padding: {
+                                bottom: 10
+                            }
+                        },
                         legend: { position: 'right' },
                         tooltip: {
                             callbacks: {
@@ -1981,7 +2014,7 @@
                     plugins: {
                         title: {
                             display: true,
-                            text: 'روند تراکنش‌های آورده و برداشت'
+                            text: projectName ? `پروژه: ${projectName} - روند تراکنش‌های آورده و برداشت` : 'روند تراکنش‌های آورده و برداشت'
                         },
                         legend: {
                             display: true,
@@ -2103,7 +2136,7 @@
                     plugins: {
                         title: {
                             display: true,
-                            text: 'نمودار ماهانه اورده، برداشت و سرمایه موجود'
+                            text: projectName ? `پروژه: ${projectName} - نمودار ماهانه اورده، برداشت و سرمایه موجود` : 'نمودار ماهانه اورده، برداشت و سرمایه موجود'
                         },
                         legend: { position: 'top' }
                     },
@@ -2190,7 +2223,7 @@
                     plugins: {
                         title: {
                             display: true,
-                            text: 'ترند سرمایه موجود و هزینه واحد'
+                            text: projectName ? `پروژه: ${projectName} - ترند سرمایه موجود و هزینه واحد` : 'ترند سرمایه موجود و هزینه واحد'
                         },
                         legend: { position: 'top' }
                     },
@@ -2399,6 +2432,8 @@
             // Theme toggle event listener
             document.getElementById('themeToggle').addEventListener('click', toggleTheme);
             
+            // دریافت نام پروژه
+            fetchProjectName();
             
             populateInvestorSelect(); // بارگذاری لیست مشارکت کنندگان از دیتابیس
             // loadData() دیگر نیازی نیست چون داده‌ها به صورت فیلتر شده بارگذاری می‌شوند
