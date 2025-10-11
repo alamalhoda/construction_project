@@ -22,7 +22,7 @@
 
 ### Endpoint:
 ```
-GET /construction/api/v1/Period/period_summary/
+GET /api/v1/Period/period_summary/
 ```
 
 ### پاسخ:

@@ -8,7 +8,7 @@
 python manage.py export_excel --dynamic
 
 # یا از API
-GET /construction/api/v1/Project/export_excel_dynamic/
+GET /api/v1/Project/export_excel_dynamic/
 ```
 
 ---

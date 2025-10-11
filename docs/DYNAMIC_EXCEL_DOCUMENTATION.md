@@ -52,7 +52,7 @@ TransactionProfitCalculationsSheet # شیت محاسبه سود تراکنش‌�
 
 ### API Endpoint
 ```
-GET /construction/api/v1/Project/export_excel_dynamic/
+GET /api/v1/Project/export_excel_dynamic/
 ```
 
 ### Django Management Command
@@ -369,7 +369,7 @@ CalculatedTotalProfit  → Transaction_Profit_Calculations!$H$569
 #### 1. دانلود فایل
 ```bash
 # از API
-GET /construction/api/v1/Project/export_excel_dynamic/
+GET /api/v1/Project/export_excel_dynamic/
 
 # یا از Management Command
 python manage.py export_excel --dynamic

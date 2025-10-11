@@ -9,7 +9,7 @@ python manage.py export_excel
 python manage.py export_excel --output report.xlsx
 
 # یا از API
-GET /construction/api/v1/Project/export_excel_static/
+GET /api/v1/Project/export_excel_static/
 ```
 
 ---

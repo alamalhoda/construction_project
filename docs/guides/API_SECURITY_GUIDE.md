@@ -42,7 +42,7 @@ http://127.0.0.1:8000/construction/api/login/
 
 ### آدرس‌های API:
 ```
-Base URL: http://127.0.0.1:8000/construction/api/v1/
+Base URL: http://127.0.0.1:8000/api/v1/
 ```
 
 ### Endpoint های اصلی:
@@ -81,7 +81,7 @@ Base URL: http://127.0.0.1:8000/construction/api/v1/
 
 ### 1. ورود به API
 ```bash
-curl -X POST http://127.0.0.1:8000/construction/api/v1/auth/login/ \
+curl -X POST http://127.0.0.1:8000/api/v1/auth/login/ \
   -H "Content-Type: application/json" \
   -d '{"username": "admin", "password": "your_password"}'
 ```
@@ -104,13 +104,13 @@ curl -X POST http://127.0.0.1:8000/construction/api/v1/auth/login/ \
 
 ### 2. دریافت لیست پروژه‌ها
 ```bash
-curl -X GET http://127.0.0.1:8000/construction/api/v1/Project/ \
+curl -X GET http://127.0.0.1:8000/api/v1/Project/ \
   -H "Authorization: Token your_token_here"
 ```
 
 ### 3. ایجاد پروژه جدید
 ```bash
-curl -X POST http://127.0.0.1:8000/construction/api/v1/Project/ \
+curl -X POST http://127.0.0.1:8000/api/v1/Project/ \
   -H "Authorization: Token your_token_here" \
   -H "Content-Type: application/json" \
   -d '{
@@ -122,13 +122,13 @@ curl -X POST http://127.0.0.1:8000/construction/api/v1/Project/ \
 
 ### 4. دریافت آمار تراکنش‌ها
 ```bash
-curl -X GET http://127.0.0.1:8000/construction/api/v1/Transaction/statistics/ \
+curl -X GET http://127.0.0.1:8000/api/v1/Transaction/statistics/ \
   -H "Authorization: Token your_token_here"
 ```
 
 ### 5. خروج از API
 ```bash
-curl -X POST http://127.0.0.1:8000/construction/api/v1/auth/logout/ \
+curl -X POST http://127.0.0.1:8000/api/v1/auth/logout/ \
   -H "Authorization: Token your_token_here"
 ```
 
@@ -203,8 +203,8 @@ tail -f logs/security.log
 
 ### آدرس‌های مهم:
 - **صفحه لاگین**: `/construction/api/login/`
-- **API Base**: `/construction/api/v1/`
-- **وضعیت API**: `/construction/api/v1/status/`
+- **API Base**: `/api/v1/`
+- **وضعیت API**: `/api/v1/status/`
 
 ---
 

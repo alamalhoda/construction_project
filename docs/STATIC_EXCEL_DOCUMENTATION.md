@@ -78,7 +78,7 @@ TransactionSummarySheet         # خلاصه تراکنش‌ها
 
 ### API Endpoint
 ```
-GET /construction/api/v1/Project/export_excel_static/
+GET /api/v1/Project/export_excel_static/
 ```
 
 ### Django Management Command
@@ -951,7 +951,7 @@ class ProfitCalculations:
 
 #### 1. تولید فایل از API
 ```bash
-curl -X GET "http://localhost:8000/construction/api/v1/Project/export_excel_static/" \
+curl -X GET "http://localhost:8000/api/v1/Project/export_excel_static/" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   --output report.xlsx
 ```
