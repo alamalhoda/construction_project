@@ -1065,7 +1065,7 @@
         // تابع فراخوانی API آمار کلی
         async function fetchGlobalStatistics() {
             try {
-                const response = await fetch('/construction/api/v1/Transaction/statistics/');
+                const response = await fetch('/api/v1/Transaction/statistics/');
                 if (response.ok) {
                     globalStatistics = await response.json();
                     console.log('آمار کلی دریافت شد:', globalStatistics);
@@ -1151,7 +1151,7 @@
         function populateInvestorSelectFromAPI() {
             // بارگذاری موازی لیست مشارکت کنندگان و آمار کلی
             Promise.all([
-                fetch('/construction/api/v1/Investor/'),
+                fetch('/api/v1/Investor/'),
                 fetchGlobalStatistics()
             ])
             .then(([investorsResponse, statsResponse]) => {

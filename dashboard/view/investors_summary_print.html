@@ -304,7 +304,7 @@
                     globalStatistics = await window.financialService.getProjectStatistics();
                 } catch (error) {
                     console.warn('استفاده از API قدیمی:', error);
-                    const response = await fetch('/construction/api/v1/Investor/summary/');
+                    const response = await fetch('/api/v1/Investor/summary/');
                     if (!response.ok) throw new Error('خطا در دریافت داده');
                     summaryData = await response.json();
                 }

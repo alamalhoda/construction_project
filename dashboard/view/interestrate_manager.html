@@ -2377,7 +2377,7 @@
             recalculateBtn.disabled = true;
             recalculateBtn.innerHTML = '<span class="spinner-border spinner-border-sm ms-2" role="status"></span>در حال محاسبه...';
             
-            fetch('/construction/api/v1/Transaction/recalculate_profits/', {
+            fetch('/api/v1/Transaction/recalculate_profits/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

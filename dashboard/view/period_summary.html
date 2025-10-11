@@ -597,7 +597,7 @@
         async function exportToExcel() {
             try {
                 // دریافت داده‌ها از API
-                const response = await fetch('/construction/api/v1/Period/period_summary/');
+                const response = await fetch('/api/v1/Period/period_summary/');
                 if (!response.ok) {
                     throw new Error(`خطای HTTP: ${response.status}`);
                 }
@@ -697,7 +697,7 @@
         // Load period summary data
         async function loadPeriodSummary() {
             try {
-                const response = await fetch('/construction/api/v1/Period/period_summary/');
+                const response = await fetch('/api/v1/Period/period_summary/');
                 
                 if (!response.ok) {
                     throw new Error(`خطای HTTP: ${response.status}`);
