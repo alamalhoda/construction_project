@@ -26,7 +26,6 @@ from dashboard import views as dashboard_views
 
 urlpatterns = [
     path('', TemplateView.as_view(template_name='index.html'), name='index'),
-    path('construction/', include('construction.urls')),
     path('dashboard/', include('dashboard.urls')),
     path('backup/', include('backup.urls')),
     
@@ -39,7 +38,7 @@ urlpatterns = [
     path('change-password/', user_views.change_password_view, name='change_password'),
 
     path('admin/', admin.site.urls),
-    # API URLs
+    # API URLs and construction URLs
     path('', include('construction.urls')),
     
     # Health check endpoints
