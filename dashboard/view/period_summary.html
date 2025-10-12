@@ -409,7 +409,7 @@
                     <i class="fas fa-calendar-alt"></i>
                     خلاصه دوره‌ای پروژه
                 </h1>
-                <p class="subtitle">نمایش جامع تمام فاکتورهای مالی در هر دوره</p>
+                <p class="subtitle">نمایش جامع تمام داده های مالی در هر دوره</p>
                 
                 <!-- Navigation -->
                 <div class="navigation-links">
@@ -513,8 +513,7 @@
                                 <tr>
                                     <th rowspan="2">دوره</th>
                                     <th rowspan="2">سال</th>
-                                    <th rowspan="2">ماه</th>
-                                    <th colspan="7">فاکتورهای دوره</th>
+                                    <th colspan="7">داده های دوره</th>
                                     <th colspan="7" class="cumulative-column" style="display: none;">مقادیر تجمعی</th>
                                 </tr>
                                 <tr>
@@ -618,7 +617,6 @@
                 excelData.push([
                     'دوره',
                     'سال',
-                    'ماه',
                     'آورده (تومان)',
                     'برداشت (تومان)',
                     'سرمایه خالص (تومان)',
@@ -640,7 +638,6 @@
                     excelData.push([
                         period.period_label,
                         period.year,
-                        period.month_name,
                         Math.round(period.deposits),
                         Math.round(Math.abs(period.withdrawals)),
                         Math.round(period.net_capital),
@@ -666,7 +663,6 @@
                 ws['!cols'] = [
                     { wch: 15 }, // دوره
                     { wch: 8 },  // سال
-                    { wch: 10 }, // ماه
                     { wch: 18 }, // آورده
                     { wch: 18 }, // برداشت
                     { wch: 20 }, // سرمایه خالص
@@ -749,7 +745,6 @@
                 row.innerHTML = `
                     <td><strong>${period.period_label}</strong></td>
                     <td>${period.year}</td>
-                    <td>${period.month_name}</td>
                     
                     <!-- Period Columns -->
                     <td class="deposits-col">${formatNumber(period.deposits)}</td>
