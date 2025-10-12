@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>خلاصه دوره‌ای پروژه - نسخه چاپی</title>
+    
+    <!-- Vazir Font -->
+    <link rel="stylesheet" href="/static/fonts/vazir.css">
+    
+    <style>
+        :root {
+            /* رنگ‌های استاندارد پروژه */
+            --deposit-color: #2185d0;           /* آبی - آورده */
+            --withdrawal-color: #db2828;        /* قرمز - برداشت */
+            --profit-color: #21ba45;            /* سبز - سود مشارکت */
+            --capital-color: #aa26ff;           /* بنفش - سرمایه موجود */
+            --expense-color: #dc3545;           /* قرمز تیره - هزینه‌ها */
+            --refund-color: #ffc107;            /* زرد - فروش/مرجوعی */
+            --balance-color: #6c757d;           /* خاکستری - مانده صندوق */
+            
+            /* نسخه‌های شفاف برای پس‌زمینه */
+            --deposit-color-light: rgba(33, 133, 208, 0.1);
+            --withdrawal-color-light: rgba(219, 40, 40, 0.1);
+            --profit-color-light: rgba(33, 186, 69, 0.1);
+            --capital-color-light: rgba(170, 38, 255, 0.1);
+            --expense-color-light: rgba(220, 53, 69, 0.1);
+            --refund-color-light: rgba(255, 193, 7, 0.1);
+            --balance-color-light: rgba(108, 117, 125, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Vazir', 'Tahoma', 'Arial', sans-serif;
+            background: white;
+            padding: 20px;
+            direction: rtl;
+        }
+
+        .print-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            border-bottom: 2px solid #4472c4;
+        }
+
+        .print-header h1 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .print-header .info {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .no-print {
+            margin-bottom: 20px;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .print-btn {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: 'Vazir', sans-serif;
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .print-btn:hover {
+            background: linear-gradient(135deg, #e74c3c 0%, #dc3545 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+        }
+
+        .print-btn i {
+            margin-left: 8px;
+        }
+
+        .toggle-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: 'Vazir', sans-serif;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .toggle-btn:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .toggle-btn i {
+            margin-left: 8px;
+        }
+
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 9px;
+            table-layout: auto;
+        }
+
+        .summary-table th,
+        .summary-table td {
+            border: 1px solid #ddd;
+            padding: 8px 4px;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .summary-table thead th {
+            background-color: #667eea;
+            color: white;
+            font-weight: bold;
+            padding: 10px 4px;
+            line-height: 1.4;
+        }
+        
+        /* رنگ‌بندی header‌های مالی - ردیف اول */
+        .summary-table thead tr:first-child th:nth-child(4) { 
+            background-color: var(--deposit-color); 
+        }
+        
+        /* رنگ‌بندی header‌های مالی - ردیف دوم (فاکتورهای دوره) */
+        .summary-table thead tr:nth-child(2) th:nth-child(1) { background-color: var(--deposit-color); }     /* آورده */
+        .summary-table thead tr:nth-child(2) th:nth-child(2) { background-color: var(--withdrawal-color); }  /* برداشت */
+        .summary-table thead tr:nth-child(2) th:nth-child(3) { background-color: var(--capital-color); }     /* سرمایه */
+        .summary-table thead tr:nth-child(2) th:nth-child(4) { background-color: var(--profit-color); }      /* سود */
+        .summary-table thead tr:nth-child(2) th:nth-child(5) { background-color: var(--expense-color); }     /* هزینه */
+        .summary-table thead tr:nth-child(2) th:nth-child(6) { background-color: var(--refund-color); }      /* فروش */
+        .summary-table thead tr:nth-child(2) th:nth-child(7) { background-color: var(--balance-color); }     /* مانده */
+        
+        /* رنگ‌بندی header‌های مالی - ستون‌های تجمعی */
+        .summary-table thead tr:nth-child(2) th:nth-child(8) { background-color: var(--deposit-color); }     /* آورده تجمعی */
+        .summary-table thead tr:nth-child(2) th:nth-child(9) { background-color: var(--withdrawal-color); }  /* برداشت تجمعی */
+        .summary-table thead tr:nth-child(2) th:nth-child(10) { background-color: var(--capital-color); }    /* سرمایه تجمعی */
+        .summary-table thead tr:nth-child(2) th:nth-child(11) { background-color: var(--profit-color); }     /* سود تجمعی */
+        .summary-table thead tr:nth-child(2) th:nth-child(12) { background-color: var(--expense-color); }    /* هزینه تجمعی */
+        .summary-table thead tr:nth-child(2) th:nth-child(13) { background-color: var(--refund-color); }     /* فروش تجمعی */
+        .summary-table thead tr:nth-child(2) th:nth-child(14) { background-color: var(--balance-color); }    /* مانده تجمعی */
+
+        .summary-table tbody tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .summary-table .summary-row {
+            background-color: #e8f4f8 !important;
+            font-weight: bold;
+            border-top: 2px solid var(--capital-color);
+        }
+        
+        /* رنگ‌بندی سلول‌های مالی - فاکتورهای دوره */
+        .summary-table tbody td:nth-child(4) { background-color: var(--deposit-color-light); }
+        .summary-table tbody td:nth-child(5) { background-color: var(--withdrawal-color-light); }
+        .summary-table tbody td:nth-child(6) { background-color: var(--capital-color-light); }
+        .summary-table tbody td:nth-child(7) { background-color: var(--profit-color-light); }
+        .summary-table tbody td:nth-child(8) { background-color: var(--expense-color-light); }
+        .summary-table tbody td:nth-child(9) { background-color: var(--refund-color-light); }
+        .summary-table tbody td:nth-child(10) { background-color: var(--balance-color-light); }
+        
+        /* رنگ‌بندی سلول‌های مالی - مقادیر تجمعی */
+        .summary-table tbody td:nth-child(11) { background-color: var(--deposit-color-light); }
+        .summary-table tbody td:nth-child(12) { background-color: var(--withdrawal-color-light); }
+        .summary-table tbody td:nth-child(13) { background-color: var(--capital-color-light); }
+        .summary-table tbody td:nth-child(14) { background-color: var(--profit-color-light); }
+        .summary-table tbody td:nth-child(15) { background-color: var(--expense-color-light); }
+        .summary-table tbody td:nth-child(16) { background-color: var(--refund-color-light); }
+        .summary-table tbody td:nth-child(17) { background-color: var(--balance-color-light); }
+
+        .cumulative-column {
+            display: none;
+        }
+
+        .cumulative-visible .cumulative-column {
+            display: table-cell !important;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 18px;
+            color: #666;
+        }
+
+        .error {
+            text-align: center;
+            padding: 50px;
+            font-size: 16px;
+            color: #dc3545;
+            background: #ffe6e6;
+            border-radius: 8px;
+            margin: 20px;
+        }
+
+        /* استایل‌های چاپ */
+        @media print {
+            body {
+                padding: 0;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            .print-header {
+                border-bottom: 2px solid #000;
+            }
+
+            .summary-table {
+                font-size: 7px;
+                page-break-inside: auto;
+            }
+
+            .summary-table tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+
+            .summary-table th,
+            .summary-table td {
+                padding: 5px 2px;
+            }
+
+            .summary-table thead th {
+                background-color: #667eea !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                color: white !important;
+            }
+            
+            /* رنگ‌بندی header‌های مالی در چاپ - ردیف دوم */
+            .summary-table thead tr:nth-child(2) th:nth-child(1) { background-color: var(--deposit-color) !important; }
+            .summary-table thead tr:nth-child(2) th:nth-child(2) { background-color: var(--withdrawal-color) !important; }
+            .summary-table thead tr:nth-child(2) th:nth-child(3) { background-color: var(--capital-color) !important; }
+            .summary-table thead tr:nth-child(2) th:nth-child(4) { background-color: var(--profit-color) !important; }
+            .summary-table thead tr:nth-child(2) th:nth-child(5) { background-color: var(--expense-color) !important; }
+            .summary-table thead tr:nth-child(2) th:nth-child(6) { background-color: var(--refund-color) !important; }
+            .summary-table thead tr:nth-child(2) th:nth-child(7) { background-color: var(--balance-color) !important; }
+            .summary-table thead tr:nth-child(2) th:nth-child(8) { background-color: var(--deposit-color) !important; }
+            .summary-table thead tr:nth-child(2) th:nth-child(9) { background-color: var(--withdrawal-color) !important; }
+            .summary-table thead tr:nth-child(2) th:nth-child(10) { background-color: var(--capital-color) !important; }
+            .summary-table thead tr:nth-child(2) th:nth-child(11) { background-color: var(--profit-color) !important; }
+            .summary-table thead tr:nth-child(2) th:nth-child(12) { background-color: var(--expense-color) !important; }
+            .summary-table thead tr:nth-child(2) th:nth-child(13) { background-color: var(--refund-color) !important; }
+            .summary-table thead tr:nth-child(2) th:nth-child(14) { background-color: var(--balance-color) !important; }
+
+            .summary-table tbody tr:nth-child(even) {
+                background-color: #f8f9fa !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            
+            /* رنگ‌بندی سلول‌های مالی در چاپ */
+            .summary-table tbody td:nth-child(4) { background-color: var(--deposit-color-light) !important; }
+            .summary-table tbody td:nth-child(5) { background-color: var(--withdrawal-color-light) !important; }
+            .summary-table tbody td:nth-child(6) { background-color: var(--capital-color-light) !important; }
+            .summary-table tbody td:nth-child(7) { background-color: var(--profit-color-light) !important; }
+            .summary-table tbody td:nth-child(8) { background-color: var(--expense-color-light) !important; }
+            .summary-table tbody td:nth-child(9) { background-color: var(--refund-color-light) !important; }
+            .summary-table tbody td:nth-child(10) { background-color: var(--balance-color-light) !important; }
+            .summary-table tbody td:nth-child(11) { background-color: var(--deposit-color-light) !important; }
+            .summary-table tbody td:nth-child(12) { background-color: var(--withdrawal-color-light) !important; }
+            .summary-table tbody td:nth-child(13) { background-color: var(--capital-color-light) !important; }
+            .summary-table tbody td:nth-child(14) { background-color: var(--profit-color-light) !important; }
+            .summary-table tbody td:nth-child(15) { background-color: var(--expense-color-light) !important; }
+            .summary-table tbody td:nth-child(16) { background-color: var(--refund-color-light) !important; }
+            .summary-table tbody td:nth-child(17) { background-color: var(--balance-color-light) !important; }
+
+            .summary-table .summary-row {
+                background-color: #e8f4f8 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            @page {
+                size: A4 landscape;
+                margin: 10mm;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print">
+        <button class="print-btn" onclick="window.print()">
+            <i>🖨️</i> چاپ / ذخیره PDF
+        </button>
+        <button class="toggle-btn" onclick="toggleCumulativeColumns()">
+            <i>👁️</i> <span id="toggleBtnText">نمایش ستون‌های تجمعی</span>
+        </button>
+    </div>
+
+    <div class="print-header">
+        <h1>خلاصه دوره‌ای پروژه (تومان)</h1>
+        <div class="info">
+            <span id="projectNameDisplay" style="display: none;">پروژه: <strong id="projectName"></strong></span>
+            <span>تاریخ: <strong id="printDate"></strong></span>
+            <span>تعداد ماه ها: <strong id="periodCount">...</strong></span>
+        </div>
+    </div>
+
+    <div id="tableContainer">
+        <div class="loading">در حال بارگذاری اطلاعات...</div>
+    </div>
+
+    <script>
+        let cumulativeVisible = false;
+
+        // تنظیم تاریخ
+        document.getElementById('printDate').textContent = new Date().toLocaleDateString('fa-IR');
+
+        // دریافت نام پروژه
+        async function fetchProjectName() {
+            try {
+                const response = await fetch('/api/v1/Project/');
+                if (response.ok) {
+                    const projectsData = await response.json();
+                    const projects = Array.isArray(projectsData) ? projectsData : (projectsData.results || []);
+                    if (projects.length > 0 && projects[0].name) {
+                        document.getElementById('projectName').textContent = projects[0].name;
+                        document.getElementById('projectNameDisplay').style.display = 'inline';
+                        console.log('نام پروژه دریافت شد:', projects[0].name);
+                    }
+                }
+            } catch (error) {
+                console.warn('خطا در دریافت نام پروژه:', error);
+            }
+        }
+
+        // فرمت کردن اعداد
+        function formatNumber(num) {
+            if (num === null || num === undefined) return '0';
+            return new Intl.NumberFormat('en-US').format(Math.round(num));
+        }
+
+        function formatAbsoluteNumber(num) {
+            if (num === null || num === undefined) return '0';
+            return formatNumber(Math.abs(num));
+        }
+
+        // نمایش/مخفی کردن ستون‌های تجمعی
+        function toggleCumulativeColumns() {
+            cumulativeVisible = !cumulativeVisible;
+            const table = document.querySelector('.summary-table');
+            const toggleBtnText = document.getElementById('toggleBtnText');
+            
+            if (cumulativeVisible) {
+                table.classList.add('cumulative-visible');
+                toggleBtnText.textContent = 'مخفی کردن ستون‌های تجمعی';
+            } else {
+                table.classList.remove('cumulative-visible');
+                toggleBtnText.textContent = 'نمایش ستون‌های تجمعی';
+            }
+        }
+
+        // بارگذاری داده‌ها
+        async function loadData() {
+            try {
+                console.log('📡 بارگذاری داده‌های خلاصه دوره‌ای...');
+                
+                // دریافت نام پروژه
+                await fetchProjectName();
+                
+                // دریافت داده از API
+                const response = await fetch('/api/v1/Period/period_summary/');
+                
+                if (!response.ok) {
+                    throw new Error(`خطای HTTP: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                if (!result.success) {
+                    throw new Error(result.error || 'خطای نامشخص');
+                }
+
+                console.log('✅ داده‌ها دریافت شد:', result);
+                
+                const periodData = result.data;
+                const totals = result.totals;
+                
+                // به‌روزرسانی تعداد دوره‌ها
+                document.getElementById('periodCount').textContent = totals.total_periods;
+
+                // ساخت جدول
+                let tableHTML = `
+                    <table class="summary-table">
+                        <thead>
+                            <tr>
+                                <th rowspan="2">دوره</th>
+                                <th rowspan="2">سال</th>
+                                <th rowspan="2">ماه</th>
+                                <th colspan="7">فاکتورهای دوره</th>
+                                <th colspan="7" class="cumulative-column">مقادیر تجمعی</th>
+                            </tr>
+                            <tr>
+                                <!-- فاکتورهای دوره -->
+                                <th>آورده</th>
+                                <th>برداشت</th>
+                                <th>سرمایه خالص</th>
+                                <th>سود</th>
+                                <th>هزینه</th>
+                                <th>فروش</th>
+                                <th>مانده صندوق</th>
+                                
+                                <!-- مقادیر تجمعی -->
+                                <th class="cumulative-column">آورده تجمعی</th>
+                                <th class="cumulative-column">برداشت تجمعی</th>
+                                <th class="cumulative-column">سرمایه تجمعی</th>
+                                <th class="cumulative-column">سود تجمعی</th>
+                                <th class="cumulative-column">هزینه تجمعی</th>
+                                <th class="cumulative-column">فروش تجمعی</th>
+                                <th class="cumulative-column">مانده تجمعی</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                periodData.forEach(period => {
+                    tableHTML += `
+                        <tr>
+                            <td><strong>${period.period_label}</strong></td>
+                            <td>${period.year}</td>
+                            <td>${period.month_name}</td>
+                            
+                            <!-- فاکتورهای دوره -->
+                            <td style="color: var(--deposit-color); font-weight: 600;">${formatNumber(period.deposits)}</td>
+                            <td style="color: var(--withdrawal-color); font-weight: 600;">${formatAbsoluteNumber(period.withdrawals)}</td>
+                            <td style="color: var(--capital-color); font-weight: 600;">${formatNumber(period.net_capital)}</td>
+                            <td style="color: var(--profit-color); font-weight: 600;">${formatNumber(period.profits)}</td>
+                            <td style="color: var(--expense-color); font-weight: 600;">${formatNumber(period.expenses)}</td>
+                            <td style="color: var(--refund-color); font-weight: 600;">${formatNumber(period.sales)}</td>
+                            <td style="color: var(--balance-color); font-weight: 600;">${formatNumber(period.fund_balance)}</td>
+                            
+                            <!-- مقادیر تجمعی -->
+                            <td class="cumulative-column" style="color: var(--deposit-color); font-weight: 600;">${formatNumber(period.cumulative_deposits)}</td>
+                            <td class="cumulative-column" style="color: var(--withdrawal-color); font-weight: 600;">${formatAbsoluteNumber(period.cumulative_withdrawals)}</td>
+                            <td class="cumulative-column" style="color: var(--capital-color); font-weight: 600;">${formatNumber(period.cumulative_net_capital)}</td>
+                            <td class="cumulative-column" style="color: var(--profit-color); font-weight: 600;">${formatNumber(period.cumulative_profits)}</td>
+                            <td class="cumulative-column" style="color: var(--expense-color); font-weight: 600;">${formatNumber(period.cumulative_expenses)}</td>
+                            <td class="cumulative-column" style="color: var(--refund-color); font-weight: 600;">${formatNumber(period.cumulative_sales)}</td>
+                            <td class="cumulative-column" style="color: var(--balance-color); font-weight: 600;">${formatNumber(period.cumulative_fund_balance)}</td>
+                        </tr>
+                    `;
+                });
+
+                // ردیف مجموع
+                tableHTML += `
+                    <tr class="summary-row">
+                        <td colspan="3"><strong>مجموع / نهایی</strong></td>
+                        
+                        <!-- مجموع فاکتورهای دوره -->
+                        <td style="color: var(--deposit-color);"><strong>${formatNumber(totals.total_deposits)}</strong></td>
+                        <td style="color: var(--withdrawal-color);"><strong>${formatAbsoluteNumber(totals.total_withdrawals)}</strong></td>
+                        <td style="color: var(--capital-color);"><strong>${formatNumber(totals.total_net_capital)}</strong></td>
+                        <td style="color: var(--profit-color);"><strong>${formatNumber(totals.total_profits)}</strong></td>
+                        <td style="color: var(--expense-color);"><strong>${formatNumber(totals.total_expenses)}</strong></td>
+                        <td style="color: var(--refund-color);"><strong>${formatNumber(totals.total_sales)}</strong></td>
+                        <td style="color: var(--balance-color);"><strong>${formatNumber(totals.final_fund_balance)}</strong></td>
+                        
+                        <!-- ستون‌های تجمعی خالی برای ردیف مجموع -->
+                        <td class="cumulative-column"><strong>-</strong></td>
+                        <td class="cumulative-column"><strong>-</strong></td>
+                        <td class="cumulative-column"><strong>-</strong></td>
+                        <td class="cumulative-column"><strong>-</strong></td>
+                        <td class="cumulative-column"><strong>-</strong></td>
+                        <td class="cumulative-column"><strong>-</strong></td>
+                        <td class="cumulative-column"><strong>-</strong></td>
+                    </tr>
+                `;
+
+                tableHTML += '</tbody></table>';
+                
+                document.getElementById('tableContainer').innerHTML = tableHTML;
+                
+                console.log('✅ جدول با موفقیت ساخته شد');
+                
+            } catch (error) {
+                console.error('❌ خطا در بارگذاری داده:', error);
+                document.getElementById('tableContainer').innerHTML = `
+                    <div class="error">
+                        <strong>خطا در بارگذاری اطلاعات</strong><br>
+                        ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // بارگذاری داده‌ها هنگام لود صفحه
+        window.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+</html>
+
