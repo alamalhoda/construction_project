@@ -50,6 +50,7 @@ class InvestorSerializer(serializers.ModelSerializer):
         model = models.Investor
         fields = [
             "id",
+            "project",
             "first_name",
             "last_name",
             "phone",
@@ -324,6 +325,7 @@ class InterestRateSerializer(serializers.ModelSerializer):
         model = models.InterestRate
         fields = [
             "id",
+            "project",
             "rate",
             "effective_date",
             "effective_date_display",

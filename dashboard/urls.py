@@ -13,6 +13,7 @@ urlpatterns = [
     path('expense-dashboard/', views.expense_dashboard, name='expense_dashboard'),
     path('interest-rate-manager/', views.interest_rate_manager, name='interest_rate_manager'),
     path('period-summary/', views.period_summary, name='period_summary'),
+    path('period-summary-print/', views.period_summary_print, name='period_summary_print'),
     path('data/<str:filename>', views.serve_csv_file, name='serve_csv_file'),
     
     # Test pages

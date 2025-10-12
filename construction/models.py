@@ -79,6 +79,22 @@ class Project(models.Model):
         except cls.DoesNotExist:
             return None
     
+    @classmethod
+    def get_default_project(cls):
+        """دریافت پروژه پیش‌فرض (پروژه فعال یا اولین پروژه)"""
+        # ابتدا پروژه فعال را جستجو کن
+        active_project = cls.objects.filter(is_active=True).first()
+        if active_project:
+            return active_project.id
+        
+        # اگر پروژه فعالی نبود، اولین پروژه را برگردان
+        first_project = cls.objects.first()
+        if first_project:
+            return first_project.id
+        
+        # اگر هیچ پروژه‌ای نبود، None برگردان (برای migration)
+        return None
+    
 
 
 class Unit(models.Model):
@@ -118,6 +134,12 @@ class Investor(models.Model):
         ('investor', 'سرمایه‌گذار'),
     ]
     
+    project = models.ForeignKey(
+        Project, 
+        on_delete=models.CASCADE, 
+        verbose_name="پروژه",
+        help_text="پروژه‌ای که این سرمایه‌گذار در آن مشارکت دارد"
+    )
     first_name = models.CharField(max_length=100, verbose_name="نام")
     last_name = models.CharField(max_length=100, verbose_name="نام خانوادگی")
     phone = models.CharField(max_length=20, verbose_name="شماره تماس")
@@ -184,6 +206,12 @@ class InterestRate(models.Model):
     مدل نرخ سود روزانه
     شامل نرخ سود و تاریخ اعمال آن
     """
+    project = models.ForeignKey(
+        Project, 
+        on_delete=models.CASCADE, 
+        verbose_name="پروژه",
+        help_text="پروژه‌ای که این نرخ سود برای آن اعمال می‌شود"
+    )
     rate = models.DecimalField(
         max_digits=20, 
         decimal_places=15, 
@@ -229,27 +257,37 @@ class InterestRate(models.Model):
                 jdate = self.effective_date
             self.effective_date_gregorian = jdate.togregorian().date()
         
-        # غیرفعال کردن نرخ‌های قبلی (به جز خود این instance)
+        # غیرفعال کردن نرخ‌های قبلی (به جز خود این instance) در همان پروژه
         if self.is_active:
-            InterestRate.objects.filter(is_active=True).exclude(pk=self.pk).update(is_active=False)
+            InterestRate.objects.filter(
+                is_active=True,
+                project=self.project
+            ).exclude(pk=self.pk).update(is_active=False)
         
         super().save(*args, **kwargs)
 
     @classmethod
-    def get_current_rate(cls):
-        """دریافت نرخ سود فعلی"""
+    def get_current_rate(cls, project=None):
+        """دریافت نرخ سود فعلی برای پروژه"""
+        if not project:
+            project = Project.get_active_project()
+        
         try:
-            return cls.objects.filter(is_active=True).first()
+            return cls.objects.filter(is_active=True, project=project).first()
         except cls.DoesNotExist:
             return None
 
     @classmethod
-    def get_rate_for_date(cls, date):
-        """دریافت نرخ سود برای تاریخ مشخص"""
+    def get_rate_for_date(cls, date, project=None):
+        """دریافت نرخ سود برای تاریخ و پروژه مشخص"""
+        if not project:
+            project = Project.get_active_project()
+        
         try:
             return cls.objects.filter(
                 effective_date__lte=date,
-                is_active=True
+                is_active=True,
+                project=project
             ).order_by('-effective_date').first()
         except cls.DoesNotExist:
             return None
@@ -631,6 +669,14 @@ class UserProfile(models.Model):
     ]
     
     user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name="کاربر")
+    project = models.ForeignKey(
+        Project, 
+        on_delete=models.CASCADE, 
+        verbose_name="پروژه",
+        help_text="پروژه‌ای که این کاربر به آن دسترسی دارد",
+        null=True,
+        blank=True
+    )
     role = models.CharField(
         max_length=20, 
         choices=ROLE_CHOICES, 

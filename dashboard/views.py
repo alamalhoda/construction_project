@@ -206,6 +206,17 @@ def investors_summary_print(request):
         return HttpResponse('‏‍فایل خلاصه سرمایه‌گذاران یافت نشد', status=404)
 
 @login_required
+def period_summary_print(request):
+    """نمایش صفحه چاپ خلاصه دوره‌ای پروژه"""
+    file_path = os.path.join(settings.BASE_DIR, 'dashboard', 'view', 'period_summary_print.html')
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            content = file.read()
+        return HttpResponse(content)
+    except FileNotFoundError:
+        return HttpResponse('‏‍فایل خلاصه دوره‌ای یافت نشد', status=404)
+
+@login_required
 def user_dashboard(request):
     """نمایش داشبورد کاربری از فایل جدید"""
     
