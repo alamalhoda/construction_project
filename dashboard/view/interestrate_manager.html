@@ -226,6 +226,19 @@
             justify-content: space-between;
         }
 
+        .section-title a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid transparent;
+        }
+
+        .section-title a:hover {
+            color: var(--secondary-color);
+            border-bottom-color: var(--secondary-color);
+        }
+
         .btn-add {
             background: linear-gradient(135deg, var(--success-color), #20c997);
             border: none;
@@ -1341,7 +1354,7 @@
             <div class="section-title">
                 <span>
                     <i class="fas fa-list"></i>
-                    لیست سودها
+                    لیست سودها(<a href="/construction/InterestRate/">لیست نرخ‌های سود</a>)
                 </span>
                 <br> <span style="color:black;font-size:1.2rem;"></span>
 
