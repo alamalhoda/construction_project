@@ -39,6 +39,10 @@ class BackupRecord(models.Model):
     periods_count = models.IntegerField(default=0, verbose_name="تعداد دوره‌ها")
     transactions_count = models.IntegerField(default=0, verbose_name="تعداد تراکنش‌ها")
     units_count = models.IntegerField(default=0, verbose_name="تعداد واحدها")
+    interest_rates_count = models.IntegerField(default=0, verbose_name="تعداد نرخ‌های سود")
+    expenses_count = models.IntegerField(default=0, verbose_name="تعداد هزینه‌ها")
+    sales_count = models.IntegerField(default=0, verbose_name="تعداد فروش‌ها")
+    user_profiles_count = models.IntegerField(default=0, verbose_name="تعداد پروفایل‌های کاربری")
     total_records = models.IntegerField(default=0, verbose_name="کل رکوردها")
     
     # اطلاعات فایل

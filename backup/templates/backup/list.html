@@ -445,7 +445,7 @@
                             <a href="{% url 'backup:download' backup.pk %}" class="btn btn-sm">
                                 📥 دانلود
                             </a>
-                            <button class="btn btn-danger btn-sm" onclick="deleteBackup({{ backup.pk }}, '{{ backup.name }}')">
+                            <button class="btn btn-danger btn-sm" onclick="deleteBackup({{ backup.pk }}, '{{ backup.name|escapejs }}')">
                                 🗑️ حذف
                             </button>
                         </div>
@@ -497,6 +497,22 @@
                             <div class="detail-item">
                                 <div class="label">واحدها</div>
                                 <div class="value">{{ backup.units_count }}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="label">نرخ‌های سود</div>
+                                <div class="value">{{ backup.interest_rates_count|default:0 }}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="label">هزینه‌ها</div>
+                                <div class="value">{{ backup.expenses_count|default:0 }}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="label">فروش‌ها</div>
+                                <div class="value">{{ backup.sales_count|default:0 }}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="label">پروفایل‌ها</div>
+                                <div class="value">{{ backup.user_profiles_count|default:0 }}</div>
                             </div>
                             <div class="detail-item">
                                 <div class="label">کل رکوردها</div>
