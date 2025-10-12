@@ -877,6 +877,54 @@
             color: var(--deposit-color) !important;
         }
 
+        /* کلاس‌های سلول‌های محتوای جدول */
+        .summary-table .cell-capital-ratio {
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .summary-table .cell-profit-ratio {
+            color: var(--profit-color);
+            font-weight: bold;
+        }
+
+        .summary-table .cell-profit-index {
+            color: #ff9800;
+            font-weight: bold;
+        }
+
+        .summary-table .cell-ownership-area {
+            color: var(--capital-color);
+            font-weight: bold;
+        }
+
+        .summary-table .cell-payment-positive {
+            color: var(--profit-color);
+            font-weight: bold;
+            direction: ltr;
+        }
+
+        .summary-table .cell-payment-negative {
+            color: var(--withdrawal-color);
+            font-weight: bold;
+            direction: ltr;
+        }
+
+        .summary-table .cell-price {
+            color: var(--deposit-color);
+            font-weight: bold;
+        }
+
+        .summary-table .cell-total-percentage {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .summary-table .cell-muted {
+            color: var(--balance-color);
+            font-weight: bold;
+        }
+
         /* استایل برای header جدول خلاصه */
         .table-header {
             display: flex;
@@ -2216,8 +2264,8 @@
                     const finalPayment = ownership.final_payment || 0;
                     const transferPricePerMeter = ownership.transfer_price_per_meter || 0;
                     
-                    // رنگ‌بندی پرداخت نهایی (سبز=دریافتی، قرمز=پرداختی)
-                    const paymentColor = finalPayment >= 0 ? '#21ba45' : '#db2828';
+                    // تعیین کلاس رنگ و علامت برای پرداخت نهایی
+                    const paymentClass = finalPayment >= 0 ? 'cell-payment-positive' : 'cell-payment-negative';
                     const paymentSign = finalPayment >= 0 ? '+' : '';
                     
                     tableHTML += `
@@ -2228,12 +2276,12 @@
                             <td>${investor.net_principal.toLocaleString('en-US')}</td>
                             <td>${Math.round(investor.total_profit).toLocaleString('en-US')}</td>
                             <td>${Math.round(investor.grand_total).toLocaleString('en-US')}</td>
-                            <td style="color: #667eea; font-weight: bold;">${capitalRatio}</td>
-                            <td style="color: #21ba45; font-weight: bold;">${profitToTotalRatio}%</td>
-                            <td style="color: #ff9800; font-weight: bold;">${profitIndex}</td>
-                            <td style="color: #aa26ff; font-weight: bold;">${ownershipArea.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                            <td style="color: ${paymentColor}; font-weight: bold;">${paymentSign}${Math.round(finalPayment).toLocaleString('en-US')}</td>
-                            <td style="color: #2185d0; font-weight: bold;">${Math.round(transferPricePerMeter).toLocaleString('en-US')}</td>
+                            <td class="cell-capital-ratio">${capitalRatio}</td>
+                            <td class="cell-profit-ratio">${profitToTotalRatio}%</td>
+                            <td class="cell-profit-index">${profitIndex}</td>
+                            <td class="cell-ownership-area">${ownershipArea.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                            <td class="${paymentClass}">${paymentSign}${Math.round(finalPayment).toLocaleString('en-US')}</td>
+                            <td class="cell-price">${Math.round(transferPricePerMeter).toLocaleString('en-US')}</td>
                         </tr>
                     `;
                 });
@@ -2249,8 +2297,8 @@
                     return sum + ((inv.ownership && inv.ownership.final_payment) || 0);
                 }, 0);
                 
-                // رنگ‌بندی مجموع پرداخت نهایی
-                const totalPaymentColor = totalFinalPayment >= 0 ? '#21ba45' : '#db2828';
+                // تعیین کلاس رنگ برای مجموع پرداخت نهایی
+                const totalPaymentClass = totalFinalPayment >= 0 ? 'cell-payment-positive' : 'cell-payment-negative';
                 const totalPaymentSign = totalFinalPayment >= 0 ? '+' : '';
                 
                 tableHTML += `
@@ -2261,12 +2309,12 @@
                         <td>${summaryData.reduce((sum, inv) => sum + inv.net_principal, 0).toLocaleString('en-US')}</td>
                         <td>${Math.round(summaryData.reduce((sum, inv) => sum + inv.total_profit, 0)).toLocaleString('en-US')}</td>
                         <td>${Math.round(summaryData.reduce((sum, inv) => sum + inv.grand_total, 0)).toLocaleString('en-US')}</td>
-                        <td style="color: #28a745; font-weight: bold;">100.00%</td>
-                        <td style="color: #21ba45; font-weight: bold;">100.00%</td>
-                        <td style="color: #ff9800; font-weight: bold;"></td>
-                        <td style="color: #aa26ff; font-weight: bold;">${totalOwnershipArea.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                        <td style="color: ${totalPaymentColor}; font-weight: bold;">${totalPaymentSign}${Math.round(totalFinalPayment).toLocaleString('en-US')}</td>
-                        <td style="color: #6c757d; font-weight: bold;">-</td>
+                        <td class="cell-total-percentage">100.00%</td>
+                        <td class="cell-profit-ratio">100.00%</td>
+                        <td class="cell-profit-index"></td>
+                        <td class="cell-ownership-area">${totalOwnershipArea.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                        <td class="${totalPaymentClass}">${totalPaymentSign}${Math.round(totalFinalPayment).toLocaleString('en-US')}</td>
+                        <td class="cell-muted">-</td>
                     </tr>
                 `;
 
