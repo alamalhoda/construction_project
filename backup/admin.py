@@ -24,7 +24,8 @@ class BackupRecordAdmin(admin.ModelAdmin):
         ('آمار داده‌ها', {
             'fields': (
                 'projects_count', 'investors_count', 'periods_count', 
-                'transactions_count', 'units_count', 'total_records'
+                'transactions_count', 'units_count', 'interest_rates_count',
+                'expenses_count', 'sales_count', 'user_profiles_count', 'total_records'
             )
         }),
         ('اطلاعات فایل', {

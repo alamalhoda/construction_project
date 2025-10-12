@@ -301,6 +301,10 @@ def create_backup_api(request):
             backup_record.periods_count = stats['periods']
             backup_record.transactions_count = stats['transactions']
             backup_record.units_count = stats['units']
+            backup_record.interest_rates_count = stats['interest_rates']
+            backup_record.expenses_count = stats['expenses']
+            backup_record.sales_count = stats['sales']
+            backup_record.user_profiles_count = stats['user_profiles']
             backup_record.total_records = stats['total']
             
             # اطلاعات فایل
