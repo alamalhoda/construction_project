@@ -68,6 +68,22 @@ class InvestorForm(forms.ModelForm):
             "units",
             "contract_date_shamsi",
         ]
+        # project فیلد را حذف کردیم تا خودکار از پروژه فعال استفاده شود
+    
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        # اگر project تنظیم نشده، از پروژه فعال استفاده کن
+        if not instance.project_id:
+            active_project = models.Project.get_active_project()
+            if active_project:
+                instance.project = active_project  # object را مستقیماً assign می‌کنیم
+            else:
+                raise forms.ValidationError("هیچ پروژه فعالی وجود ندارد. لطفاً ابتدا یک پروژه را فعال کنید.")
+        
+        if commit:
+            instance.save()
+            self.save_m2m()
+        return instance
 
 
 class PeriodForm(forms.ModelForm):
@@ -266,6 +282,21 @@ class InterestRateForm(forms.ModelForm):
             "description",
             "is_active",
         ]
+        # project فیلد را حذف کردیم تا خودکار از پروژه فعال استفاده شود
+    
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        # اگر project تنظیم نشده، از پروژه فعال استفاده کن
+        if not instance.project_id:
+            active_project = models.Project.get_active_project()
+            if active_project:
+                instance.project = active_project  # object را مستقیماً assign می‌کنیم
+            else:
+                raise forms.ValidationError("هیچ پروژه فعالی وجود ندارد. لطفاً ابتدا یک پروژه را فعال کنید.")
+        
+        if commit:
+            instance.save()
+        return instance
 
 
 class SaleForm(forms.ModelForm):

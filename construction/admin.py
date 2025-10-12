@@ -47,6 +47,7 @@ class InvestorAdmin(admin.ModelAdmin):
     list_display = [
         "first_name",
         "last_name",
+        "project",
         "phone",
         "email",
         "participation_type",
@@ -54,6 +55,7 @@ class InvestorAdmin(admin.ModelAdmin):
         "created_at",
     ]
     list_filter = [
+        "project",
         "participation_type",
         "contract_date_shamsi",
         "created_at",
@@ -236,6 +238,7 @@ class InterestRateAdminForm(forms.ModelForm):
 class InterestRateAdmin(admin.ModelAdmin):
     form = InterestRateAdminForm
     list_display = [
+        "project",
         "rate",
         "effective_date",
         "effective_date_gregorian",
@@ -245,6 +248,7 @@ class InterestRateAdmin(admin.ModelAdmin):
         "updated_at",
     ]
     list_filter = [
+        "project",
         "is_active",
         "effective_date",
         "created_at",
