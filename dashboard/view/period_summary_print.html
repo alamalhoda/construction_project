@@ -148,7 +148,7 @@
             background-color: var(--deposit-color); 
         }
         
-        /* رنگ‌بندی header‌های مالی - ردیف دوم (فاکتورهای دوره) */
+        /* رنگ‌بندی header‌های مالی - ردیف دوم (داده های دوره) */
         .summary-table thead tr:nth-child(2) th:nth-child(1) { background-color: var(--deposit-color); }     /* آورده */
         .summary-table thead tr:nth-child(2) th:nth-child(2) { background-color: var(--withdrawal-color); }  /* برداشت */
         .summary-table thead tr:nth-child(2) th:nth-child(3) { background-color: var(--capital-color); }     /* سرمایه */
@@ -176,7 +176,7 @@
             border-top: 2px solid var(--capital-color);
         }
         
-        /* رنگ‌بندی سلول‌های مالی - فاکتورهای دوره */
+        /* رنگ‌بندی سلول‌های مالی - داده های دوره */
         .summary-table tbody td:nth-child(4) { background-color: var(--deposit-color-light); }
         .summary-table tbody td:nth-child(5) { background-color: var(--withdrawal-color-light); }
         .summary-table tbody td:nth-child(6) { background-color: var(--capital-color-light); }
@@ -415,12 +415,11 @@
                             <tr>
                                 <th rowspan="2">دوره</th>
                                 <th rowspan="2">سال</th>
-                                <th rowspan="2">ماه</th>
-                                <th colspan="7">فاکتورهای دوره</th>
+                                <th colspan="7">داده های دوره</th>
                                 <th colspan="7" class="cumulative-column">مقادیر تجمعی</th>
                             </tr>
                             <tr>
-                                <!-- فاکتورهای دوره -->
+                                <!-- داده های دوره -->
                                 <th>آورده</th>
                                 <th>برداشت</th>
                                 <th>سرمایه خالص</th>
@@ -447,9 +446,8 @@
                         <tr>
                             <td><strong>${period.period_label}</strong></td>
                             <td>${period.year}</td>
-                            <td>${period.month_name}</td>
                             
-                            <!-- فاکتورهای دوره -->
+                            <!-- داده های دوره -->
                             <td style="color: var(--deposit-color); font-weight: 600;">${formatNumber(period.deposits)}</td>
                             <td style="color: var(--withdrawal-color); font-weight: 600;">${formatAbsoluteNumber(period.withdrawals)}</td>
                             <td style="color: var(--capital-color); font-weight: 600;">${formatNumber(period.net_capital)}</td>
@@ -473,9 +471,9 @@
                 // ردیف مجموع
                 tableHTML += `
                     <tr class="summary-row">
-                        <td colspan="3"><strong>مجموع / نهایی</strong></td>
+                        <td colspan="2"><strong>مجموع / نهایی</strong></td>
                         
-                        <!-- مجموع فاکتورهای دوره -->
+                        <!-- مجموع داده های دوره -->
                         <td style="color: var(--deposit-color);"><strong>${formatNumber(totals.total_deposits)}</strong></td>
                         <td style="color: var(--withdrawal-color);"><strong>${formatAbsoluteNumber(totals.total_withdrawals)}</strong></td>
                         <td style="color: var(--capital-color);"><strong>${formatNumber(totals.total_net_capital)}</strong></td>
