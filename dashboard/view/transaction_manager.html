@@ -351,9 +351,58 @@
             background: var(--bg-card);
             border-radius: 15px;
             box-shadow: var(--shadow-md);
-            overflow: hidden;
+            overflow-x: auto;
+            overflow-y: visible;
             margin-bottom: 30px;
             border: 1px solid var(--border-color);
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+            position: relative;
+        }
+        
+        /* Scroll indicator for mobile */
+        @media (max-width: 768px) {
+            .table-container::after {
+                content: '← سوایپ کنید →';
+                position: absolute;
+                bottom: 10px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(102, 126, 234, 0.9);
+                color: white;
+                padding: 5px 15px;
+                border-radius: 20px;
+                font-size: 0.75rem;
+                pointer-events: none;
+                opacity: 0;
+                animation: fadeInOut 3s ease-in-out;
+                z-index: 10;
+            }
+        }
+        
+        @keyframes fadeInOut {
+            0% { opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        
+        /* Custom scrollbar for table */
+        .table-container::-webkit-scrollbar {
+            height: 8px;
+        }
+        
+        .table-container::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+            border-radius: 10px;
+        }
+        
+        .table-container::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+        }
+        
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #5568d3 0%, #63408b 100%);
         }
         
         /* کاهش ارتفاع سطرهای جدول */
@@ -428,6 +477,7 @@
         .tabulator {
             border: none !important;
             font-family: 'Vazir', 'Tahoma', 'Arial', sans-serif !important;
+            min-width: 100%;
         }
         
         .tabulator-header {
@@ -520,8 +570,13 @@
                 padding: 20px;
             }
             
+            .controls-section {
+                padding: 15px;
+            }
+            
             .filters-row {
                 grid-template-columns: 1fr;
+                gap: 12px;
             }
             
             .actions-row {
@@ -532,6 +587,85 @@
             
             .actions-row .ui.buttons {
                 justify-content: center;
+                flex-direction: column;
+            }
+            
+            .actions-row .ui.button {
+                width: 100%;
+                margin: 5px 0 !important;
+            }
+            
+            /* بهبود جدول در موبایل */
+            .tabulator {
+                font-size: 0.85rem;
+            }
+            
+            .tabulator-cell {
+                padding: 6px 8px !important;
+                font-size: 0.85rem;
+            }
+            
+            .tabulator-col-title {
+                font-size: 0.9rem !important;
+            }
+            
+            /* دکمه‌های عملیات در موبایل */
+            .ui.small.buttons {
+                display: flex;
+                gap: 5px;
+            }
+            
+            .ui.small.buttons .ui.button {
+                padding: 8px 10px;
+                font-size: 0.9rem;
+            }
+            
+            /* مودال در موبایل */
+            .ui.modal {
+                margin: 10px !important;
+                max-width: calc(100% - 20px) !important;
+            }
+            
+            .ui.modal .content {
+                padding: 1.5rem 1rem;
+            }
+            
+            .ui.form .three.fields {
+                flex-direction: column;
+            }
+            
+            .ui.form .field {
+                width: 100% !important;
+            }
+        }
+        
+        /* Tablet styles (769px to 1024px) */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .filters-row {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+            
+            .stats-cards {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+            }
+            
+            .tabulator {
+                font-size: 0.9rem;
+            }
+            
+            .tabulator-cell {
+                padding: 8px 10px !important;
+            }
+            
+            .actions-row {
+                gap: 15px;
+            }
+            
+            .actions-row .ui.button {
+                font-size: 0.9rem;
+                padding: 10px 15px;
             }
         }
         
@@ -1512,28 +1646,32 @@
             
             const columns = [
                 {
-                    title: 'عملیات',
+                    title: 'ردیف',
                     formatter: function(cell) {
-                        const data = cell.getRow().getData();
-                        return `
-                            <div class="ui small buttons">
-                                <button class="ui blue icon button" onclick="editTransaction(${data.id})" title="ویرایش">
-                                    <i class="edit icon"></i>
-                                </button>
-                                <button class="ui red icon button" onclick="deleteTransaction(${data.id})" title="حذف">
-                                    <i class="trash icon"></i>
-                                </button>
-                            </div>
-                        `;
+                        return cell.getRow().getPosition() + 1;
                     },
+                    width: 60,
                     headerSort: false,
-                    width: 120
+                    hozAlign: 'center'
                 },
                 {
-                    title: 'شناسه',
-                    field: 'id',
-                    width: 70,
-                    sorter: 'number'
+                    title: 'دوره',
+                    field: 'period_data.label',
+                    width: 120,
+                    sorter: 'string'
+                },
+                {
+                    title: 'تاریخ',
+                    field: 'date_shamsi',
+                    width: 110,
+                    sorter: 'string',
+                    formatter: function(cell) {
+                        const value = cell.getValue();
+                        if (value) {
+                            return value;
+                        }
+                        return 'نامشخص';
+                    }
                 },
                 {
                     title: 'مشارکت کننده',
@@ -1549,15 +1687,9 @@
                     sorter: 'string'
                 },
                 {
-                    title: 'دوره',
-                    field: 'period_data.label',
-                    width: 120,
-                    sorter: 'string'
-                },
-                {
                     title: 'نوع تراکنش',
                     field: 'transaction_type',
-                    width: 130,
+                    width: 140,
                     formatter: function(cell) {
                         return TRANSACTION_TYPE_FORMATS[cell.getValue()] || cell.getValue();
                     },
@@ -1566,7 +1698,7 @@
                 {
                     title: 'مبلغ (تومان)',
                     field: 'amount',
-                    width: 180,
+                    width: 150,
                     formatter: function(cell) {
                         const value = cell.getValue();
                         if (value === null || value === undefined) return '0';
@@ -1577,32 +1709,55 @@
                     bottomCalcFormatter: function(cell) {
                         const value = cell.getValue();
                         return '<strong>' + parseFloat(value).toLocaleString('en-US') + '</strong>';
-                    }
+                    },
+                    hozAlign: 'right'
                 },
                 {
-                    title: 'تاریخ شمسی',
-                    field: 'date_shamsi',
-                    width: 110,
-                    sorter: 'string',
+                    title: 'توضیحات',
+                    field: 'description',
+                    width: 200,
                     formatter: function(cell) {
                         const value = cell.getValue();
-                        if (value) {
-                            return value;
+                        if (value && value.trim() !== '') {
+                            // نمایش حداکثر 50 کاراکتر اول
+                            return value.length > 50 ? value.substring(0, 50) + '...' : value;
                         }
-                        return 'نامشخص';
-                    }
+                        return '-';
+                    },
+                    sorter: 'string'
                 },
                 {
                     title: 'روز مانده',
                     field: 'day_remaining',
-                    width: 100,
-                    sorter: 'number'
+                    width: 90,
+                    sorter: 'number',
+                    hozAlign: 'center'
                 },
                 {
                     title: 'روز از شروع',
                     field: 'day_from_start',
-                    width: 100,
-                    sorter: 'number'
+                    width: 90,
+                    sorter: 'number',
+                    hozAlign: 'center'
+                },
+                {
+                    title: 'عملیات',
+                    formatter: function(cell) {
+                        const data = cell.getRow().getData();
+                        return `
+                            <div class="ui small buttons">
+                                <button class="ui blue icon button" onclick="editTransaction(${data.id})" title="ویرایش">
+                                    <i class="edit icon"></i>
+                                </button>
+                                <button class="ui red icon button" onclick="deleteTransaction(${data.id})" title="حذف">
+                                    <i class="trash icon"></i>
+                                </button>
+                            </div>
+                        `;
+                    },
+                    headerSort: false,
+                    width: 120,
+                    hozAlign: 'center'
                 }
             ];
             
@@ -1610,7 +1765,7 @@
                 data: sortedTransactions,
                 columns: columns,
                 layout: "fitData",
-                responsiveLayout: "collapse",
+                responsiveLayout: false,
                 pagination: true,
                 paginationSize: 30,
                 paginationSizeSelector: [10, 30, 50, 100, true],
