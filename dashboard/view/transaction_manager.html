@@ -1151,8 +1151,10 @@
         });
         
         function initializeDropdowns() {
-            // Initialize filter dropdowns with onChange event
+            // Initialize filter dropdowns with onChange event and fullTextSearch
             $('#investorFilter, #transactionTypeFilter, #periodFilter, #participationTypeFilter').dropdown({
+                fullTextSearch: true,
+                match: 'text',
                 onChange: function(value, text, $selectedItem) {
                     if (table) {
                         applyFilters();
@@ -1160,8 +1162,13 @@
                 }
             });
             
-            // Initialize other dropdowns without onChange event
-            $('.ui.dropdown:not(#investorFilter):not(#transactionTypeFilter):not(#periodFilter):not(#participationTypeFilter)').dropdown();
+            // Initialize other dropdowns with fullTextSearch
+            $('.ui.dropdown:not(#investorFilter):not(#transactionTypeFilter):not(#periodFilter):not(#participationTypeFilter)').dropdown({
+                fullTextSearch: true,
+                match: 'text'
+            });
+            
+            console.log('Dropdowns initialized with fullTextSearch enabled');
         }
         
         function loadInitialData() {
@@ -1335,7 +1342,7 @@
             // updateDropdownMenu('editProjectMenu', projectsList, 'id', 'name'); // حذف شد - پروژه فعال خودکار
             updateDropdownMenu('editPeriodMenu', periodsList, 'id', 'label');
             
-            // Refresh all dropdowns
+            // Refresh all dropdowns (تنظیمات قبلی حفظ می‌شود)
             $('.ui.dropdown').dropdown('refresh');
         }
         
