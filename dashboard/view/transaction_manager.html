@@ -792,7 +792,6 @@
         <div class="content">
             
             <form class="ui form" id="addTransactionForm">
-                {% csrf_token %}
                 <div class="three fields">
                     <div class="field">
                         <label>مشارکت کننده</label>
@@ -881,11 +880,11 @@
         <div class="header">
             <i class="edit icon"></i>
             ویرایش تراکنش
+            <span id="editTransactionIdDisplay" style="font-weight: normal; color: #666; margin-right: 10px;"></span>
         </div>
         <div class="content">
             
             <form class="ui form" id="editTransactionForm">
-                {% csrf_token %}
                 <input type="hidden" id="editTransactionId">
                 <div class="three fields">
                     <div class="field">
@@ -1427,6 +1426,63 @@
             menu.insertBefore(defaultElement, menu.firstChild);
         }
         
+        function sortTransactionsWithProfits(data) {
+            // تفکیک تراکنش‌های اصلی و سود
+            const profitsByInvestorDatePeriod = {};
+            const mainTransactions = [];
+            
+            data.forEach(item => {
+                if (item.transaction_type === 'profit_accrual') {
+                    // ایجاد کلید ترکیبی با استفاده از investor_data.id و period_data.id
+                    const investorId = item.investor_data?.id || '';
+                    const periodId = item.period_data?.id || '';
+                    const key = `${investorId}_${periodId}_${item.date_shamsi}`;
+                    
+                    if (!profitsByInvestorDatePeriod[key]) {
+                        profitsByInvestorDatePeriod[key] = [];
+                    }
+                    profitsByInvestorDatePeriod[key].push(item);
+                } else {
+                    mainTransactions.push(item);
+                }
+            });
+            
+            // مرتب‌سازی تراکنش‌های اصلی بر اساس تاریخ و ID
+            mainTransactions.sort((a, b) => {
+                // ابتدا بر اساس تاریخ (نزولی - جدیدترین اول)
+                if (a.date_shamsi !== b.date_shamsi) {
+                    return b.date_shamsi.localeCompare(a.date_shamsi);
+                }
+                // سپس بر اساس ID (نزولی - جدیدترین اول)
+                return b.id - a.id;
+            });
+            
+            // ساخت آرایه نهایی با قرار دادن سود بلافاصله بعد از تراکنش اصلی
+            const sortedData = [];
+            mainTransactions.forEach(mainItem => {
+                sortedData.push(mainItem);
+                
+                // پیدا کردن و اضافه کردن سودهای مرتبط
+                const investorId = mainItem.investor_data?.id || '';
+                const periodId = mainItem.period_data?.id || '';
+                const key = `${investorId}_${periodId}_${mainItem.date_shamsi}`;
+                
+                const relatedProfits = profitsByInvestorDatePeriod[key];
+                
+                if (relatedProfits && relatedProfits.length > 0) {
+                    sortedData.push(...relatedProfits);
+                    delete profitsByInvestorDatePeriod[key];
+                }
+            });
+            
+            // اضافه کردن سودهای باقیمانده (اگر هست)
+            Object.values(profitsByInvestorDatePeriod).forEach(profits => {
+                sortedData.push(...profits);
+            });
+            
+            return sortedData;
+        }
+        
         function createTable() {
             console.log('Creating table with data:', transactionsData);
             
@@ -1435,6 +1491,9 @@
                 document.getElementById('transactionsTable').innerHTML = '<div class="ui message">هیچ تراکنشی یافت نشد</div>';
                 return;
             }
+            
+            // مرتب‌سازی داده‌ها قبل از نمایش
+            const sortedTransactions = sortTransactionsWithProfits(transactionsData);
             
             // Show stats cards first
             document.getElementById('statsCards').style.display = 'block';
@@ -1541,7 +1600,7 @@
             ];
             
             table = new Tabulator("#transactionsTable", {
-                data: transactionsData,
+                data: sortedTransactions,
                 columns: columns,
                 layout: "fitData",
                 responsiveLayout: "collapse",
@@ -1570,10 +1629,6 @@
                         element.classList.add("transaction-" + transactionType);
                     }
                 },
-                initialSort: [
-                    {column: "day_remaining", dir: "desc"},
-                    {column: "investor_data.first_name", dir: "asc"}
-                ],
                 locale: true,
                 langs: {
                     "default": {
@@ -2710,7 +2765,7 @@
                     // Add to table
                     transactionsData.push(data);
                     if (table) {
-                        table.setData(transactionsData);
+                        table.setData(sortTransactionsWithProfits(transactionsData));
                     }
                     
                     closeAddTransactionModal();
@@ -2755,6 +2810,9 @@
             // Fill form
             document.getElementById('editTransactionId').value = id;
             
+            // Display transaction ID in header
+            document.getElementById('editTransactionIdDisplay').textContent = `(شماره: ${id})`;
+            
             // Format amount as integer (remove decimal places if any)
             const amountValue = Math.floor(parseFloat(transaction.amount));
             $('#editAmountInput').val(amountValue.toLocaleString('en-US'));
@@ -2794,6 +2852,8 @@
         }
         
         function closeEditTransactionModal() {
+            // Clear transaction ID display
+            document.getElementById('editTransactionIdDisplay').textContent = '';
             $('#editTransactionModal').modal('hide');
         }
         
@@ -2920,7 +2980,7 @@
                     if (index !== -1) {
                         transactionsData[index] = data;
                         if (table) {
-                            table.setData(transactionsData);
+                            table.setData(sortTransactionsWithProfits(transactionsData));
                         }
                     }
                     
@@ -2952,7 +3012,7 @@
                     // Remove from table
                     transactionsData = transactionsData.filter(t => t.id !== id);
                     if (table) {
-                        table.setData(transactionsData);
+                        table.setData(sortTransactionsWithProfits(transactionsData));
                     }
                     showSuccessMessage('تراکنش با موفقیت حذف شد');
                 } else {
