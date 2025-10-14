@@ -534,6 +534,78 @@
                 justify-content: center;
             }
         }
+        
+        /* استایل برای دوره‌ها در dropdown */
+        .ui.dropdown .menu .item.period-even {
+            background-color: rgba(102, 126, 234, 0.05) !important;
+        }
+        
+        .ui.dropdown .menu .item.period-odd {
+            background-color: rgba(118, 75, 162, 0.05) !important;
+        }
+        
+        /* هایلایت دوره جاری */
+        .ui.dropdown .menu .item.current-period {
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.15) 0%, rgba(33, 186, 69, 0.15) 100%) !important;
+            color: #21ba45 !important;
+            font-weight: 600 !important;
+            border-right: 4px solid #21ba45 !important;
+            padding-right: 12px !important;
+        }
+        
+        .ui.dropdown .menu .item.current-period:before {
+            content: "📅 ";
+            margin-left: 5px;
+        }
+        
+        /* حالت hover برای دوره‌ها */
+        .ui.dropdown .menu .item.period-even:hover,
+        .ui.dropdown .menu .item.period-odd:hover {
+            background-color: rgba(102, 126, 234, 0.15) !important;
+        }
+        
+        .ui.dropdown .menu .item.current-period:hover {
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.25) 0%, rgba(33, 186, 69, 0.25) 100%) !important;
+        }
+        
+        /* استایل برای مشارکت‌کنندگان در dropdown */
+        .ui.dropdown .menu .item.investor-even {
+            background-color: rgba(33, 133, 208, 0.05) !important;
+        }
+        
+        .ui.dropdown .menu .item.investor-odd {
+            background-color: rgba(23, 162, 184, 0.05) !important;
+        }
+        
+        /* حالت hover برای مشارکت‌کنندگان */
+        .ui.dropdown .menu .item.investor-even:hover,
+        .ui.dropdown .menu .item.investor-odd:hover {
+            background-color: rgba(33, 133, 208, 0.15) !important;
+        }
+        
+        /* حالت تاریک - دوره‌ها */
+        [data-theme="dark"] .ui.dropdown .menu .item.period-even {
+            background-color: rgba(102, 126, 234, 0.1) !important;
+        }
+        
+        [data-theme="dark"] .ui.dropdown .menu .item.period-odd {
+            background-color: rgba(118, 75, 162, 0.1) !important;
+        }
+        
+        [data-theme="dark"] .ui.dropdown .menu .item.current-period {
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.2) 0%, rgba(33, 186, 69, 0.2) 100%) !important;
+            color: #81c784 !important;
+            border-right-color: #81c784 !important;
+        }
+        
+        /* حالت تاریک - مشارکت‌کنندگان */
+        [data-theme="dark"] .ui.dropdown .menu .item.investor-even {
+            background-color: rgba(33, 133, 208, 0.1) !important;
+        }
+        
+        [data-theme="dark"] .ui.dropdown .menu .item.investor-odd {
+            background-color: rgba(23, 162, 184, 0.1) !important;
+        }
     </style>
 </head>
 <body>
@@ -1272,10 +1344,52 @@
             const menu = document.getElementById(menuId);
             menu.innerHTML = '';
             
-            data.forEach(item => {
+            // معکوس کردن ترتیب دوره‌ها (آخرین دوره ابتدا نمایش داده می‌شود)
+            const displayData = menuId.includes('Period') ? [...data].reverse() : data;
+            
+            // پیدا کردن دوره جاری برای هایلایت کردن
+            let currentPeriodId = null;
+            if (menuId.includes('Period')) {
+                const today = new Date();
+                const pDate = new persianDate(today);
+                let todayJalali = pDate.format('YYYY-MM-DD');
+                todayJalali = convertPersianToEnglishNumbers(todayJalali);
+                
+                const currentPeriod = data.find(period => {
+                    if (period.start_date_shamsi && period.end_date_shamsi) {
+                        return todayJalali >= period.start_date_shamsi && todayJalali <= period.end_date_shamsi;
+                    }
+                    return false;
+                });
+                
+                if (currentPeriod) {
+                    currentPeriodId = currentPeriod[valueField];
+                }
+            }
+            
+            displayData.forEach((item, index) => {
                 const displayText = displayFields.map(field => item[field]).join(' ');
                 const itemElement = document.createElement('div');
-                itemElement.className = 'item';
+                
+                // کلاس‌های اصلی
+                let classes = ['item'];
+                
+                // اضافه کردن کلاس برای رنگ‌بندی یکی در میان برای دوره‌ها
+                if (menuId.includes('Period')) {
+                    classes.push(index % 2 === 0 ? 'period-even' : 'period-odd');
+                    
+                    // هایلایت کردن دوره جاری
+                    if (item[valueField] === currentPeriodId) {
+                        classes.push('current-period');
+                    }
+                }
+                
+                // اضافه کردن کلاس برای رنگ‌بندی یکی در میان برای مشارکت‌کنندگان
+                if (menuId.includes('Investor')) {
+                    classes.push(index % 2 === 0 ? 'investor-even' : 'investor-odd');
+                }
+                
+                itemElement.className = classes.join(' ');
                 itemElement.setAttribute('data-value', item[valueField]);
                 itemElement.textContent = displayText;
                 menu.appendChild(itemElement);
@@ -2218,6 +2332,57 @@
             resetAddTransactionForm();
         }
         
+        // تابع کمکی برای تبدیل اعداد فارسی به انگلیسی
+        function convertPersianToEnglishNumbers(str) {
+            const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+            const englishNumbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+            
+            for (let i = 0; i < 10; i++) {
+                str = str.replace(new RegExp(persianNumbers[i], 'g'), englishNumbers[i]);
+            }
+            return str;
+        }
+        
+        // تابع برای انتخاب خودکار دوره بر اساس تاریخ امروز
+        window.autoSelectPeriodByCurrentDate = function() {
+            try {
+                // دریافت تاریخ امروز شمسی
+                const today = new Date();
+                const pDate = new persianDate(today);
+                let todayJalali = pDate.format('YYYY-MM-DD');
+                
+                // تبدیل اعداد فارسی به انگلیسی
+                todayJalali = convertPersianToEnglishNumbers(todayJalali);
+                
+                console.log('تاریخ امروز (انگلیسی):', todayJalali);
+                console.log('لیست دوره‌ها:', periodsList);
+                
+                // پیدا کردن دوره‌ای که تاریخ امروز در بازه آن است
+                const currentPeriod = periodsList.find(period => {
+                    if (period.start_date_shamsi && period.end_date_shamsi) {
+                        const inRange = todayJalali >= period.start_date_shamsi && todayJalali <= period.end_date_shamsi;
+                        if (inRange) {
+                            console.log('دوره مطابقت دارد:', period.label, 'از', period.start_date_shamsi, 'تا', period.end_date_shamsi);
+                        }
+                        return inRange;
+                    }
+                    return false;
+                });
+                
+                if (currentPeriod) {
+                    console.log('دوره جاری یافت شد:', currentPeriod.label);
+                    $('#addPeriodDropdown').dropdown('set selected', currentPeriod.id.toString());
+                    return currentPeriod;
+                } else {
+                    console.log('دوره مناسب برای تاریخ امروز یافت نشد');
+                    return null;
+                }
+            } catch (error) {
+                console.error('خطا در انتخاب خودکار دوره:', error);
+                return null;
+            }
+        }
+        
         window.resetAddTransactionForm = function() {
             document.getElementById('addTransactionForm').reset();
             $('#addInvestorDropdown').dropdown('clear');
@@ -2233,6 +2398,11 @@
             if (addAmountWords) {
                 addAmountWords.textContent = '';
             }
+            
+            // انتخاب خودکار دوره بر اساس تاریخ امروز
+            setTimeout(() => {
+                autoSelectPeriodByCurrentDate();
+            }, 100);
             
             // Set today's date as default
             $('#addDateShamsiInput').val(getTodayShamsi());
