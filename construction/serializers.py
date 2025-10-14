@@ -18,7 +18,18 @@ class PeriodSerializer(serializers.ModelSerializer):
             "end_date_shamsi",
             "start_date_gregorian",
             "end_date_gregorian",
+            "project",
         ]
+    
+    def create(self, validated_data):
+        # اگر project ارسال نشده، از پروژه فعال استفاده کن
+        if 'project' not in validated_data or validated_data.get('project') is None:
+            active_project = models.Project.get_active_project()
+            if not active_project:
+                raise serializers.ValidationError({"project": "هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید."})
+            validated_data['project'] = active_project
+        
+        return super().create(validated_data)
 
 class ExpenseSerializer(serializers.ModelSerializer):
     period_data = PeriodSerializer(source='period', read_only=True)
@@ -28,6 +39,7 @@ class ExpenseSerializer(serializers.ModelSerializer):
         model = models.Expense
         fields = [
             "id",
+            "project",
             "expense_type",
             "amount",
             "description",
@@ -42,6 +54,16 @@ class ExpenseSerializer(serializers.ModelSerializer):
         if obj.period:
             return obj.period.weight
         return 0
+    
+    def create(self, validated_data):
+        # اگر project ارسال نشده، از پروژه فعال استفاده کن
+        if 'project' not in validated_data or validated_data.get('project') is None:
+            active_project = models.Project.get_active_project()
+            if not active_project:
+                raise serializers.ValidationError({"project": "هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید."})
+            validated_data['project'] = active_project
+        
+        return super().create(validated_data)
 
 class InvestorSerializer(serializers.ModelSerializer):
     units = serializers.SerializerMethodField()
@@ -65,6 +87,16 @@ class InvestorSerializer(serializers.ModelSerializer):
         """دریافت اطلاعات کامل واحدها"""
         from .serializers import UnitSerializer
         return UnitSerializer(obj.units.all(), many=True).data
+    
+    def create(self, validated_data):
+        # اگر project ارسال نشده، از پروژه فعال استفاده کن
+        if 'project' not in validated_data or validated_data.get('project') is None:
+            active_project = models.Project.get_active_project()
+            if not active_project:
+                raise serializers.ValidationError({"project": "هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید."})
+            validated_data['project'] = active_project
+        
+        return super().create(validated_data)
 
 class UnitSerializer(serializers.ModelSerializer):
 
@@ -79,6 +111,16 @@ class UnitSerializer(serializers.ModelSerializer):
             "project",
             "created_at",
         ]
+    
+    def create(self, validated_data):
+        # اگر project ارسال نشده، از پروژه فعال استفاده کن
+        if 'project' not in validated_data or validated_data.get('project') is None:
+            active_project = models.Project.get_active_project()
+            if not active_project:
+                raise serializers.ValidationError({"project": "هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید."})
+            validated_data['project'] = active_project
+        
+        return super().create(validated_data)
 
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -115,6 +157,16 @@ class SaleSerializer(serializers.ModelSerializer):
             "project_data",
             "period_data",
         ]
+    
+    def create(self, validated_data):
+        # اگر project ارسال نشده، از پروژه فعال استفاده کن
+        if 'project' not in validated_data or validated_data.get('project') is None:
+            active_project = models.Project.get_active_project()
+            if not active_project:
+                raise serializers.ValidationError({"project": "هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید."})
+            validated_data['project'] = active_project
+        
+        return super().create(validated_data)
 
 class TransactionSerializer(serializers.ModelSerializer):
     # فیلدهای محاسبه شده - فقط برای خواندن
@@ -312,6 +364,12 @@ class TransactionSerializer(serializers.ModelSerializer):
         return transaction
 
 class InterestRateSerializer(serializers.ModelSerializer):
+    project = serializers.PrimaryKeyRelatedField(
+        queryset=models.Project.objects.all(),
+        required=False,
+        allow_null=True,
+        help_text="پروژه (در صورت خالی بودن، از پروژه پیش‌فرض استفاده می‌شود)"
+    )
     effective_date = serializers.CharField(
         write_only=True,
         help_text="تاریخ شمسی به فرمت YYYY-MM-DD"
@@ -337,6 +395,24 @@ class InterestRateSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data):
+        # اگر project ارسال نشده یا None باشد، از پروژه فعال استفاده کن
+        project = validated_data.pop('project', None)
+        
+        if project is None:
+            # استفاده از get_active_project() که مستقیماً instance برمی‌گرداند
+            project = models.Project.get_active_project()
+            if not project:
+                raise serializers.ValidationError({"project": "هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید."})
+        elif not isinstance(project, models.Project):
+            # اگر project یک instance نیست، آن را تبدیل کن
+            try:
+                project = models.Project.objects.get(id=int(project))
+            except (models.Project.DoesNotExist, ValueError, TypeError):
+                # در صورت خطا، از پروژه فعال استفاده کن
+                project = models.Project.get_active_project()
+                if not project:
+                    raise serializers.ValidationError({"project": "پروژه معتبر نیست"})
+        
         # تبدیل تاریخ شمسی به میلادی
         effective_date_str = validated_data.pop('effective_date')
         
@@ -349,6 +425,7 @@ class InterestRateSerializer(serializers.ModelSerializer):
         
         # ایجاد instance با save() method
         instance = models.InterestRate(
+            project=project,
             effective_date=jdate.date(),
             effective_date_gregorian=gregorian_date,
             **validated_data

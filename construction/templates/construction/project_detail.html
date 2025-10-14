@@ -55,7 +55,7 @@
                         <div class="col-md-6">
                             <div class="info-item mb-3">
                                 <label class="info-label">زیر بنای کل:</label>
-                                <span class="info-value">{{ object.total_infrastructure|floatformat:2 }} متر مربع</span>
+                                <span class="info-value number-format">{{ object.total_infrastructure|floatformat:2 }} متر مربع</span>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -96,5 +96,24 @@
     color: #212529;
 }
 </style>
+
+<script>
+// فرمت اعداد انگلیسی با جداکننده هزارگان
+document.addEventListener('DOMContentLoaded', function() {
+    const numberCells = document.querySelectorAll('.number-format');
+    numberCells.forEach(cell => {
+        const text = cell.textContent;
+        const numberMatch = text.match(/(\d+(?:\.\d+)?)/);
+        if (numberMatch) {
+            const number = parseFloat(numberMatch[1]);
+            const formattedNumber = new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2
+            }).format(number);
+            cell.textContent = text.replace(numberMatch[1], formattedNumber);
+        }
+    });
+});
+</script>
 
 {% endblock %}

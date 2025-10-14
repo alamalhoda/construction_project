@@ -351,9 +351,58 @@
             background: var(--bg-card);
             border-radius: 15px;
             box-shadow: var(--shadow-md);
-            overflow: hidden;
+            overflow-x: auto;
+            overflow-y: visible;
             margin-bottom: 30px;
             border: 1px solid var(--border-color);
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+            position: relative;
+        }
+        
+        /* Scroll indicator for mobile */
+        @media (max-width: 768px) {
+            .table-container::after {
+                content: '← سوایپ کنید →';
+                position: absolute;
+                bottom: 10px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(102, 126, 234, 0.9);
+                color: white;
+                padding: 5px 15px;
+                border-radius: 20px;
+                font-size: 0.75rem;
+                pointer-events: none;
+                opacity: 0;
+                animation: fadeInOut 3s ease-in-out;
+                z-index: 10;
+            }
+        }
+        
+        @keyframes fadeInOut {
+            0% { opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        
+        /* Custom scrollbar for table */
+        .table-container::-webkit-scrollbar {
+            height: 8px;
+        }
+        
+        .table-container::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+            border-radius: 10px;
+        }
+        
+        .table-container::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+        }
+        
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #5568d3 0%, #63408b 100%);
         }
         
         /* کاهش ارتفاع سطرهای جدول */
@@ -428,6 +477,7 @@
         .tabulator {
             border: none !important;
             font-family: 'Vazir', 'Tahoma', 'Arial', sans-serif !important;
+            min-width: 100%;
         }
         
         .tabulator-header {
@@ -520,8 +570,13 @@
                 padding: 20px;
             }
             
+            .controls-section {
+                padding: 15px;
+            }
+            
             .filters-row {
                 grid-template-columns: 1fr;
+                gap: 12px;
             }
             
             .actions-row {
@@ -532,7 +587,158 @@
             
             .actions-row .ui.buttons {
                 justify-content: center;
+                flex-direction: column;
             }
+            
+            .actions-row .ui.button {
+                width: 100%;
+                margin: 5px 0 !important;
+            }
+            
+            /* بهبود جدول در موبایل */
+            .tabulator {
+                font-size: 0.85rem;
+            }
+            
+            .tabulator-cell {
+                padding: 6px 8px !important;
+                font-size: 0.85rem;
+            }
+            
+            .tabulator-col-title {
+                font-size: 0.9rem !important;
+            }
+            
+            /* دکمه‌های عملیات در موبایل */
+            .ui.small.buttons {
+                display: flex;
+                gap: 5px;
+            }
+            
+            .ui.small.buttons .ui.button {
+                padding: 8px 10px;
+                font-size: 0.9rem;
+            }
+            
+            /* مودال در موبایل */
+            .ui.modal {
+                margin: 10px !important;
+                max-width: calc(100% - 20px) !important;
+            }
+            
+            .ui.modal .content {
+                padding: 1.5rem 1rem;
+            }
+            
+            .ui.form .three.fields {
+                flex-direction: column;
+            }
+            
+            .ui.form .field {
+                width: 100% !important;
+            }
+        }
+        
+        /* Tablet styles (769px to 1024px) */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .filters-row {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+            
+            .stats-cards {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+            }
+            
+            .tabulator {
+                font-size: 0.9rem;
+            }
+            
+            .tabulator-cell {
+                padding: 8px 10px !important;
+            }
+            
+            .actions-row {
+                gap: 15px;
+            }
+            
+            .actions-row .ui.button {
+                font-size: 0.9rem;
+                padding: 10px 15px;
+            }
+        }
+        
+        /* استایل برای دوره‌ها در dropdown */
+        .ui.dropdown .menu .item.period-even {
+            background-color: rgba(102, 126, 234, 0.05) !important;
+        }
+        
+        .ui.dropdown .menu .item.period-odd {
+            background-color: rgba(118, 75, 162, 0.05) !important;
+        }
+        
+        /* هایلایت دوره جاری */
+        .ui.dropdown .menu .item.current-period {
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.15) 0%, rgba(33, 186, 69, 0.15) 100%) !important;
+            color: #21ba45 !important;
+            font-weight: 600 !important;
+            border-right: 4px solid #21ba45 !important;
+            padding-right: 12px !important;
+        }
+        
+        .ui.dropdown .menu .item.current-period:before {
+            content: "📅 ";
+            margin-left: 5px;
+        }
+        
+        /* حالت hover برای دوره‌ها */
+        .ui.dropdown .menu .item.period-even:hover,
+        .ui.dropdown .menu .item.period-odd:hover {
+            background-color: rgba(102, 126, 234, 0.15) !important;
+        }
+        
+        .ui.dropdown .menu .item.current-period:hover {
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.25) 0%, rgba(33, 186, 69, 0.25) 100%) !important;
+        }
+        
+        /* استایل برای مشارکت‌کنندگان در dropdown */
+        .ui.dropdown .menu .item.investor-even {
+            background-color: rgba(33, 133, 208, 0.05) !important;
+        }
+        
+        .ui.dropdown .menu .item.investor-odd {
+            background-color: rgba(23, 162, 184, 0.05) !important;
+        }
+        
+        /* حالت hover برای مشارکت‌کنندگان */
+        .ui.dropdown .menu .item.investor-even:hover,
+        .ui.dropdown .menu .item.investor-odd:hover {
+            background-color: rgba(33, 133, 208, 0.15) !important;
+        }
+        
+        /* حالت تاریک - دوره‌ها */
+        [data-theme="dark"] .ui.dropdown .menu .item.period-even {
+            background-color: rgba(102, 126, 234, 0.1) !important;
+        }
+        
+        [data-theme="dark"] .ui.dropdown .menu .item.period-odd {
+            background-color: rgba(118, 75, 162, 0.1) !important;
+        }
+        
+        [data-theme="dark"] .ui.dropdown .menu .item.current-period {
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.2) 0%, rgba(33, 186, 69, 0.2) 100%) !important;
+            color: #81c784 !important;
+            border-right-color: #81c784 !important;
+        }
+        
+        /* حالت تاریک - مشارکت‌کنندگان */
+        [data-theme="dark"] .ui.dropdown .menu .item.investor-even {
+            background-color: rgba(33, 133, 208, 0.1) !important;
+        }
+        
+        [data-theme="dark"] .ui.dropdown .menu .item.investor-odd {
+            background-color: rgba(23, 162, 184, 0.1) !important;
         }
     </style>
 </head>
@@ -720,11 +926,10 @@
         <div class="content">
             
             <form class="ui form" id="addTransactionForm">
-                {% csrf_token %}
                 <div class="three fields">
                     <div class="field">
                         <label>مشارکت کننده</label>
-                        <div class="ui selection dropdown" id="addInvestorDropdown">
+                        <div class="ui fluid search selection dropdown" id="addInvestorDropdown">
                             <input type="hidden" name="investor" id="addInvestorInput">
                             <i class="dropdown icon"></i>
                             <div class="default text">انتخاب مشارکت کننده</div>
@@ -809,16 +1014,16 @@
         <div class="header">
             <i class="edit icon"></i>
             ویرایش تراکنش
+            <span id="editTransactionIdDisplay" style="font-weight: normal; color: #666; margin-right: 10px;"></span>
         </div>
         <div class="content">
             
             <form class="ui form" id="editTransactionForm">
-                {% csrf_token %}
                 <input type="hidden" id="editTransactionId">
                 <div class="three fields">
                     <div class="field">
                         <label>مشارکت کننده</label>
-                        <div class="ui selection dropdown" id="editInvestorDropdown">
+                        <div class="ui fluid search selection dropdown" id="editInvestorDropdown">
                             <input type="hidden" name="investor" id="editInvestorInput">
                             <i class="dropdown icon"></i>
                             <div class="default text">انتخاب مشارکت کننده</div>
@@ -1080,8 +1285,10 @@
         });
         
         function initializeDropdowns() {
-            // Initialize filter dropdowns with onChange event
+            // Initialize filter dropdowns with onChange event and fullTextSearch
             $('#investorFilter, #transactionTypeFilter, #periodFilter, #participationTypeFilter').dropdown({
+                fullTextSearch: true,
+                match: 'text',
                 onChange: function(value, text, $selectedItem) {
                     if (table) {
                         applyFilters();
@@ -1089,8 +1296,13 @@
                 }
             });
             
-            // Initialize other dropdowns without onChange event
-            $('.ui.dropdown:not(#investorFilter):not(#transactionTypeFilter):not(#periodFilter):not(#participationTypeFilter)').dropdown();
+            // Initialize other dropdowns with fullTextSearch
+            $('.ui.dropdown:not(#investorFilter):not(#transactionTypeFilter):not(#periodFilter):not(#participationTypeFilter)').dropdown({
+                fullTextSearch: true,
+                match: 'text'
+            });
+            
+            console.log('Dropdowns initialized with fullTextSearch enabled');
         }
         
         function loadInitialData() {
@@ -1264,7 +1476,7 @@
             // updateDropdownMenu('editProjectMenu', projectsList, 'id', 'name'); // حذف شد - پروژه فعال خودکار
             updateDropdownMenu('editPeriodMenu', periodsList, 'id', 'label');
             
-            // Refresh all dropdowns
+            // Refresh all dropdowns (تنظیمات قبلی حفظ می‌شود)
             $('.ui.dropdown').dropdown('refresh');
         }
         
@@ -1272,10 +1484,52 @@
             const menu = document.getElementById(menuId);
             menu.innerHTML = '';
             
-            data.forEach(item => {
+            // معکوس کردن ترتیب دوره‌ها (آخرین دوره ابتدا نمایش داده می‌شود)
+            const displayData = menuId.includes('Period') ? [...data].reverse() : data;
+            
+            // پیدا کردن دوره جاری برای هایلایت کردن
+            let currentPeriodId = null;
+            if (menuId.includes('Period')) {
+                const today = new Date();
+                const pDate = new persianDate(today);
+                let todayJalali = pDate.format('YYYY-MM-DD');
+                todayJalali = convertPersianToEnglishNumbers(todayJalali);
+                
+                const currentPeriod = data.find(period => {
+                    if (period.start_date_shamsi && period.end_date_shamsi) {
+                        return todayJalali >= period.start_date_shamsi && todayJalali <= period.end_date_shamsi;
+                    }
+                    return false;
+                });
+                
+                if (currentPeriod) {
+                    currentPeriodId = currentPeriod[valueField];
+                }
+            }
+            
+            displayData.forEach((item, index) => {
                 const displayText = displayFields.map(field => item[field]).join(' ');
                 const itemElement = document.createElement('div');
-                itemElement.className = 'item';
+                
+                // کلاس‌های اصلی
+                let classes = ['item'];
+                
+                // اضافه کردن کلاس برای رنگ‌بندی یکی در میان برای دوره‌ها
+                if (menuId.includes('Period')) {
+                    classes.push(index % 2 === 0 ? 'period-even' : 'period-odd');
+                    
+                    // هایلایت کردن دوره جاری
+                    if (item[valueField] === currentPeriodId) {
+                        classes.push('current-period');
+                    }
+                }
+                
+                // اضافه کردن کلاس برای رنگ‌بندی یکی در میان برای مشارکت‌کنندگان
+                if (menuId.includes('Investor')) {
+                    classes.push(index % 2 === 0 ? 'investor-even' : 'investor-odd');
+                }
+                
+                itemElement.className = classes.join(' ');
                 itemElement.setAttribute('data-value', item[valueField]);
                 itemElement.textContent = displayText;
                 menu.appendChild(itemElement);
@@ -1313,6 +1567,63 @@
             menu.insertBefore(defaultElement, menu.firstChild);
         }
         
+        function sortTransactionsWithProfits(data) {
+            // تفکیک تراکنش‌های اصلی و سود
+            const profitsByInvestorDatePeriod = {};
+            const mainTransactions = [];
+            
+            data.forEach(item => {
+                if (item.transaction_type === 'profit_accrual') {
+                    // ایجاد کلید ترکیبی با استفاده از investor_data.id و period_data.id
+                    const investorId = item.investor_data?.id || '';
+                    const periodId = item.period_data?.id || '';
+                    const key = `${investorId}_${periodId}_${item.date_shamsi}`;
+                    
+                    if (!profitsByInvestorDatePeriod[key]) {
+                        profitsByInvestorDatePeriod[key] = [];
+                    }
+                    profitsByInvestorDatePeriod[key].push(item);
+                } else {
+                    mainTransactions.push(item);
+                }
+            });
+            
+            // مرتب‌سازی تراکنش‌های اصلی بر اساس تاریخ و ID
+            mainTransactions.sort((a, b) => {
+                // ابتدا بر اساس تاریخ (نزولی - جدیدترین اول)
+                if (a.date_shamsi !== b.date_shamsi) {
+                    return b.date_shamsi.localeCompare(a.date_shamsi);
+                }
+                // سپس بر اساس ID (نزولی - جدیدترین اول)
+                return b.id - a.id;
+            });
+            
+            // ساخت آرایه نهایی با قرار دادن سود بلافاصله بعد از تراکنش اصلی
+            const sortedData = [];
+            mainTransactions.forEach(mainItem => {
+                sortedData.push(mainItem);
+                
+                // پیدا کردن و اضافه کردن سودهای مرتبط
+                const investorId = mainItem.investor_data?.id || '';
+                const periodId = mainItem.period_data?.id || '';
+                const key = `${investorId}_${periodId}_${mainItem.date_shamsi}`;
+                
+                const relatedProfits = profitsByInvestorDatePeriod[key];
+                
+                if (relatedProfits && relatedProfits.length > 0) {
+                    sortedData.push(...relatedProfits);
+                    delete profitsByInvestorDatePeriod[key];
+                }
+            });
+            
+            // اضافه کردن سودهای باقیمانده (اگر هست)
+            Object.values(profitsByInvestorDatePeriod).forEach(profits => {
+                sortedData.push(...profits);
+            });
+            
+            return sortedData;
+        }
+        
         function createTable() {
             console.log('Creating table with data:', transactionsData);
             
@@ -1321,6 +1632,9 @@
                 document.getElementById('transactionsTable').innerHTML = '<div class="ui message">هیچ تراکنشی یافت نشد</div>';
                 return;
             }
+            
+            // مرتب‌سازی داده‌ها قبل از نمایش
+            const sortedTransactions = sortTransactionsWithProfits(transactionsData);
             
             // Show stats cards first
             document.getElementById('statsCards').style.display = 'block';
@@ -1331,6 +1645,101 @@
             }, 100);
             
             const columns = [
+                {
+                    title: 'ردیف',
+                    formatter: function(cell) {
+                        return cell.getRow().getPosition() + 1;
+                    },
+                    width: 60,
+                    headerSort: false,
+                    hozAlign: 'center'
+                },
+                {
+                    title: 'دوره',
+                    field: 'period_data.label',
+                    width: 120,
+                    sorter: 'string'
+                },
+                {
+                    title: 'تاریخ',
+                    field: 'date_shamsi',
+                    width: 110,
+                    sorter: 'string',
+                    formatter: function(cell) {
+                        const value = cell.getValue();
+                        if (value) {
+                            return value;
+                        }
+                        return 'نامشخص';
+                    }
+                },
+                {
+                    title: 'مشارکت کننده',
+                    field: 'investor_data.first_name',
+                    width: 150,
+                    formatter: function(cell) {
+                        const data = cell.getRow().getData();
+                        if (data.investor_data && data.investor_data.first_name && data.investor_data.last_name) {
+                            return `${data.investor_data.first_name} ${data.investor_data.last_name}`;
+                        }
+                        return 'نامشخص';
+                    },
+                    sorter: 'string'
+                },
+                {
+                    title: 'نوع تراکنش',
+                    field: 'transaction_type',
+                    width: 140,
+                    formatter: function(cell) {
+                        return TRANSACTION_TYPE_FORMATS[cell.getValue()] || cell.getValue();
+                    },
+                    sorter: 'string'
+                },
+                {
+                    title: 'مبلغ (تومان)',
+                    field: 'amount',
+                    width: 150,
+                    formatter: function(cell) {
+                        const value = cell.getValue();
+                        if (value === null || value === undefined) return '0';
+                        return parseFloat(value).toLocaleString('en-US');
+                    },
+                    sorter: 'number',
+                    bottomCalc: 'sum',
+                    bottomCalcFormatter: function(cell) {
+                        const value = cell.getValue();
+                        return '<strong>' + parseFloat(value).toLocaleString('en-US') + '</strong>';
+                    },
+                    hozAlign: 'right'
+                },
+                {
+                    title: 'توضیحات',
+                    field: 'description',
+                    width: 200,
+                    formatter: function(cell) {
+                        const value = cell.getValue();
+                        if (value && value.trim() !== '') {
+                            // نمایش حداکثر 50 کاراکتر اول
+                            return value.length > 50 ? value.substring(0, 50) + '...' : value;
+                        }
+                        return '-';
+                    },
+                    sorter: 'string'
+                },
+                {
+                    title: 'روز مانده',
+                    field: 'day_remaining',
+                    width: 90,
+                    sorter: 'number',
+                    hozAlign: 'center'
+                },
+                {
+                    title: 'روز از شروع',
+                    field: 'day_from_start',
+                    width: 90,
+                    sorter: 'number',
+                    hozAlign: 'center'
+                },
                 {
                     title: 'عملیات',
                     formatter: function(cell) {
@@ -1347,90 +1756,16 @@
                         `;
                     },
                     headerSort: false,
-                    width: 120
-                },
-                {
-                    title: 'شناسه',
-                    field: 'id',
-                    width: 70,
-                    sorter: 'number'
-                },
-                {
-                    title: 'مشارکت کننده',
-                    field: 'investor_data.first_name',
-                    width: 150,
-                    formatter: function(cell) {
-                        const data = cell.getRow().getData();
-                        if (data.investor_data && data.investor_data.first_name && data.investor_data.last_name) {
-                            return `${data.investor_data.first_name} ${data.investor_data.last_name}`;
-                        }
-                        return 'نامشخص';
-                    },
-                    sorter: 'string'
-                },
-                {
-                    title: 'دوره',
-                    field: 'period_data.label',
                     width: 120,
-                    sorter: 'string'
-                },
-                {
-                    title: 'نوع تراکنش',
-                    field: 'transaction_type',
-                    width: 130,
-                    formatter: function(cell) {
-                        return TRANSACTION_TYPE_FORMATS[cell.getValue()] || cell.getValue();
-                    },
-                    sorter: 'string'
-                },
-                {
-                    title: 'مبلغ (تومان)',
-                    field: 'amount',
-                    width: 180,
-                    formatter: function(cell) {
-                        const value = cell.getValue();
-                        if (value === null || value === undefined) return '0';
-                        return parseFloat(value).toLocaleString('en-US');
-                    },
-                    sorter: 'number',
-                    bottomCalc: 'sum',
-                    bottomCalcFormatter: function(cell) {
-                        const value = cell.getValue();
-                        return '<strong>' + parseFloat(value).toLocaleString('en-US') + '</strong>';
-                    }
-                },
-                {
-                    title: 'تاریخ شمسی',
-                    field: 'date_shamsi',
-                    width: 110,
-                    sorter: 'string',
-                    formatter: function(cell) {
-                        const value = cell.getValue();
-                        if (value) {
-                            return value;
-                        }
-                        return 'نامشخص';
-                    }
-                },
-                {
-                    title: 'روز مانده',
-                    field: 'day_remaining',
-                    width: 100,
-                    sorter: 'number'
-                },
-                {
-                    title: 'روز از شروع',
-                    field: 'day_from_start',
-                    width: 100,
-                    sorter: 'number'
+                    hozAlign: 'center'
                 }
             ];
             
             table = new Tabulator("#transactionsTable", {
-                data: transactionsData,
+                data: sortedTransactions,
                 columns: columns,
                 layout: "fitData",
-                responsiveLayout: "collapse",
+                responsiveLayout: false,
                 pagination: true,
                 paginationSize: 30,
                 paginationSizeSelector: [10, 30, 50, 100, true],
@@ -1456,10 +1791,6 @@
                         element.classList.add("transaction-" + transactionType);
                     }
                 },
-                initialSort: [
-                    {column: "day_remaining", dir: "desc"},
-                    {column: "investor_data.first_name", dir: "asc"}
-                ],
                 locale: true,
                 langs: {
                     "default": {
@@ -2218,6 +2549,57 @@
             resetAddTransactionForm();
         }
         
+        // تابع کمکی برای تبدیل اعداد فارسی به انگلیسی
+        function convertPersianToEnglishNumbers(str) {
+            const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+            const englishNumbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+            
+            for (let i = 0; i < 10; i++) {
+                str = str.replace(new RegExp(persianNumbers[i], 'g'), englishNumbers[i]);
+            }
+            return str;
+        }
+        
+        // تابع برای انتخاب خودکار دوره بر اساس تاریخ امروز
+        window.autoSelectPeriodByCurrentDate = function() {
+            try {
+                // دریافت تاریخ امروز شمسی
+                const today = new Date();
+                const pDate = new persianDate(today);
+                let todayJalali = pDate.format('YYYY-MM-DD');
+                
+                // تبدیل اعداد فارسی به انگلیسی
+                todayJalali = convertPersianToEnglishNumbers(todayJalali);
+                
+                console.log('تاریخ امروز (انگلیسی):', todayJalali);
+                console.log('لیست دوره‌ها:', periodsList);
+                
+                // پیدا کردن دوره‌ای که تاریخ امروز در بازه آن است
+                const currentPeriod = periodsList.find(period => {
+                    if (period.start_date_shamsi && period.end_date_shamsi) {
+                        const inRange = todayJalali >= period.start_date_shamsi && todayJalali <= period.end_date_shamsi;
+                        if (inRange) {
+                            console.log('دوره مطابقت دارد:', period.label, 'از', period.start_date_shamsi, 'تا', period.end_date_shamsi);
+                        }
+                        return inRange;
+                    }
+                    return false;
+                });
+                
+                if (currentPeriod) {
+                    console.log('دوره جاری یافت شد:', currentPeriod.label);
+                    $('#addPeriodDropdown').dropdown('set selected', currentPeriod.id.toString());
+                    return currentPeriod;
+                } else {
+                    console.log('دوره مناسب برای تاریخ امروز یافت نشد');
+                    return null;
+                }
+            } catch (error) {
+                console.error('خطا در انتخاب خودکار دوره:', error);
+                return null;
+            }
+        }
+        
         window.resetAddTransactionForm = function() {
             document.getElementById('addTransactionForm').reset();
             $('#addInvestorDropdown').dropdown('clear');
@@ -2233,6 +2615,11 @@
             if (addAmountWords) {
                 addAmountWords.textContent = '';
             }
+            
+            // انتخاب خودکار دوره بر اساس تاریخ امروز
+            setTimeout(() => {
+                autoSelectPeriodByCurrentDate();
+            }, 100);
             
             // Set today's date as default
             $('#addDateShamsiInput').val(getTodayShamsi());
@@ -2540,7 +2927,7 @@
                     // Add to table
                     transactionsData.push(data);
                     if (table) {
-                        table.setData(transactionsData);
+                        table.setData(sortTransactionsWithProfits(transactionsData));
                     }
                     
                     closeAddTransactionModal();
@@ -2585,6 +2972,9 @@
             // Fill form
             document.getElementById('editTransactionId').value = id;
             
+            // Display transaction ID in header
+            document.getElementById('editTransactionIdDisplay').textContent = `(شماره: ${id})`;
+            
             // Format amount as integer (remove decimal places if any)
             const amountValue = Math.floor(parseFloat(transaction.amount));
             $('#editAmountInput').val(amountValue.toLocaleString('en-US'));
@@ -2624,6 +3014,8 @@
         }
         
         function closeEditTransactionModal() {
+            // Clear transaction ID display
+            document.getElementById('editTransactionIdDisplay').textContent = '';
             $('#editTransactionModal').modal('hide');
         }
         
@@ -2750,7 +3142,7 @@
                     if (index !== -1) {
                         transactionsData[index] = data;
                         if (table) {
-                            table.setData(transactionsData);
+                            table.setData(sortTransactionsWithProfits(transactionsData));
                         }
                     }
                     
@@ -2782,7 +3174,7 @@
                     // Remove from table
                     transactionsData = transactionsData.filter(t => t.id !== id);
                     if (table) {
-                        table.setData(transactionsData);
+                        table.setData(sortTransactionsWithProfits(transactionsData));
                     }
                     showSuccessMessage('تراکنش با موفقیت حذف شد');
                 } else {
