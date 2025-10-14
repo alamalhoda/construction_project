@@ -25,7 +25,7 @@
                     
                     <div class="transaction-info p-3 bg-light rounded">
                         <h5>{{ object.investor.first_name }} {{ object.investor.last_name }}</h5>
-                        <p class="mb-1"><strong>مبلغ:</strong> {{ object.amount|floatformat:0 }} ریال</p>
+                        <p class="mb-1"><strong>مبلغ:</strong> <span class="number-format">{{ object.amount|floatformat:0 }} ریال</span></p>
                         <p class="mb-1"><strong>نوع تراکنش:</strong> {{ object.get_transaction_type_display }}</p>
                         <p class="mb-1"><strong>تاریخ:</strong> {{ object.date_shamsi|jformat:"%Y/%m/%d" }}</p>
                         <p class="mb-0"><strong>دوره:</strong> {{ object.period.label }}</p>
@@ -47,5 +47,21 @@
         </div>
     </div>
 </div>
+
+<script>
+// فرمت اعداد انگلیسی با جداکننده هزارگان
+document.addEventListener('DOMContentLoaded', function() {
+    const numberCells = document.querySelectorAll('.number-format');
+    numberCells.forEach(cell => {
+        const text = cell.textContent;
+        const numberMatch = text.match(/(\d+(?:\.\d+)?)/);
+        if (numberMatch) {
+            const number = parseFloat(numberMatch[1]);
+            const formattedNumber = new Intl.NumberFormat('en-US').format(Math.round(number));
+            cell.textContent = text.replace(numberMatch[1], formattedNumber);
+        }
+    });
+});
+</script>
 
 {% endblock %}
