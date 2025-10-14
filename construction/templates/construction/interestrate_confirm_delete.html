@@ -23,7 +23,7 @@
                     </p>
                     
                     <div class="interestrate-info p-3 bg-light rounded">
-                        <h5>نرخ {{ object.rate|floatformat:6 }}%</h5>
+                        <h5>نرخ <span class="rate-format">{{ object.rate|floatformat:6 }}%</span></h5>
                         <p class="mb-1"><strong>تاریخ اعمال:</strong> {{ object.effective_date|jformat:"%Y/%m/%d" }}</p>
                         <p class="mb-1"><strong>وضعیت:</strong> 
                             {% if object.is_active %}
@@ -53,5 +53,25 @@
         </div>
     </div>
 </div>
+
+<script>
+// فرمت اعداد انگلیسی با جداکننده هزارگان
+document.addEventListener('DOMContentLoaded', function() {
+    const rateCells = document.querySelectorAll('.rate-format');
+    rateCells.forEach(cell => {
+        const text = cell.textContent;
+        const numberMatch = text.match(/(\d+(?:\.\d+)?)/);
+        if (numberMatch) {
+            const number = parseFloat(numberMatch[1]);
+            // برای نرخ سود، از فرمت خاص با حفظ اعشار استفاده می‌کنیم
+            const formattedNumber = new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 6,
+                maximumFractionDigits: 6
+            }).format(number);
+            cell.textContent = text.replace(numberMatch[1], formattedNumber);
+        }
+    });
+});
+</script>
 
 {% endblock %}
