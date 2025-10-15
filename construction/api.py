@@ -108,11 +108,20 @@ class ExpenseViewSet(viewsets.ModelViewSet):
                         expense_type=expense_type
                     ).aggregate(total=Sum('amount'))['total'] or 0
 
-                    # دریافت توضیحات هزینه
+                    # دریافت توضیحات هزینه - ابتدا رکورد دستی
                     expense_obj = expenses.filter(
                         period=period,
                         expense_type=expense_type
+                    ).exclude(
+                        description__icontains='محاسبه خودکار'
                     ).first()
+                    
+                    # اگر رکورد دستی نباشد، رکورد خودکار را بردار
+                    if not expense_obj:
+                        expense_obj = expenses.filter(
+                            period=period,
+                            expense_type=expense_type
+                        ).first()
                     
                     period_data['expenses'][expense_type] = {
                         'amount': float(expense_amount),
@@ -244,28 +253,43 @@ class ExpenseViewSet(viewsets.ModelViewSet):
                     'error': 'دوره مورد نظر یافت نشد'
                 }, status=404)
 
-            # یافتن هزینه
-            try:
-                expense = models.Expense.objects.get(
+            # یافتن هزینه - ابتدا رکورد دستی (بدون توضیحات خودکار)
+            manual_expense = models.Expense.objects.filter(
+                project=active_project,
+                period=period,
+                expense_type=expense_type
+            ).exclude(
+                description__icontains='محاسبه خودکار'
+            ).first()
+            
+            if manual_expense:
+                expense = manual_expense
+            else:
+                # اگر رکورد دستی نباشد، رکورد خودکار را بردار
+                expense = models.Expense.objects.filter(
                     project=active_project,
                     period=period,
                     expense_type=expense_type
-                )
+                ).first()
+            
+            if expense:
                 return Response({
                     'success': True,
                     'data': {
                         'amount': float(expense.amount),
                         'description': expense.description or '',
-                        'expense_id': expense.id
+                        'expense_id': expense.id,
+                        'is_manual': not ('محاسبه خودکار' in (expense.description or ''))
                     }
                 })
-            except models.Expense.DoesNotExist:
+            else:
                 return Response({
                     'success': True,
                     'data': {
                         'amount': 0,
                         'description': '',
-                        'expense_id': None
+                        'expense_id': None,
+                        'is_manual': True
                     }
                 })
 
