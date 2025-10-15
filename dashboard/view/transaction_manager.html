@@ -1648,7 +1648,10 @@
                 {
                     title: 'ردیف',
                     formatter: function(cell) {
-                        return cell.getRow().getPosition() + 1;
+                        const page = table.getPage();
+                        const pageSize = table.getPageSize();
+                        const position = cell.getRow().getPosition();
+                        return (page * pageSize) + position + 1;
                     },
                     width: 60,
                     headerSort: false,
