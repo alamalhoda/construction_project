@@ -512,7 +512,7 @@ class InvestorViewSet(viewsets.ModelViewSet):
 class PeriodViewSet(viewsets.ModelViewSet):
     """ViewSet for the Period class"""
 
-    queryset = models.Period.objects.all()
+    queryset = models.Period.objects.all().order_by('-year', '-month_number')
     serializer_class = serializers.PeriodSerializer
     permission_classes = [APISecurityPermission]
 

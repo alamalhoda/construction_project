@@ -1484,8 +1484,8 @@
             const menu = document.getElementById(menuId);
             menu.innerHTML = '';
             
-            // معکوس کردن ترتیب دوره‌ها (آخرین دوره ابتدا نمایش داده می‌شود)
-            const displayData = menuId.includes('Period') ? [...data].reverse() : data;
+            // داده‌ها از API به ترتیب صحیح (جدیدترین ابتدا) دریافت می‌شوند
+            const displayData = data;
             
             // پیدا کردن دوره جاری برای هایلایت کردن
             let currentPeriodId = null;
@@ -1648,7 +1648,9 @@
                 {
                     title: 'ردیف',
                     formatter: function(cell) {
-                        return cell.getRow().getPosition() + 1;
+                        const row = cell.getRow();
+                        const position = row.getPosition();
+                        return position + 0;
                     },
                     width: 60,
                     headerSort: false,
@@ -1719,8 +1721,8 @@
                     formatter: function(cell) {
                         const value = cell.getValue();
                         if (value && value.trim() !== '') {
-                            // نمایش حداکثر 50 کاراکتر اول
-                            return value.length > 50 ? value.substring(0, 50) + '...' : value;
+                            // نمایش حداکثر 100 کاراکتر اول
+                            return value.length > 100 ? value.substring(0, 100) + '...' : value;
                         }
                         return '-';
                     },
@@ -1729,13 +1731,6 @@
                 {
                     title: 'روز مانده',
                     field: 'day_remaining',
-                    width: 90,
-                    sorter: 'number',
-                    hozAlign: 'center'
-                },
-                {
-                    title: 'روز از شروع',
-                    field: 'day_from_start',
                     width: 90,
                     sorter: 'number',
                     hozAlign: 'center'
