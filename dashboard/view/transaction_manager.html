@@ -1484,8 +1484,8 @@
             const menu = document.getElementById(menuId);
             menu.innerHTML = '';
             
-            // معکوس کردن ترتیب دوره‌ها (آخرین دوره ابتدا نمایش داده می‌شود)
-            const displayData = menuId.includes('Period') ? [...data].reverse() : data;
+            // داده‌ها از API به ترتیب صحیح (جدیدترین ابتدا) دریافت می‌شوند
+            const displayData = data;
             
             // پیدا کردن دوره جاری برای هایلایت کردن
             let currentPeriodId = null;
@@ -1648,10 +1648,9 @@
                 {
                     title: 'ردیف',
                     formatter: function(cell) {
-                        const page = table.getPage();
-                        const pageSize = table.getPageSize();
-                        const position = cell.getRow().getPosition();
-                        return (page * pageSize) + position + 1;
+                        const row = cell.getRow();
+                        const position = row.getPosition();
+                        return position + 0;
                     },
                     width: 60,
                     headerSort: false,
