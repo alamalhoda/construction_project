@@ -33,6 +33,13 @@ class Project(models.Model):
         verbose_name="ضریب اصلاحی",
         help_text="ضریب اصلاحی برای محاسبات پروژه"
     )
+    construction_contractor_percentage = models.DecimalField(
+        max_digits=6,
+        decimal_places=3,
+        default=0.100,
+        verbose_name="درصد پیمان ساخت",
+        help_text="درصد پیمان ساخت از مجموع سایر هزینه‌ها (به صورت اعشاری، مثلاً 0.100 برای 10%)"
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="تاریخ به‌روزرسانی")
 
@@ -574,17 +581,17 @@ class Expense(models.Model):
         if self.expense_type != 'construction_contractor':
             return Decimal('0')
         
-        # دریافت همه هزینه‌های همان دوره به جز construction_contractor
+        # دریافت همه هزینه‌های همان دوره به جز construction_contractor و other
         other_expenses = Expense.objects.filter(
             period=self.period,
             project=self.project
-        ).exclude(expense_type='construction_contractor')
+        ).exclude(expense_type__in=['construction_contractor', 'other'])
         
         # محاسبه مجموع سایر هزینه‌ها
         total_other_expenses = sum(expense.amount for expense in other_expenses)
         
-        # محاسبه 10% مجموع
-        construction_contractor_amount = total_other_expenses * Decimal('0.1')
+        # محاسبه درصد پیمان ساخت از مجموع سایر هزینه‌ها
+        construction_contractor_amount = total_other_expenses * Decimal(str(self.project.construction_contractor_percentage))
         
         return construction_contractor_amount.quantize(Decimal('0.01'))
     
@@ -611,7 +618,7 @@ class Expense(models.Model):
                 project=project,
                 expense_type='construction_contractor',
                 amount=new_amount,
-                description='محاسبه خودکار: 10% مجموع سایر هزینه‌های دوره'
+                description=f'محاسبه خودکار: {project.construction_contractor_percentage * 100:.1f}% مجموع سایر هزینه‌های دوره'
             )
             return new_amount
         

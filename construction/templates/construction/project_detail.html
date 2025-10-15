@@ -66,6 +66,15 @@
                         </div>
                     </div>
                     
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-item mb-3">
+                                <label class="info-label">درصد پیمان ساخت:</label>
+                                <span class="info-value">{{ object.construction_contractor_percentage|floatformat:3 }} ({{ object.construction_contractor_percentage|floatformat:1 }}%)</span>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="form-actions mt-4 pt-3 border-top">
                         <a class="btn btn-primary" href="{{object.get_update_url}}">
                             <i class="fas fa-edit"></i> ویرایش

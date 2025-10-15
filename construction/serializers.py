@@ -137,6 +137,7 @@ class ProjectSerializer(serializers.ModelSerializer):
             "is_active",
             "total_infrastructure",
             "correction_factor",
+            "construction_contractor_percentage",
             "created_at",
             "updated_at",
         ]
