@@ -838,6 +838,9 @@
                             <div class="item" data-value="profit_accrual">
                                 <i class="ui green circle icon"></i>سود مشارکت
                             </div>
+                            <div class="item" data-value="principal_transactions">
+                                <i class="ui orange circle icon"></i>آورده و برداشت
+                            </div>
                         </div>
                     </div>
                     
@@ -1343,6 +1346,10 @@
                 
                 updateDropdowns();
                 createTable();
+                
+                // Set default filter to "آورده و برداشت"
+                $('#transactionTypeFilter').dropdown('set selected', 'principal_transactions');
+                
                 updateStats();
                 showStatsCards();
                 
@@ -1833,7 +1840,7 @@
                 const totalData = table.getData(true);
                 
                 // Update results count with filters.length (this is the correct count)
-                updateResultsCount(filters.length, totalData.length);
+                updateResultsCount(filters.length, totalData);
                 
                 // Update stats with correct filtered data
                 updateStatsWithData(filteredData, totalData);
@@ -1862,7 +1869,7 @@
                 // Update stats when no filters are applied
                 const totalData = table.getData(true);
                 updateStatsWithData(totalData, totalData);
-                updateResultsCount(totalData.length, totalData.length);
+                updateResultsCount(totalData.length, totalData);
                 updateAppliedFiltersDisplay();
                 return;
             }
@@ -1878,7 +1885,12 @@
                 
                 // Transaction type filter
                 if (transactionTypeFilter && transactionTypeFilter !== '') {
-                    passes = passes && (data.transaction_type == transactionTypeFilter);
+                    if (transactionTypeFilter === 'principal_transactions') {
+                        // Filter for both principal_deposit and principal_withdrawal
+                        passes = passes && (data.transaction_type === 'principal_deposit' || data.transaction_type === 'principal_withdrawal');
+                    } else {
+                        passes = passes && (data.transaction_type == transactionTypeFilter);
+                    }
                 }
                 
                 // Period filter
@@ -1924,7 +1936,7 @@
             // Update results display
             if (table) {
                 const totalData = table.getData(true);
-                updateResultsCount(totalData.length, totalData.length);
+                updateResultsCount(totalData.length, totalData);
                 updateStatsWithData(totalData, totalData);
                 updateAppliedFiltersDisplay();
             }
@@ -2071,11 +2083,16 @@
             const resultsCountElement = document.getElementById('resultsCount');
             const filterInfoElement = document.getElementById('filterInfo');
             
-            if (filteredCount === totalCount) {
-                resultsCountElement.textContent = `نمایش تمام ${totalCount.toLocaleString('en-US')} تراکنش`;
+            if (filteredCount === totalCount.length) {
+                // Calculate breakdown when no filters are applied
+                const deposits = totalCount.filter(row => row.transaction_type === 'principal_deposit').length;
+                const withdrawals = totalCount.filter(row => row.transaction_type === 'principal_withdrawal').length;
+                const profits = totalCount.filter(row => row.transaction_type === 'profit_accrual').length;
+                
+                resultsCountElement.textContent = `نمایش تمام ${totalCount.length.toLocaleString('en-US')} تراکنش (${deposits} آورده و ${withdrawals} برداشت و ${profits} سود مشارکت)`;
                 filterInfoElement.textContent = '';
             } else {
-                resultsCountElement.textContent = `نمایش ${filteredCount.toLocaleString('en-US')} از ${totalCount.toLocaleString('en-US')} تراکنش`;
+                resultsCountElement.textContent = `نمایش ${filteredCount.toLocaleString('en-US')} از ${totalCount.length.toLocaleString('en-US')} تراکنش`;
                 
                 // Show active filters
                 const activeFilters = [];

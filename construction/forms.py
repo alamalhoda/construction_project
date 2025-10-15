@@ -166,6 +166,21 @@ class ProjectForm(forms.ModelForm):
             'step': '0.0000000001'
         })
     )
+    construction_contractor_percentage = forms.DecimalField(
+        label="درصد پیمان ساخت",
+        max_digits=6,
+        decimal_places=3,
+        required=False,
+        initial=0.100,
+        help_text="درصد پیمان ساخت از مجموع سایر هزینه‌ها (به صورت اعشاری، مثلاً 0.100 برای 10%)",
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'درصد پیمان ساخت را وارد کنید...',
+            'step': '0.001',
+            'min': '0',
+            'max': '1'
+        })
+    )
     
     class Meta:
         model = models.Project
@@ -178,6 +193,7 @@ class ProjectForm(forms.ModelForm):
             "is_active",
             "total_infrastructure",
             "correction_factor",
+            "construction_contractor_percentage",
         ]
 
 
