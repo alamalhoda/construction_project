@@ -838,6 +838,9 @@
                             <div class="item" data-value="profit_accrual">
                                 <i class="ui green circle icon"></i>سود مشارکت
                             </div>
+                            <div class="item" data-value="principal_transactions">
+                                <i class="ui orange circle icon"></i>آورده و برداشت
+                            </div>
                         </div>
                     </div>
                     
@@ -1878,7 +1881,12 @@
                 
                 // Transaction type filter
                 if (transactionTypeFilter && transactionTypeFilter !== '') {
-                    passes = passes && (data.transaction_type == transactionTypeFilter);
+                    if (transactionTypeFilter === 'principal_transactions') {
+                        // Filter for both principal_deposit and principal_withdrawal
+                        passes = passes && (data.transaction_type === 'principal_deposit' || data.transaction_type === 'principal_withdrawal');
+                    } else {
+                        passes = passes && (data.transaction_type == transactionTypeFilter);
+                    }
                 }
                 
                 // Period filter
