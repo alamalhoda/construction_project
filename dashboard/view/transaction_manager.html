@@ -1836,7 +1836,7 @@
                 const totalData = table.getData(true);
                 
                 // Update results count with filters.length (this is the correct count)
-                updateResultsCount(filters.length, totalData.length);
+                updateResultsCount(filters.length, totalData);
                 
                 // Update stats with correct filtered data
                 updateStatsWithData(filteredData, totalData);
@@ -1865,7 +1865,7 @@
                 // Update stats when no filters are applied
                 const totalData = table.getData(true);
                 updateStatsWithData(totalData, totalData);
-                updateResultsCount(totalData.length, totalData.length);
+                updateResultsCount(totalData.length, totalData);
                 updateAppliedFiltersDisplay();
                 return;
             }
@@ -1932,7 +1932,7 @@
             // Update results display
             if (table) {
                 const totalData = table.getData(true);
-                updateResultsCount(totalData.length, totalData.length);
+                updateResultsCount(totalData.length, totalData);
                 updateStatsWithData(totalData, totalData);
                 updateAppliedFiltersDisplay();
             }
@@ -2079,11 +2079,16 @@
             const resultsCountElement = document.getElementById('resultsCount');
             const filterInfoElement = document.getElementById('filterInfo');
             
-            if (filteredCount === totalCount) {
-                resultsCountElement.textContent = `نمایش تمام ${totalCount.toLocaleString('en-US')} تراکنش`;
+            if (filteredCount === totalCount.length) {
+                // Calculate breakdown when no filters are applied
+                const deposits = totalCount.filter(row => row.transaction_type === 'principal_deposit').length;
+                const withdrawals = totalCount.filter(row => row.transaction_type === 'principal_withdrawal').length;
+                const profits = totalCount.filter(row => row.transaction_type === 'profit_accrual').length;
+                
+                resultsCountElement.textContent = `نمایش تمام ${totalCount.length.toLocaleString('en-US')} تراکنش (${deposits} آورده و ${withdrawals} برداشت و ${profits} سود مشارکت)`;
                 filterInfoElement.textContent = '';
             } else {
-                resultsCountElement.textContent = `نمایش ${filteredCount.toLocaleString('en-US')} از ${totalCount.toLocaleString('en-US')} تراکنش`;
+                resultsCountElement.textContent = `نمایش ${filteredCount.toLocaleString('en-US')} از ${totalCount.length.toLocaleString('en-US')} تراکنش`;
                 
                 // Show active filters
                 const activeFilters = [];
