@@ -1346,6 +1346,10 @@
                 
                 updateDropdowns();
                 createTable();
+                
+                // Set default filter to "آورده و برداشت"
+                $('#transactionTypeFilter').dropdown('set selected', 'principal_transactions');
+                
                 updateStats();
                 showStatsCards();
                 
