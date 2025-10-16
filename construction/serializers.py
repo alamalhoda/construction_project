@@ -295,6 +295,11 @@ class TransactionSerializer(serializers.ModelSerializer):
         elif 'period' in validated_data:
             validated_data['period_id'] = validated_data.pop('period')
         
+        # اطمینان از منفی بودن مبالغ برداشت
+        if validated_data.get('transaction_type') == 'principal_withdrawal':
+            if validated_data.get('amount') and validated_data['amount'] > 0:
+                validated_data['amount'] = -validated_data['amount']
+        
         # ایجاد تراکنش
         transaction = super().create(validated_data)
         
@@ -350,6 +355,11 @@ class TransactionSerializer(serializers.ModelSerializer):
         # اگر period وجود دارد، آن را به period_id تبدیل کن
         elif 'period' in validated_data:
             validated_data['period_id'] = validated_data.pop('period')
+        
+        # اطمینان از منفی بودن مبالغ برداشت
+        if validated_data.get('transaction_type') == 'principal_withdrawal':
+            if validated_data.get('amount') and validated_data['amount'] > 0:
+                validated_data['amount'] = -validated_data['amount']
         
         # بروزرسانی تراکنش
         transaction = super().update(instance, validated_data)
