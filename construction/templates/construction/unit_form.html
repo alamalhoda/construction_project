@@ -65,14 +65,20 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="area" class="form-label">مساحت (متر مربع) <span class="text-danger">*</span></label>
-                                    <input class="form-control" id="area" type="number" step="0.01" name="area" 
+                                    <input class="form-control" id="area" type="text" name="area" 
+                                           placeholder="مثال: 150.50"
+                                           oninput="formatNumber(this)"
+                                           onblur="validateNumber(this)"
                                            value="{{ object.area|default:'' }}" required>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="price_per_meter" class="form-label">قیمت هر متر <span class="text-danger">*</span></label>
-                                    <input class="form-control" id="price_per_meter" type="number" name="price_per_meter" 
+                                    <input class="form-control" id="price_per_meter" type="text" name="price_per_meter" 
+                                           placeholder="مثال: 5000000"
+                                           oninput="formatNumber(this)"
+                                           onblur="validateNumber(this)"
                                            value="{{ object.price_per_meter|default:'' }}" required>
                                 </div>
                             </div>
@@ -80,7 +86,10 @@
                         
                         <div class="form-group">
                             <label for="total_price" class="form-label">قیمت کل <span class="text-danger">*</span></label>
-                            <input class="form-control" id="total_price" type="number" name="total_price" 
+                            <input class="form-control" id="total_price" type="text" name="total_price" 
+                                   placeholder="مثال: 750000000"
+                                   oninput="formatNumber(this)"
+                                   onblur="validateNumber(this)"
                                    value="{{ object.total_price|default:'' }}" required>
                             <small class="form-text text-muted">قیمت کل = مساحت × قیمت هر متر</small>
                         </div>
@@ -106,13 +115,28 @@ document.getElementById('area').addEventListener('input', calculateTotal);
 document.getElementById('price_per_meter').addEventListener('input', calculateTotal);
 
 function calculateTotal() {
-    const area = parseFloat(document.getElementById('area').value) || 0;
-    const pricePerMeter = parseFloat(document.getElementById('price_per_meter').value) || 0;
+    // حذف کاماها قبل از parseFloat
+    const areaValue = document.getElementById('area').value.replace(/,/g, '');
+    const pricePerMeterValue = document.getElementById('price_per_meter').value.replace(/,/g, '');
+    
+    const area = parseFloat(areaValue) || 0;
+    const pricePerMeter = parseFloat(pricePerMeterValue) || 0;
     const totalPrice = area * pricePerMeter;
+    
+    console.log('=== calculateTotal ===');
+    console.log('مساحت خام:', document.getElementById('area').value);
+    console.log('مساحت پاک‌سازی شده:', areaValue);
+    console.log('مساحت parseFloat:', area);
+    console.log('قیمت هر متر خام:', document.getElementById('price_per_meter').value);
+    console.log('قیمت هر متر پاک‌سازی شده:', pricePerMeterValue);
+    console.log('قیمت هر متر parseFloat:', pricePerMeter);
+    console.log('قیمت کل محاسبه شده:', totalPrice);
     
     if (totalPrice > 0) {
         document.getElementById('total_price').value = Math.round(totalPrice);
+        console.log('قیمت کل نهایی:', Math.round(totalPrice));
     }
+    console.log('=== پایان calculateTotal ===');
 }
 </script>
 
