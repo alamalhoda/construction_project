@@ -550,7 +550,7 @@ class InvestorCalculations(FinancialCalculationService):
         # محاسبه قیمت واگذار شده (متر/تومان)
         # فرمول: (کل آورده + پرداخت نهایی) / متراژ واحد
         # توجه: اگر پرداخت نهایی منفی باشد (یعنی باید بپردازد)، باید به آورده اضافه شود
-        actual_paid = net_principal + final_payment
+        actual_paid = net_principal - final_payment
         transfer_price_per_meter = actual_paid / total_area if total_area > 0 else 0
         
         return {
