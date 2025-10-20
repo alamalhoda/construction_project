@@ -554,7 +554,7 @@ class InvestorCalculations(FinancialCalculationService):
         transfer_price_per_meter = actual_paid / total_area if total_area > 0 else 0
         
         return {
-            'ownership_area': round(ownership_area, 2),
+            'ownership_area': round(ownership_area, 3),
             'total_amount': total_amount,
             'net_principal': net_principal,
             'total_profit': total_profit,
