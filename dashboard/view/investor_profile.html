@@ -1567,10 +1567,10 @@
                         // برای نسبت‌ها و شاخص‌ها، مقدار را مستقیماً نمایش دهیم
                         domElement.textContent = element.value;
                     } else if (element.id === 'ownershipArea') {
-                        // برای مالکیت (متر مربع)، فرمت اعشار با 2 رقم
+                        // برای مالکیت (متر مربع)، فرمت اعشار با 3 رقم
                         const formatted = parseFloat(element.value).toLocaleString('en-US', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
+                            minimumFractionDigits: 3,
+                            maximumFractionDigits: 3
                         });
                         domElement.textContent = formatted;
                     } else if (element.id === 'transferPricePerMeter') {
