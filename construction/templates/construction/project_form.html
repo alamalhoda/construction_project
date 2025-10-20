@@ -64,14 +64,22 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="{{ form.total_infrastructure.id_for_label }}" class="form-label">زیر بنای کل</label>
-                                    {{ form.total_infrastructure }}
+                                    <input type="text" name="total_infrastructure" id="{{ form.total_infrastructure.id_for_label }}" class="form-control" 
+                                           placeholder="مثال: 1500.50" 
+                                           oninput="formatNumber(this)"
+                                           onblur="validateNumber(this)"
+                                           value="{{ form.total_infrastructure.value|default:'' }}">
                                     <small class="form-text text-muted">{{ form.total_infrastructure.help_text }}</small>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="{{ form.construction_contractor_percentage.id_for_label }}" class="form-label">درصد پیمان ساخت</label>
-                                    {{ form.construction_contractor_percentage }}
+                                    <input type="text" name="construction_contractor_percentage" id="{{ form.construction_contractor_percentage.id_for_label }}" class="form-control" 
+                                           placeholder="مثال: 0.15" 
+                                           oninput="formatNumber(this)"
+                                           onblur="validateNumber(this)"
+                                           value="{{ form.construction_contractor_percentage.value|default:'' }}">
                                     <small class="form-text text-muted">{{ form.construction_contractor_percentage.help_text }}</small>
                                 </div>
                             </div>

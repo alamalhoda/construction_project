@@ -42,7 +42,11 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="{{ form.rate.id_for_label }}" class="form-label">نرخ سود روزانه <span class="text-danger">*</span></label>
-                                    {{ form.rate }}
+                                    <input type="text" name="rate" id="{{ form.rate.id_for_label }}" class="form-control" 
+                                           placeholder="مثال: 0.000481925679775" 
+                                           oninput="formatNumber(this)"
+                                           onblur="validateNumber(this)"
+                                           value="{{ form.rate.value|default:'' }}">
                                     <small class="form-text text-muted">مثال: 0.000481925679775</small>
                                 </div>
                             </div>
