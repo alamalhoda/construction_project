@@ -188,13 +188,28 @@ class ProjectForm(forms.ModelForm):
             "name",
             "start_date_shamsi",
             "end_date_shamsi",
-            "start_date_gregorian",
-            "end_date_gregorian",
             "is_active",
             "total_infrastructure",
             "correction_factor",
             "construction_contractor_percentage",
         ]
+    
+    def save(self, commit=True):
+        """ذخیره پروژه با تبدیل خودکار تاریخ‌های شمسی به میلادی"""
+        project = super().save(commit=False)
+        
+        # تبدیل تاریخ شروع شمسی به میلادی
+        if project.start_date_shamsi:
+            project.start_date_gregorian = project.start_date_shamsi.togregorian()
+        
+        # تبدیل تاریخ پایان شمسی به میلادی
+        if project.end_date_shamsi:
+            project.end_date_gregorian = project.end_date_shamsi.togregorian()
+        
+        if commit:
+            project.save()
+        
+        return project
 
 
 class TransactionForm(forms.ModelForm):
