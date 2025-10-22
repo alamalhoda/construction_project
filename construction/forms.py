@@ -1,6 +1,7 @@
 from django import forms
 from django_jalali.forms import jDateField
 from django.core.exceptions import ValidationError
+from decimal import Decimal, InvalidOperation
 import jdatetime
 from . import models
 
@@ -255,6 +256,37 @@ class TransactionForm(forms.ModelForm):
 
 
 class UnitForm(forms.ModelForm):
+    area = forms.CharField(
+        label="مساحت (متر مربع)",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'مثال: 150.50',
+            'style': 'direction: ltr;',
+            'oninput': 'formatNumber(this)',
+            'onblur': 'validateNumber(this)'
+        })
+    )
+    
+    price_per_meter = forms.CharField(
+        label="قیمت هر متر",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'مثال: 5000000',
+            'oninput': 'formatNumber(this)',
+            'onblur': 'validateNumber(this)'
+        })
+    )
+    
+    total_price = forms.CharField(
+        label="قیمت کل",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'مثال: 750000000',
+            'oninput': 'formatNumber(this)',
+            'onblur': 'validateNumber(this)'
+        })
+    )
+    
     class Meta:
         model = models.Unit
         fields = [
@@ -270,6 +302,69 @@ class UnitForm(forms.ModelForm):
         if 'project' in self.fields:
             del self.fields['project']
     
+    def clean_area(self):
+        """تمیز کردن فیلد area - حذف کاماها و اعتبارسنجی"""
+        area = self.cleaned_data.get('area')
+        if area:
+            # حذف تمام کاراکترهای غیرعددی به جز نقطه و منفی
+            cleaned_area = ''.join(c for c in str(area) if c.isdigit() or c == '.' or c == '-')
+            if not cleaned_area:
+                raise forms.ValidationError("یک عدد وارد کنید.")
+            
+            try:
+                area_decimal = Decimal(cleaned_area)
+            except InvalidOperation:
+                raise forms.ValidationError("یک عدد وارد کنید.")
+            
+            # اعتبارسنجی مقدار
+            if area_decimal <= 0:
+                raise forms.ValidationError("مساحت باید بزرگتر از صفر باشد.")
+            
+            return area_decimal
+        return area
+    
+    def clean_price_per_meter(self):
+        """تمیز کردن فیلد price_per_meter - حذف کاماها و اعتبارسنجی"""
+        price = self.cleaned_data.get('price_per_meter')
+        if price:
+            # حذف تمام کاراکترهای غیرعددی به جز نقطه
+            cleaned_price = ''.join(c for c in str(price) if c.isdigit() or c == '.')
+            if not cleaned_price:
+                raise forms.ValidationError("یک عدد وارد کنید.")
+            
+            try:
+                price_decimal = Decimal(cleaned_price)
+            except InvalidOperation:
+                raise forms.ValidationError("یک عدد وارد کنید.")
+            
+            # اعتبارسنجی مقدار
+            if price_decimal <= 0:
+                raise forms.ValidationError("قیمت هر متر باید بزرگتر از صفر باشد.")
+            
+            return price_decimal
+        return price
+    
+    def clean_total_price(self):
+        """تمیز کردن فیلد total_price - حذف کاماها و اعتبارسنجی"""
+        total_price = self.cleaned_data.get('total_price')
+        if total_price:
+            # حذف تمام کاراکترهای غیرعددی به جز نقطه
+            cleaned_total_price = ''.join(c for c in str(total_price) if c.isdigit() or c == '.')
+            if not cleaned_total_price:
+                raise forms.ValidationError("یک عدد وارد کنید.")
+            
+            try:
+                total_price_decimal = Decimal(cleaned_total_price)
+            except InvalidOperation:
+                raise forms.ValidationError("یک عدد وارد کنید.")
+            
+            # اعتبارسنجی مقدار
+            if total_price_decimal <= 0:
+                raise forms.ValidationError("قیمت کل باید بزرگتر از صفر باشد.")
+            
+            return total_price_decimal
+        return total_price
+
     def save(self, commit=True):
         """ذخیره واحد با تنظیم خودکار پروژه فعال"""
         unit = super().save(commit=False)

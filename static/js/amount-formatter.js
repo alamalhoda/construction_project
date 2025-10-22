@@ -226,7 +226,7 @@ function removeFormatting(input) {
 // تابع برای حذف فرمت از تمام فیلدهای عددی قبل از ارسال فرم
 function removeAllFormatting() {
     console.log('=== removeAllFormatting شروع ===');
-    const numberInputs = document.querySelectorAll('input[name*="amount"], input[name*="price"], input[name*="weight"], input[name*="rate"], input[name*="infrastructure"], input[name*="percentage"]');
+    const numberInputs = document.querySelectorAll('input[name*="amount"], input[name*="price"], input[name*="weight"], input[name*="rate"], input[name*="infrastructure"], input[name*="percentage"], input[name*="area"], input[name="area"], input[id*="area"], input[id*="price"]');
     
     console.log('تعداد فیلدهای پیدا شده:', numberInputs.length);
     
@@ -259,7 +259,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // تابع برای فرمت‌بندی اولیه تمام فیلدهای عددی
 function formatAllNumberInputs() {
     console.log('=== formatAllNumberInputs شروع ===');
-    const numberInputs = document.querySelectorAll('input[name*="amount"], input[name*="price"], input[name*="weight"], input[name*="rate"], input[name*="infrastructure"], input[name*="percentage"]');
+    const numberInputs = document.querySelectorAll('input[name*="amount"], input[name*="price"], input[name*="weight"], input[name*="rate"], input[name*="infrastructure"], input[name*="percentage"], input[name*="area"], input[name="area"], input[id*="area"], input[id*="price"]');
     
     console.log('تعداد فیلدهای پیدا شده:', numberInputs.length);
     
@@ -283,7 +283,7 @@ function formatAllNumberInputs() {
                     // برای فیلدهای مبلغ از formatNumber استفاده کن (چون ممکن است اعشار داشته باشند)
                     console.log('فیلد مبلغ - استفاده از formatNumber');
                     formatNumber(input);
-                } else if (input.name.includes('weight') || input.name.includes('rate') || input.name.includes('infrastructure') || input.name.includes('percentage')) {
+                } else if (input.name.includes('weight') || input.name.includes('rate') || input.name.includes('infrastructure') || input.name.includes('percentage') || input.name.includes('area') || input.id.includes('area') || input.id.includes('price')) {
                     // برای فیلدهای اعشاری از formatNumber استفاده کن
                     console.log('فیلد اعشاری - استفاده از formatNumber');
                     formatNumber(input);

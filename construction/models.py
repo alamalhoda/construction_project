@@ -111,7 +111,7 @@ class Unit(models.Model):
     """
     project = models.ForeignKey(Project, on_delete=models.CASCADE, verbose_name="پروژه")
     name = models.CharField(max_length=200, verbose_name="نام واحد")
-    area = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="متراژ")
+    area = models.DecimalField(max_digits=12, decimal_places=4, verbose_name="متراژ")
     price_per_meter = models.DecimalField(max_digits=15, decimal_places=2, verbose_name="قیمت هر متر")
     total_price = models.DecimalField(max_digits=15, decimal_places=2, verbose_name="قیمت نهایی")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
