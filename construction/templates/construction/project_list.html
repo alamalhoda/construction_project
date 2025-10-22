@@ -26,6 +26,7 @@
                                         <th>تاریخ پایان</th>
                                         <th>زیر بنای کل</th>
                                         <th>درصد پیمان ساخت</th>
+                                        <th>ضریب اصلاحی</th>
                                         <th>عملیات</th>
                                     </tr>
                                 </thead>
@@ -48,6 +49,7 @@
                                             <td>{{ project.end_date_shamsi|jformat:"%Y/%m/%d" }}</td>
                                             <td class="number-format">{{ project.total_infrastructure|floatformat:2 }} متر مربع</td>
                                             <td>{{ project.construction_contractor_percentage|floatformat:1 }}%</td>
+                                            <td class="correction-factor">{{ project.correction_factor|floatformat:10 }}</td>
                                             <td>
                                                 <div class="btn-group" role="group">
                                                     <a href="{{ project.get_absolute_url }}" class="btn btn-sm btn-outline-primary">

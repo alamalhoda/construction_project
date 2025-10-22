@@ -1,0 +1,74 @@
+/**
+ * استایل‌های مخصوص فیلدهای عددی
+ * جهت نمایش اعداد از چپ به راست
+ */
+
+/* فیلدهای عددی - جهت چپ به راست */
+input[name*="amount"],
+input[name*="price"],
+input[name*="weight"],
+input[name*="rate"],
+input[name*="infrastructure"],
+input[name*="percentage"],
+input[name*="correction_factor"] {
+    direction: ltr !important;
+    text-align: left !important;
+    font-family: 'Courier New', monospace !important;
+}
+
+/* فیلدهای عددی در حالت focus */
+input[name*="amount"]:focus,
+input[name*="price"]:focus,
+input[name*="weight"]:focus,
+input[name*="rate"]:focus,
+input[name*="infrastructure"]:focus,
+input[name*="percentage"]:focus,
+input[name*="correction_factor"]:focus {
+    direction: ltr !important;
+    text-align: left !important;
+}
+
+/* فیلدهای عددی در حالت hover */
+input[name*="amount"]:hover,
+input[name*="price"]:hover,
+input[name*="weight"]:hover,
+input[name*="rate"]:hover,
+input[name*="infrastructure"]:hover,
+input[name*="percentage"]:hover,
+input[name*="correction_factor"]:hover {
+    direction: ltr !important;
+    text-align: left !important;
+}
+
+/* فیلدهای عددی در حالت disabled */
+input[name*="amount"]:disabled,
+input[name*="price"]:disabled,
+input[name*="weight"]:disabled,
+input[name*="rate"]:disabled,
+input[name*="infrastructure"]:disabled,
+input[name*="percentage"]:disabled,
+input[name*="correction_factor"]:disabled {
+    direction: ltr !important;
+    text-align: left !important;
+}
+
+/* فیلدهای عددی در حالت readonly */
+input[name*="amount"]:read-only,
+input[name*="price"]:read-only,
+input[name*="weight"]:read-only,
+input[name*="rate"]:read-only,
+input[name*="infrastructure"]:read-only,
+input[name*="percentage"]:read-only,
+input[name*="correction_factor"]:read-only {
+    direction: ltr !important;
+    text-align: left !important;
+}
+
+/* استایل مخصوص ستون ضریب اصلاحی در جدول */
+.correction-factor {
+    direction: ltr !important;
+    text-align: left !important;
+    font-family: 'Courier New', monospace !important;
+    font-size: 0.9em;
+    color: #6c757d;
+}
