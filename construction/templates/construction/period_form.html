@@ -47,13 +47,21 @@
                             <div class="col-md-3">
                                 <div class="form-group">
                                     <label for="{{ form.year.id_for_label }}" class="form-label">سال شمسی <span class="text-danger">*</span></label>
-                                    {{ form.year }}
+                                    <input type="text" name="year" id="{{ form.year.id_for_label }}" class="form-control" 
+                                           placeholder="مثال: 1404" 
+                                           oninput="formatAmount(this)"
+                                           onblur="validateAmount(this)"
+                                           value="{{ form.year.value|default:'' }}">
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group">
                                     <label for="{{ form.month_number.id_for_label }}" class="form-label">شماره ماه <span class="text-danger">*</span></label>
-                                    {{ form.month_number }}
+                                    <input type="text" name="month_number" id="{{ form.month_number.id_for_label }}" class="form-control" 
+                                           placeholder="مثال: 7" 
+                                           oninput="formatAmount(this)"
+                                           onblur="validateAmount(this)"
+                                           value="{{ form.month_number.value|default:'' }}">
                                 </div>
                             </div>
                             <div class="col-md-3">
@@ -65,7 +73,11 @@
                             <div class="col-md-3">
                                 <div class="form-group">
                                     <label for="{{ form.weight.id_for_label }}" class="form-label">وزن دوره <span class="text-danger">*</span></label>
-                                    {{ form.weight }}
+                                    <input type="text" name="weight" id="{{ form.weight.id_for_label }}" class="form-control" 
+                                           placeholder="مثال: 1.0" 
+                                           oninput="formatNumber(this)"
+                                           onblur="validateNumber(this)"
+                                           value="{{ form.weight.value|default:'' }}">
                                 </div>
                             </div>
                         </div>

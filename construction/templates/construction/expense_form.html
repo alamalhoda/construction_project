@@ -57,7 +57,11 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="{{ form.amount.id_for_label }}" class="form-label">مبلغ (تومان) <span class="text-danger">*</span></label>
-                                    {{ form.amount }}
+                                    <input type="text" name="amount" id="{{ form.amount.id_for_label }}" class="form-control" 
+                                           placeholder="مثال: 1000000" 
+                                           oninput="formatNumber(this)"
+                                           onblur="validateNumber(this)"
+                                           value="{{ form.amount.value|default:'' }}">
                                 </div>
                             </div>
                         </div>
