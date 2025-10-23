@@ -76,8 +76,16 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="contract_date_shamsi" class="form-label">تاریخ قرارداد (شمسی)</label>
-                                    <input class="form-control" id="contract_date_shamsi" type="text" name="contract_date_shamsi"
-                                           placeholder="YYYY-MM-DD" value="{{ object.contract_date_shamsi|default:'' }}">
+                                    <div class="input-group" style="direction: ltr;">
+                                        <input class="form-control" id="contract_date_shamsi" type="text" name="contract_date_shamsi"
+                                               placeholder="YYYY-MM-DD" value="{{ object.contract_date_shamsi|default:'' }}">
+                                        <div class="input-group-append">
+                                            <button type="button" class="btn btn-outline-secondary" id="clear_contract_date" title="پاک کردن تاریخ">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <small class="form-text text-muted">می‌توانید تاریخ را انتخاب کنید یا پاک کنید</small>
                                 </div>
                             </div>
                         </div>

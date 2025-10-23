@@ -280,7 +280,7 @@ class ProfitCalculations(FinancialCalculationService):
         # محاسبه دوره متوسط
         average_period = weighted_sum / total_expenses if total_expenses > 0 else 0
         
-        return round(average_period, 2)
+        return round(average_period, 10)
     
     @staticmethod
     def calculate_profit_percentages(project_id: Optional[int] = None) -> Dict:
@@ -320,9 +320,9 @@ class ProfitCalculations(FinancialCalculationService):
         daily_profit_percentage = (annual_profit_percentage / 365) * correction_factor
         
         return {
-            'total_profit_percentage': round(total_profit_percentage, 2),
-            'annual_profit_percentage': round(annual_profit_percentage, 2),
-            'monthly_profit_percentage': round(monthly_profit_percentage, 2),
+            'total_profit_percentage': round(total_profit_percentage,10),
+            'annual_profit_percentage': round(annual_profit_percentage, 10),
+            'monthly_profit_percentage': round(monthly_profit_percentage, 10),
             'daily_profit_percentage': round(daily_profit_percentage, 8),  # 8 رقم اعشار برای دقت
             'average_construction_period': average_period,
             'correction_factor': correction_factor
@@ -456,10 +456,10 @@ class InvestorCalculations(FinancialCalculationService):
                 profit_index = profit_ratio_decimal / capital_ratio_decimal
         
         return {
-            'capital_ratio': round(capital_ratio, 2),
-            'profit_ratio': round(profit_ratio, 2),
-            'total_ratio': round(total_ratio, 2),
-            'profit_index': round(profit_index, 2),
+            'capital_ratio': round(capital_ratio, 10),
+            'profit_ratio': round(profit_ratio, 10),
+            'total_ratio': round(total_ratio, 10),
+            'profit_index': round(profit_index, 10),
             'capital_ratio_formatted': FinancialCalculationService.format_percentage(capital_ratio),
             'profit_ratio_formatted': FinancialCalculationService.format_percentage(profit_ratio),
             'total_ratio_formatted': FinancialCalculationService.format_percentage(total_ratio)
@@ -554,19 +554,19 @@ class InvestorCalculations(FinancialCalculationService):
         transfer_price_per_meter = actual_paid / total_area if total_area > 0 else 0
         
         return {
-            'ownership_area': round(ownership_area, 3),
+            'ownership_area': round(ownership_area, 10),
             'total_amount': total_amount,
             'net_principal': net_principal,
             'total_profit': total_profit,
-            'average_price_per_meter': round(average_price_per_meter, 2),
+            'average_price_per_meter': round(average_price_per_meter, 10),
             'units_count': units.count(),
             'units': units_list,
             'total_units_area': total_area,
             'total_units_price': total_units_price,
-            'ownership_percentage': round((ownership_area / total_area * 100), 2) if total_area > 0 else 0,
-            'final_payment': round(final_payment, 2),
-            'transfer_price_per_meter': round(transfer_price_per_meter, 2),
-            'actual_paid': round(actual_paid, 2)
+            'ownership_percentage': round((ownership_area / total_area * 100), 10) if total_area > 0 else 0,
+            'final_payment': round(final_payment, 10),
+            'transfer_price_per_meter': round(transfer_price_per_meter, 10),
+            'actual_paid': round(actual_paid, 10)
         }
     
     @staticmethod
@@ -617,7 +617,8 @@ class InvestorCalculations(FinancialCalculationService):
                         'grand_total': grand_total,
                         'capital_ratio': investor_ratios.get('capital_ratio', 0),
                         'profit_ratio': investor_ratios.get('profit_ratio', 0),
-                        'profit_index': investor_ratios.get('profit_index', 0)
+                        'profit_index': investor_ratios.get('profit_index', 0),
+                        'contract_date': str(investor.contract_date_shamsi) if investor.contract_date_shamsi else None
                     }
                     
                     # افزودن اطلاعات مالکیت (در صورت عدم خطا)

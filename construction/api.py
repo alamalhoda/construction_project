@@ -533,6 +533,40 @@ class InvestorViewSet(viewsets.ModelViewSet):
             }, status=500)
 
 
+class ComprehensiveAnalysisViewSet(viewsets.ViewSet):
+    """ViewSet for comprehensive project analysis"""
+    
+    permission_classes = [permissions.IsAuthenticated]
+    
+    @action(detail=False, methods=['get'])
+    def comprehensive_analysis(self, request):
+        """دریافت تحلیل جامع پروژه"""
+        try:
+            project_id = request.query_params.get('project_id')
+            
+            # تبدیل project_id به عدد در صورت وجود
+            if project_id:
+                project_id = int(project_id)
+            
+            # استفاده از تابع محاسباتی برای دریافت تحلیل جامع
+            from .calculations import ComprehensiveCalculations
+            analysis = ComprehensiveCalculations.get_comprehensive_project_analysis(project_id)
+            
+            if 'error' in analysis:
+                return Response(analysis, status=400)
+            
+            return Response(analysis)
+            
+        except ValueError:
+            return Response({
+                'error': 'شناسه پروژه نامعتبر است'
+            }, status=400)
+        except Exception as e:
+            return Response({
+                'error': f'خطا در دریافت تحلیل جامع: {str(e)}'
+            }, status=500)
+
+
 class PeriodViewSet(viewsets.ModelViewSet):
     """ViewSet for the Period class"""
 

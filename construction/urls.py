@@ -17,6 +17,7 @@ router.register("Project", api.ProjectViewSet)
 router.register("Sale", api.SaleViewSet)
 router.register("Transaction", api.TransactionViewSet)
 router.register("Unit", api.UnitViewSet)
+router.register("comprehensive", api.ComprehensiveAnalysisViewSet, basename="comprehensive")
 
 
 
