@@ -617,7 +617,8 @@ class InvestorCalculations(FinancialCalculationService):
                         'grand_total': grand_total,
                         'capital_ratio': investor_ratios.get('capital_ratio', 0),
                         'profit_ratio': investor_ratios.get('profit_ratio', 0),
-                        'profit_index': investor_ratios.get('profit_index', 0)
+                        'profit_index': investor_ratios.get('profit_index', 0),
+                        'contract_date': str(investor.contract_date_shamsi) if investor.contract_date_shamsi else None
                     }
                     
                     # افزودن اطلاعات مالکیت (در صورت عدم خطا)
