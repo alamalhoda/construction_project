@@ -921,6 +921,10 @@
                         <h4 id="totalUnitsPrice">-</h4>
                         <p>قیمت واحد انتخاب شده (تومان)</p>
                     </div>
+                    <div class="stat-card" style="border: 2px solid #6f42c1; background: linear-gradient(135deg, rgba(111, 66, 193, 0.1), rgba(102, 16, 242, 0.1));">
+                        <h4 id="averagePricePerMeter">-</h4>
+                        <p>میانگین وزنی قیمت هر متر (تومان/متر مربع)</p>
+                    </div>
                     <div class="stat-card" style="border: 2px solid #ff8c00; background: linear-gradient(135deg, rgba(255, 140, 0, 0.1), rgba(255, 165, 0, 0.1));">
                         <h4 id="ownershipArea">-</h4>
                         <p>مالکیت (متر مربع)</p>
@@ -1520,7 +1524,8 @@
                         ownershipPercentage: investorOwnership?.ownership_percentage || 0,
                         finalPayment: investorOwnership?.final_payment || 0,
                         transferPricePerMeter: investorOwnership?.transfer_price_per_meter || 0,
-                        totalUnitsPrice: investorOwnership?.total_units_price || 0
+                        totalUnitsPrice: investorOwnership?.total_units_price || 0,
+                        averagePricePerMeter: investorOwnership?.average_price_per_meter || 0
                     };
 
                     // مقایسه محاسبات قدیمی و جدید
@@ -1557,7 +1562,8 @@
                 { id: 'ownershipArea', value: serverCalculations.ownershipArea },
                 { id: 'finalPayment', value: serverCalculations.finalPayment },
                 { id: 'transferPricePerMeter', value: serverCalculations.transferPricePerMeter },
-                { id: 'totalUnitsPrice', value: serverCalculations.totalUnitsPrice }
+                { id: 'totalUnitsPrice', value: serverCalculations.totalUnitsPrice },
+                { id: 'averagePricePerMeter', value: serverCalculations.averagePricePerMeter }
             ];
 
             elements.forEach(element => {
@@ -1573,8 +1579,8 @@
                             maximumFractionDigits: 3
                         });
                         domElement.textContent = formatted;
-                    } else if (element.id === 'transferPricePerMeter') {
-                        // برای قیمت واگذار شده، فرمت عددی با جداکننده
+                    } else if (element.id === 'transferPricePerMeter' || element.id === 'averagePricePerMeter') {
+                        // برای قیمت واگذار شده و میانگین وزنی قیمت هر متر، فرمت عددی با جداکننده
                         domElement.textContent = formatNumberWithCommas(element.value);
                     } else if (element.id === 'finalPayment') {
                         // برای پرداخت نهایی، نمایش با علامت مثبت/منفی
