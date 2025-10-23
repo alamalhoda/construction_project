@@ -141,10 +141,27 @@
             // فعال‌سازی persian-datepicker برای فیلدهای تاریخ شمسی
             $('input[name*="shamsi"]').each(function() {
                 var fieldName = $(this).attr('name');
+                var $field = $(this);
                 
                 // تنظیم تاریخ امروز برای نمایش اولیه با اصلاح timezone
                 var today = new Date();
                 var todayForInit = new persianDate(today);
+                
+                // اگر فیلد خالی است و نام آن contract_date_shamsi است، مقدار پیش‌فرض نداشته باشد
+                var hasValue = $field.val() && $field.val().trim() !== '';
+                var isContractDate = fieldName === 'contract_date_shamsi';
+                
+                // تنظیم مقدار پیش‌فرض فقط برای فیلدهایی که contract_date_shamsi نیستند
+                if (!isContractDate) {
+                    // برای فیلدهای غیر از contract_date_shamsi
+                    $field.val(todayForInit.format('YYYY-MM-DD'));
+                } else if (isContractDate && hasValue) {
+                    // برای فیلد contract_date_shamsi که مقدار دارد، مقدار موجود را نگه دار
+                    // هیچ کاری نکن
+                } else {
+                    // برای فیلد contract_date_shamsi خالی، فیلد را خالی نگه دار
+                    $field.val('');
+                }
                 
                 $(this).pDatepicker({
                     format: 'YYYY-MM-DD',
@@ -187,7 +204,6 @@
                     viewMode: 'day',
                     minDate: false,
                     maxDate: false,
-                    defaultDate: todayForInit,
                     onSelect: function(unix) {
                         try {
                             // استفاده از persianDate برای تاریخ انتخابی
@@ -230,6 +246,12 @@
                 $(this).attr('dir', 'rtl');
                 $(this).attr('readonly', 'readonly');
                 $(this).attr('placeholder', 'انتخاب تاریخ شمسی...');
+            });
+            
+            // اضافه کردن عملکرد دکمه پاک کردن برای فیلد contract_date_shamsi
+            $('#clear_contract_date').on('click', function() {
+                $('#contract_date_shamsi').val('');
+                console.log('تاریخ قرارداد پاک شد');
             });
             
             // نمایش تاریخ امروز در کنسول برای بررسی
