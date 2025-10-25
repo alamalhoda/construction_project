@@ -205,6 +205,70 @@
             text-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
         }
 
+        /* استایل‌های ویژه برای بخش نمای کلی پروژه */
+        .stat-card.project-overview {
+            background: linear-gradient(135deg, var(--primary-color-light), rgba(102, 126, 234, 0.05));
+            border: 2px solid var(--primary-color);
+        }
+
+        .stat-card.project-overview h4 {
+            color: var(--primary-color);
+        }
+
+        .stat-card.project-overview.expense {
+            background: linear-gradient(135deg, var(--expense-color-light), rgba(220, 53, 69, 0.05));
+            border-color: var(--expense-color);
+        }
+
+        .stat-card.project-overview.expense h4 {
+            color: var(--expense-color);
+        }
+
+        .stat-card.project-overview.sales {
+            background: linear-gradient(135deg, var(--profit-color-light), rgba(33, 186, 69, 0.05));
+            border-color: var(--profit-color);
+        }
+
+        .stat-card.project-overview.sales h4 {
+            color: var(--profit-color);
+        }
+
+        .stat-card.project-overview.profit {
+            background: linear-gradient(135deg, var(--gold-color-light), rgba(255, 215, 0, 0.05));
+            border-color: var(--gold-color);
+        }
+
+        .stat-card.project-overview.profit h4 {
+            color: var(--gold-color);
+        }
+
+        .stat-card.project-overview.deposit {
+            background: linear-gradient(135deg, var(--deposit-color-light), rgba(33, 133, 208, 0.05));
+            border-color: var(--deposit-color);
+        }
+
+        .stat-card.project-overview.deposit h4 {
+            color: var(--deposit-color);
+        }
+
+        .stat-card.project-overview.withdrawal {
+            background: linear-gradient(135deg, var(--withdrawal-color-light), rgba(219, 40, 40, 0.05));
+            border-color: var(--withdrawal-color);
+        }
+
+        .stat-card.project-overview.withdrawal h4 {
+            color: var(--withdrawal-color);
+        }
+
+        .stat-card.project-overview.capital {
+            background: linear-gradient(135deg, var(--capital-color-light), rgba(170, 38, 255, 0.05));
+            border-color: var(--capital-color);
+        }
+
+        .stat-card.project-overview.capital h4 {
+            color: var(--capital-color);
+        }
+
         /* Transactions Table */
         .transactions-section {
             margin-top: 40px;
@@ -578,6 +642,107 @@
                 </div>
             </div>
 
+            <!-- Project Overview Section -->
+            <div class="stats-section" id="projectOverviewSection" style="display: none;">
+                <h3 class="section-title">
+                    <i class="fas fa-chart-pie"></i>
+                    نمای کلی پروژه
+                </h3>
+                <div class="stats-grid">
+                    <!-- Project Dates -->
+                    <div class="stat-card project-overview">
+                        <h4 id="projectStartDate">-</h4>
+                        <p>تاریخ شروع پروژه</p>
+                    </div>
+                    <div class="stat-card project-overview">
+                        <h4 id="projectEndDate">-</h4>
+                        <p>تاریخ پایان پروژه</p>
+                    </div>
+                    
+                    <!-- Financial Metrics -->
+                    <div class="stat-card project-overview deposit">
+                        <h4 id="projectTotalDeposits">-</h4>
+                        <p>کل آورده (تومان)</p>
+                    </div>
+                    <div class="stat-card project-overview withdrawal">
+                        <h4 id="projectTotalWithdrawals">-</h4>
+                        <p>کل برداشت (تومان)</p>
+                    </div>
+                    <div class="stat-card project-overview capital">
+                        <h4 id="projectNetCapital">-</h4>
+                        <p>کل سرمایه (تومان)</p>
+                    </div>
+                    <div class="stat-card project-overview expense">
+                        <h4 id="projectTotalExpenses">-</h4>
+                        <p>کل هزینه (تومان)</p>
+                    </div>
+                    <div class="stat-card project-overview sales">
+                        <h4 id="projectTotalSales">-</h4>
+                        <p>کل مرجوعی (تومان)</p>
+                    </div>
+                    <div class="stat-card project-overview expense">
+                        <h4 id="projectNetCost">-</h4>
+                        <p>کل هزینه خالص (تومان)</p>
+                    </div>
+                    
+                    <!-- Project Metrics -->
+                    <div class="stat-card project-overview">
+                        <h4 id="projectTotalUnits">-</h4>
+                        <p>تعداد واحدها</p>
+                    </div>
+                    <div class="stat-card project-overview">
+                        <h4 id="projectTotalInfrastructure">-</h4>
+                        <p>زیربنای کل (متر مربع)</p>
+                    </div>
+                    <div class="stat-card project-overview">
+                        <h4 id="projectTotalArea">-</h4>
+                        <p>مجموع متراژ مفید (متر مربع)</p>
+                    </div>
+                    <div class="stat-card project-overview">
+                        <h4 id="projectTotalInvestors">-</h4>
+                        <p>تعداد مشارکت‌کنندگان</p>
+                    </div>
+                    <div class="stat-card project-overview">
+                        <h4 id="projectOwnersCount">-</h4>
+                        <p>تعداد مالک</p>
+                    </div>
+                    <div class="stat-card project-overview">
+                        <h4 id="projectInvestorsCount">-</h4>
+                        <p>تعداد سرمایه‌گذار</p>
+                    </div>
+                    
+                    <!-- Valuation Metrics -->
+                    <div class="stat-card project-overview">
+                        <h4 id="projectTotalValue">-</h4>
+                        <p>ارزش کل ساختمان (تومان)</p>
+                    </div>
+                    <div class="stat-card project-overview">
+                        <h4 id="projectValuePerMeter">-</h4>
+                        <p>برآورد ارزش کل ساختمان (متری)</p>
+                    </div>
+                    <div class="stat-card project-overview expense">
+                        <h4 id="projectTotalCost">-</h4>
+                        <p>هزینه کل ساختمان (تومان)</p>
+                    </div>
+                    <div class="stat-card project-overview expense">
+                        <h4 id="projectCostPerMeter">-</h4>
+                        <p>برآورد هزینه کل ساختمان (متری)</p>
+                    </div>
+                    <div class="stat-card project-overview profit">
+                        <h4 id="projectTotalProfit">-</h4>
+                        <p>برآورد مبلغ کل سود ساختمان (تومان)</p>
+                    </div>
+                    <div class="stat-card project-overview profit">
+                        <h4 id="projectProfitPercentage">-</h4>
+                        <p>نرخ سود کل</p>
+                    </div>
+                    <div class="stat-card project-overview profit">
+                        <h4 id="projectAnnualProfitPercentage">-</h4>
+                        <p>نرخ سود سالانه</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- Financial Stats Section -->
             <div class="stats-section">
                 <h3 class="section-title">
@@ -732,6 +897,69 @@
             return types[type] || type;
         }
 
+        // Load comprehensive project data
+        async function loadComprehensiveData() {
+            try {
+                const response = await fetch('/api/v1/comprehensive/comprehensive_analysis/');
+                if (!response.ok) {
+                    console.warn('خطا در دریافت اطلاعات جامع پروژه:', response.status);
+                    return null;
+                }
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.warn('خطا در دریافت اطلاعات جامع پروژه:', error);
+                return null;
+            }
+        }
+
+        // Display comprehensive project data
+        function displayComprehensiveData(data) {
+            try {
+                // اطلاعات پروژه
+                const projectStats = data.project_statistics || {};
+                const costMetrics = data.cost_metrics || {};
+                const profitPercentages = data.profit_percentages || {};
+                const transactionStats = data.transaction_statistics || {};
+                const projectInfo = projectStats.project || {};
+
+                // تاریخ‌های پروژه
+                document.getElementById('projectStartDate').textContent = projectInfo.start_date_shamsi || '-';
+                document.getElementById('projectEndDate').textContent = projectInfo.end_date_shamsi || '-';
+
+                // آمار مالی
+                document.getElementById('projectTotalDeposits').textContent = formatNumber(transactionStats.total_deposits || 0);
+                document.getElementById('projectTotalWithdrawals').textContent = formatNumber(Math.abs(transactionStats.total_withdrawals || 0));
+                document.getElementById('projectNetCapital').textContent = formatNumber(transactionStats.net_capital || 0);
+                document.getElementById('projectTotalExpenses').textContent = formatNumber(costMetrics.total_expenses || 0);
+                document.getElementById('projectTotalSales').textContent = formatNumber(costMetrics.total_sales || 0);
+                document.getElementById('projectNetCost').textContent = formatNumber(costMetrics.final_cost || 0);
+
+                // آمار پروژه
+                const unitsStats = projectStats.units_statistics || {};
+                const investorStats = projectStats.investor_statistics || {};
+                document.getElementById('projectTotalUnits').textContent = unitsStats.total_units || 0;
+                document.getElementById('projectTotalInfrastructure').textContent = formatNumber(projectInfo.total_infrastructure || 0);
+                document.getElementById('projectTotalArea').textContent = formatNumber(unitsStats.total_area || 0);
+                document.getElementById('projectTotalInvestors').textContent = investorStats.total_investors || 0;
+                document.getElementById('projectOwnersCount').textContent = investorStats.owners_count || 0;
+                document.getElementById('projectInvestorsCount').textContent = investorStats.investors_count || 0;
+
+                // آمار ارزش‌گذاری
+                document.getElementById('projectTotalValue').textContent = formatNumber(costMetrics.total_value || 0);
+                document.getElementById('projectValuePerMeter').textContent = formatNumber(costMetrics.value_per_meter || 0);
+                document.getElementById('projectTotalCost').textContent = formatNumber(costMetrics.final_cost || 0);
+                document.getElementById('projectCostPerMeter').textContent = formatNumber(costMetrics.net_cost_per_meter || 0);
+                document.getElementById('projectTotalProfit').textContent = formatNumber(costMetrics.final_profit_amount || 0);
+                document.getElementById('projectProfitPercentage').textContent = (profitPercentages.total_profit_percentage || 0).toFixed(2) + '%';
+                document.getElementById('projectAnnualProfitPercentage').textContent = (profitPercentages.annual_profit_percentage || 0).toFixed(2) + '%';
+
+                console.log('اطلاعات جامع پروژه بارگذاری شد');
+            } catch (error) {
+                console.error('خطا در نمایش اطلاعات جامع پروژه:', error);
+            }
+        }
+
         // Load investor data
         async function loadInvestorData() {
             const investorId = getInvestorIdFromURL();
@@ -748,8 +976,9 @@
             }
 
             try {
-                // دریافت نام پروژه
+                // دریافت نام پروژه و اطلاعات جامع
                 await fetchProjectName();
+                const comprehensiveData = await loadComprehensiveData();
                 
                 // ادامه بارگذاری داده‌ها
                 // Fetch investor data
@@ -970,6 +1199,12 @@
                             <td>${t.description || '-'}</td>
                         </tr>
                     `).join('');
+                }
+
+                // نمایش اطلاعات جامع پروژه
+                if (comprehensiveData) {
+                    displayComprehensiveData(comprehensiveData);
+                    document.getElementById('projectOverviewSection').style.display = 'block';
                 }
 
                 // Show main content
