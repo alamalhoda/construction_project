@@ -769,6 +769,21 @@ class PeriodViewSet(viewsets.ModelViewSet):
                     'cumulative_fund_balance': fund_balance
                 })
 
+            # محاسبه هزینه هر متر خالص و ناخالص
+            # دریافت آمار واحدها
+            units_stats = models.Unit.objects.filter(project=active_project).aggregate(
+                total_area=Sum('area'),
+                total_price=Sum('total_price')
+            )
+            
+            total_area = float(units_stats['total_area'] or 0)
+            total_infrastructure = float(active_project.total_infrastructure)
+            final_cost = cumulative_expenses - cumulative_sales
+            
+            # محاسبه هزینه هر متر
+            cost_per_meter_net = final_cost / total_area if total_area > 0 else 0
+            cost_per_meter_gross = final_cost / total_infrastructure if total_infrastructure > 0 else 0
+
             # محاسبه خلاصه کلی
             totals = {
                 'total_deposits': cumulative_deposits,
@@ -778,7 +793,9 @@ class PeriodViewSet(viewsets.ModelViewSet):
                 'total_expenses': cumulative_expenses,
                 'total_sales': cumulative_sales,
                 'final_fund_balance': final_fund_balance,
-                'total_periods': periods.count()
+                'total_periods': periods.count(),
+                'cost_per_meter_net': cost_per_meter_net,
+                'cost_per_meter_gross': cost_per_meter_gross
             }
 
             return Response({
