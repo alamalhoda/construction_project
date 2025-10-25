@@ -815,22 +815,40 @@
             font-weight: bold;
         }
 
-        .summary-table th:nth-child(7), /* نسبت سرمایه به سرمایه کل */
+        .summary-table th:nth-child(7), /* متراژ مالکیت */
         .summary-table td:nth-child(7) {
+            background-color: var(--ownership-color-light);
+            border-left: 3px solid var(--ownership-color);
+        }
+
+        .summary-table th:nth-child(8), /* پرداخت نهایی */
+        .summary-table td:nth-child(8) {
+            background-color: var(--payment-color-light);
+            border-left: 3px solid var(--payment-color);
+        }
+
+        .summary-table th:nth-child(9), /* قیمت واگذاری/متر */
+        .summary-table td:nth-child(9) {
+            background-color: var(--price-color-light);
+            border-left: 3px solid var(--price-color);
+        }
+
+        .summary-table th:nth-child(10), /* شاخص نفع */
+        .summary-table td:nth-child(10) {
+            background-color: rgba(255, 152, 0, 0.1);
+            border-left: 3px solid #ff9800;
+        }
+
+        .summary-table th:nth-child(11), /* نسبت سرمایه به سرمایه کل */
+        .summary-table td:nth-child(11) {
             background-color: var(--capital-color-light);
             border-left: 3px solid var(--capital-color);
         }
 
-        .summary-table th:nth-child(8), /* نسبت سود به سود کل */
-        .summary-table td:nth-child(8) {
+        .summary-table th:nth-child(12), /* نسبت سود به سود کل */
+        .summary-table td:nth-child(12) {
             background-color: var(--profit-color-light);
             border-left: 3px solid var(--profit-color);
-        }
-
-        .summary-table th:nth-child(9), /* شاخص نفع */
-        .summary-table td:nth-child(9) {
-            background-color: rgba(255, 152, 0, 0.1);
-            border-left: 3px solid #ff9800;
         }
 
         /* رنگ‌بندی ردیف خلاصه */
@@ -2241,12 +2259,12 @@
                                 <th class="capital-header"><i class="fas fa-wallet"></i> سرمایه موجود</th>
                                 <th class="profit-header"><i class="fas fa-chart-line"></i> سود مشارکت</th>
                                 <th class="total-header"><i class="fas fa-calculator"></i> مجموع (سرمایه+سود)</th>
-                                <th>نسبت سرمایه به سرمایه کل</th>
-                                <th>نسبت سود به سود کل</th>
-                                <th>شاخص نفع</th>
                                 <th class="ownership-header"><i class="fas fa-ruler-combined"></i> متراژ مالکیت (m²)</th>
                                 <th class="payment-header"><i class="fas fa-hand-holding-usd"></i> پرداخت نهایی</th>
                                 <th class="price-header"><i class="fas fa-tags"></i> قیمت واگذاری/متر</th>
+                                <th>شاخص نفع</th>
+                                <th>نسبت سرمایه به سرمایه کل</th>
+                                <th>نسبت سود به سود کل</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -2276,12 +2294,12 @@
                             <td>${investor.net_principal.toLocaleString('en-US')}</td>
                             <td>${Math.round(investor.total_profit).toLocaleString('en-US')}</td>
                             <td>${Math.round(investor.grand_total).toLocaleString('en-US')}</td>
-                            <td class="cell-capital-ratio">${capitalRatio}</td>
-                            <td class="cell-profit-ratio">${profitToTotalRatio}%</td>
-                            <td class="cell-profit-index">${profitIndex}</td>
                             <td class="cell-ownership-area">${ownershipArea.toLocaleString('en-US', {minimumFractionDigits: 3, maximumFractionDigits: 3})}</td>
                             <td class="${paymentClass}">${paymentSign}${Math.round(finalPayment).toLocaleString('en-US')}</td>
                             <td class="cell-price">${Math.round(transferPricePerMeter).toLocaleString('en-US')}</td>
+                            <td class="cell-profit-index">${profitIndex}</td>
+                            <td class="cell-capital-ratio">${capitalRatio}</td>
+                            <td class="cell-profit-ratio">${profitToTotalRatio}%</td>
                         </tr>
                     `;
                 });
@@ -2309,12 +2327,12 @@
                         <td>${summaryData.reduce((sum, inv) => sum + inv.net_principal, 0).toLocaleString('en-US')}</td>
                         <td>${Math.round(summaryData.reduce((sum, inv) => sum + inv.total_profit, 0)).toLocaleString('en-US')}</td>
                         <td>${Math.round(summaryData.reduce((sum, inv) => sum + inv.grand_total, 0)).toLocaleString('en-US')}</td>
-                        <td class="cell-total-percentage">100.00%</td>
-                        <td class="cell-profit-ratio">100.00%</td>
-                        <td class="cell-profit-index"></td>
                         <td class="cell-ownership-area">${totalOwnershipArea.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                         <td class="${totalPaymentClass}">${totalPaymentSign}${Math.round(totalFinalPayment).toLocaleString('en-US')}</td>
                         <td class="cell-muted">-</td>
+                        <td class="cell-profit-index"></td>
+                        <td class="cell-total-percentage">100.00%</td>
+                        <td class="cell-profit-ratio">100.00%</td>
                     </tr>
                 `;
 
@@ -2376,12 +2394,12 @@
                     'سرمایه موجود (تومان)',
                     'سود مشارکت (تومان)',
                     'مجموع (سرمایه+سود) (تومان)',
-                    'نسبت سرمایه به سرمایه کل (%)',
-                    'نسبت سود به سود کل (%)',
-                    'شاخص نفع',
                     'متراژ مالکیت (m²)',
                     'پرداخت نهایی (تومان)',
-                    'قیمت واگذاری/متر (تومان)'
+                    'قیمت واگذاری/متر (تومان)',
+                    'شاخص نفع',
+                    'نسبت سرمایه به سرمایه کل (%)',
+                    'نسبت سود به سود کل (%)'
                 ];
 
                 // ایجاد داده‌های جدول
@@ -2406,12 +2424,12 @@
                         investor.net_principal,
                         Math.round(investor.total_profit),
                         Math.round(investor.grand_total),
-                        capitalRatio,
-                        profitToTotalRatio,
-                        profitIndex,
                         ownershipArea.toFixed(2),
                         Math.round(finalPayment),
-                        Math.round(transferPricePerMeter)
+                        Math.round(transferPricePerMeter),
+                        profitIndex,
+                        capitalRatio,
+                        profitToTotalRatio
                     ]);
                 });
 
@@ -2433,12 +2451,12 @@
                     summaryData.reduce((sum, inv) => sum + inv.net_principal, 0),
                     Math.round(summaryData.reduce((sum, inv) => sum + inv.total_profit, 0)),
                     Math.round(summaryData.reduce((sum, inv) => sum + inv.grand_total, 0)),
-                    '100.00',
-                    '100.00',
-                    '',
                     totalOwnershipAreaExcel.toFixed(2),
                     Math.round(totalFinalPaymentExcel),
-                    '-'
+                    '-',
+                    '',
+                    '100.00',
+                    '100.00'
                 ]);
 
                 // ایجاد worksheet
@@ -2452,12 +2470,12 @@
                     { wch: 20 }, // سرمایه موجود
                     { wch: 20 }, // سود مشارکت
                     { wch: 22 }, // مجموع
-                    { wch: 25 }, // نسبت سرمایه
-                    { wch: 22 }, // نسبت سود
-                    { wch: 15 }, // شاخص نفع
                     { wch: 20 }, // متراژ مالکیت
                     { wch: 20 }, // پرداخت نهایی
-                    { wch: 22 }  // قیمت واگذاری/متر
+                    { wch: 22 }, // قیمت واگذاری/متر
+                    { wch: 15 }, // شاخص نفع
+                    { wch: 25 }, // نسبت سرمایه
+                    { wch: 22 }  // نسبت سود
                 ];
                 ws['!cols'] = colWidths;
 
@@ -2489,9 +2507,12 @@
                     { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: colors.capital } } }, // سرمایه موجود
                     { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: colors.profit } } }, // سود مشارکت
                     { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: colors.total } } }, // مجموع
+                    { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "8E24AA" } } }, // متراژ مالکیت
+                    { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "FF5722" } } }, // پرداخت نهایی
+                    { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "607D8B" } } }, // قیمت واگذاری/متر
+                    { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: colors.profitIndex } } }, // شاخص نفع
                     { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: colors.capital } } }, // نسبت سرمایه
-                    { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: colors.profit } } }, // نسبت سود
-                    { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: colors.profitIndex } } } // شاخص نفع
+                    { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: colors.profit } } } // نسبت سود
                 ];
 
                 // اعمال استایل به هدرها
@@ -2514,16 +2535,16 @@
                         // تنظیم فرمت اعداد برای ستون‌های عددی
                         if (col >= 1 && col <= 5) { // ستون‌های 1-5 (آورده تا مجموع)
                             ws[cellAddress].z = '#,##0'; // فرمت عدد با جداکننده هزارگان
-                        } else if (col >= 6 && col <= 7) { // ستون‌های 6-7 (نسبت‌ها)
+                        } else if (col === 6) { // ستون 6 (متراژ مالکیت)
                             ws[cellAddress].z = '#,##0.00'; // فرمت اعشاری با 2 رقم اعشار
-                        } else if (col === 8) { // ستون 8 (شاخص نفع)
-                            ws[cellAddress].z = '#,##0.00'; // فرمت اعشاری با 2 رقم اعشار
-                        } else if (col === 9) { // ستون 9 (متراژ مالکیت)
-                            ws[cellAddress].z = '#,##0.00'; // فرمت اعشاری با 2 رقم اعشار
-                        } else if (col === 10) { // ستون 10 (پرداخت نهایی)
+                        } else if (col === 7) { // ستون 7 (پرداخت نهایی)
                             ws[cellAddress].z = '#,##0'; // فرمت عدد با جداکننده هزارگان
-                        } else if (col === 11) { // ستون 11 (قیمت واگذاری/متر)
+                        } else if (col === 8) { // ستون 8 (قیمت واگذاری/متر)
                             ws[cellAddress].z = '#,##0'; // فرمت عدد با جداکننده هزارگان
+                        } else if (col === 9) { // ستون 9 (شاخص نفع)
+                            ws[cellAddress].z = '#,##0.00'; // فرمت اعشاری با 2 رقم اعشار
+                        } else if (col >= 10 && col <= 11) { // ستون‌های 10-11 (نسبت‌ها)
+                            ws[cellAddress].z = '#,##0.00'; // فرمت اعشاری با 2 رقم اعشار
                         }
                         
                         // تنظیم رنگ پس‌زمینه برای سلول‌های داده
@@ -2533,20 +2554,26 @@
                         else if (col === 3) backgroundColor = lightColors.capital; // سرمایه موجود
                         else if (col === 4) backgroundColor = lightColors.profit; // سود مشارکت
                         else if (col === 5) backgroundColor = lightColors.total; // مجموع
-                        else if (col === 6) backgroundColor = lightColors.capital; // نسبت سرمایه
-                        else if (col === 7) backgroundColor = lightColors.profit; // نسبت سود
-                        else if (col === 8) backgroundColor = lightColors.profitIndex; // شاخص نفع
+                        else if (col === 6) backgroundColor = "F3E5F5"; // متراژ مالکیت
+                        else if (col === 7) backgroundColor = "FFEBEE"; // پرداخت نهایی
+                        else if (col === 8) backgroundColor = "ECEFF1"; // قیمت واگذاری/متر
+                        else if (col === 9) backgroundColor = lightColors.profitIndex; // شاخص نفع
+                        else if (col === 10) backgroundColor = lightColors.capital; // نسبت سرمایه
+                        else if (col === 11) backgroundColor = lightColors.profit; // نسبت سود
                         
                         // تنظیم رنگ متن برای خوانایی بهتر
                         let textColor = "";
-                        if (col >= 1 && col <= 8) {
+                        if (col >= 1 && col <= 11) {
                             textColor = colors[col === 1 ? 'deposit' : 
                                             col === 2 ? 'withdrawal' : 
                                             col === 3 ? 'capital' : 
                                             col === 4 ? 'profit' : 
                                             col === 5 ? 'total' : 
-                                            col === 6 ? 'capital' : 
-                                            col === 7 ? 'profit' : 'profitIndex'];
+                                            col === 6 ? '8E24AA' : 
+                                            col === 7 ? 'FF5722' : 
+                                            col === 8 ? '607D8B' : 
+                                            col === 9 ? 'profitIndex' : 
+                                            col === 10 ? 'capital' : 'profit'];
                         }
                         
                         if (backgroundColor) {
@@ -2577,12 +2604,16 @@
                         // تنظیم فرمت اعداد برای ردیف مجموع
                         if (col >= 1 && col <= 5) {
                             ws[cellAddress].z = '#,##0';
-                        } else if (col >= 6 && col <= 7) {
+                        } else if (col === 6) { // متراژ مالکیت
                             ws[cellAddress].z = '#,##0.00';
-                        } else if (col === 9) { // متراژ مالکیت
-                            ws[cellAddress].z = '#,##0.00';
-                        } else if (col === 10) { // پرداخت نهایی
+                        } else if (col === 7) { // پرداخت نهایی
                             ws[cellAddress].z = '#,##0';
+                        } else if (col === 8) { // قیمت واگذاری/متر
+                            ws[cellAddress].z = '#,##0';
+                        } else if (col === 9) { // شاخص نفع
+                            ws[cellAddress].z = '#,##0.00';
+                        } else if (col >= 10 && col <= 11) { // نسبت‌ها
+                            ws[cellAddress].z = '#,##0.00';
                         }
                     }
                 }

@@ -13,7 +13,7 @@ input[name*="percentage"],
 input[name*="correction_factor"] {
     direction: ltr !important;
     text-align: left !important;
-    font-family: 'Courier New', monospace !important;
+    /* font-family: 'Courier New', monospace !important; */
 }
 
 /* فیلدهای عددی در حالت focus */
@@ -68,7 +68,7 @@ input[name*="correction_factor"]:read-only {
 .correction-factor {
     direction: ltr !important;
     text-align: left !important;
-    font-family: 'Courier New', monospace !important;
+    /* font-family: 'Courier New', monospace !important; */
     font-size: 0.9em;
     color: #6c757d;
 }
