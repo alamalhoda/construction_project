@@ -839,7 +839,7 @@
                                 <i class="ui green circle icon"></i>سود مشارکت
                             </div>
                             <div class="item" data-value="principal_transactions">
-                                <i class="ui orange circle icon"></i>آورده و برداشت
+                                <i class="ui red circle icon"></i><i class="ui blue circle icon"></i>آورده و برداشت
                             </div>
                         </div>
                     </div>
@@ -1502,7 +1502,7 @@
             
             // پیدا کردن دوره جاری برای هایلایت کردن
             let currentPeriodId = null;
-            if (menuId.includes('Period')) {
+            if (menuId.includes('Period') || menuId === 'periodFilterMenu') {
                 const today = new Date();
                 const pDate = new persianDate(today);
                 let todayJalali = pDate.format('YYYY-MM-DD');
@@ -1528,7 +1528,7 @@
                 let classes = ['item'];
                 
                 // اضافه کردن کلاس برای رنگ‌بندی یکی در میان برای دوره‌ها
-                if (menuId.includes('Period')) {
+                if (menuId.includes('Period') || menuId === 'periodFilterMenu') {
                     classes.push(index % 2 === 0 ? 'period-even' : 'period-odd');
                     
                     // هایلایت کردن دوره جاری
