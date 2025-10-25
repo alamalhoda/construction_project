@@ -171,6 +171,8 @@
         .summary-card.expenses { border-color: var(--expense-color); }
         .summary-card.sales { border-color: var(--refund-color); }
         .summary-card.balance { border-color: var(--balance-color); }
+        .summary-card.cost-per-meter-net { border-color: var(--expense-color); }
+        .summary-card.cost-per-meter-gross { border-color: var(--expense-color); }
 
         .summary-card h4 {
             font-size: 1rem;
@@ -199,6 +201,8 @@
         .summary-card.expenses .value { color: var(--expense-color); }
         .summary-card.sales .value { color: var(--refund-color); }
         .summary-card.balance .value { color: var(--balance-color); }
+        .summary-card.cost-per-meter-net .value { color: var(--expense-color); }
+        .summary-card.cost-per-meter-gross .value { color: var(--expense-color); }
 
         .summary-card .label {
             font-size: 0.95rem;
@@ -330,6 +334,13 @@
         }
 
         /* Responsive */
+        @media (max-width: 1200px) {
+            .summary-cards {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 25px;
+            }
+        }
+
         @media (max-width: 992px) {
             .summary-cards {
                 grid-template-columns: repeat(2, 1fr);
@@ -474,6 +485,16 @@
                 <h4><i class="fas fa-calendar-check"></i> تعداد ماه</h4>
                 <div class="value" id="totalPeriods" style="color: var(--info-color);">...</div>
                 <div class="label">ماه</div>
+            </div>
+            <div class="summary-card cost-per-meter-net">
+                <h4><i class="fas fa-ruler-combined"></i> هزینه هر متر خالص</h4>
+                <div class="value" id="costPerMeterNet">...</div>
+                <div class="label">تومان/متر مربع</div>
+            </div>
+            <div class="summary-card cost-per-meter-gross">
+                <h4><i class="fas fa-building"></i> هزینه هر متر ناخالص</h4>
+                <div class="value" id="costPerMeterGross">...</div>
+                <div class="label">تومان/متر مربع</div>
             </div>
         </div>
 
@@ -630,7 +651,9 @@
                     'سود تجمعی (تومان)',
                     'هزینه تجمعی (تومان)',
                     'فروش/مرجوعی تجمعی (تومان)',
-                    'مانده تجمعی (تومان)'
+                    'مانده تجمعی (تومان)',
+                    'هزینه هر متر خالص (تومان/متر مربع)',
+                    'هزینه هر متر ناخالص (تومان/متر مربع)'
                 ]);
 
                 // داده‌های دوره‌ها
@@ -651,7 +674,9 @@
                         Math.round(period.cumulative_profits),
                         Math.round(period.cumulative_expenses),
                         Math.round(period.cumulative_sales),
-                        Math.round(period.cumulative_fund_balance)
+                        Math.round(period.cumulative_fund_balance),
+                        Math.round(result.totals.cost_per_meter_net),
+                        Math.round(result.totals.cost_per_meter_gross)
                     ]);
                 });
 
@@ -676,7 +701,9 @@
                     { wch: 18 }, // سود تجمعی
                     { wch: 18 }, // هزینه تجمعی
                     { wch: 18 }, // فروش/مرجوعی تجمعی
-                    { wch: 20 }  // مانده تجمعی
+                    { wch: 20 }, // مانده تجمعی
+                    { wch: 25 }, // هزینه هر متر خالص
+                    { wch: 25 }  // هزینه هر متر ناخالص
                 ];
 
                 // اضافه کردن worksheet به workbook
@@ -733,6 +760,8 @@
             document.getElementById('totalSales').textContent = formatNumber(totals.total_sales);
             document.getElementById('finalBalance').textContent = formatNumber(totals.final_fund_balance);
             document.getElementById('totalPeriods').textContent = totals.total_periods;
+            document.getElementById('costPerMeterNet').textContent = formatNumber(totals.cost_per_meter_net);
+            document.getElementById('costPerMeterGross').textContent = formatNumber(totals.cost_per_meter_gross);
         }
 
         // Display period table

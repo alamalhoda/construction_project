@@ -1049,7 +1049,6 @@
 
         let selectedInvestor = null;
         let charts = {}; // نگهداری نمودارها
-        let globalStatistics = null; // آمار کلی از API
         
         // کش داده‌ها برای جلوگیری از فراخوانی تکراری API
         let cachedInvestorData = {}; // کش اطلاعات مشارکت‌کنندگان
@@ -1384,96 +1383,6 @@
                 });
         }
 
-        // سیستم مقایسه محاسبات - ذخیره محاسبات قدیمی برای مقایسه
-        let backupCalculations = {
-            totalPrincipal: 0,
-            totalWithdrawal: 0,
-            totalProfit: 0,
-            netPrincipal: 0,
-            totalBalance: 0,
-            capitalRatio: '0.00%',
-            profitRatioToTotal: '0.00%',
-            totalRatioToGrandTotal: '0.00%',
-            profitIndex: '0.00'
-        };
-
-        // تابع مقایسه محاسبات قدیمی و جدید
-        function compareCalculations(oldCalc, newCalc, investorName) {
-            // مقایسه محاسبات (لاگ‌ها حذف شده برای بهبود عملکرد)
-            
-            const comparisons = [
-                { name: 'آورده کل', old: oldCalc.totalPrincipal, new: newCalc.totalPrincipal },
-                { name: 'برداشت کل', old: oldCalc.totalWithdrawal, new: newCalc.totalWithdrawal },
-                { name: 'سود کل', old: oldCalc.totalProfit, new: newCalc.totalProfit },
-                { name: 'سرمایه خالص', old: oldCalc.netPrincipal, new: newCalc.netPrincipal },
-                { name: 'موجودی کل', old: oldCalc.totalBalance, new: newCalc.totalBalance },
-                { name: 'نسبت سرمایه', old: oldCalc.capitalRatio, new: newCalc.capitalRatio },
-                { name: 'نسبت سود به کل', old: oldCalc.profitRatioToTotal, new: newCalc.profitRatioToTotal },
-                { name: 'نسبت کل به کل', old: oldCalc.totalRatioToGrandTotal, new: newCalc.totalRatioToGrandTotal },
-                { name: 'شاخص نفع', old: oldCalc.profitIndex, new: newCalc.profitIndex }
-            ];
-            
-            let differences = [];
-            comparisons.forEach(comp => {
-                const oldVal = parseFloat(comp.old) || 0;
-                const newVal = parseFloat(comp.new) || 0;
-                const diff = Math.abs(oldVal - newVal);
-                const percentDiff = oldVal !== 0 ? (diff / Math.abs(oldVal)) * 100 : 0;
-                
-                if (diff > 0.01 || percentDiff > 0.1) { // تفاوت بیش از 0.01 یا 0.1%
-                    differences.push({
-                        name: comp.name,
-                        old: comp.old,
-                        new: comp.new,
-                        diff: diff.toFixed(2),
-                        percentDiff: percentDiff.toFixed(2)
-                    });
-                }
-            });
-            
-            if (differences.length > 0) {
-                // نمایش هشدار بصری
-                showComparisonAlert(differences, investorName);
-            }
-        }
-
-        // نمایش هشدار مقایسه
-        function showComparisonAlert(differences, investorName) {
-            const alertDiv = document.createElement('div');
-            alertDiv.className = 'comparison-alert';
-            alertDiv.innerHTML = `
-                <div class="alert-content">
-                    <h4>⚠️ تفاوت در محاسبات ${investorName}</h4>
-                    <ul>
-                        ${differences.map(d => `<li><strong>${d.name}:</strong> ${d.old} → ${d.new} (تفاوت: ${d.diff}, ${d.percentDiff}%)</li>`).join('')}
-                    </ul>
-                    <button onclick="this.parentElement.parentElement.remove()">بستن</button>
-                </div>
-            `;
-            
-            alertDiv.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: #fff3cd;
-                border: 1px solid #ffeaa7;
-                border-radius: 8px;
-                padding: 15px;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-                z-index: 10000;
-                max-width: 400px;
-                font-family: 'Vazir', 'Tahoma', 'Arial', sans-serif;
-            `;
-            
-            document.body.appendChild(alertDiv);
-            
-            // حذف خودکار بعد از 10 ثانیه
-            setTimeout(() => {
-                if (alertDiv.parentNode) {
-                    alertDiv.remove();
-                }
-            }, 10000);
-        }
 
         // تابع جدید: دریافت محاسبات از سرور
         async function updateInvestorStatsFromServer(investorId, investorName) {
@@ -1528,8 +1437,6 @@
                         averagePricePerMeter: investorOwnership?.average_price_per_meter || 0
                     };
 
-                    // مقایسه محاسبات قدیمی و جدید
-                    compareCalculations(backupCalculations, serverCalculations, investorName);
 
                     // به‌روزرسانی UI با مقادیر سرور
                     updateUIWithServerData(serverCalculations);
@@ -1571,7 +1478,13 @@
                 if (domElement) {
                     if (element.id.includes('Ratio') || element.id.includes('Index')) {
                         // برای نسبت‌ها و شاخص‌ها، مقدار را مستقیماً نمایش دهیم
-                        domElement.textContent = element.value;
+                        if (element.id === 'profitIndex') {
+                            // شاخص نفع را تا ۲ رقم اعشار فرمت کن
+                            const formatted = parseFloat(element.value).toFixed(2);
+                            domElement.textContent = formatted;
+                        } else {
+                            domElement.textContent = element.value;
+                        }
                     } else if (element.id === 'ownershipArea') {
                         // برای مالکیت (متر مربع)، فرمت اعشار با 3 رقم
                         const formatted = parseFloat(element.value).toLocaleString('en-US', {
@@ -1681,8 +1594,8 @@
                 document.getElementById('unitArea').textContent = '0';
             }
             
-            // انجام محاسبات مالی
-            await performFinancialCalculations(investorId, investorTransactions);
+            // دریافت محاسبات از سرور
+            await updateInvestorStatsFromServer(investorId, investorId);
         }
         
         // تابع کمکی برای به‌روزرسانی UI با اطلاعات مشارکت‌کننده
@@ -1712,115 +1625,6 @@
             }
         }
 
-        // ادامه تابع updateInvestorInfoWithData - محاسبات مالی
-        async function performFinancialCalculations(investorId, investorTransactions) {
-            // محاسبه اطلاعات مالی - روش قدیمی (برای مقایسه)
-            const principalData = getTransactionsByType(investorTransactions, 'principal_deposit');
-            const withdrawalData = getTransactionsByType(investorTransactions, 'principal_withdrawal');
-            const profitData = getTransactionsByType(investorTransactions, 'profit_accrual');
-
-            const totalPrincipal = principalData.reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
-            const totalWithdrawal = withdrawalData.reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
-            const totalProfit = profitData.reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
-            
-            const netPrincipal = totalPrincipal + totalWithdrawal; // withdrawal معمولاً منفی است
-            const totalBalance = netPrincipal + totalProfit;
-
-            // ذخیره محاسبات قدیمی برای مقایسه (حالا که داده‌ها در تومان هستند، تقسیم بر 10 نمی‌کنیم)
-            backupCalculations = {
-                totalPrincipal: totalPrincipal,
-                totalWithdrawal: Math.abs(totalWithdrawal),
-                totalProfit: totalProfit,
-                netPrincipal: netPrincipal,
-                totalBalance: totalBalance,
-                capitalRatio: '0.00%',
-                profitRatioToTotal: '0.00%',
-                totalRatioToGrandTotal: '0.00%',
-                profitIndex: '0.00'
-            };
-            // محاسبه نسبت سود به آورده - موقتاً کامنت شده
-            // const profitRatio = netPrincipal > 0 ? ((totalProfit / netPrincipal) * 100).toFixed(2) : '0.00';
-            
-            // محاسبه نسبت سرمایه فرد به سرمایه کل (از API آمار کلی)
-            let capitalRatio = '0.00%';
-            if (globalStatistics && globalStatistics.net_principal > 0) {
-                const ratio = (netPrincipal / globalStatistics.net_principal) * 100;
-                capitalRatio = ratio.toFixed(2) + '%';
-            }
-            
-            // محاسبه نسبت سود فرد به سود کل (از API آمار کلی)
-            let profitRatioToTotal = '0.00%';
-            if (globalStatistics && globalStatistics.total_profits > 0) {
-                const ratio = (totalProfit / globalStatistics.total_profits) * 100;
-                profitRatioToTotal = ratio.toFixed(2) + '%';
-            }
-            
-            // محاسبه نسبت (سرمایه+سود) فرد به (سرمایه+سود) کل (از API آمار کلی)
-            let totalRatioToGrandTotal = '0.00%';
-            if (globalStatistics && globalStatistics.grand_total > 0) {
-                const ratio = (totalBalance / globalStatistics.grand_total) * 100;
-                totalRatioToGrandTotal = ratio.toFixed(2) + '%';
-            }
-            
-            // محاسبه شاخص نفع = (نسبت سود به سود کل) ÷ (نسبت سرمایه به سرمایه کل)
-            let profitIndex = '0.00';
-            if (globalStatistics && globalStatistics.net_principal > 0 && globalStatistics.total_profits > 0 && netPrincipal > 0) {
-                const capitalRatioDecimal = netPrincipal / globalStatistics.net_principal;
-                const profitRatioDecimal = totalProfit / globalStatistics.total_profits;
-                
-                if (capitalRatioDecimal > 0) {
-                    const index = profitRatioDecimal / capitalRatioDecimal;
-                    profitIndex = index.toFixed(2);
-                }
-            }
-
-            // به‌روزرسانی backupCalculations با مقادیر کامل
-            backupCalculations.capitalRatio = capitalRatio;
-            backupCalculations.profitRatioToTotal = profitRatioToTotal;
-            backupCalculations.totalRatioToGrandTotal = totalRatioToGrandTotal;
-            backupCalculations.profitIndex = profitIndex;
-
-            // حالا محاسبات جدید از سرور را دریافت می‌کنیم
-            console.log('🔄 دریافت محاسبات جدید از سرور...');
-            updateInvestorStatsFromServer(investorId, investorName);
-
-            // نمایش اطلاعات (دقیقاً همان مقادیر دیتابیس)
-            document.getElementById('totalPrincipal').textContent = formatNumberWithCommas(totalPrincipal);
-            document.getElementById('totalWithdrawal').textContent = formatNumberWithCommas(Math.abs(totalWithdrawal));
-            document.getElementById('netPrincipal').textContent = formatNumberWithCommas(netPrincipal);
-            document.getElementById('totalProfit').textContent = formatNumberWithCommas(totalProfit);
-            document.getElementById('totalBalance').textContent = formatNumberWithCommas(totalBalance);
-            // نمایش نسبت سود به آورده - موقتاً کامنت شده
-            // document.getElementById('profitRatio').textContent = profitRatio + '%';
-            document.getElementById('capitalRatio').textContent = capitalRatio;
-            document.getElementById('profitRatioToTotal').textContent = profitRatioToTotal;
-            document.getElementById('totalRatioToGrandTotal').textContent = totalRatioToGrandTotal;
-            document.getElementById('profitIndex').textContent = profitIndex;
-
-            // تعیین وضعیت
-            const statusElement = document.getElementById('investorStatus');
-            if (statusElement) {
-                if (netPrincipal > 0) {
-                    statusElement.textContent = 'فعال';
-                    statusElement.className = 'investor-status status-active';
-                } else {
-                    statusElement.textContent = 'غیرفعال';
-                    statusElement.className = 'investor-status status-inactive';
-                }
-            }
-            
-            console.log('اطلاعات مشارکت کننده به‌روزرسانی شد:', {
-                totalPrincipal: totalPrincipal / BASE_AMOUNT,
-                totalWithdrawal: totalWithdrawal / BASE_AMOUNT,
-                netPrincipal: netPrincipal / BASE_AMOUNT,
-                capitalRatio: capitalRatio,
-                profitRatioToTotal: profitRatioToTotal,
-                totalRatioToGrandTotal: totalRatioToGrandTotal,
-                totalProfit: totalProfit / BASE_AMOUNT,
-                totalBalance: totalBalance / BASE_AMOUNT
-                // profitRatio: profitRatio  // موقتاً کامنت شده
-            });
-        }
 
         // پاک کردن نمودارهای قبلی
         function destroyCharts() {
@@ -1844,41 +1648,6 @@
             document.getElementById('investorInfo').classList.remove('show');
         }
 
-        // به‌روزرسانی اطلاعات کلی مشارکت کننده
-        function updateInvestorInfo(investorId) {
-            const investorData = chartData.filter(row => row.investor_name === investorId);
-            const principalData = investorData.filter(row => row.entry_type === 'principal_deposit');
-            const withdrawalData = investorData.filter(row => row.entry_type === 'principal_withdrawal');
-            const profitData = investorData.filter(row => row.entry_type === 'profit_accrual');
-
-            const totalPrincipal = principalData.reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
-            const totalWithdrawal = withdrawalData.reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
-            const totalProfit = profitData.reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
-            
-            const netPrincipal = totalPrincipal + totalWithdrawal; // withdrawal معمولاً منفی است
-            const totalBalance = netPrincipal + totalProfit;
-            // محاسبه نسبت سود به آورده - موقتاً کامنت شده
-            // const profitRatio = netPrincipal > 0 ? ((totalProfit / netPrincipal) * 100).toFixed(2) : '0.00';
-
-            document.getElementById('investorName').textContent = investorId;
-            document.getElementById('totalPrincipal').textContent = formatNumberWithCommas(totalPrincipal);
-            document.getElementById('totalWithdrawal').textContent = formatNumberWithCommas(Math.abs(totalWithdrawal));
-            document.getElementById('netPrincipal').textContent = formatNumberWithCommas(netPrincipal);
-            document.getElementById('totalProfit').textContent = formatNumberWithCommas(totalProfit);
-            document.getElementById('totalBalance').textContent = formatNumberWithCommas(totalBalance);
-            // نمایش نسبت سود به آورده - موقتاً کامنت شده
-            // document.getElementById('profitRatio').textContent = profitRatio + '%';
-
-            // تعیین وضعیت
-            const statusElement = document.getElementById('investorStatus');
-            if (netPrincipal > 0) {
-                statusElement.textContent = 'فعال';
-                statusElement.className = 'investor-status status-active';
-            } else {
-                statusElement.textContent = 'غیرفعال';
-                statusElement.className = 'investor-status status-inactive';
-            }
-        }
 
 
 
@@ -1985,7 +1754,7 @@
                     datasets: [
                         {
                             type: 'bar',
-                            label: 'آورده',
+                            label: 'آورده(میلیون تومان)',
                             data: depositAmounts,
                             backgroundColor: 'rgba(33, 133, 208, 0.8)', // آبی - آورده
                             borderColor: 'rgba(33, 133, 208, 1)',
@@ -1994,7 +1763,7 @@
                         },
                         {
                             type: 'bar', 
-                            label: 'برداشت',
+                            label: 'برداشت (میلیون تومان)',
                             data: withdrawalAmounts,
                             backgroundColor: 'rgba(219, 40, 40, 0.8)', // قرمز - برداشت
                             borderColor: 'rgba(219, 40, 40, 1)',
@@ -2003,7 +1772,7 @@
                         },
                         {
                             type: 'line',
-                            label: 'سرمایه موجود',
+                            label: 'سرمایه موجود(میلیون تومان)',
                             data: cumulativeAmounts,
                             borderColor: 'rgba(170, 38, 255, 1)', // بنفش - سرمایه موجود
                             backgroundColor: 'rgba(170, 38, 255, 0.2)',
