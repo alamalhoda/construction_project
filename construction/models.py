@@ -206,6 +206,14 @@ class Period(models.Model):
     def get_update_url(self):
         return reverse('construction_Period_update', kwargs={'pk': self.pk})
     
+    def is_current(self):
+        """بررسی اینکه آیا این دوره، دوره جاری است"""
+        import jdatetime
+        today_jalali = jdatetime.datetime.now()
+        current_year = today_jalali.year
+        current_month = today_jalali.month
+        return self.year == current_year and self.month_number == current_month
+    
 
 
 class InterestRate(models.Model):
