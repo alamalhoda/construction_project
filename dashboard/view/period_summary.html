@@ -43,6 +43,8 @@
             --refund-color-light: rgba(255, 193, 7, 0.1);
             --balance-color: #6c757d;
             --balance-color-light: rgba(108, 117, 125, 0.1);
+            --total-color: #6c757d;
+            --total-color-light: rgba(108, 117, 125, 0.1);
         }
 
         * {
@@ -173,6 +175,7 @@
         .summary-card.balance { border-color: var(--balance-color); }
         .summary-card.cost-per-meter-net { border-color: var(--expense-color); }
         .summary-card.cost-per-meter-gross { border-color: var(--expense-color); }
+        .summary-card.final-cost { border-color: var(--total-color); }
 
         .summary-card h4 {
             font-size: 1rem;
@@ -203,6 +206,7 @@
         .summary-card.balance .value { color: var(--balance-color); }
         .summary-card.cost-per-meter-net .value { color: var(--expense-color); }
         .summary-card.cost-per-meter-gross .value { color: var(--expense-color); }
+        .summary-card.final-cost .value { color: var(--total-color); }
 
         .summary-card .label {
             font-size: 0.95rem;
@@ -496,6 +500,11 @@
                 <div class="value" id="costPerMeterGross">...</div>
                 <div class="label">تومان/متر مربع</div>
             </div>
+            <div class="summary-card final-cost">
+                <h4><i class="fas fa-calculator"></i> هزینه تمام شده نهایی</h4>
+                <div class="value" id="finalCost">...</div>
+                <div class="label">تومان</div>
+            </div>
         </div>
 
         <!-- Table -->
@@ -762,6 +771,7 @@
             document.getElementById('totalPeriods').textContent = totals.total_periods;
             document.getElementById('costPerMeterNet').textContent = formatNumber(totals.cost_per_meter_net);
             document.getElementById('costPerMeterGross').textContent = formatNumber(totals.cost_per_meter_gross);
+            document.getElementById('finalCost').textContent = formatNumber(totals.final_cost);
         }
 
         // Display period table
