@@ -749,6 +749,7 @@ class PeriodViewSet(viewsets.ModelViewSet):
                     'month_number': period.month_number,
                     'month_name': period.month_name,
                     'weight': period.weight,
+                    'is_current_period': period.is_current(),
                     
                     # فاکتورهای دوره
                     'deposits': deposits,
@@ -795,7 +796,8 @@ class PeriodViewSet(viewsets.ModelViewSet):
                 'final_fund_balance': final_fund_balance,
                 'total_periods': periods.count(),
                 'cost_per_meter_net': cost_per_meter_net,
-                'cost_per_meter_gross': cost_per_meter_gross
+                'cost_per_meter_gross': cost_per_meter_gross,
+                'final_cost': final_cost
             }
 
             return Response({
