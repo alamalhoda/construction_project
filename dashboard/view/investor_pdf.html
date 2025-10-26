@@ -225,21 +225,21 @@
         }
 
         .stat-card.project-overview.sales {
+            background: linear-gradient(135deg, var(--refund-color-light), rgba(255, 193, 7, 0.05));
+            border-color: var(--refund-color);
+        }
+
+        .stat-card.project-overview.sales h4 {
+            color: var(--refund-color);
+        }
+
+        .stat-card.project-overview.profit {
             background: linear-gradient(135deg, var(--profit-color-light), rgba(33, 186, 69, 0.05));
             border-color: var(--profit-color);
         }
 
-        .stat-card.project-overview.sales h4 {
-            color: var(--profit-color);
-        }
-
-        .stat-card.project-overview.profit {
-            background: linear-gradient(135deg, var(--gold-color-light), rgba(255, 215, 0, 0.05));
-            border-color: var(--gold-color);
-        }
-
         .stat-card.project-overview.profit h4 {
-            color: var(--gold-color);
+            color: var(--profit-color);
         }
 
         .stat-card.project-overview.deposit {
@@ -267,6 +267,15 @@
 
         .stat-card.project-overview.capital h4 {
             color: var(--capital-color);
+        }
+
+        .stat-card.project-overview.total {
+            background: linear-gradient(135deg, var(--balance-color-light), rgba(108, 117, 125, 0.05));
+            border-color: var(--balance-color);
+        }
+
+        .stat-card.project-overview.total h4 {
+            color: var(--balance-color);
         }
 
         /* Transactions Table */
@@ -674,15 +683,15 @@
                     </div>
                     <div class="stat-card project-overview expense">
                         <h4 id="projectTotalExpenses">-</h4>
-                        <p>کل هزینه (تومان)</p>
+                        <p>برآورد کل هزینه (تومان)</p>
                     </div>
                     <div class="stat-card project-overview sales">
                         <h4 id="projectTotalSales">-</h4>
                         <p>کل مرجوعی (تومان)</p>
                     </div>
-                    <div class="stat-card project-overview expense">
+                    <div class="stat-card project-overview total">
                         <h4 id="projectNetCost">-</h4>
-                        <p>کل هزینه خالص (تومان)</p>
+                        <p> برآورد کل هزینه خالص (تومان)</p>
                     </div>
                     
                     <!-- Project Metrics -->
@@ -714,15 +723,11 @@
                     <!-- Valuation Metrics -->
                     <div class="stat-card project-overview">
                         <h4 id="projectTotalValue">-</h4>
-                        <p>ارزش کل ساختمان (تومان)</p>
+                        <p>برآورد ارزش کل ساختمان (تومان)</p>
                     </div>
                     <div class="stat-card project-overview">
                         <h4 id="projectValuePerMeter">-</h4>
                         <p>برآورد ارزش کل ساختمان (متری)</p>
-                    </div>
-                    <div class="stat-card project-overview expense">
-                        <h4 id="projectTotalCost">-</h4>
-                        <p>هزینه کل ساختمان (تومان)</p>
                     </div>
                     <div class="stat-card project-overview expense">
                         <h4 id="projectCostPerMeter">-</h4>
@@ -948,7 +953,6 @@
                 // آمار ارزش‌گذاری
                 document.getElementById('projectTotalValue').textContent = formatNumber(costMetrics.total_value || 0);
                 document.getElementById('projectValuePerMeter').textContent = formatNumber(costMetrics.value_per_meter || 0);
-                document.getElementById('projectTotalCost').textContent = formatNumber(costMetrics.final_cost || 0);
                 document.getElementById('projectCostPerMeter').textContent = formatNumber(costMetrics.net_cost_per_meter || 0);
                 document.getElementById('projectTotalProfit').textContent = formatNumber(costMetrics.final_profit_amount || 0);
                 document.getElementById('projectProfitPercentage').textContent = (profitPercentages.total_profit_percentage || 0).toFixed(2) + '%';
