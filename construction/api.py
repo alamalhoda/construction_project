@@ -749,6 +749,7 @@ class PeriodViewSet(viewsets.ModelViewSet):
                     'month_number': period.month_number,
                     'month_name': period.month_name,
                     'weight': period.weight,
+                    'is_current_period': period.is_current(),
                     
                     # فاکتورهای دوره
                     'deposits': deposits,
