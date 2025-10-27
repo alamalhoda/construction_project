@@ -98,6 +98,32 @@
             font-size: 1.8rem;
             font-weight: bold;
             margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .investor-type-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+        }
+
+        .investor-type-badge.owner {
+            background: rgba(255, 255, 255, 0.25);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .investor-type-badge.investor {
+            background: rgba(255, 215, 0, 0.3);
+            border: 2px solid #ffd700;
         }
 
         .investor-info-box .investor-details {
@@ -602,7 +628,10 @@
         <div id="mainContent" style="display: none;">
             <!-- Investor Info Box -->
             <div class="investor-info-box">
-                <div class="investor-name" id="investorName">نام مشارکت کننده</div>
+                <div class="investor-name">
+                    <span id="investorName">نام مشارکت کننده</span>
+                    <span id="investorType" class="investor-type-badge"></span>
+                </div>
                 <div class="investor-details">
                     <div class="detail-item">
                         <i class="fas fa-phone"></i>
@@ -1096,6 +1125,18 @@
                 // Update UI
                 document.getElementById('reportDate').textContent = `تاریخ گزارش: ${getCurrentPersianDate()}`;
                 document.getElementById('investorName').textContent = `${investor.first_name} ${investor.last_name}`;
+                
+                // Update investor type badge
+                const investorTypeEl = document.getElementById('investorType');
+                if (investorTypeEl && investor.participation_type) {
+                    const typeLabels = {
+                        'owner': 'مالک',
+                        'investor': 'سرمایه‌گذار'
+                    };
+                    investorTypeEl.textContent = typeLabels[investor.participation_type] || investor.participation_type;
+                    investorTypeEl.className = 'investor-type-badge ' + investor.participation_type;
+                }
+                
                 document.getElementById('investorPhone').textContent = investor.phone || 'ثبت نشده';
                 document.getElementById('contractDate').textContent = `تاریخ قرارداد: ${investor.contract_date_shamsi || 'ثبت نشده'}`;
                 document.getElementById('unitName').textContent = `واحد: ${unitInfo.name}`;

@@ -338,6 +338,31 @@
             font-size: 2rem;
             color: #333;
             font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .investor-type-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            background: var(--primary-color);
+            color: white;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .investor-type-badge.owner {
+            background: #667eea;
+            color: white;
+        }
+
+        .investor-type-badge.investor {
+            background: #21ba45;
+            color: white;
         }
 
         .investor-status {
@@ -842,13 +867,15 @@
         <div id="investorInfo" class="investor-info">
 
             <div class="investor-header">
-                <div class="investor-name" id="investorName">نام مشارکت کننده</div>
+                <div class="investor-name">
+                    <span id="investorName">نام مشارکت کننده</span>
+                    <span id="investorType" class="investor-type-badge"></span>
+                </div>
                 <div class="investor-actions">
                     <a href="#" class="pdf-report-btn" id="pdfReportBtn" style="display: none;">
                         <i class="fas fa-file-pdf"></i>
                         گزارش PDF
                     </a>
-                    <div class="investor-status" id="investorStatus">وضعیت</div>
                 </div>
             </div>
 
@@ -1603,6 +1630,18 @@
             // به‌روزرسانی نام و تاریخ قرارداد
             const investorName = `${investorData.first_name} ${investorData.last_name}`;
             document.getElementById('investorName').textContent = investorName;
+            
+            // به‌روزرسانی نوع سرمایه‌گذار
+            const investorTypeEl = document.getElementById('investorType');
+            if (investorTypeEl && investorData.participation_type) {
+                const typeLabels = {
+                    'owner': 'مالک',
+                    'investor': 'سرمایه‌گذار'
+                };
+                investorTypeEl.textContent = typeLabels[investorData.participation_type] || investorData.participation_type;
+                investorTypeEl.className = 'investor-type-badge ' + investorData.participation_type;
+            }
+            
             const contractDateEl = document.getElementById('contractDate');
             if (contractDateEl) {
                 contractDateEl.textContent = investorData.contract_date_shamsi || '-';
