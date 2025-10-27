@@ -944,13 +944,17 @@
                     <!-- فیلد پروژه حذف شد - پروژه فعال به صورت خودکار استفاده می‌شود -->
                     
                     <div class="field">
-                        <label>دوره</label>
-                        <div class="ui selection dropdown" id="addPeriodDropdown">
+                        <label>دوره (خودکار)</label>
+                        <div class="ui selection dropdown" id="addPeriodDropdown" style="pointer-events: none; opacity: 0.8;">
                             <input type="hidden" name="period" id="addPeriodInput">
                             <i class="dropdown icon"></i>
-                            <div class="default text">انتخاب دوره</div>
+                            <div class="default text">خودکار بر اساس تاریخ</div>
                             <div class="menu" id="addPeriodMenu">
                             </div>
+                        </div>
+                        <div class="ui tiny info message" style="margin-top: 5px;">
+                            <i class="info circle icon"></i>
+                            دوره به صورت خودکار بر اساس تاریخ انتخاب شده تعیین می‌شود
                         </div>
                     </div>
                 </div>
@@ -1041,13 +1045,17 @@
                     <!-- فیلد پروژه حذف شد - پروژه فعال به صورت خودکار استفاده می‌شود -->
                     
                     <div class="field">
-                        <label>دوره</label>
-                        <div class="ui selection dropdown" id="editPeriodDropdown">
+                        <label>دوره (خودکار)</label>
+                        <div class="ui selection dropdown" id="editPeriodDropdown" style="pointer-events: none; opacity: 0.8;">
                             <input type="hidden" name="period" id="editPeriodInput">
                             <i class="dropdown icon"></i>
-                            <div class="default text">انتخاب دوره</div>
+                            <div class="default text">خودکار بر اساس تاریخ</div>
                             <div class="menu" id="editPeriodMenu">
                             </div>
+                        </div>
+                        <div class="ui tiny info message" style="margin-top: 5px;">
+                            <i class="info circle icon"></i>
+                            دوره به صورت خودکار بر اساس تاریخ انتخاب شده تعیین می‌شود
                         </div>
                     </div>
                 </div>
@@ -1245,8 +1253,8 @@
             // Theme toggle event listener
             $('#themeToggle').on('click', toggleTheme);
             
-                    // Initialize Persian Datepicker with timezone correction
-        $("#addDateShamsiInput, #editDateShamsiInput").persianDatepicker({
+                    // Initialize Persian Datepicker for add form
+        $("#addDateShamsiInput").persianDatepicker({
             format: 'YYYY-MM-DD',
             initialValue: false,
             calendar: {
@@ -1257,33 +1265,36 @@
             },
             onSelect: function(unix) {
                 try {
-                    // استفاده از persianDate برای تاریخ انتخابی
                     var selectedDate = new persianDate(unix);
-                    
-                    console.log('تاریخ انتخابی شمسی:', selectedDate.format('YYYY-MM-DD'));
-                    console.log('Unix timestamp:', unix);
-                    
-                    // تبدیل به تاریخ میلادی با اصلاح timezone
-                    var gregorianDate = selectedDate.toDate();
-                    
-                    // اصلاح timezone offset برای جلوگیری از یک روز جلو بودن
-                    var timezoneOffset = gregorianDate.getTimezoneOffset();
-                    var correctedDate = new Date(gregorianDate.getTime() + (timezoneOffset * 60000));
-                    
-                    console.log('تاریخ میلادی قبل از اصلاح:', gregorianDate);
-                    console.log('Timezone offset:', timezoneOffset);
-                    console.log('تاریخ میلادی بعد از اصلاح:', correctedDate);
-                    
-                    // تنظیم فیلد میلادی مرتبط
-                    var gregorianField = $(this).closest('.field').find('input[name*="gregorian"]');
-                    if (gregorianField.length) {
-                        var year = correctedDate.getFullYear();
-                        var month = String(correctedDate.getMonth() + 1).padStart(2, '0');
-                        var day = String(correctedDate.getDate()).padStart(2, '0');
-                        
-                        gregorianField.val(year + '-' + month + '-' + day);
-                        console.log('تاریخ میلادی نهایی:', year + '-' + month + '-' + day);
-                    }
+                    var shamsiDate = selectedDate.format('YYYY-MM-DD');
+                    console.log('Add form date selected:', shamsiDate);
+                    setTimeout(function() {
+                        autoSelectPeriodByDate(shamsiDate, 'add');
+                    }, 100);
+                } catch(e) {
+                    console.log('خطا در تبدیل تاریخ:', e);
+                }
+            }
+        });
+        
+        // Initialize Persian Datepicker for edit form
+        $("#editDateShamsiInput").persianDatepicker({
+            format: 'YYYY-MM-DD',
+            initialValue: false,
+            calendar: {
+                persian: {
+                    locale: 'fa',
+                    leapYearMode: 'astronomical'
+                }
+            },
+            onSelect: function(unix) {
+                try {
+                    var selectedDate = new persianDate(unix);
+                    var shamsiDate = selectedDate.format('YYYY-MM-DD');
+                    console.log('Edit form date selected:', shamsiDate);
+                    setTimeout(function() {
+                        autoSelectPeriodByDate(shamsiDate, 'edit');
+                    }, 100);
                 } catch(e) {
                     console.log('خطا در تبدیل تاریخ:', e);
                 }
@@ -2578,40 +2589,56 @@
             return str;
         }
         
-        // تابع برای انتخاب خودکار دوره بر اساس تاریخ امروز
-        window.autoSelectPeriodByCurrentDate = function() {
+        // تابع عمومی برای انتخاب خودکار دوره بر اساس تاریخ
+        window.autoSelectPeriodByDate = function(shamsiDate, formType) {
             try {
-                // دریافت تاریخ امروز شمسی
-                const today = new Date();
-                const pDate = new persianDate(today);
-                let todayJalali = pDate.format('YYYY-MM-DD');
+                if (!shamsiDate || !formType || !periodsList) {
+                    console.log('پارامترها ناقص یا periodsList خالی است');
+                    return null;
+                }
                 
                 // تبدیل اعداد فارسی به انگلیسی
-                todayJalali = convertPersianToEnglishNumbers(todayJalali);
+                const dateEnglish = convertPersianToEnglishNumbers(shamsiDate);
+                console.log('autoSelectPeriodByDate - Date:', dateEnglish, 'Form:', formType);
                 
-                console.log('تاریخ امروز (انگلیسی):', todayJalali);
-                console.log('لیست دوره‌ها:', periodsList);
-                
-                // پیدا کردن دوره‌ای که تاریخ امروز در بازه آن است
-                const currentPeriod = periodsList.find(period => {
+                // پیدا کردن دوره مناسب
+                const selectedPeriod = periodsList.find(period => {
                     if (period.start_date_shamsi && period.end_date_shamsi) {
-                        const inRange = todayJalali >= period.start_date_shamsi && todayJalali <= period.end_date_shamsi;
-                        if (inRange) {
-                            console.log('دوره مطابقت دارد:', period.label, 'از', period.start_date_shamsi, 'تا', period.end_date_shamsi);
-                        }
-                        return inRange;
+                        return dateEnglish >= period.start_date_shamsi && dateEnglish <= period.end_date_shamsi;
                     }
                     return false;
                 });
                 
-                if (currentPeriod) {
-                    console.log('دوره جاری یافت شد:', currentPeriod.label);
-                    $('#addPeriodDropdown').dropdown('set selected', currentPeriod.id.toString());
-                    return currentPeriod;
+                if (selectedPeriod) {
+                    console.log('دوره یافت شد:', selectedPeriod.label);
+                    
+                    if (formType === 'add') {
+                        $('#addPeriodDropdown').dropdown('set selected', selectedPeriod.id.toString());
+                        $('#addPeriodInput').val(selectedPeriod.id);
+                    } else if (formType === 'edit') {
+                        $('#editPeriodDropdown').dropdown('set selected', selectedPeriod.id.toString());
+                        $('#editPeriodInput').val(selectedPeriod.id);
+                    }
+                    
+                    return selectedPeriod;
                 } else {
-                    console.log('دوره مناسب برای تاریخ امروز یافت نشد');
+                    console.log('دوره مناسب پیدا نشد');
                     return null;
                 }
+            } catch (error) {
+                console.error('خطا در انتخاب خودکار دوره:', error);
+                return null;
+            }
+        }
+        
+        // تابع برای انتخاب خودکار دوره بر اساس تاریخ امروز
+        window.autoSelectPeriodByCurrentDate = function() {
+            try {
+                const today = new Date();
+                const pDate = new persianDate(today);
+                let todayJalali = pDate.format('YYYY-MM-DD');
+                todayJalali = convertPersianToEnglishNumbers(todayJalali);
+                autoSelectPeriodByDate(todayJalali, 'add');
             } catch (error) {
                 console.error('خطا در انتخاب خودکار دوره:', error);
                 return null;
