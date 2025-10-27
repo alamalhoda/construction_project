@@ -376,7 +376,9 @@ class InvestorViewSet(viewsets.ModelViewSet):
         with connection.cursor() as cursor:
             cursor.execute("""
                 SELECT 
+                    i.id as investor_id,
                     (i.first_name || ' ' || i.last_name) as name,
+                    i.participation_type,
                     COALESCE(principal_deposits.total, 0) as total_deposits,
                     COALESCE(ABS(principal_withdrawals.total), 0) as total_withdrawals,
                     COALESCE(principal_deposits.total, 0) - COALESCE(ABS(principal_withdrawals.total), 0) as net_principal,

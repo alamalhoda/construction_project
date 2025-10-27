@@ -345,7 +345,9 @@
         }
 
         .investor-type-badge {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
             padding: 6px 16px;
             border-radius: 20px;
             font-size: 0.9rem;
@@ -353,6 +355,10 @@
             background: var(--primary-color);
             color: white;
             box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .investor-type-badge i {
+            font-size: 0.85rem;
         }
 
         .investor-type-badge.owner {
@@ -1635,10 +1641,10 @@
             const investorTypeEl = document.getElementById('investorType');
             if (investorTypeEl && investorData.participation_type) {
                 const typeLabels = {
-                    'owner': 'مالک',
-                    'investor': 'سرمایه‌گذار'
+                    'owner': '<i class="fas fa-building"></i> مالک',
+                    'investor': '<i class="fas fa-hand-holding-usd"></i> سرمایه‌گذار'
                 };
-                investorTypeEl.textContent = typeLabels[investorData.participation_type] || investorData.participation_type;
+                investorTypeEl.innerHTML = typeLabels[investorData.participation_type] || investorData.participation_type;
                 investorTypeEl.className = 'investor-type-badge ' + investorData.participation_type;
             }
             
