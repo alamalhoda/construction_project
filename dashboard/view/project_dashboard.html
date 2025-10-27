@@ -2286,9 +2286,14 @@
                     const paymentClass = finalPayment >= 0 ? 'cell-payment-positive' : 'cell-payment-negative';
                     const paymentSign = finalPayment >= 0 ? '+' : '';
                     
+                    // آیکون نوع سرمایه‌گذار
+                    const typeIcon = investor.participation_type === 'owner' 
+                        ? '<i class="fas fa-building" style="color: #667eea; margin-left: 8px;" title="مالک"></i>' 
+                        : '<i class="fas fa-hand-holding-usd" style="color: #21ba45; margin-left: 8px;" title="سرمایه‌گذار"></i>';
+                    
                     tableHTML += `
                         <tr>
-                            <td>${investor.name}</td>
+                            <td>${typeIcon} ${investor.name}</td>
                             <td>${investor.total_deposits.toLocaleString('en-US')}</td>
                             <td>${investor.total_withdrawals.toLocaleString('en-US')}</td>
                             <td>${investor.net_principal.toLocaleString('en-US')}</td>
