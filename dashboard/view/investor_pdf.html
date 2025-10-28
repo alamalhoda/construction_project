@@ -1142,6 +1142,56 @@
                     investorTypeEl.innerHTML = typeLabels[investor.participation_type] || investor.participation_type;
                     investorTypeEl.className = 'investor-type-badge ' + investor.participation_type;
                 }
+
+                // تنظیم نمایش بخش اطلاعات واحد بر اساس نوع سرمایه‌گذار
+                setTimeout(() => {
+                    // یافتن بخش اطلاعات واحد که حاوی ownershipArea است
+                    const unitSection = document.querySelector('#ownershipArea')?.closest('.stats-section');
+                    if (unitSection && investor.participation_type === 'investor') {
+                        // برای سرمایه‌گذاران بدون واحد، فقط کارت مالکیت را نمایش دهیم
+                        const allCards = unitSection.querySelectorAll('.stat-card');
+                        allCards.forEach((card, index) => {
+                            // کارت مالکیت در موقعیت دوم (index 2) قرار دارد
+                            if (index === 2) {
+                                card.style.display = 'block';
+                                // عنوان را تغییر دهیم
+                                const titleEl = card.querySelector('p');
+                                if (titleEl) {
+                                    titleEl.textContent = 'مالکیت محاسبه شده (متر مربع)';
+                                }
+                            } else {
+                                card.style.display = 'none';
+                            }
+                        });
+                        
+                        // تغییر عنوان بخش
+                        const sectionTitle = unitSection.querySelector('.section-title');
+                        if (sectionTitle) {
+                            sectionTitle.innerHTML = '<i class="fas fa-calculator"></i> مالکیت محاسبه شده';
+                        }
+                    } else if (unitSection) {
+                        // برای مالکان، همه کارت‌ها نمایش داده شوند
+                        const allCards = unitSection.querySelectorAll('.stat-card');
+                        allCards.forEach(card => {
+                            card.style.display = 'block';
+                        });
+                        
+                        // عنوان اصلی را برگردان
+                        const sectionTitle = unitSection.querySelector('.section-title');
+                        if (sectionTitle) {
+                            sectionTitle.innerHTML = '<i class="fas fa-building"></i> اطلاعات واحد انتخاب شده';
+                        }
+                        
+                        // عنوان کارت مالکیت را برای مالکان به حالت اصلی برگردان
+                        const ownershipCard = allCards[2]; // کارت مالکیت در PDF
+                        if (ownershipCard) {
+                            const titleEl = ownershipCard.querySelector('p');
+                            if (titleEl) {
+                                titleEl.textContent = 'مالکیت (متر مربع)';
+                            }
+                        }
+                    }
+                }, 100);
                 
                 document.getElementById('investorPhone').textContent = investor.phone || 'ثبت نشده';
                 document.getElementById('contractDate').textContent = `تاریخ قرارداد: ${investor.contract_date_shamsi || 'ثبت نشده'}`;
