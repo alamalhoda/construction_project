@@ -98,6 +98,38 @@
             font-size: 1.8rem;
             font-weight: bold;
             margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .investor-type-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+        }
+
+        .investor-type-badge i {
+            font-size: 0.85rem;
+        }
+
+        .investor-type-badge.owner {
+            background: rgba(255, 255, 255, 0.25);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .investor-type-badge.investor {
+            background: rgba(255, 215, 0, 0.3);
+            border: 2px solid #ffd700;
         }
 
         .investor-info-box .investor-details {
@@ -602,7 +634,10 @@
         <div id="mainContent" style="display: none;">
             <!-- Investor Info Box -->
             <div class="investor-info-box">
-                <div class="investor-name" id="investorName">نام مشارکت کننده</div>
+                <div class="investor-name">
+                    <span id="investorName">نام مشارکت کننده</span>
+                    <span id="investorType" class="investor-type-badge"></span>
+                </div>
                 <div class="investor-details">
                     <div class="detail-item">
                         <i class="fas fa-phone"></i>
@@ -1096,6 +1131,68 @@
                 // Update UI
                 document.getElementById('reportDate').textContent = `تاریخ گزارش: ${getCurrentPersianDate()}`;
                 document.getElementById('investorName').textContent = `${investor.first_name} ${investor.last_name}`;
+                
+                // Update investor type badge
+                const investorTypeEl = document.getElementById('investorType');
+                if (investorTypeEl && investor.participation_type) {
+                    const typeLabels = {
+                        'owner': '<i class="fas fa-building"></i> مالک',
+                        'investor': '<i class="fas fa-hand-holding-usd"></i> سرمایه‌گذار'
+                    };
+                    investorTypeEl.innerHTML = typeLabels[investor.participation_type] || investor.participation_type;
+                    investorTypeEl.className = 'investor-type-badge ' + investor.participation_type;
+                }
+
+                // تنظیم نمایش بخش اطلاعات واحد بر اساس نوع سرمایه‌گذار
+                setTimeout(() => {
+                    // یافتن بخش اطلاعات واحد که حاوی ownershipArea است
+                    const unitSection = document.querySelector('#ownershipArea')?.closest('.stats-section');
+                    if (unitSection && investor.participation_type === 'investor') {
+                        // برای سرمایه‌گذاران بدون واحد، فقط کارت مالکیت را نمایش دهیم
+                        const allCards = unitSection.querySelectorAll('.stat-card');
+                        allCards.forEach((card, index) => {
+                            // کارت مالکیت در موقعیت دوم (index 2) قرار دارد
+                            if (index === 2) {
+                                card.style.display = 'block';
+                                // عنوان را تغییر دهیم
+                                const titleEl = card.querySelector('p');
+                                if (titleEl) {
+                                    titleEl.textContent = 'مالکیت محاسبه شده (متر مربع)';
+                                }
+                            } else {
+                                card.style.display = 'none';
+                            }
+                        });
+                        
+                        // تغییر عنوان بخش
+                        const sectionTitle = unitSection.querySelector('.section-title');
+                        if (sectionTitle) {
+                            sectionTitle.innerHTML = '<i class="fas fa-calculator"></i> مالکیت محاسبه شده';
+                        }
+                    } else if (unitSection) {
+                        // برای مالکان، همه کارت‌ها نمایش داده شوند
+                        const allCards = unitSection.querySelectorAll('.stat-card');
+                        allCards.forEach(card => {
+                            card.style.display = 'block';
+                        });
+                        
+                        // عنوان اصلی را برگردان
+                        const sectionTitle = unitSection.querySelector('.section-title');
+                        if (sectionTitle) {
+                            sectionTitle.innerHTML = '<i class="fas fa-building"></i> اطلاعات واحد انتخاب شده';
+                        }
+                        
+                        // عنوان کارت مالکیت را برای مالکان به حالت اصلی برگردان
+                        const ownershipCard = allCards[2]; // کارت مالکیت در PDF
+                        if (ownershipCard) {
+                            const titleEl = ownershipCard.querySelector('p');
+                            if (titleEl) {
+                                titleEl.textContent = 'مالکیت (متر مربع)';
+                            }
+                        }
+                    }
+                }, 100);
+                
                 document.getElementById('investorPhone').textContent = investor.phone || 'ثبت نشده';
                 document.getElementById('contractDate').textContent = `تاریخ قرارداد: ${investor.contract_date_shamsi || 'ثبت نشده'}`;
                 document.getElementById('unitName').textContent = `واحد: ${unitInfo.name}`;

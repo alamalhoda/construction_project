@@ -505,13 +505,42 @@ class InvestorCalculations(FinancialCalculationService):
         units = investor.units.all()
         
         if not units.exists():
+            # برای سرمایه‌گذارانی که واحد ندارند، از ارزش ساختمان(متری) استفاده می‌کنیم
+            # فرمول: ownership_area = (آورده + سود) / value_per_meter
+            # value_per_meter = ارزش کل ساختمان / مجموع متراژ مفید
+            
+            cost_metrics = ProjectCalculations.calculate_cost_metrics(project.id)
+            
+            if 'error' in cost_metrics:
+                return cost_metrics
+                
+            value_per_meter = cost_metrics.get('value_per_meter', 0)
+            
+            if value_per_meter <= 0:
+                return {
+                    'ownership_area': 0,
+                    'total_amount': total_amount,
+                    'net_principal': net_principal,
+                    'total_profit': total_profit,
+                    'value_per_meter': value_per_meter,
+                    'units_count': 0,
+                    'units': [],
+                    'message': 'ارزش ساختمان(متری) صحیح محاسبه نشده است'
+                }
+            
+            # محاسبه متراژ مالکیت بر اساس ارزش ساختمان(متری)
+            ownership_area = total_amount / value_per_meter
+            
             return {
-                'ownership_area': 0,
+                'ownership_area': round(ownership_area, 10),
                 'total_amount': total_amount,
-                'average_price_per_meter': 0,
+                'net_principal': net_principal,
+                'total_profit': total_profit,
+                'value_per_meter': round(value_per_meter, 10),
                 'units_count': 0,
                 'units': [],
-                'message': 'این سرمایه‌گذار هیچ واحدی ندارد'
+                'calculation_method': 'value_per_meter',
+                'message': 'محاسبه بر اساس ارزش ساختمان(متری)'
             }
         
         # محاسبه میانگین وزنی قیمت هر متر
@@ -566,7 +595,9 @@ class InvestorCalculations(FinancialCalculationService):
             'ownership_percentage': round((ownership_area / total_area * 100), 10) if total_area > 0 else 0,
             'final_payment': round(final_payment, 10),
             'transfer_price_per_meter': round(transfer_price_per_meter, 10),
-            'actual_paid': round(actual_paid, 10)
+            'actual_paid': round(actual_paid, 10),
+            'calculation_method': 'unit_based',
+            'message': 'محاسبه بر اساس واحدهای مالکیت'
         }
     
     @staticmethod
