@@ -999,12 +999,16 @@
                 </h3>
                 <div class="stats-grid">
                     <div class="stat-card deposit-card">
-                        <h4 id="totalPrincipal">-</h4>
-                        <p>کل آورده (تومان)</p>
+                        <h4 id="totalPrincipalDeposit">-</h4>
+                        <p>آورده نقدی (تومان)</p>
                     </div>
                     <div class="stat-card loan-deposit-card">
                         <h4 id="totalLoanDeposit">-</h4>
                         <p>آورده وام (تومان)</p>
+                    </div>
+                    <div class="stat-card deposit-card" style="border: 3px solid var(--deposit-color); background: linear-gradient(135deg, var(--deposit-color-light), rgba(33, 133, 208, 0.15));">
+                        <h4 id="totalPrincipal">-</h4>
+                        <p>مجموع آورده (تومان)</p>
                     </div>
                     <div class="stat-card withdrawal-card">
                         <h4 id="totalWithdrawal">-</h4>
@@ -1602,8 +1606,9 @@
         function updateUIWithServerData(serverCalculations) {
             // به‌روزرسانی المان‌های HTML با مقادیر سرور
             const elements = [
-                { id: 'totalPrincipal', value: serverCalculations.totalPrincipal },
+                { id: 'totalPrincipalDeposit', value: serverCalculations.totalPrincipalDeposit },
                 { id: 'totalLoanDeposit', value: serverCalculations.totalLoanDeposit },
+                { id: 'totalPrincipal', value: serverCalculations.totalPrincipal },
                 { id: 'totalWithdrawal', value: serverCalculations.totalWithdrawal },
                 { id: 'netPrincipal', value: serverCalculations.netPrincipal },
                 { id: 'totalProfit', value: serverCalculations.totalProfit },
