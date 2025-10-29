@@ -360,10 +360,17 @@ class InvestorCalculations(FinancialCalculationService):
             investor=investor
         ).filter(project=project)
         
-        # محاسبه مجموع‌ها
-        total_principal = transactions.filter(
-            transaction_type__in=['principal_deposit', 'loan_deposit']
+        # محاسبه مجموع‌ها به صورت جداگانه
+        total_principal_deposit = transactions.filter(
+            transaction_type='principal_deposit'
         ).aggregate(total=Sum('amount'))['total'] or 0
+        
+        total_loan_deposit = transactions.filter(
+            transaction_type='loan_deposit'
+        ).aggregate(total=Sum('amount'))['total'] or 0
+        
+        # مجموع آورده + آورده وام
+        total_principal = float(total_principal_deposit) + float(total_loan_deposit)
         
         total_withdrawal = transactions.filter(
             transaction_type='principal_withdrawal'
@@ -386,7 +393,9 @@ class InvestorCalculations(FinancialCalculationService):
                 'participation_type': investor.participation_type
             },
             'amounts': {
-                'total_principal': float(total_principal),
+                'total_principal_deposit': float(total_principal_deposit),  # فقط آورده عادی
+                'total_loan_deposit': float(total_loan_deposit),  # فقط آورده وام
+                'total_principal': float(total_principal),  # مجموع آورده + آورده وام
                 'total_withdrawal': float(total_withdrawal),
                 'total_profit': float(total_profit),
                 'net_principal': net_principal,
@@ -394,7 +403,9 @@ class InvestorCalculations(FinancialCalculationService):
             },
             'amounts_toman': {
                 # حالا که داده‌ها در دیتابیس به تومان هستند، نیازی به تقسیم بر 10 نیست
-                'total_principal': float(total_principal),
+                'total_principal_deposit': float(total_principal_deposit),  # فقط آورده عادی
+                'total_loan_deposit': float(total_loan_deposit),  # فقط آورده وام
+                'total_principal': float(total_principal),  # مجموع آورده + آورده وام
                 'total_withdrawal': abs(float(total_withdrawal)),
                 'total_profit': float(total_profit),
                 'net_principal': net_principal,
@@ -641,7 +652,9 @@ class InvestorCalculations(FinancialCalculationService):
                         'id': investor.id,
                         'name': f"{investor.first_name} {investor.last_name}",
                         'participation_type': investor.participation_type,
-                        'total_deposits': investor_stats['amounts']['total_principal'],
+                        'total_principal_deposit': investor_stats['amounts']['total_principal_deposit'],  # فقط آورده عادی
+                        'total_loan_deposit': investor_stats['amounts']['total_loan_deposit'],  # فقط آورده وام
+                        'total_deposits': investor_stats['amounts']['total_principal'],  # مجموع آورده + آورده وام
                         'total_withdrawals': abs(investor_stats['amounts']['total_withdrawal']),  # مقدار مثبت
                         'net_principal': investor_stats['amounts']['net_principal'],
                         'total_profit': investor_stats['amounts']['total_profit'],
