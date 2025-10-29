@@ -1,0 +1,363 @@
+# 🎨 قانون رنگ‌بندی استاندارد پروژه - نسخه کامل
+
+## 🎯 هدف
+این قانون رنگ‌بندی استاندارد پروژه را تعریف می‌کند که در تمام صفحات و کامپوننت‌های مالی باید رعایت شود.
+
+---
+
+## 🚫 **قوانین ممنوع**
+
+### ❌ **استفاده از رنگ‌های hard-coded ممنوع است**
+```css
+/* ❌ اشتباه - رنگ hard-coded */
+color: #21ba45;
+background-color: green;
+
+/* ✅ درست - استفاده از CSS Variables */
+color: var(--profit-color);
+background-color: var(--profit-color-light);
+```
+
+### ❌ **رنگ‌های غیراستاندارد ممنوع است**
+- از رنگ‌هایی غیر از رنگ‌های تعریف شده استفاده نکنید
+- هر رنگ فقط برای مفهوم مالی مشخص خود استفاده شود
+
+---
+
+## ✅ **رنگ‌های استاندارد پروژه**
+
+### 🎨 **دسته‌بندی مالی:**
+- **🔵 آبی (#2185d0)** - آورده و واریزی
+- **🔴 قرمز (#db2828)** - برداشت و خروجی  
+- **🟢 سبز (#21ba45)** - سود مشارکت و درآمد
+- **🟣 بنفش (#aa26ff)** - سرمایه موجود و موجودی
+- **🔴 قرمز تیره (#dc3545)** - هزینه‌ها و خرجی
+- **🟡 زرد (#ffc107)** - فروش/مرجوعی
+- **⚫ خاکستری (#6c757d)** - مانده صندوق، مجموع و کل
+- **🟡 طلایی (#ffd700)** - شاخص نفع و عملکرد برتر
+
+---
+
+## 🎨 **CSS Variables - پیاده‌سازی کامل**
+
+### **رنگ‌های اصلی (حالت روشن):**
+```css
+:root {
+    /* رنگ‌های اصلی مالی */
+    --deposit-color: #2185d0;           /* آبی - آورده و واریزی */
+    --withdrawal-color: #db2828;        /* قرمز - برداشت و خروجی */
+    --profit-color: #21ba45;            /* سبز - سود مشارکت و درآمد */
+    --capital-color: #aa26ff;           /* بنفش - سرمایه موجود و موجودی */
+    --expense-color: #dc3545;           /* قرمز تیره - هزینه‌ها و خرجی */
+    --refund-color: #ffc107;            /* زرد - فروش/مرجوعی */
+    --balance-color: #6c757d;           /* خاکستری - مانده صندوق */
+    --total-color: #6c757d;             /* خاکستری - مجموع و کل */
+    --gold-color: #ffd700;              /* طلایی - شاخص نفع و عملکرد برتر */
+}
+```
+
+### **نسخه‌های شفاف برای پس‌زمینه:**
+```css
+:root {
+    --deposit-color-light: rgba(33, 133, 208, 0.1);
+    --withdrawal-color-light: rgba(219, 40, 40, 0.1);
+    --profit-color-light: rgba(33, 186, 69, 0.1);
+    --capital-color-light: rgba(170, 38, 255, 0.1);
+    --expense-color-light: rgba(220, 53, 69, 0.1);
+    --refund-color-light: rgba(255, 193, 7, 0.1);
+    --balance-color-light: rgba(108, 117, 125, 0.1);
+    --total-color-light: rgba(108, 117, 125, 0.1);
+    --gold-color-light: rgba(255, 215, 0, 0.1);
+}
+```
+
+### **حالت تاریک:**
+```css
+[data-theme="dark"] {
+    --deposit-color: #4fc3f7;           /* آبی روشن‌تر */
+    --withdrawal-color: #f48fb1;        /* قرمز روشن‌تر */
+    --profit-color: #81c784;            /* سبز روشن‌تر */
+    --capital-color: #c77dff;           /* بنفش روشن‌تر */
+    --expense-color: #f48fb1;           /* قرمز روشن‌تر */
+    --refund-color: #ffeb3b;            /* زرد روشن‌تر */
+    --balance-color: #b0bec5;           /* خاکستری روشن‌تر */
+    --total-color: #b0bec5;             /* خاکستری روشن‌تر */
+    --gold-color: #ffed4e;              /* طلایی روشن‌تر */
+}
+```
+
+---
+
+## 📊 **استاندارد فرمت اعداد**
+
+### **فرمت نمایش اعداد:**
+- اعداد به زبان انگلیسی نمایش داده شوند
+- با جداکننده 3 رقمی (هزارگان)
+- استفاده از `Intl.NumberFormat`
+
+### **کد نمونه:**
+```javascript
+// فرمت اعداد با جداکننده هزارگان
+function formatNumber(num) {
+    return new Intl.NumberFormat('en-US').format(Math.round(num));
+}
+
+// فرمت اعداد با اعشار
+function formatNumberWithDecimals(num, decimals = 2) {
+    return new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
+    }).format(num);
+}
+
+// فرمت درصد
+function formatPercentage(num) {
+    return `${formatNumberWithDecimals(num)}%`;
+}
+```
+
+---
+
+## 🚀 **الگوهای استفاده**
+
+### **1. کارت‌های آماری:**
+
+#### کارت آورده (Deposit Card)
+```css
+.stat-card.deposit-card {
+    background: linear-gradient(135deg, var(--deposit-color) 0%, var(--secondary-color) 100%);
+    box-shadow: 0 12px 40px var(--deposit-color-light);
+}
+```
+
+#### کارت برداشت (Withdrawal Card)
+```css
+.stat-card.withdrawal-card {
+    background: linear-gradient(135deg, var(--withdrawal-color) 0%, var(--secondary-color) 100%);
+    box-shadow: 0 12px 40px var(--withdrawal-color-light);
+}
+```
+
+#### کارت سود (Profit Card)
+```css
+.stat-card.profit-card {
+    background: linear-gradient(135deg, var(--profit-color) 0%, var(--secondary-color) 100%);
+    box-shadow: 0 12px 40px var(--profit-color-light);
+}
+```
+
+#### کارت سرمایه موجود (Principal Card)
+```css
+.stat-card.principal-card {
+    background: linear-gradient(135deg, var(--capital-color) 0%, var(--secondary-color) 100%);
+    box-shadow: 0 12px 40px var(--capital-color-light);
+}
+```
+
+#### کارت فروش (Sales Card)
+```css
+.stat-card.sales-card {
+    background: linear-gradient(135deg, var(--refund-color) 0%, #e6ac00 100%);
+    box-shadow: 0 12px 40px var(--refund-color-light);
+}
+```
+
+#### کارت مانده صندوق (Building Fund Card)
+```css
+.stat-card.building-fund-card {
+    background: linear-gradient(135deg, var(--balance-color) 0%, #495057 100%);
+    box-shadow: 0 12px 40px var(--balance-color-light);
+}
+```
+
+#### کارت شاخص نفع (Profit Index Card)
+```css
+.stat-card.profit-index-card {
+    background: linear-gradient(135deg, var(--gold-color-light) 0%, var(--bg-card) 100%);
+    border: 2px solid var(--gold-color);
+    box-shadow: 0 8px 25px var(--gold-color-light);
+}
+
+.stat-card.profit-index-card h4 {
+    color: var(--gold-color);
+    text-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
+}
+```
+
+### **2. جداول:**
+```css
+.summary-table th:nth-child(2) { /* آورده */
+    background-color: var(--deposit-color-light);
+    border-left: 3px solid var(--deposit-color);
+}
+
+.summary-table th:nth-child(3) { /* برداشت */
+    background-color: var(--withdrawal-color-light);
+    border-left: 3px solid var(--withdrawal-color);
+}
+
+.summary-table th:nth-child(4) { /* سود */
+    background-color: var(--profit-color-light);
+    border-left: 3px solid var(--profit-color);
+}
+
+.summary-table th:nth-child(5) { /* فروش/مرجوعی */
+    background-color: var(--refund-color-light);
+    border-left: 3px solid var(--refund-color);
+}
+
+.summary-table th:nth-child(6) { /* مانده صندوق */
+    background-color: var(--balance-color-light);
+    border-left: 3px solid var(--balance-color);
+}
+```
+
+### **3. هدرها:**
+```html
+<th class="deposit-header"><i class="fas fa-plus-circle"></i> آورده</th>
+<th class="withdrawal-header"><i class="fas fa-minus-circle"></i> برداشت</th>
+<th class="profit-header"><i class="fas fa-chart-line"></i> سود</th>
+<th class="capital-header"><i class="fas fa-coins"></i> سرمایه</th>
+<th class="refund-header"><i class="fas fa-undo"></i> فروش/مرجوعی</th>
+<th class="balance-header"><i class="fas fa-building"></i> مانده صندوق</th>
+```
+
+### **4. نمودارها و چارت‌ها:**
+```javascript
+// استفاده در Chart.js
+const chartColors = {
+    deposit: 'var(--deposit-color)',
+    withdrawal: 'var(--withdrawal-color)',
+    profit: 'var(--profit-color)',
+    capital: 'var(--capital-color)',
+    expense: 'var(--expense-color)',
+    refund: 'var(--refund-color)',
+    balance: 'var(--balance-color)',
+    total: 'var(--total-color)',
+    gold: 'var(--gold-color)'
+};
+
+// مثال استفاده
+const config = {
+    data: {
+        datasets: [{
+            label: 'سود',
+            borderColor: chartColors.profit,
+            backgroundColor: 'var(--profit-color-light)',
+            data: profitData
+        }]
+    }
+};
+```
+
+---
+
+## 🎨 **کاربرد رنگ طلایی**
+
+رنگ طلایی برای موارد زیر استفاده می‌شود:
+- **شاخص نفع (Profit Index)**: نسبت عملکرد سرمایه‌گذار نسبت به کل پروژه
+- **عملکردهای برتر**: نمایش بهترین عملکرد یا بالاترین بازدهی
+- **جوایز و امتیازات**: نشان دادن موفقیت و برتری
+- **متریک‌های کلیدی**: شاخص‌هایی که نیاز به تاکید بصری بیشتر دارند
+
+---
+
+## 📝 **قوانین الزامی**
+
+### 1. **یکپارچگی**
+- تمام صفحات باید از همین رنگ‌ها استفاده کنند
+- هر رنگ فقط برای مفهوم مالی مشخص خود استفاده شود
+
+### 2. **معنایی**
+- 🔵 آبی فقط برای آورده و واریزی
+- 🔴 قرمز فقط برای برداشت و خروجی
+- 🟢 سبز فقط برای سود مشارکت و درآمد
+- 🟣 بنفش فقط برای سرمایه موجود و موجودی
+- 🔴 قرمز تیره فقط برای هزینه‌ها و خرجی
+- 🟡 زرد فقط برای فروش/مرجوعی
+- ⚫ خاکستری فقط برای مانده صندوق، مجموع و کل
+- 🟡 طلایی فقط برای شاخص نفع و عملکرد برتر
+
+### 3. **تم‌پذیری**
+- پشتیبانی از حالت روشن و تیره الزامی است
+- از CSS Variables استفاده شود، نه رنگ‌های hard-coded
+
+### 4. **نسخه Light**
+- برای پس‌زمینه‌ها از نسخه‌های شفاف استفاده شود
+- `--color-light` برای پس‌زمینه‌ها
+- `--color` برای متن و border ها
+
+### 5. **فرمت اعداد**
+- اعداد به زبان انگلیسی و با جداکننده 3 رقمی نمایش داده شوند
+- استفاده از `Intl.NumberFormat` الزامی است
+
+---
+
+## ⚠️ **هشدارها**
+
+### 1. **عدم رعایت قوانین**
+- استفاده از رنگ‌های hard-coded رد می‌شود
+- رنگ‌های غیراستاندارد ممنوع است
+
+### 2. **تطبیق با تم**
+- تمام رنگ‌ها باید با حالت تاریک و روشن سازگار باشند
+- از CSS Variables استفاده کنید
+
+### 3. **به‌روزرسانی**
+- در صورت نیاز به تغییر، باید از همین فایل تغییر داده شوند
+- تمام صفحات جدید باید این استاندارد را رعایت کنند
+
+---
+
+## ✅ **مثال‌های کاربرد**
+
+### ✅ **درست:**
+```css
+/* استفاده از CSS Variables */
+color: var(--profit-color);
+background-color: var(--profit-color-light);
+border: 2px solid var(--gold-color);
+box-shadow: 0 8px 25px var(--gold-color-light);
+```
+
+```javascript
+// فرمت استاندارد اعداد
+const formatted = new Intl.NumberFormat('en-US').format(1234567);
+// خروجی: "1,234,567"
+```
+
+### ❌ **اشتباه:**
+```css
+/* hard-coded colors - ممنوع */
+color: #21ba45;
+background-color: green;
+color: #ffc107;
+border: 2px solid #ffd700;
+```
+
+```javascript
+// فرمت غیراستاندارد اعداد - ممنوع
+const formatted = "۱,۲۳۴,۵۶۷"; // فارسی
+const formatted = "1234567"; // بدون جداکننده
+```
+
+---
+
+## 📚 **مراجع**
+
+### **فایل‌های استاندارد:**
+- `project_dashboard.html` - تعریف استاندارد رنگ‌ها
+- `interestrate_manager.html` - نمونه استفاده
+- `investor_profile.html` - نمونه استفاده
+
+### **پیاده‌سازی:**
+- این رنگ‌ها در فایل‌های HTML به عنوان استاندارد تعریف شده‌اند
+- تمام صفحات جدید باید این استاندارد را رعایت کنند
+- در نمودارها و چارت‌ها نیز همین رنگ‌ها استفاده شوند
+
+---
+
+**تاریخ ایجاد**: 2025-01-28  
+**نسخه**: 2.0 - نسخه کامل یکپارچه  
+**وضعیت**: فعال
+
