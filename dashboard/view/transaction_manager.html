@@ -504,6 +504,10 @@
             background-color: rgba(33, 133, 208, 0.1) !important;
         }
         
+        .transaction-loan_deposit {
+            background-color: rgba(255, 152, 0, 0.1) !important;
+        }
+        
         .transaction-principal_withdrawal {
             background-color: rgba(219, 40, 40, 0.1) !important;
         }
@@ -2296,6 +2300,7 @@
                 if (processedRow.transaction_type) {
                     const typeMapping = {
                         'principal_deposit': 'آورده',
+                        'loan_deposit': 'آورده وام',
                         'principal_withdrawal': 'برداشت',
                         'profit_accrual': 'سود مشارکت تعلق گرفته'
                     };

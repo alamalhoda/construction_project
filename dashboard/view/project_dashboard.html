@@ -1975,7 +1975,7 @@
             const totalInvestors = allInvestors.length;
             
             // 2. محاسبه سرمایه موجود (آورده - برداشت)
-            const principalDeposits = chartData.filter(row => row.entry_type === 'principal_deposit');
+            const principalDeposits = chartData.filter(row => ['principal_deposit','loan_deposit'].includes(row.entry_type));
             const principalWithdrawals = chartData.filter(row => row.entry_type === 'principal_withdrawal');
             
             const totalDeposits = principalDeposits.reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
@@ -2786,7 +2786,7 @@
         function createProjectPrincipalTransactionChart() {
             // فیلتر تراکنش‌های آورده و برداشت
             const transactions = chartData.filter(row => 
-                row.entry_type === 'principal_deposit' || row.entry_type === 'principal_withdrawal'
+                ['principal_deposit','loan_deposit','principal_withdrawal'].includes(row.entry_type)
             );
 
             // مرتب‌سازی بر اساس تاریخ
