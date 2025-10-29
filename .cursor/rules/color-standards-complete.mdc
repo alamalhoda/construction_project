@@ -54,7 +54,7 @@ background-color: var(--profit-color-light);
     --total-color: #6c757d;             /* خاکستری - مجموع و کل */
     --gold-color: #ffd700;              /* طلایی - شاخص نفع و عملکرد برتر */
     /* رنگ آورده وام - قابل تغییر */
-    --loan-deposit-color: #ff9800;      /* نارنجی - آورده وام */
+    --loan-deposit-color: #5ca5e8;      /* آبی روشن - آورده وام (نزدیک به #2185d0 اما روشن‌تر) */
 }
 ```
 
@@ -71,7 +71,7 @@ background-color: var(--profit-color-light);
     --total-color-light: rgba(108, 117, 125, 0.1);
     --gold-color-light: rgba(255, 215, 0, 0.1);
     /* نسخه light برای آورده وام */
-    --loan-deposit-color-light: rgba(255, 152, 0, 0.1);
+    --loan-deposit-color-light: rgba(92, 165, 232, 0.1);
 }
 ```
 
@@ -88,8 +88,8 @@ background-color: var(--profit-color-light);
     --total-color: #b0bec5;             /* خاکستری روشن‌تر */
     --gold-color: #ffed4e;              /* طلایی روشن‌تر */
     /* حالت تاریک برای آورده وام */
-    --loan-deposit-color: #ffb74d;
-    --loan-deposit-color-light: rgba(255, 183, 77, 0.15);
+    --loan-deposit-color: #7eb8f0;      /* آبی روشن‌تر برای حالت تاریک */
+    --loan-deposit-color-light: rgba(126, 184, 240, 0.15);
 }
 ```
 
