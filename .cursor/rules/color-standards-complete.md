@@ -53,6 +53,8 @@ background-color: var(--profit-color-light);
     --balance-color: #6c757d;           /* خاکستری - مانده صندوق */
     --total-color: #6c757d;             /* خاکستری - مجموع و کل */
     --gold-color: #ffd700;              /* طلایی - شاخص نفع و عملکرد برتر */
+    /* رنگ آورده وام - قابل تغییر */
+    --loan-deposit-color: #ff9800;      /* نارنجی - آورده وام */
 }
 ```
 
@@ -68,6 +70,8 @@ background-color: var(--profit-color-light);
     --balance-color-light: rgba(108, 117, 125, 0.1);
     --total-color-light: rgba(108, 117, 125, 0.1);
     --gold-color-light: rgba(255, 215, 0, 0.1);
+    /* نسخه light برای آورده وام */
+    --loan-deposit-color-light: rgba(255, 152, 0, 0.1);
 }
 ```
 
@@ -83,6 +87,9 @@ background-color: var(--profit-color-light);
     --balance-color: #b0bec5;           /* خاکستری روشن‌تر */
     --total-color: #b0bec5;             /* خاکستری روشن‌تر */
     --gold-color: #ffed4e;              /* طلایی روشن‌تر */
+    /* حالت تاریک برای آورده وام */
+    --loan-deposit-color: #ffb74d;
+    --loan-deposit-color-light: rgba(255, 183, 77, 0.15);
 }
 ```
 

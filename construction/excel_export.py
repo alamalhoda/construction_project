@@ -164,7 +164,7 @@ class ChartsSheet:
         
         # دریافت برترین سرمایه‌گذاران
         top_investors = models.Investor.objects.annotate(
-            total_principal=Sum('transaction__amount', filter=Q(transaction__transaction_type='principal_deposit'))
+            total_principal=Sum('transaction__amount', filter=Q(transaction__transaction_type__in=['principal_deposit','loan_deposit']))
         ).filter(total_principal__isnull=False).order_by('-total_principal')[:10]
         
         for investor in top_investors:
@@ -211,7 +211,7 @@ class ChartsSheet:
         
         # داده‌ها
         top_investors_trans = models.Investor.objects.annotate(
-            total_deposits=Sum('transaction__amount', filter=Q(transaction__transaction_type='principal_deposit')),
+            total_deposits=Sum('transaction__amount', filter=Q(transaction__transaction_type__in=['principal_deposit','loan_deposit'])),
             total_withdrawals=Sum('transaction__amount', filter=Q(transaction__transaction_type='principal_withdrawal'))
         ).filter(total_deposits__isnull=False).order_by('-total_deposits')[:10]
         
@@ -471,7 +471,7 @@ class ExecutiveSummarySheet:
         # دریافت برترین سرمایه‌گذاران
         from django.db.models import Sum
         top_investors = models.Investor.objects.annotate(
-            total_principal=Sum('transaction__amount', filter=Q(transaction__transaction_type='principal_deposit')),
+            total_principal=Sum('transaction__amount', filter=Q(transaction__transaction_type__in=['principal_deposit','loan_deposit'])),
             total_profit=Sum('transaction__amount', filter=Q(transaction__transaction_type='profit_accrual'))
         ).filter(total_principal__isnull=False).order_by('-total_principal')[:5]
         
