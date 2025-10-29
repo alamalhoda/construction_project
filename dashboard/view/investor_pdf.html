@@ -21,6 +21,7 @@
             --balance-color: #6c757d;
             --refund-color: #ffc107;
             --gold-color: #ffd700;
+            --loan-deposit-color: #ff9800;
             
             /* نسخه‌های شفاف برای پس‌زمینه */
             --deposit-color-light: rgba(33, 133, 208, 0.1);
@@ -31,6 +32,7 @@
             --balance-color-light: rgba(108, 117, 125, 0.1);
             --refund-color-light: rgba(255, 193, 7, 0.1);
             --gold-color-light: rgba(255, 215, 0, 0.1);
+            --loan-deposit-color-light: rgba(255, 152, 0, 0.1);
             
             /* رنگ‌های پایه */
             --primary-color: #667eea;
@@ -356,6 +358,11 @@
             color: var(--deposit-color);
         }
 
+        .transaction-type.loan_deposit {
+            background: var(--loan-deposit-color-light);
+            color: var(--loan-deposit-color);
+        }
+
         .transaction-type.principal_withdrawal {
             background: rgba(219, 40, 40, 0.2);
             color: var(--withdrawal-color);
@@ -364,6 +371,23 @@
         .transaction-type.profit_accrual {
             background: rgba(33, 186, 69, 0.2);
             color: var(--profit-color);
+        }
+
+        /* Transaction row border colors */
+        .transactions-table tbody tr.row-principal_deposit {
+            border-bottom: 3px solid var(--deposit-color);
+        }
+
+        .transactions-table tbody tr.row-loan_deposit {
+            border-bottom: 3px solid var(--loan-deposit-color);
+        }
+
+        .transactions-table tbody tr.row-principal_withdrawal {
+            border-bottom: 3px solid var(--withdrawal-color);
+        }
+
+        .transactions-table tbody tr.row-profit_accrual {
+            border-bottom: 3px solid var(--profit-color);
         }
 
         /* Action Buttons */
@@ -517,6 +541,15 @@
             .stat-card.profit,
             .transaction-type,
             .investor-info-box {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            
+            /* حفظ border-bottom رنگی در چاپ */
+            .transactions-table tbody tr.row-principal_deposit,
+            .transactions-table tbody tr.row-loan_deposit,
+            .transactions-table tbody tr.row-principal_withdrawal,
+            .transactions-table tbody tr.row-profit_accrual {
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
@@ -794,6 +827,10 @@
                         <h4 id="totalPrincipal">-</h4>
                         <p>کل آورده (تومان)</p>
                     </div>
+                    <div class="stat-card" style="border-color: var(--loan-deposit-color); background: linear-gradient(135deg, var(--loan-deposit-color-light), rgba(255, 152, 0, 0.05));">
+                        <h4 id="totalLoanDeposit">-</h4>
+                        <p>آورده وام (تومان)</p>
+                    </div>
                     <div class="stat-card withdrawal">
                         <h4 id="totalWithdrawal">-</h4>
                         <p>کل برداشت (تومان)</p>
@@ -1056,10 +1093,12 @@
 
                 // Calculate financial metrics
                 const principalDeposits = transactions.filter(t => t.transaction_type === 'principal_deposit');
+                const loanDeposits = transactions.filter(t => t.transaction_type === 'loan_deposit');
                 const principalWithdrawals = transactions.filter(t => t.transaction_type === 'principal_withdrawal');
                 const profitAccruals = transactions.filter(t => t.transaction_type === 'profit_accrual');
 
                 const totalPrincipal = principalDeposits.reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
+                const totalLoanDeposit = loanDeposits.reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
                 const totalWithdrawal = Math.abs(principalWithdrawals.reduce((sum, t) => sum + parseFloat(t.amount || 0), 0));
                 const totalProfit = profitAccruals.reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
                 const netPrincipal = totalPrincipal - totalWithdrawal;
@@ -1223,6 +1262,7 @@
 
                 // Financial stats
                 document.getElementById('totalPrincipal').textContent = formatNumber(totalPrincipal);
+                document.getElementById('totalLoanDeposit').textContent = formatNumber(totalLoanDeposit);
                 document.getElementById('totalWithdrawal').textContent = formatNumber(totalWithdrawal);
                 document.getElementById('netPrincipal').textContent = formatNumber(netPrincipal);
                 document.getElementById('totalProfit').textContent = formatNumber(totalProfit);
@@ -1261,6 +1301,7 @@
                     // Define transaction type priority
                     const transactionTypePriority = {
                         'principal_deposit': 1,
+                        'loan_deposit': 1.5,
                         'principal_withdrawal': 2,
                         'profit_accrual': 3
                     };
@@ -1293,7 +1334,7 @@
                     });
 
                     tableBody.innerHTML = sortedTransactions.map((t, index) => `
-                        <tr>
+                        <tr class="row-${t.transaction_type}">
                             <td>${index + 1}</td>
                             <td>${t.date_shamsi || t.date}</td>
                             <td><span class="transaction-type ${t.transaction_type}">${getTransactionTypeLabel(t.transaction_type)}</span></td>
