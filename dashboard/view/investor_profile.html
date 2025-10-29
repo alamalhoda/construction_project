@@ -896,6 +896,10 @@
                         <h4 id="totalPrincipal">-</h4>
                         <p>کل آورده (تومان)</p>
                     </div>
+                    <div class="stat-card" style="border: 2px solid #ff9800; background: linear-gradient(135deg, rgba(255, 152, 0, 0.1), rgba(255, 140, 0, 0.1));">
+                        <h4 id="totalLoanDeposit">-</h4>
+                        <p>آورده وام (تومان)</p>
+                    </div>
                     <div class="stat-card" style="border: 2px solid #dc3545; background: linear-gradient(135deg, rgba(220, 53, 69, 0.1), rgba(200, 35, 51, 0.1));">
                         <h4 id="totalWithdrawal">-</h4>
                         <p>کل برداشت (تومان)</p>
@@ -1425,6 +1429,20 @@
                 // دریافت آمار تفصیلی مشارکت کننده از API
                 const investorStats = await window.financialService.getInvestorStatistics(investorId);
                 
+                // دریافت تراکنش‌های آورده وام از API
+                let loanDepositTotal = 0;
+                try {
+                    const transactionsResponse = await fetch(`/api/v1/Transaction/?investor=${investorId}`);
+                    if (transactionsResponse.ok) {
+                        const transactionsData = await transactionsResponse.json();
+                        const transactions = transactionsData.results || transactionsData;
+                        const loanDeposits = transactions.filter(t => t.transaction_type === 'loan_deposit');
+                        loanDepositTotal = loanDeposits.reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
+                    }
+                } catch (error) {
+                    console.warn('⚠️ خطا در دریافت آورده وام:', error);
+                }
+                
                 // دریافت نسبت‌های مشارکت کننده از API
                 let investorRatios = null;
                 try {
@@ -1454,6 +1472,7 @@
                     // تبدیل داده‌های سرور به فرمت قابل مقایسه (استفاده از amounts_toman)
                     const serverCalculations = {
                         totalPrincipal: investorStats.amounts_toman?.total_principal || 0,
+                        totalLoanDeposit: loanDepositTotal || 0,
                         totalWithdrawal: Math.abs(investorStats.amounts_toman?.total_withdrawal || 0),
                         totalProfit: investorStats.amounts_toman?.total_profit || 0,
                         netPrincipal: investorStats.amounts_toman?.net_principal || 0,
@@ -1491,6 +1510,7 @@
             // به‌روزرسانی المان‌های HTML با مقادیر سرور
             const elements = [
                 { id: 'totalPrincipal', value: serverCalculations.totalPrincipal },
+                { id: 'totalLoanDeposit', value: serverCalculations.totalLoanDeposit },
                 { id: 'totalWithdrawal', value: serverCalculations.totalWithdrawal },
                 { id: 'netPrincipal', value: serverCalculations.netPrincipal },
                 { id: 'totalProfit', value: serverCalculations.totalProfit },
@@ -1748,7 +1768,7 @@
         // نمودار توزیع فعالیت‌ها
         function createActivityDistributionChart(investorTransactions) {
             // داده‌های فیلتر شده از سرور استفاده می‌کنیم
-            const principalData = investorTransactions.filter(row => row.entry_type === 'principal_deposit');
+            const principalData = investorTransactions.filter(row => ['principal_deposit','loan_deposit'].includes(row.entry_type));
             const withdrawalData = investorTransactions.filter(row => row.entry_type === 'principal_withdrawal');
             const profitData = investorTransactions.filter(row => row.entry_type === 'profit_accrual');
 
@@ -1802,7 +1822,7 @@
         function createPrincipalTransactionChart(investorTransactions) {
             // فیلتر کردن تراکنش‌های آورده و برداشت
             const principalTransactions = investorTransactions.filter(row => 
-                row.entry_type === 'principal_deposit' || row.entry_type === 'principal_withdrawal'
+                ['principal_deposit','loan_deposit','principal_withdrawal'].includes(row.entry_type)
             );
             
             // مرتب کردن بر اساس تاریخ
@@ -1827,7 +1847,7 @@
                 
                 labels.push(date);
                 
-                if (transaction.entry_type === 'principal_deposit') {
+                if (['principal_deposit','loan_deposit'].includes(transaction.entry_type)) {
                     depositAmounts.push(amount / BASE_AMOUNT);
                     withdrawalAmounts.push(0);
                     cumulative += amount;
@@ -1929,7 +1949,7 @@
         function createMonthlyPrincipalChart(investorTransactions) {
             // فیلتر کردن فقط تراکنش‌های آورده و برداشت
             const principalTransactions = investorTransactions.filter(row => 
-                row.entry_type === 'principal_deposit' || row.entry_type === 'principal_withdrawal'
+                ['principal_deposit','loan_deposit','principal_withdrawal'].includes(row.entry_type)
             );
             
             const monthlyData = {};
@@ -1941,7 +1961,7 @@
                     }
                     
                     const amount = parseFloat(row.amount || 0);
-                    if (row.entry_type === 'principal_deposit') {
+                    if (['principal_deposit','loan_deposit'].includes(row.entry_type)) {
                         monthlyData[month].principal += amount;
                     } else { // principal_withdrawal
                         monthlyData[month].withdrawal += amount;
@@ -2164,6 +2184,7 @@
                         
                         switch (row.entry_type) {
                             case 'principal_deposit':
+                            case 'loan_deposit':
                                 monthlyData[month].principal += amount;
                                 break;
                             case 'principal_withdrawal':

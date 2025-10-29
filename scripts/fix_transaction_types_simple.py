@@ -54,7 +54,7 @@ def main():
                 elif original_type == 'profit_accrual':
                     new_type = 'principal_withdrawal'
             else:  # مقادیر مثبت
-                if original_type == 'principal_deposit':
+                if original_type in ['principal_deposit', 'loan_deposit']:
                     new_type = 'profit_accrual'
                 elif original_type == 'profit_accrual':
                     new_type = 'principal_deposit'
