@@ -66,7 +66,7 @@ class ProjectCalculations(FinancialCalculationService):
         
         # آمار تراکنش‌ها
         transaction_stats = models.Transaction.objects.filter(project=project).aggregate(
-            total_deposits=Sum('amount', filter=Q(transaction_type='principal_deposit')),
+            total_deposits=Sum('amount', filter=Q(transaction_type__in=['principal_deposit', 'loan_deposit'])),
             total_withdrawals=Sum('amount', filter=Q(transaction_type='principal_withdrawal')),
             total_profits=Sum('amount', filter=Q(transaction_type='profit_accrual'))
         )
@@ -207,7 +207,7 @@ class ProjectCalculations(FinancialCalculationService):
         
         # دریافت آمار تراکنش‌ها برای محاسبه مجموع کل سرمایه
         transaction_stats = models.Transaction.objects.filter(project=project).aggregate(
-            total_deposits=Sum('amount', filter=Q(transaction_type='principal_deposit')),
+            total_deposits=Sum('amount', filter=Q(transaction_type__in=['principal_deposit', 'loan_deposit'])),
             total_withdrawals=Sum('amount', filter=Q(transaction_type='principal_withdrawal'))
         )
         
@@ -362,7 +362,7 @@ class InvestorCalculations(FinancialCalculationService):
         
         # محاسبه مجموع‌ها
         total_principal = transactions.filter(
-            transaction_type='principal_deposit'
+            transaction_type__in=['principal_deposit', 'loan_deposit']
         ).aggregate(total=Sum('amount'))['total'] or 0
         
         total_withdrawal = transactions.filter(
@@ -726,7 +726,7 @@ class TransactionCalculations(FinancialCalculationService):
         
         # محاسبه آمار
         stats = queryset.aggregate(
-            total_deposits=Sum('amount', filter=Q(transaction_type='principal_deposit')),
+            total_deposits=Sum('amount', filter=Q(transaction_type__in=['principal_deposit', 'loan_deposit'])),
             total_withdrawals=Sum('amount', filter=Q(transaction_type='principal_withdrawal')),
             total_profits=Sum('amount', filter=Q(transaction_type='profit_accrual')),
             total_transactions=Count('id')

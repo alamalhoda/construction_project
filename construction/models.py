@@ -324,6 +324,7 @@ class Transaction(models.Model):
     """
     TRANSACTION_TYPES = [
         ('principal_deposit', 'آورده'),
+        ('loan_deposit', 'آورده وام'),
         ('principal_withdrawal', 'خروج از سرمایه'),
         ('profit_accrual', 'سود'),
     ]
@@ -421,7 +422,7 @@ class Transaction(models.Model):
         برای آورده: سود مثبت
         برای خروج از سرمایه: سود منفی
         """
-        if self.transaction_type not in ['principal_deposit', 'principal_withdrawal']:
+        if self.transaction_type not in ['principal_deposit', 'loan_deposit', 'principal_withdrawal']:
             return Decimal('0')
         
         if not interest_rate:
@@ -451,7 +452,7 @@ class Transaction(models.Model):
         
         # دریافت همه تراکنش‌های سرمایه (آورده و خروج)
         capital_transactions = cls.objects.filter(
-            transaction_type__in=['principal_deposit', 'principal_withdrawal'],
+            transaction_type__in=['principal_deposit', 'loan_deposit', 'principal_withdrawal'],
             day_remaining__gt=0
         )
         

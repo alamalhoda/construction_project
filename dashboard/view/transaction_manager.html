@@ -504,6 +504,10 @@
             background-color: rgba(33, 133, 208, 0.1) !important;
         }
         
+        .transaction-loan_deposit {
+            background-color: rgba(255, 152, 0, 0.1) !important;
+        }
+        
         .transaction-principal_withdrawal {
             background-color: rgba(219, 40, 40, 0.1) !important;
         }
@@ -832,6 +836,9 @@
                             <div class="item" data-value="principal_deposit">
                                 <i class="ui blue circle icon"></i>آورده
                             </div>
+                            <div class="item" data-value="loan_deposit">
+                                <i class="ui orange circle icon" style="color: var(--loan-deposit-color);"></i>آورده وام
+                            </div>
                             <div class="item" data-value="principal_withdrawal">
                                 <i class="ui red circle icon"></i>برداشت
                             </div>
@@ -970,6 +977,9 @@
                                 <div class="item" data-value="principal_deposit">
                                     <i class="ui blue circle icon"></i>آورده
                                 </div>
+                                <div class="item" data-value="loan_deposit">
+                                    <i class="ui orange circle icon" style="color: var(--loan-deposit-color);"></i>آورده وام
+                                </div>
                                 <div class="item" data-value="principal_withdrawal">
                                     <i class="ui red circle icon"></i>برداشت
                                 </div>
@@ -1070,6 +1080,9 @@
                             <div class="menu">
                                 <div class="item" data-value="principal_deposit">
                                     <i class="ui blue circle icon"></i>آورده
+                                </div>
+                                <div class="item" data-value="loan_deposit">
+                                    <i class="ui orange circle icon" style="color: var(--loan-deposit-color);"></i>آورده وام
                                 </div>
                                 <div class="item" data-value="principal_withdrawal">
                                     <i class="ui red circle icon"></i>برداشت
@@ -1185,6 +1198,7 @@
         // Transaction type mappings
         const TRANSACTION_TYPE_FORMATS = {
             'principal_deposit': '<span class="ui blue label">آورده</span>',
+            'loan_deposit': '<span class="ui label" style="background-color: var(--loan-deposit-color); color: #fff;">آورده وام</span>',
             'principal_withdrawal': '<span class="ui red label">برداشت</span>',
             'profit_accrual': '<span class="ui green label">سود مشارکت</span>'
         };
@@ -1904,7 +1918,9 @@
                 if (transactionTypeFilter && transactionTypeFilter !== '') {
                     if (transactionTypeFilter === 'principal_transactions') {
                         // Filter for both principal_deposit and principal_withdrawal
-                        passes = passes && (data.transaction_type === 'principal_deposit' || data.transaction_type === 'principal_withdrawal');
+                        passes = passes && (
+                            ['principal_deposit','loan_deposit','principal_withdrawal'].includes(data.transaction_type)
+                        );
                     } else {
                         passes = passes && (data.transaction_type == transactionTypeFilter);
                     }
@@ -2020,7 +2036,7 @@
             
             // Calculate totals
             const deposits = filteredData
-                .filter(row => row.transaction_type === 'principal_deposit')
+                .filter(row => ['principal_deposit','loan_deposit'].includes(row.transaction_type))
                 .reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
                 
             const withdrawals = filteredData
@@ -2102,7 +2118,7 @@
             
             if (filteredCount === totalCount.length) {
                 // Calculate breakdown when no filters are applied
-                const deposits = totalCount.filter(row => row.transaction_type === 'principal_deposit').length;
+                const deposits = totalCount.filter(row => ['principal_deposit','loan_deposit'].includes(row.transaction_type)).length;
                 const withdrawals = totalCount.filter(row => row.transaction_type === 'principal_withdrawal').length;
                 const profits = totalCount.filter(row => row.transaction_type === 'profit_accrual').length;
                 
@@ -2284,6 +2300,7 @@
                 if (processedRow.transaction_type) {
                     const typeMapping = {
                         'principal_deposit': 'آورده',
+                        'loan_deposit': 'آورده وام',
                         'principal_withdrawal': 'برداشت',
                         'profit_accrual': 'سود مشارکت تعلق گرفته'
                     };

@@ -391,7 +391,7 @@ class InvestorViewSet(viewsets.ModelViewSet):
                         investor_id, 
                         SUM(amount) as total
                     FROM construction_transaction 
-                    WHERE transaction_type = 'principal_deposit'
+                    WHERE transaction_type IN ('principal_deposit','loan_deposit')
                     GROUP BY investor_id
                 ) as principal_deposits ON i.id = principal_deposits.investor_id
                 LEFT JOIN (
