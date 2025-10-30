@@ -605,7 +605,7 @@ class PeriodViewSet(viewsets.ModelViewSet):
                 )
                 
                 deposits = period_transactions.filter(
-                    transaction_type='principal_deposit'
+                    transaction_type__in=['principal_deposit', 'loan_deposit']
                 ).aggregate(total=Sum('amount'))['total'] or 0
                 
                 withdrawals = period_transactions.filter(
@@ -699,9 +699,9 @@ class PeriodViewSet(viewsets.ModelViewSet):
                     period=period
                 )
                 
-                # آورده (deposits)
+                # آورده (deposits) - شامل آورده وام برای هماهنگی با cost_metrics
                 deposits = period_transactions.filter(
-                    transaction_type='principal_deposit'
+                    transaction_type__in=['principal_deposit', 'loan_deposit']
                 ).aggregate(total=Sum('amount'))['total'] or 0
                 deposits = float(deposits)
                 cumulative_deposits += deposits
@@ -1295,7 +1295,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
         # محاسبه آمار کلی
         total_transactions = models.Transaction.objects.count()
         total_deposits = models.Transaction.objects.filter(
-            transaction_type='principal_deposit'
+            transaction_type__in=['principal_deposit', 'loan_deposit']
         ).aggregate(total=Sum('amount'))['total'] or 0
         
         total_withdrawals = models.Transaction.objects.filter(
