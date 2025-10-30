@@ -386,6 +386,47 @@ class TransactionManager(models.Manager):
             'net_capital': net_capital,
         }
 
+    def totals(self, project: Project = None, filters: dict = None):
+        """
+        مرجع واحدِ انعطاف‌پذیر برای تجمیع تراکنش‌ها با فیلترهای اختیاری.
+        خروجی شامل تفکیک principal_deposit و loan_deposit نیز هست تا استاندارد deposits حفظ شود.
+        """
+        from django.db.models import Sum, Q
+        qs = self.get_queryset()
+        if project is not None:
+            qs = qs.filter(project=project)
+        if filters:
+            if 'investor_id' in filters and filters['investor_id'] is not None:
+                qs = qs.filter(investor_id=filters['investor_id'])
+            if 'date_from' in filters and filters['date_from']:
+                qs = qs.filter(date_gregorian__gte=filters['date_from'])
+            if 'date_to' in filters and filters['date_to']:
+                qs = qs.filter(date_gregorian__lte=filters['date_to'])
+            if 'transaction_type' in filters and filters['transaction_type']:
+                qs = qs.filter(transaction_type=filters['transaction_type'])
+
+        principal_deposit = qs.aggregate(total=Sum('amount', filter=Q(transaction_type='principal_deposit')))['total'] or 0
+        loan_deposit = qs.aggregate(total=Sum('amount', filter=Q(transaction_type='loan_deposit')))['total'] or 0
+        withdrawals = qs.aggregate(total=Sum('amount', filter=Q(transaction_type='principal_withdrawal')))['total'] or 0
+        profits = qs.aggregate(total=Sum('amount', filter=Q(transaction_type='profit_accrual')))['total'] or 0
+
+        principal_deposit = float(principal_deposit)
+        loan_deposit = float(loan_deposit)
+        withdrawals = float(withdrawals)
+        profits = float(profits)
+        deposits = principal_deposit + loan_deposit
+        net_capital = deposits + withdrawals  # withdrawals منفی است
+
+        return {
+            'principal_deposit': principal_deposit,
+            'loan_deposit': loan_deposit,
+            'deposits': deposits,
+            'withdrawals': withdrawals,
+            'profits': profits,
+            'net_capital': net_capital,
+            'total_transactions': qs.count(),
+        }
+
 
 class Transaction(models.Model):
     """
@@ -690,6 +731,47 @@ class TransactionManager(models.Manager):
             'withdrawals': withdrawals,
             'profits': profits,
             'net_capital': net_capital,
+        }
+
+    def totals(self, project: Project = None, filters: dict = None):
+        """
+        مرجع واحدِ انعطاف‌پذیر برای تجمیع تراکنش‌ها با فیلترهای اختیاری.
+        خروجی شامل تفکیک principal_deposit و loan_deposit نیز هست تا استاندارد deposits حفظ شود.
+        """
+        from django.db.models import Sum, Q
+        qs = self.get_queryset()
+        if project is not None:
+            qs = qs.filter(project=project)
+        if filters:
+            if 'investor_id' in filters and filters['investor_id'] is not None:
+                qs = qs.filter(investor_id=filters['investor_id'])
+            if 'date_from' in filters and filters['date_from']:
+                qs = qs.filter(date_gregorian__gte=filters['date_from'])
+            if 'date_to' in filters and filters['date_to']:
+                qs = qs.filter(date_gregorian__lte=filters['date_to'])
+            if 'transaction_type' in filters and filters['transaction_type']:
+                qs = qs.filter(transaction_type=filters['transaction_type'])
+
+        principal_deposit = qs.aggregate(total=Sum('amount', filter=Q(transaction_type='principal_deposit')))['total'] or 0
+        loan_deposit = qs.aggregate(total=Sum('amount', filter=Q(transaction_type='loan_deposit')))['total'] or 0
+        withdrawals = qs.aggregate(total=Sum('amount', filter=Q(transaction_type='principal_withdrawal')))['total'] or 0
+        profits = qs.aggregate(total=Sum('amount', filter=Q(transaction_type='profit_accrual')))['total'] or 0
+
+        principal_deposit = float(principal_deposit)
+        loan_deposit = float(loan_deposit)
+        withdrawals = float(withdrawals)
+        profits = float(profits)
+        deposits = principal_deposit + loan_deposit
+        net_capital = deposits + withdrawals
+
+        return {
+            'principal_deposit': principal_deposit,
+            'loan_deposit': loan_deposit,
+            'deposits': deposits,
+            'withdrawals': withdrawals,
+            'profits': profits,
+            'net_capital': net_capital,
+            'total_transactions': qs.count(),
         }
 
 
