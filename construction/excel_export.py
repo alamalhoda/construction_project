@@ -273,7 +273,7 @@ class ChartsSheet:
                 # محاسبه سرمایه دوره
                 deposits = models.Transaction.objects.filter(
                     period=period, 
-                    transaction_type='principal_deposit'
+                    transaction_type__in=['principal_deposit','loan_deposit']
                 ).aggregate(total=Sum('amount'))['total'] or 0
                 
                 withdrawals = models.Transaction.objects.filter(
@@ -1277,7 +1277,7 @@ class InvestorAnalysisSheet:
             
             # محاسبه مبالغ
             total_principal = transactions.filter(
-                transaction_type='principal_deposit'
+                transaction_type__in=['principal_deposit','loan_deposit']
             ).aggregate(total=Sum('amount'))['total'] or 0
             
             total_withdrawal = transactions.filter(
@@ -1419,7 +1419,7 @@ class PeriodSummarySheet:
             
             # آورده
             deposits = period_transactions.filter(
-                transaction_type='principal_deposit'
+                transaction_type__in=['principal_deposit','loan_deposit']
             ).aggregate(total=Sum('amount'))['total'] or 0
             deposits = float(deposits)
             cumulative_deposits += deposits
