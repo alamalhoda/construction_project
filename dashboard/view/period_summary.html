@@ -565,7 +565,7 @@
                                 <tr>
                                     <th rowspan="2">دوره</th>
                                     <th rowspan="2">سال</th>
-                                    <th colspan="7">داده های دوره</th>
+                                    <th colspan="8">داده های دوره</th>
                                     <th colspan="7" class="cumulative-column" style="display: none;">مقادیر تجمعی</th>
                                 </tr>
                                 <tr>
@@ -576,7 +576,18 @@
                                     <th>سود</th>
                                     <th>هزینه</th>
                                     <th>فروش/مرجوعی</th>
-                                    <th>مانده صندوق</th>
+                                    <th>
+                                        مانده صندوق دوره‌ای
+                                        <button type="button" class="info-icon" data-info-title="مانده صندوق دوره‌ای" data-info-content="مانده صندوق فقط برای همان دوره (ماه) جاری: سرمایه خالص همان دوره منهای هزینه همان دوره به‌علاوه فروش/مرجوعی همان دوره. این مقدار تجمعی نیست و فقط اثر همان ماه را نشان می‌دهد.">
+                                            <i class="fas fa-info-circle"></i>
+                                        </button>
+                                    </th>
+                                    <th>
+                                        مانده صندوق
+                                        <button type="button" class="info-icon" data-info-title="مانده صندوق" data-info-content="مانده صندوق تجمعی تا پایان همان دوره: سرمایه موجود تجمعی − هزینه‌های تجمعی + فروش تجمعی. این مقدار وضعیت انباشته صندوق تا آن ماه را نشان می‌دهد.">
+                                            <i class="fas fa-info-circle"></i>
+                                        </button>
+                                    </th>
                                     
                                     <!-- Cumulative Columns -->
                                     <th class="cumulative-column" style="display: none;">آورده تجمعی</th>
@@ -585,13 +596,34 @@
                                     <th class="cumulative-column" style="display: none;">سود تجمعی</th>
                                     <th class="cumulative-column" style="display: none;">هزینه تجمعی</th>
                                     <th class="cumulative-column" style="display: none;">فروش/مرجوعی تجمعی</th>
-                                    <th class="cumulative-column" style="display: none;">مانده تجمعی</th>
+                                    <th class="cumulative-column" style="display: none;">
+                                        مانده تجمعی
+                                        <button type="button" class="info-icon" data-info-title="مانده تجمعی" data-info-content="معادل مانده صندوق تجمعی است که در ستون داده‌های دوره نیز نمایش داده می‌شود، با این تفاوت که این ستون در بخش مقادیر تجمعی گروه‌بندی شده است.">
+                                            <i class="fas fa-info-circle"></i>
+                                        </button>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody id="tableBody">
                                 <!-- Data will be inserted here -->
                             </tbody>
                         </table>
+                    </div>
+                </div>
+
+                <!-- Info Modal -->
+                <div class="modal fade" id="infoModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="infoModalTitle">اطلاعات</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body" id="infoModalBody"></div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -666,7 +698,7 @@
                 const excelData = [];
                 
                 // هدر جدول
-                excelData.push([
+                    excelData.push([
                     'دوره',
                     'سال',
                     'آورده (تومان)',
@@ -675,6 +707,7 @@
                     'سود (تومان)',
                     'هزینه (تومان)',
                     'فروش/مرجوعی (تومان)',
+                        'مانده صندوق دوره‌ای (تومان)',
                     'مانده صندوق (تومان)',
                     'آورده تجمعی (تومان)',
                     'برداشت تجمعی (تومان)',
@@ -698,6 +731,7 @@
                         Math.round(period.profits),
                         Math.round(period.expenses),
                         Math.round(period.sales),
+                        Math.round(period.period_fund_balance),
                         Math.round(period.fund_balance),
                         Math.round(period.cumulative_deposits),
                         Math.round(Math.abs(period.cumulative_withdrawals)),
@@ -725,6 +759,7 @@
                     { wch: 18 }, // سود
                     { wch: 18 }, // هزینه
                     { wch: 18 }, // فروش/مرجوعی
+                    { wch: 22 }, // مانده صندوق دوره‌ای
                     { wch: 20 }, // مانده صندوق
                     { wch: 20 }, // آورده تجمعی
                     { wch: 20 }, // برداشت تجمعی
@@ -820,6 +855,7 @@
                     <td class="profits-col">${formatNumber(period.profits)}</td>
                     <td class="expenses-col">${formatNumber(period.expenses)}</td>
                     <td class="sales-col">${formatNumber(period.sales)}</td>
+                    <td class="balance-col">${formatNumber(period.period_fund_balance)}</td>
                     <td class="balance-col">${formatNumber(period.fund_balance)}</td>
                     
                     <!-- Cumulative Columns -->
@@ -837,6 +873,26 @@
 
         // Load data on page load
         document.addEventListener('DOMContentLoaded', loadPeriodSummary);
+
+        // Setup info icon handlers
+        document.addEventListener('DOMContentLoaded', function() {
+            const infoButtons = document.querySelectorAll('.info-icon');
+            const modalEl = document.getElementById('infoModal');
+            const modalTitle = document.getElementById('infoModalTitle');
+            const modalBody = document.getElementById('infoModalBody');
+            const infoModal = modalEl ? new bootstrap.Modal(modalEl) : null;
+
+            infoButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (!infoModal) return;
+                    const title = this.getAttribute('data-info-title') || 'اطلاعات';
+                    const content = this.getAttribute('data-info-content') || '';
+                    modalTitle.textContent = title;
+                    modalBody.textContent = content;
+                    infoModal.show();
+                });
+            });
+        });
     </script>
 </body>
 </html>

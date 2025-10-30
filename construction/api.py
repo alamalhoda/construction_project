@@ -763,6 +763,7 @@ class PeriodViewSet(viewsets.ModelViewSet):
                     'profits': profits,
                     'expenses': expenses,
                     'sales': sales,
+                    'period_fund_balance': (net_capital - expenses + sales),
                     'fund_balance': fund_balance,
                     
                     # مقادیر تجمعی
@@ -803,6 +804,7 @@ class PeriodViewSet(viewsets.ModelViewSet):
                             'profits': profits,
                             'expenses': expenses,
                             'sales': sales,
+                            'period_fund_balance': (net_capital - expenses + sales),
                             'fund_balance': fund_balance
                         },
                         'current_cumulative_totals': {
