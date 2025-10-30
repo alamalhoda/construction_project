@@ -30,6 +30,7 @@ const calculateProfit = () => { /* محاسبات پیچیده */ };
   - `project_totals(project=None)`
   - `period_totals(project, period)`
   - `cumulative_until(project, upto_period)`
+  - `totals(project=None, filters=None)` — برای سناریوهای با فیلتر پویا (investor/date/type) و تفکیک `principal_deposit` و `loan_deposit`.
 - استاندارد: `deposits = principal_deposit + loan_deposit`، `withdrawals = principal_withdrawal` (منفی)، `net_capital = deposits + withdrawals`.
 
 ### 5. **قانون مرجع واحد محاسبات (SSOT - سراسری)**
@@ -48,6 +49,20 @@ const investorData = await window.loadInvestorData(investorId);
 // ❌ اشتباه - پیاده‌سازی مجدد
 const fetchData = async () => { /* کد تکراری */ };
 ```
+
+---
+
+## 🔧 الگوهای استفاده سرور (به‌روزرسانی‌شده با SSOT)
+
+- Project statistics:
+  - به‌جای aggregate محلی از `Transaction.objects.project_totals(project)` استفاده شود.
+  - فیلدهای استفاده‌شده: `deposits`, `withdrawals`, `profits`, `net_capital`.
+
+- Cost metrics (مانده صندوق/سرمایه کل):
+  - `total_capital = Transaction.objects.project_totals(project).net_capital`.
+
+- Transaction statistics با فیلتر:
+  - از `Transaction.objects.totals(project, filters)` استفاده شود؛ خروجی شامل `principal_deposit`, `loan_deposit`, `deposits`, `withdrawals`, `profits`, `net_capital`, `total_transactions`.
 
 ---
 

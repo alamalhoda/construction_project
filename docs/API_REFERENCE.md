@@ -246,6 +246,8 @@ curl -O -J http://localhost:8000/api/v1/Project/export_excel_dynamic/
   - `net_capital`: سرمایه موجود
   - نسخه‌های فرمت شده
 
+> پیاده‌سازی سرور از مرجع واحد `Transaction.objects.totals(project, filters)` استفاده می‌کند تا سازگاری با SSOT حفظ شود.
+
 ---
 
 ### 📅 **Period APIs**
