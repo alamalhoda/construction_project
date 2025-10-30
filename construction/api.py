@@ -689,6 +689,9 @@ class PeriodViewSet(viewsets.ModelViewSet):
             cumulative_sales = 0
             final_fund_balance = 0  # مانده صندوق نهایی
 
+            # خلاصه ویژه دوره جاری
+            current_summary = None
+
             for period in periods:
                 # محاسبه تراکنش‌های دوره
                 period_transactions = models.Transaction.objects.filter(
@@ -760,6 +763,7 @@ class PeriodViewSet(viewsets.ModelViewSet):
                     'profits': profits,
                     'expenses': expenses,
                     'sales': sales,
+                    'period_fund_balance': (net_capital - expenses + sales),
                     'fund_balance': fund_balance,
                     
                     # مقادیر تجمعی
@@ -771,6 +775,51 @@ class PeriodViewSet(viewsets.ModelViewSet):
                     'cumulative_sales': cumulative_sales,
                     'cumulative_fund_balance': fund_balance
                 })
+
+                # اگر این دوره جاری است، خلاصه ویژه current را بساز
+                if period.is_current():
+                    # هزینه نهایی تا دوره جاری
+                    current_final_cost = cumulative_expenses - cumulative_sales
+                    # آمار واحدها برای محاسبه هزینه هر متر
+                    units_stats_current = models.Unit.objects.filter(project=active_project).aggregate(
+                        total_area=Sum('area')
+                    )
+                    total_area_current = float(units_stats_current['total_area'] or 0)
+                    total_infrastructure = float(active_project.total_infrastructure)
+                    cost_per_meter_net_current = (current_final_cost / total_area_current) if total_area_current > 0 else 0
+                    cost_per_meter_gross_current = (current_final_cost / total_infrastructure) if total_infrastructure > 0 else 0
+
+                    current_summary = {
+                        'period': {
+                            'id': period.id,
+                            'label': period.label,
+                            'year': period.year,
+                            'month_number': period.month_number,
+                            'month_name': period.month_name
+                        },
+                        'current_period_factors': {
+                            'deposits': deposits,
+                            'withdrawals': withdrawals,
+                            'net_capital': net_capital,
+                            'profits': profits,
+                            'expenses': expenses,
+                            'sales': sales,
+                            'period_fund_balance': (net_capital - expenses + sales),
+                            'fund_balance': fund_balance
+                        },
+                        'current_cumulative_totals': {
+                            'total_deposits': cumulative_deposits,
+                            'total_withdrawals': cumulative_withdrawals,
+                            'total_net_capital': cumulative_net_capital,
+                            'total_profits': cumulative_profits,
+                            'total_expenses': cumulative_expenses,
+                            'total_sales': cumulative_sales,
+                            'final_fund_balance': fund_balance,
+                            'final_cost': current_final_cost,
+                            'cost_per_meter_net': cost_per_meter_net_current,
+                            'cost_per_meter_gross': cost_per_meter_gross_current
+                        }
+                    }
 
             # محاسبه هزینه هر متر خالص و ناخالص
             # دریافت آمار واحدها
@@ -806,7 +855,8 @@ class PeriodViewSet(viewsets.ModelViewSet):
                 'success': True,
                 'data': summary_data,
                 'totals': totals,
-                'active_project': active_project.name
+                'active_project': active_project.name,
+                'current': current_summary
             })
 
         except Exception as e:
