@@ -49,6 +49,14 @@ const calculateProfit = () => { /* محاسبات پیچیده */ };
   - `cumulative_until(project, upto_period)`
 - استاندارد: `deposits = principal_deposit + loan_deposit`، `withdrawals = principal_withdrawal` (منفی)، `net_capital = deposits + withdrawals`.
 
+### 5. **قانون مرجع واحد محاسبات (SSOT - سراسری)**
+- همه محاسبات سمت سرور باید از «یک مرجع واحد» فراخوانی شوند؛ از ایجاد چند تابع/ماژول با منطق مشابه برای یک محاسبه خودداری کنید.
+- مرجع‌های کنونی:
+  - تراکنش‌ها: `Transaction.objects` (Manager سفارشی) برای deposits/withdrawals/net_capital و مشتقات.
+  - متریک‌های هزینه/ارزش/سود: سرویس‌های `construction/calculations.py` مانند `ProjectCalculations`, `ProfitCalculations`.
+- هرگاه نیاز به محاسبه جدید است، ابتدا بررسی کنید آیا در این مراجع قابل بیان/گسترش است؛ در صورت امکان همان‌جا اضافه کنید (نه در فایل‌ها/توابع دیگر).
+- هدف: حذف تعارض‌های محاسباتی، کاهش تکرار، سهولت تغییر قوانین، و تست‌پذیری بهتر.
+
 ```javascript
 // ✅ درست - استفاده از توابع کمکی
 const analysis = await window.loadProjectData();
