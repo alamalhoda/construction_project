@@ -278,7 +278,7 @@ curl -O -J http://localhost:8000/api/v1/Project/export_excel_dynamic/
     - `month_name`: نام ماه
     - `weight`: وزن دوره
     - **فاکتورهای دوره**:
-      - `deposits`: آورده دوره
+      - `deposits`: آورده دوره (شامل `principal_deposit` و `loan_deposit`)
       - `withdrawals`: برداشت دوره (منفی)
       - `net_capital`: سرمایه خالص (آورده + برداشت)
       - `profits`: سود دوره
@@ -306,6 +306,7 @@ curl -O -J http://localhost:8000/api/v1/Project/export_excel_dynamic/
 **نکات مهم**:
 1. مقدار `withdrawals` در دیتابیس منفی است، بنابراین `net_capital = deposits + withdrawals`
 2. نوع تراکنش سود `profit_accrual` است (نه `profit_payment`)
+3. محاسبات تراکنش‌ها از Manager سفارشی `Transaction.objects` انجام می‌شود تا یکپارچگی حفظ شود.
 
 ---
 

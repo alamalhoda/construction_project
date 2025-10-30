@@ -41,6 +41,14 @@ const calculateProfit = () => { /* محاسبات پیچیده */ };
 ```
 
 ### 3. **استفاده از توابع کمکی**
+### 4. **مرجع واحد تراکنش‌ها (اجباری)**
+- هرگونه محاسبه برای آورده/برداشت/سرمایه خالص باید فقط از طریق Manager سفارشی مدل تراکنش انجام شود: `Transaction.objects`.
+- از توابع زیر استفاده کنید و Query پراکنده ننویسید:
+  - `project_totals(project=None)`
+  - `period_totals(project, period)`
+  - `cumulative_until(project, upto_period)`
+- استاندارد: `deposits = principal_deposit + loan_deposit`، `withdrawals = principal_withdrawal` (منفی)، `net_capital = deposits + withdrawals`.
+
 ```javascript
 // ✅ درست - استفاده از توابع کمکی
 const analysis = await window.loadProjectData();
