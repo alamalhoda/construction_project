@@ -598,22 +598,9 @@ class PeriodViewSet(viewsets.ModelViewSet):
             cumulative_sales = 0
 
             for period in periods:
-                # محاسبه سرمایه دوره (آورده + برداشت، چون برداشت در دیتابیس منفی است)
-                period_transactions = models.Transaction.objects.filter(
-                    project=active_project,
-                    period=period
-                )
-                
-                deposits = period_transactions.filter(
-                    transaction_type__in=['principal_deposit', 'loan_deposit']
-                ).aggregate(total=Sum('amount'))['total'] or 0
-                
-                withdrawals = period_transactions.filter(
-                    transaction_type='principal_withdrawal'
-                ).aggregate(total=Sum('amount'))['total'] or 0
-                
-                # توجه: withdrawals در دیتابیس منفی است، پس از جمع استفاده می‌کنیم
-                period_capital = float(deposits + withdrawals)
+                # محاسبه سرمایه دوره از مرجع واحد تراکنش‌ها
+                tx_totals = models.Transaction.objects.period_totals(active_project, period)
+                period_capital = float(tx_totals['net_capital'])
                 cumulative_capital += period_capital
 
                 # محاسبه هزینه‌های دوره
@@ -693,36 +680,16 @@ class PeriodViewSet(viewsets.ModelViewSet):
             current_summary = None
 
             for period in periods:
-                # محاسبه تراکنش‌های دوره
-                period_transactions = models.Transaction.objects.filter(
-                    project=active_project,
-                    period=period
-                )
-                
-                # آورده (deposits) - شامل آورده وام برای هماهنگی با cost_metrics
-                deposits = period_transactions.filter(
-                    transaction_type__in=['principal_deposit', 'loan_deposit']
-                ).aggregate(total=Sum('amount'))['total'] or 0
-                deposits = float(deposits)
+                # محاسبات تراکنش‌های دوره از مرجع واحد
+                tx_totals = models.Transaction.objects.period_totals(active_project, period)
+                deposits = tx_totals['deposits']
+                withdrawals = tx_totals['withdrawals']
+                profits = tx_totals['profits']
+                net_capital = tx_totals['net_capital']
+
                 cumulative_deposits += deposits
-                
-                # برداشت (withdrawals)
-                withdrawals = period_transactions.filter(
-                    transaction_type='principal_withdrawal'
-                ).aggregate(total=Sum('amount'))['total'] or 0
-                withdrawals = float(withdrawals)
                 cumulative_withdrawals += withdrawals
-                
-                # سود (profits)
-                profits = period_transactions.filter(
-                    transaction_type='profit_accrual'
-                ).aggregate(total=Sum('amount'))['total'] or 0
-                profits = float(profits)
                 cumulative_profits += profits
-                
-                # سرمایه خالص دوره (net capital)
-                # توجه: withdrawals در دیتابیس منفی است، پس از جمع استفاده می‌کنیم
-                net_capital = deposits + withdrawals
                 cumulative_net_capital += net_capital
 
                 # هزینه‌های دوره
@@ -1294,17 +1261,10 @@ class TransactionViewSet(viewsets.ModelViewSet):
         
         # محاسبه آمار کلی
         total_transactions = models.Transaction.objects.count()
-        total_deposits = models.Transaction.objects.filter(
-            transaction_type__in=['principal_deposit', 'loan_deposit']
-        ).aggregate(total=Sum('amount'))['total'] or 0
-        
-        total_withdrawals = models.Transaction.objects.filter(
-            transaction_type='principal_withdrawal'
-        ).aggregate(total=Sum('amount'))['total'] or 0
-        
-        total_profits = models.Transaction.objects.filter(
-            transaction_type='profit_accrual'
-        ).aggregate(total=Sum('amount'))['total'] or 0
+        tx_totals_all = models.Transaction.objects.project_totals(project=None)
+        total_deposits = tx_totals_all['deposits']
+        total_withdrawals = tx_totals_all['withdrawals']
+        total_profits = tx_totals_all['profits']
         
         unique_investors = models.Transaction.objects.values('investor').distinct().count()
         

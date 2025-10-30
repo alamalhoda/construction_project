@@ -317,6 +317,76 @@ class InterestRate(models.Model):
         from django.urls import reverse
         return reverse('construction_InterestRate_update', kwargs={'pk': self.pk})
 
+class TransactionManager(models.Manager):
+    """
+    مرجع واحد برای تجمیع تراکنش‌ها در سرتاسر سیستم.
+    قوانین ثابت:
+    - deposits = principal_deposit + loan_deposit
+    - withdrawals = principal_withdrawal (منفی)
+    - profits = profit_accrual
+    - net_capital = deposits + withdrawals
+    """
+
+    def get_queryset(self):
+        return super().get_queryset()
+
+    def project_totals(self, project: Project = None):
+        from django.db.models import Sum, Q
+        qs = self.get_queryset()
+        if project is not None:
+            qs = qs.filter(project=project)
+        deposits = qs.aggregate(total=Sum('amount', filter=Q(transaction_type__in=['principal_deposit', 'loan_deposit'])))['total'] or 0
+        withdrawals = qs.aggregate(total=Sum('amount', filter=Q(transaction_type='principal_withdrawal')))['total'] or 0
+        profits = qs.aggregate(total=Sum('amount', filter=Q(transaction_type='profit_accrual')))['total'] or 0
+        deposits = float(deposits)
+        withdrawals = float(withdrawals)
+        profits = float(profits)
+        net_capital = deposits + withdrawals
+        return {
+            'deposits': deposits,
+            'withdrawals': withdrawals,
+            'profits': profits,
+            'net_capital': net_capital,
+        }
+
+    def period_totals(self, project: Project, period: 'Period'):
+        from django.db.models import Sum, Q
+        qs = self.get_queryset().filter(project=project, period=period)
+        deposits = qs.aggregate(total=Sum('amount', filter=Q(transaction_type__in=['principal_deposit', 'loan_deposit'])))['total'] or 0
+        withdrawals = qs.aggregate(total=Sum('amount', filter=Q(transaction_type='principal_withdrawal')))['total'] or 0
+        profits = qs.aggregate(total=Sum('amount', filter=Q(transaction_type='profit_accrual')))['total'] or 0
+        deposits = float(deposits)
+        withdrawals = float(withdrawals)
+        profits = float(profits)
+        net_capital = deposits + withdrawals
+        return {
+            'deposits': deposits,
+            'withdrawals': withdrawals,
+            'profits': profits,
+            'net_capital': net_capital,
+        }
+
+    def cumulative_until(self, project: Project, upto_period: 'Period'):
+        from django.db.models import Sum, Q
+        qs = self.get_queryset().filter(project=project).filter(
+            Q(period__year__lt=upto_period.year) |
+            Q(period__year=upto_period.year, period__month_number__lte=upto_period.month_number)
+        )
+        deposits = qs.aggregate(total=Sum('amount', filter=Q(transaction_type__in=['principal_deposit', 'loan_deposit'])))['total'] or 0
+        withdrawals = qs.aggregate(total=Sum('amount', filter=Q(transaction_type='principal_withdrawal')))['total'] or 0
+        profits = qs.aggregate(total=Sum('amount', filter=Q(transaction_type='profit_accrual')))['total'] or 0
+        deposits = float(deposits)
+        withdrawals = float(withdrawals)
+        profits = float(profits)
+        net_capital = deposits + withdrawals
+        return {
+            'deposits': deposits,
+            'withdrawals': withdrawals,
+            'profits': profits,
+            'net_capital': net_capital,
+        }
+
+
 class Transaction(models.Model):
     """
     مدل تراکنش مالی
@@ -359,6 +429,9 @@ class Transaction(models.Model):
         help_text="برای تراکنش‌های سود: تراکنش آورده یا خروج از سرمایه مربوطه"
     )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
+    
+    # Manager سفارشی
+    objects = TransactionManager()
 
     class Meta:
         verbose_name = "تراکنش"
@@ -548,6 +621,80 @@ class Transaction(models.Model):
             'new_count': len(new_profit_transactions),
             'total_affected': deleted_count + len(new_profit_transactions)
         }
+
+
+class TransactionManager(models.Manager):
+    """
+    مرجع واحد برای تجمیع تراکنش‌ها در سرتاسر سیستم.
+    قوانین ثابت:
+    - deposits = principal_deposit + loan_deposit
+    - withdrawals = principal_withdrawal (منفی)
+    - profits = profit_accrual
+    - net_capital = deposits + withdrawals
+    """
+
+    def get_queryset(self):
+        return super().get_queryset()
+
+    def project_totals(self, project: Project = None):
+        from django.db.models import Sum, Q
+        qs = self.get_queryset()
+        if project is not None:
+            qs = qs.filter(project=project)
+        deposits = qs.aggregate(total=Sum('amount', filter=Q(transaction_type__in=['principal_deposit', 'loan_deposit'])))['total'] or 0
+        withdrawals = qs.aggregate(total=Sum('amount', filter=Q(transaction_type='principal_withdrawal')))['total'] or 0
+        profits = qs.aggregate(total=Sum('amount', filter=Q(transaction_type='profit_accrual')))['total'] or 0
+        deposits = float(deposits)
+        withdrawals = float(withdrawals)
+        profits = float(profits)
+        net_capital = deposits + withdrawals
+        return {
+            'deposits': deposits,
+            'withdrawals': withdrawals,
+            'profits': profits,
+            'net_capital': net_capital,
+        }
+
+    def period_totals(self, project: Project, period: Period):
+        from django.db.models import Sum, Q
+        qs = self.get_queryset().filter(project=project, period=period)
+        deposits = qs.aggregate(total=Sum('amount', filter=Q(transaction_type__in=['principal_deposit', 'loan_deposit'])))['total'] or 0
+        withdrawals = qs.aggregate(total=Sum('amount', filter=Q(transaction_type='principal_withdrawal')))['total'] or 0
+        profits = qs.aggregate(total=Sum('amount', filter=Q(transaction_type='profit_accrual')))['total'] or 0
+        deposits = float(deposits)
+        withdrawals = float(withdrawals)
+        profits = float(profits)
+        net_capital = deposits + withdrawals
+        return {
+            'deposits': deposits,
+            'withdrawals': withdrawals,
+            'profits': profits,
+            'net_capital': net_capital,
+        }
+
+    def cumulative_until(self, project: Project, upto_period: Period):
+        from django.db.models import Sum, Q
+        qs = self.get_queryset().filter(project=project).filter(
+            Q(period__year__lt=upto_period.year) |
+            Q(period__year=upto_period.year, period__month_number__lte=upto_period.month_number)
+        )
+        deposits = qs.aggregate(total=Sum('amount', filter=Q(transaction_type__in=['principal_deposit', 'loan_deposit'])))['total'] or 0
+        withdrawals = qs.aggregate(total=Sum('amount', filter=Q(transaction_type='principal_withdrawal')))['total'] or 0
+        profits = qs.aggregate(total=Sum('amount', filter=Q(transaction_type='profit_accrual')))['total'] or 0
+        deposits = float(deposits)
+        withdrawals = float(withdrawals)
+        profits = float(profits)
+        net_capital = deposits + withdrawals
+        return {
+            'deposits': deposits,
+            'withdrawals': withdrawals,
+            'profits': profits,
+            'net_capital': net_capital,
+        }
+
+
+# الصاق Manager سفارشی به مدل Transaction
+# حذف add_to_class؛ Manager سفارشی در کلاس تنظیم شد
 
 class Expense(models.Model):
     """
