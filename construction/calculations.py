@@ -37,6 +37,16 @@ class FinancialCalculationService:
         """تبدیل به تومان (تقسیم بر 10)"""
         return amount / 10
 
+    @staticmethod
+    def compute_fund_balance(total_capital: float, total_expenses: float, total_sales: float) -> float:
+        """محاسبه مانده صندوق = سرمایه - هزینه + فروش"""
+        return float(total_capital) - float(total_expenses) + float(total_sales)
+
+    @staticmethod
+    def compute_period_fund_balance(net_capital: float, period_expenses: float, period_sales: float) -> float:
+        """محاسبه مانده صندوق دوره = سرمایه دوره - هزینه دوره + فروش دوره"""
+        return float(net_capital) - float(period_expenses) + float(period_sales)
+
 
 class ProjectCalculations(FinancialCalculationService):
     """محاسبات مربوط به پروژه"""
@@ -57,12 +67,8 @@ class ProjectCalculations(FinancialCalculationService):
         if not project:
             return {'error': 'هیچ پروژه فعالی یافت نشد'}
         
-        # آمار واحدها
-        units_stats = models.Unit.objects.filter(project=project).aggregate(
-            total_units=Count('id'),
-            total_area=Sum('area'),
-            total_price=Sum('total_price')
-        )
+        # آمار واحدها (مرجع واحد)
+        units_stats = models.Unit.objects.project_stats(project)
         
         # آمار تراکنش‌ها (مرجع واحد)
         tx_totals = models.Transaction.objects.project_totals(project)
@@ -120,11 +126,7 @@ class ProjectCalculations(FinancialCalculationService):
                 'end_date_gregorian': str(project.end_date_gregorian),
                 'is_active': project.is_active
             },
-            'units_statistics': {
-                'total_units': units_stats['total_units'] or 0,
-                'total_area': float(units_stats['total_area'] or 0),
-                'total_price': float(units_stats['total_price'] or 0)
-            },
+            'units_statistics': units_stats,
             'transaction_statistics': {
                 'total_deposits': total_deposits,
                 'total_withdrawals': total_withdrawals,
@@ -172,11 +174,8 @@ class ProjectCalculations(FinancialCalculationService):
             total_sales=Sum('amount')
         )
         
-        # آمار واحدها
-        units_stats = models.Unit.objects.filter(project=project).aggregate(
-            total_area=Sum('area'),
-            total_price=Sum('total_price')
-        )
+        # آمار واحدها (مرجع واحد)
+        units_stats = models.Unit.objects.project_stats(project)
         
         total_expenses = float(expense_stats['total_expenses'] or 0)
         total_sales = float(sale_stats['total_sales'] or 0)
@@ -208,8 +207,8 @@ class ProjectCalculations(FinancialCalculationService):
         # محاسبه هزینه خالص
         net_cost = total_expenses - total_sales
         
-        # محاسبه مانده صندوق ساختمان
-        building_fund_balance = total_capital - net_cost
+        # محاسبه مانده صندوق ساختمان (مرجع واحد)
+        building_fund_balance = FinancialCalculationService.compute_fund_balance(total_capital, total_expenses, total_sales)
         
         return {
             'final_cost': final_cost,
@@ -345,33 +344,14 @@ class InvestorCalculations(FinancialCalculationService):
         except models.Investor.DoesNotExist:
             return {'error': 'سرمایه‌گذار یافت نشد'}
         
-        # آمار تراکنش‌های سرمایه‌گذار
-        transactions = models.Transaction.objects.filter(
-            investor=investor
-        ).filter(project=project)
-        
-        # محاسبه مجموع‌ها به صورت جداگانه
-        total_principal_deposit = transactions.filter(
-            transaction_type='principal_deposit'
-        ).aggregate(total=Sum('amount'))['total'] or 0
-        
-        total_loan_deposit = transactions.filter(
-            transaction_type='loan_deposit'
-        ).aggregate(total=Sum('amount'))['total'] or 0
-        
-        # مجموع آورده + آورده وام
-        total_principal = float(total_principal_deposit) + float(total_loan_deposit)
-        
-        total_withdrawal = transactions.filter(
-            transaction_type='principal_withdrawal'
-        ).aggregate(total=Sum('amount'))['total'] or 0
-        
-        total_profit = transactions.filter(
-            transaction_type='profit_accrual'
-        ).aggregate(total=Sum('amount'))['total'] or 0
-        
-        # محاسبات اصلی
-        net_principal = float(total_principal) + float(total_withdrawal)  # withdrawal منفی است
+        # آمار تراکنش‌های سرمایه‌گذار از مرجع واحد
+        totals = models.Transaction.objects.totals(project, {'investor_id': investor.id})
+        total_principal_deposit = totals.get('principal_deposit', 0.0)
+        total_loan_deposit = totals.get('loan_deposit', 0.0)
+        total_principal = totals.get('deposits', 0.0)
+        total_withdrawal = totals.get('withdrawals', 0.0)
+        total_profit = totals.get('profits', 0.0)
+        net_principal = totals.get('net_capital', 0.0)
         total_balance = net_principal + float(total_profit)
         
         return {
@@ -383,23 +363,23 @@ class InvestorCalculations(FinancialCalculationService):
                 'participation_type': investor.participation_type
             },
             'amounts': {
-                'total_principal_deposit': float(total_principal_deposit),  # فقط آورده عادی
-                'total_loan_deposit': float(total_loan_deposit),  # فقط آورده وام
-                'total_principal': float(total_principal),  # مجموع آورده + آورده وام
+                'total_principal_deposit': float(total_principal_deposit),
+                'total_loan_deposit': float(total_loan_deposit),
+                'total_principal': float(total_principal),
                 'total_withdrawal': float(total_withdrawal),
                 'total_profit': float(total_profit),
-                'net_principal': net_principal,
-                'total_balance': total_balance
+                'net_principal': float(net_principal),
+                'total_balance': float(total_balance)
             },
             'amounts_toman': {
                 # حالا که داده‌ها در دیتابیس به تومان هستند، نیازی به تقسیم بر 10 نیست
-                'total_principal_deposit': float(total_principal_deposit),  # فقط آورده عادی
-                'total_loan_deposit': float(total_loan_deposit),  # فقط آورده وام
-                'total_principal': float(total_principal),  # مجموع آورده + آورده وام
+                'total_principal_deposit': float(total_principal_deposit),
+                'total_loan_deposit': float(total_loan_deposit),
+                'total_principal': float(total_principal),
                 'total_withdrawal': abs(float(total_withdrawal)),
                 'total_profit': float(total_profit),
-                'net_principal': net_principal,
-                'total_balance': total_balance
+                'net_principal': float(net_principal),
+                'total_balance': float(total_balance)
             }
         }
     
