@@ -153,6 +153,10 @@
             margin-bottom: 30px;
         }
 
+        /* Variant switching for unit section */
+        .stats-section.unit-section [data-variant] { display: none; }
+        .stats-section.unit-section [data-variant].is-active { display: grid; }
+
         .section-title {
             font-size: 1.3rem;
             color: var(--primary-color);
@@ -877,12 +881,17 @@
             </div>
 
             <!-- Unit Info Section -->
-            <div class="stats-section">
+            <div class="stats-section unit-section">
                 <h3 class="section-title">
                     <i class="fas fa-building"></i>
                     اطلاعات واحد انتخاب شده
                 </h3>
-                <div class="stats-grid">
+                <!-- حالت مالک -->
+                <div class="stats-grid" data-variant="owner">
+                    <div class="stat-card">
+                        <h4 id="unitNameDisplay">-</h4>
+                        <p>نام واحد</p>
+                    </div>
                     <div class="stat-card">
                         <h4 id="unitAreaDisplay">-</h4>
                         <p>مساحت واحد (متر مربع)</p>
@@ -890,6 +899,10 @@
                     <div class="stat-card">
                         <h4 id="totalUnitsPrice">-</h4>
                         <p>قیمت واحد انتخاب شده (تومان)</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4 id="averagePricePerMeter">-</h4>
+                        <p>میانگین وزنی قیمت هر متر (تومان/متر مربع)</p>
                     </div>
                     <div class="stat-card">
                         <h4 id="ownershipArea">-</h4>
@@ -902,6 +915,17 @@
                     <div class="stat-card">
                         <h4 id="transferPricePerMeter">-</h4>
                         <p>قیمت واگذار شده (تومان/متر مربع)</p>
+                    </div>
+                </div>
+                <!-- حالت سرمایه‌گذار: فقط مالکیت محاسبه شده و ارزش متری ساختمان -->
+                <div class="stats-grid" data-variant="investor">
+                    <div class="stat-card">
+                        <h4 id="ownershipAreaInvestor">-</h4>
+                        <p>مالکیت محاسبه شده (متر مربع)</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4 id="valuePerMeterInvestor">-</h4>
+                        <p>میانگین وزنی قیمت هر متر ساختمان (تومان/متر مربع)</p>
                     </div>
                 </div>
             </div>
@@ -1204,6 +1228,7 @@
                 const finalPayment = ownershipData?.final_payment || 0;
                 const transferPricePerMeter = ownershipData?.transfer_price_per_meter || 0;
                 const totalUnitsPrice = ownershipData?.total_units_price || unitInfo.price;
+                const valuePerMeter = ownershipData?.value_per_meter || 0;
 
                 // Update UI
                 document.getElementById('reportDate').textContent = `تاریخ گزارش: ${getCurrentPersianDate()}`;
@@ -1220,55 +1245,9 @@
                     investorTypeEl.className = 'investor-type-badge ' + investor.participation_type;
                 }
 
-                // تنظیم نمایش بخش اطلاعات واحد بر اساس نوع سرمایه‌گذار
-                setTimeout(() => {
-                    // یافتن بخش اطلاعات واحد که حاوی ownershipArea است
-                    const unitSection = document.querySelector('#ownershipArea')?.closest('.stats-section');
-                    if (unitSection && investor.participation_type === 'investor') {
-                        // برای سرمایه‌گذاران بدون واحد، فقط کارت مالکیت را نمایش دهیم
-                        const allCards = unitSection.querySelectorAll('.stat-card');
-                        allCards.forEach((card, index) => {
-                            // کارت مالکیت در موقعیت دوم (index 2) قرار دارد
-                            if (index === 2) {
-                                card.style.display = 'block';
-                                // عنوان را تغییر دهیم
-                                const titleEl = card.querySelector('p');
-                                if (titleEl) {
-                                    titleEl.textContent = 'مالکیت محاسبه شده (متر مربع)';
-                                }
-                            } else {
-                                card.style.display = 'none';
-                            }
-                        });
-                        
-                        // تغییر عنوان بخش
-                        const sectionTitle = unitSection.querySelector('.section-title');
-                        if (sectionTitle) {
-                            sectionTitle.innerHTML = '<i class="fas fa-calculator"></i> مالکیت محاسبه شده';
-                        }
-                    } else if (unitSection) {
-                        // برای مالکان، همه کارت‌ها نمایش داده شوند
-                        const allCards = unitSection.querySelectorAll('.stat-card');
-                        allCards.forEach(card => {
-                            card.style.display = 'block';
-                        });
-                        
-                        // عنوان اصلی را برگردان
-                        const sectionTitle = unitSection.querySelector('.section-title');
-                        if (sectionTitle) {
-                            sectionTitle.innerHTML = '<i class="fas fa-building"></i> اطلاعات واحد انتخاب شده';
-                        }
-                        
-                        // عنوان کارت مالکیت را برای مالکان به حالت اصلی برگردان
-                        const ownershipCard = allCards[2]; // کارت مالکیت در PDF
-                        if (ownershipCard) {
-                            const titleEl = ownershipCard.querySelector('p');
-                            if (titleEl) {
-                                titleEl.textContent = 'مالکیت (متر مربع)';
-                            }
-                        }
-                    }
-                }, 100);
+                // نمایش پایدار بر اساس نوع سرمایه‌گذار
+                const pdfVariant = investor.participation_type === 'investor' ? 'investor' : 'owner';
+                showVariant(pdfVariant);
                 
                 document.getElementById('investorPhone').textContent = investor.phone || 'ثبت نشده';
                 document.getElementById('contractDate').textContent = `تاریخ قرارداد: ${investor.contract_date_shamsi || 'ثبت نشده'}`;
@@ -1311,12 +1290,24 @@
                 document.getElementById('profitIndex').textContent = profitIndex;
 
                 // Unit stats
+                const unitNameDisplayEl = document.getElementById('unitNameDisplay');
+                if (unitNameDisplayEl) unitNameDisplayEl.textContent = unitInfo.name || '-';
                 document.getElementById('unitAreaDisplay').textContent = formatNumber(unitInfo.area);
                 document.getElementById('totalUnitsPrice').textContent = formatNumber(totalUnitsPrice);
-                document.getElementById('ownershipArea').textContent = parseFloat(ownershipArea).toLocaleString('en-US', {
+                const avgPriceEl = document.getElementById('averagePricePerMeter');
+                if (avgPriceEl) {
+                    const avg = ownershipData?.average_price_per_meter || 0;
+                    avgPriceEl.textContent = avg > 0 ? formatNumber(avg) : '-';
+                }
+                // مالکیت برای هر دو حالت (اگر المنت وجود داشت)
+                const ownershipAreaOwnerEl = document.getElementById('ownershipArea');
+                const ownershipAreaInvestorEl = document.getElementById('ownershipAreaInvestor');
+                const ownershipAreaFormatted = parseFloat(ownershipArea).toLocaleString('en-US', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                 });
+                if (ownershipAreaOwnerEl) ownershipAreaOwnerEl.textContent = ownershipAreaFormatted;
+                if (ownershipAreaInvestorEl) ownershipAreaInvestorEl.textContent = ownershipAreaFormatted;
                 
                 // پرداخت نهایی با رنگ مثبت/منفی
                 const finalPaymentFormatted = formatNumber(Math.abs(finalPayment));
@@ -1330,6 +1321,10 @@
                 }
                 
                 document.getElementById('transferPricePerMeter').textContent = formatNumber(transferPricePerMeter);
+                const valuePerMeterInvestorEl = document.getElementById('valuePerMeterInvestor');
+                if (valuePerMeterInvestorEl) {
+                    valuePerMeterInvestorEl.textContent = (valuePerMeter && valuePerMeter > 0) ? formatNumber(valuePerMeter) : '-';
+                }
 
                 // Load transactions table with sorting
                 const tableBody = document.getElementById('transactionsTableBody');
@@ -1422,6 +1417,22 @@
 
         // Load data on page load
         window.addEventListener('DOMContentLoaded', loadInvestorData);
+
+        // Variant switcher for PDF unit section
+        function showVariant(variant) {
+            const unitSection = document.querySelector('.unit-section');
+            if (!unitSection) return;
+            const blocks = unitSection.querySelectorAll('[data-variant]');
+            blocks.forEach(el => {
+                el.classList.toggle('is-active', el.getAttribute('data-variant') === variant);
+            });
+            const sectionTitle = unitSection.querySelector('.section-title');
+            if (sectionTitle) {
+                sectionTitle.innerHTML = variant === 'investor'
+                    ? '<i class="fas fa-calculator"></i> مالکیت محاسبه شده'
+                    : '<i class="fas fa-building"></i> اطلاعات واحد انتخاب شده';
+            }
+        }
     </script>
 </body>
 </html>
