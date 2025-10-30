@@ -21,7 +21,7 @@
             --balance-color: #6c757d;
             --refund-color: #ffc107;
             --gold-color: #ffd700;
-            --loan-deposit-color: #ff9800;
+            --loan-deposit-color: #5ca5e8;      /* آبی روشن - آورده وام (نزدیک به #2185d0 اما روشن‌تر) */
             
             /* نسخه‌های شفاف برای پس‌زمینه */
             --deposit-color-light: rgba(33, 133, 208, 0.1);
@@ -32,7 +32,7 @@
             --balance-color-light: rgba(108, 117, 125, 0.1);
             --refund-color-light: rgba(255, 193, 7, 0.1);
             --gold-color-light: rgba(255, 215, 0, 0.1);
-            --loan-deposit-color-light: rgba(255, 152, 0, 0.1);
+            --loan-deposit-color-light: rgba(92, 165, 232, 0.1);
             
             /* رنگ‌های پایه */
             --primary-color: #667eea;
@@ -225,6 +225,12 @@
 
         .stat-card.profit h4 {
             color: var(--profit-color);
+        }
+
+        /* استایل کارت آورده وام */
+        .stat-card.loan-deposit-card h4 {
+            color: var(--loan-deposit-color);
+            font-weight: 700;
         }
 
         /* استایل ویژه برای شاخص نفع */
@@ -824,12 +830,16 @@
                 </h3>
                 <div class="stats-grid">
                     <div class="stat-card deposit">
-                        <h4 id="totalPrincipal">-</h4>
-                        <p>کل آورده (تومان)</p>
+                        <h4 id="totalPrincipalDeposit">-</h4>
+                        <p>آورده نقدی (تومان)</p>
                     </div>
-                    <div class="stat-card" style="border-color: var(--loan-deposit-color); background: linear-gradient(135deg, var(--loan-deposit-color-light), rgba(255, 152, 0, 0.05));">
+                    <div class="stat-card loan-deposit-card" style="border-color: var(--loan-deposit-color); background: linear-gradient(135deg, var(--loan-deposit-color-light), rgba(92, 165, 232, 0.05));">
                         <h4 id="totalLoanDeposit">-</h4>
                         <p>آورده وام (تومان)</p>
+                    </div>
+                    <div class="stat-card deposit" style="border: 3px solid var(--deposit-color); background: linear-gradient(135deg, var(--deposit-color-light), rgba(33, 133, 208, 0.15));">
+                        <h4 id="totalPrincipal">-</h4>
+                        <p>مجموع آورده (تومان)</p>
                     </div>
                     <div class="stat-card withdrawal">
                         <h4 id="totalWithdrawal">-</h4>
@@ -1091,18 +1101,45 @@
                     profitMetrics = await profitMetricsResponse.json();
                 }
 
-                // Calculate financial metrics
-                const principalDeposits = transactions.filter(t => t.transaction_type === 'principal_deposit');
-                const loanDeposits = transactions.filter(t => t.transaction_type === 'loan_deposit');
-                const principalWithdrawals = transactions.filter(t => t.transaction_type === 'principal_withdrawal');
-                const profitAccruals = transactions.filter(t => t.transaction_type === 'profit_accrual');
+                // دریافت آمار تفصیلی از API (شامل محاسبات جداگانه آورده و آورده وام)
+                let investorStatsData = null;
+                try {
+                    const statsResponse = await fetch(`/api/v1/Investor/${investorId}/detailed_statistics/`);
+                    if (statsResponse.ok) {
+                        investorStatsData = await statsResponse.json();
+                        console.log('✅ آمار تفصیلی از API دریافت شد:', investorStatsData);
+                    }
+                } catch (error) {
+                    console.warn('⚠️ خطا در دریافت آمار تفصیلی از API:', error);
+                }
 
-                const totalPrincipal = principalDeposits.reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
-                const totalLoanDeposit = loanDeposits.reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
-                const totalWithdrawal = Math.abs(principalWithdrawals.reduce((sum, t) => sum + parseFloat(t.amount || 0), 0));
-                const totalProfit = profitAccruals.reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
-                const netPrincipal = totalPrincipal - totalWithdrawal;
-                const totalBalance = netPrincipal + totalProfit;
+                // استفاده از داده‌های API در صورت موجود بودن، در غیر این صورت محاسبه محلی
+                let totalPrincipalDeposit, totalLoanDeposit, totalPrincipal, totalWithdrawal, totalProfit, netPrincipal, totalBalance;
+                
+                if (investorStatsData && !investorStatsData.error && investorStatsData.amounts_toman) {
+                    // استفاده از داده‌های سرور
+                    totalPrincipalDeposit = investorStatsData.amounts_toman.total_principal_deposit || 0;
+                    totalLoanDeposit = investorStatsData.amounts_toman.total_loan_deposit || 0;
+                    totalPrincipal = investorStatsData.amounts_toman.total_principal || 0;
+                    totalWithdrawal = Math.abs(investorStatsData.amounts_toman.total_withdrawal || 0);
+                    totalProfit = investorStatsData.amounts_toman.total_profit || 0;
+                    netPrincipal = investorStatsData.amounts_toman.net_principal || 0;
+                    totalBalance = investorStatsData.amounts_toman.total_balance || 0;
+                } else {
+                    // محاسبه محلی (fallback)
+                    const principalDeposits = transactions.filter(t => t.transaction_type === 'principal_deposit');
+                    const loanDeposits = transactions.filter(t => t.transaction_type === 'loan_deposit');
+                    const principalWithdrawals = transactions.filter(t => t.transaction_type === 'principal_withdrawal');
+                    const profitAccruals = transactions.filter(t => t.transaction_type === 'profit_accrual');
+
+                    totalPrincipalDeposit = principalDeposits.reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
+                    totalLoanDeposit = loanDeposits.reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
+                    totalPrincipal = totalPrincipalDeposit + totalLoanDeposit;
+                    totalWithdrawal = Math.abs(principalWithdrawals.reduce((sum, t) => sum + parseFloat(t.amount || 0), 0));
+                    totalProfit = profitAccruals.reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
+                    netPrincipal = totalPrincipal - totalWithdrawal;
+                    totalBalance = netPrincipal + totalProfit;
+                }
 
                 // Calculate ratios
                 let capitalRatio = '0.00%';
@@ -1261,8 +1298,9 @@
                 }
 
                 // Financial stats
-                document.getElementById('totalPrincipal').textContent = formatNumber(totalPrincipal);
+                document.getElementById('totalPrincipalDeposit').textContent = formatNumber(totalPrincipalDeposit);
                 document.getElementById('totalLoanDeposit').textContent = formatNumber(totalLoanDeposit);
+                document.getElementById('totalPrincipal').textContent = formatNumber(totalPrincipal);
                 document.getElementById('totalWithdrawal').textContent = formatNumber(totalWithdrawal);
                 document.getElementById('netPrincipal').textContent = formatNumber(netPrincipal);
                 document.getElementById('totalProfit').textContent = formatNumber(totalProfit);

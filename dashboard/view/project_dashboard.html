@@ -58,6 +58,10 @@
             --balance-color-light: rgba(108, 117, 125, 0.1);
             --total-color: #6c757d;             /* خاکستری - مجموع */
             --total-color-light: rgba(108, 117, 125, 0.1);
+            --gold-color: #ffd700;              /* طلایی - شاخص نفع */
+            --gold-color-light: rgba(255, 215, 0, 0.1);
+            --loan-deposit-color: #5ca5e8;      /* آبی روشن - آورده وام (نزدیک به #2185d0 اما روشن‌تر) */
+            --loan-deposit-color-light: rgba(92, 165, 232, 0.1);
             
             /* Background Colors */
             --bg-primary: #f8f9fa;
@@ -110,6 +114,10 @@
             --balance-color-light: rgba(176, 190, 197, 0.2);
             --total-color: #b0bec5;             /* خاکستری روشن‌تر - مجموع */
             --total-color-light: rgba(176, 190, 197, 0.2);
+            --gold-color: #ffed4e;              /* طلایی روشن‌تر */
+            --gold-color-light: rgba(255, 237, 78, 0.2);
+            --loan-deposit-color: #7eb8f0;      /* آبی روشن‌تر برای حالت تاریک */
+            --loan-deposit-color-light: rgba(126, 184, 240, 0.15);
             
             /* Dark Background Colors */
             --bg-primary: #121212;
@@ -784,69 +792,82 @@
         }
 
         /* رنگ‌بندی ستون‌های جدول خلاصه */
-        .summary-table th:nth-child(2), /* آورده */
+        .summary-table th:nth-child(2), /* آورده نقدی */
         .summary-table td:nth-child(2) {
             background-color: var(--deposit-color-light);
             border-left: 3px solid var(--deposit-color);
         }
 
-        .summary-table th:nth-child(3), /* برداشت */
+        .summary-table th:nth-child(3), /* آورده وام */
         .summary-table td:nth-child(3) {
+            background-color: var(--loan-deposit-color-light);
+            border-left: 3px solid var(--loan-deposit-color);
+        }
+
+        .summary-table th:nth-child(4), /* مجموع آورده */
+        .summary-table td:nth-child(4) {
+            background-color: var(--deposit-color-light);
+            border-left: 3px solid var(--deposit-color);
+            font-weight: bold;
+        }
+
+        .summary-table th:nth-child(5), /* برداشت */
+        .summary-table td:nth-child(5) {
             background-color: var(--withdrawal-color-light);
             border-left: 3px solid var(--withdrawal-color);
         }
 
-        .summary-table th:nth-child(4), /* سرمایه موجود */
-        .summary-table td:nth-child(4) {
+        .summary-table th:nth-child(6), /* سرمایه موجود */
+        .summary-table td:nth-child(6) {
             background-color: var(--capital-color-light);
             border-left: 3px solid var(--capital-color);
         }
 
-        .summary-table th:nth-child(5), /* سود مشارکت */
-        .summary-table td:nth-child(5) {
+        .summary-table th:nth-child(7), /* سود مشارکت */
+        .summary-table td:nth-child(7) {
             background-color: var(--profit-color-light);
             border-left: 3px solid var(--profit-color);
         }
 
-        .summary-table th:nth-child(6), /* مجموع */
-        .summary-table td:nth-child(6) {
+        .summary-table th:nth-child(8), /* مجموع */
+        .summary-table td:nth-child(8) {
             background-color: var(--total-color-light);
             border-left: 3px solid var(--total-color);
             font-weight: bold;
         }
 
-        .summary-table th:nth-child(7), /* متراژ مالکیت */
-        .summary-table td:nth-child(7) {
+        .summary-table th:nth-child(9), /* متراژ مالکیت */
+        .summary-table td:nth-child(9) {
             background-color: var(--ownership-color-light);
             border-left: 3px solid var(--ownership-color);
         }
 
-        .summary-table th:nth-child(8), /* پرداخت نهایی */
-        .summary-table td:nth-child(8) {
+        .summary-table th:nth-child(10), /* پرداخت نهایی */
+        .summary-table td:nth-child(10) {
             background-color: var(--payment-color-light);
             border-left: 3px solid var(--payment-color);
         }
 
-        .summary-table th:nth-child(9), /* قیمت واگذاری/متر */
-        .summary-table td:nth-child(9) {
+        .summary-table th:nth-child(11), /* قیمت واگذاری/متر */
+        .summary-table td:nth-child(11) {
             background-color: var(--price-color-light);
             border-left: 3px solid var(--price-color);
         }
 
-        .summary-table th:nth-child(10), /* شاخص نفع */
-        .summary-table td:nth-child(10) {
+        .summary-table th:nth-child(12), /* شاخص نفع */
+        .summary-table td:nth-child(12) {
             background-color: rgba(255, 152, 0, 0.1);
             border-left: 3px solid #ff9800;
         }
 
-        .summary-table th:nth-child(11), /* نسبت سرمایه به سرمایه کل */
-        .summary-table td:nth-child(11) {
+        .summary-table th:nth-child(13), /* نسبت سرمایه به سرمایه کل */
+        .summary-table td:nth-child(13) {
             background-color: var(--capital-color-light);
             border-left: 3px solid var(--capital-color);
         }
 
-        .summary-table th:nth-child(12), /* نسبت سود به سود کل */
-        .summary-table td:nth-child(12) {
+        .summary-table th:nth-child(14), /* نسبت سود به سود کل */
+        .summary-table td:nth-child(14) {
             background-color: var(--profit-color-light);
             border-left: 3px solid var(--profit-color);
         }
@@ -865,6 +886,10 @@
         /* کلاس‌های هدر جدول */
         .summary-table .deposit-header {
             color: var(--deposit-color) !important;
+        }
+
+        .summary-table .loan-deposit-header {
+            color: white !important;
         }
 
         .summary-table .withdrawal-header {
@@ -2254,8 +2279,10 @@
                         <thead>
                             <tr>
                                 <th>نام مشارکت کننده</th>
-                                <th class="deposit-header"><i class="fas fa-plus-circle"></i> آورده</th>
-                                <th class="withdrawal-header"><i class="fas fa-minus-circle"></i> برداشت</th>
+                                <th class="deposit-header"><i class="fas fa-plus-circle"></i> آورده نقدی</th>
+                                <th class="loan-deposit-header" style="background-color: var(--loan-deposit-color); color: white;"><i class="fas fa-money-bill-wave"></i> آورده وام</th>
+                                <th class="deposit-header"><i class="fas fa-calculator"></i> مجموع آورده</th>
+                                <th class="withdrawal-header"><i class="fas fa-minus充足的-circle"></i> برداشت</th>
                                 <th class="capital-header"><i class="fas fa-wallet"></i> سرمایه موجود</th>
                                 <th class="profit-header"><i class="fas fa-chart-line"></i> سود مشارکت</th>
                                 <th class="total-header"><i class="fas fa-calculator"></i> مجموع (سرمایه+سود)</th>
@@ -2294,7 +2321,9 @@
                     tableHTML += `
                         <tr>
                             <td>${typeIcon} ${investor.name}</td>
-                            <td>${investor.total_deposits.toLocaleString('en-US')}</td>
+                            <td>${(investor.total_principal_deposit || 0).toLocaleString('en-US')}</td>
+                            <td>${(investor.total_loan_deposit || 0).toLocaleString('en-US')}</td>
+                            <td>${(investor.total_deposits || investor.total_principal || 0).toLocaleString('en-US')}</td>
                             <td>${investor.total_withdrawals.toLocaleString('en-US')}</td>
                             <td>${investor.net_principal.toLocaleString('en-US')}</td>
                             <td>${Math.round(investor.total_profit).toLocaleString('en-US')}</td>
@@ -2327,7 +2356,9 @@
                 tableHTML += `
                     <tr class="summary-row">
                         <td><i class="fas fa-sum"></i> مجموع</td>
-                        <td>${summaryData.reduce((sum, inv) => sum + inv.total_deposits, 0).toLocaleString('en-US')}</td>
+                        <td>${summaryData.reduce((sum, inv) => sum + (inv.total_principal_deposit || 0), 0).toLocaleString('en-US')}</td>
+                        <td>${summaryData.reduce((sum, inv) => sum + (inv.total_loan_deposit || 0), 0).toLocaleString('en-US')}</td>
+                        <td>${summaryData.reduce((sum, inv) => sum + (inv.total_deposits || inv.total_principal || 0), 0).toLocaleString('en-US')}</td>
                         <td>${summaryData.reduce((sum, inv) => sum + inv.total_withdrawals, 0).toLocaleString('en-US')}</td>
                         <td>${summaryData.reduce((sum, inv) => sum + inv.net_principal, 0).toLocaleString('en-US')}</td>
                         <td>${Math.round(summaryData.reduce((sum, inv) => sum + inv.total_profit, 0)).toLocaleString('en-US')}</td>
@@ -2394,7 +2425,9 @@
                 // تعریف هدرها
                 const headers = [
                     'نام مشارکت کننده',
-                    'آورده (تومان)',
+                    'آورده نقدی (تومان)',
+                    'آورده وام (تومان)',
+                    'مجموع آورده (تومان)',
                     'برداشت (تومان)', 
                     'سرمایه موجود (تومان)',
                     'سود مشارکت (تومان)',
@@ -2424,7 +2457,9 @@
                     
                     excelData.push([
                         investor.name,
-                        investor.total_deposits,
+                        investor.total_principal_deposit || 0,
+                        investor.total_loan_deposit || 0,
+                        investor.total_deposits || investor.total_principal || 0,
                         investor.total_withdrawals,
                         investor.net_principal,
                         Math.round(investor.total_profit),
@@ -2451,7 +2486,9 @@
                 
                 excelData.push([
                     'مجموع',
-                    summaryData.reduce((sum, inv) => sum + inv.total_deposits, 0),
+                    summaryData.reduce((sum, inv) => sum + (inv.total_principal_deposit || 0), 0),
+                    summaryData.reduce((sum, inv) => sum + (inv.total_loan_deposit || 0), 0),
+                    summaryData.reduce((sum, inv) => sum + (inv.total_deposits || inv.total_principal || 0), 0),
                     summaryData.reduce((sum, inv) => sum + inv.total_withdrawals, 0),
                     summaryData.reduce((sum, inv) => sum + inv.net_principal, 0),
                     Math.round(summaryData.reduce((sum, inv) => sum + inv.total_profit, 0)),
@@ -2470,7 +2507,9 @@
                 // تنظیم عرض ستون‌ها
                 const colWidths = [
                     { wch: 25 }, // نام مشارکت کننده
-                    { wch: 18 }, // آورده
+                    { wch: 18 }, // آورده نقدی
+                    { wch: 18 }, // آورده وام
+                    { wch: 18 }, // مجموع آورده
                     { wch: 18 }, // برداشت
                     { wch: 20 }, // سرمایه موجود
                     { wch: 20 }, // سود مشارکت
@@ -2487,6 +2526,7 @@
                 // تعریف رنگ‌های استاندارد پروژه (فرمت RGB برای Excel Windows)
                 const colors = {
                     deposit: "2185D0",      // آبی - آورده
+                    loanDeposit: "5CA5E8",  // آبی روشن - آورده وام
                     withdrawal: "DB2828",   // قرمز - برداشت
                     capital: "667EEA",      // بنفش - سرمایه موجود
                     profit: "21BA45",       // سبز - سود مشارکت
@@ -2497,6 +2537,7 @@
                 // تعریف رنگ‌های روشن‌تر برای پس‌زمینه سلول‌ها
                 const lightColors = {
                     deposit: "E3F2FD",      // آبی روشن
+                    loanDeposit: "E8F4FC",  // آبی روشن‌تر برای آورده وام
                     withdrawal: "FFEBEE",   // قرمز روشن
                     capital: "F3E5F5",      // بنفش روشن
                     profit: "E8F5E8",       // سبز روشن
@@ -2507,7 +2548,9 @@
                 // تنظیم استایل‌ها برای هدرها با رنگ‌بندی
                 const headerStyles = [
                     { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "4472C4" } } }, // نام
-                    { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: colors.deposit } } }, // آورده
+                    { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: colors.deposit } } }, // آورده نقدی
+                    { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: colors.loanDeposit } } }, // آورده وام
+                    { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: colors.deposit } } }, // مجموع آورده
                     { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: colors.withdrawal } } }, // برداشت
                     { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: colors.capital } } }, // سرمایه موجود
                     { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: colors.profit } } }, // سود مشارکت
@@ -2538,47 +2581,51 @@
                         if (!ws[cellAddress]) continue;
                         
                         // تنظیم فرمت اعداد برای ستون‌های عددی
-                        if (col >= 1 && col <= 5) { // ستون‌های 1-5 (آورده تا مجموع)
+                        if (col >= 1 && col <= 7) { // ستون‌های 1-7 (آورده نقدی تا مجموع)
                             ws[cellAddress].z = '#,##0'; // فرمت عدد با جداکننده هزارگان
-                        } else if (col === 6) { // ستون 6 (متراژ مالکیت)
+                        } else if (col === 8) { // ستون 8 (متراژ مالکیت)
                             ws[cellAddress].z = '#,##0.00'; // فرمت اعشاری با 2 رقم اعشار
-                        } else if (col === 7) { // ستون 7 (پرداخت نهایی)
+                        } else if (col === 9) { // ستون 9 (پرداخت نهایی)
                             ws[cellAddress].z = '#,##0'; // فرمت عدد با جداکننده هزارگان
-                        } else if (col === 8) { // ستون 8 (قیمت واگذاری/متر)
+                        } else if (col === 10) { // ستون 10 (قیمت واگذاری/متر)
                             ws[cellAddress].z = '#,##0'; // فرمت عدد با جداکننده هزارگان
-                        } else if (col === 9) { // ستون 9 (شاخص نفع)
+                        } else if (col === 11) { // ستون 11 (شاخص نفع)
                             ws[cellAddress].z = '#,##0.00'; // فرمت اعشاری با 2 رقم اعشار
-                        } else if (col >= 10 && col <= 11) { // ستون‌های 10-11 (نسبت‌ها)
+                        } else if (col >= 12 && col <= 13) { // ستون‌های 12-13 (نسبت‌ها)
                             ws[cellAddress].z = '#,##0.00'; // فرمت اعشاری با 2 رقم اعشار
                         }
                         
                         // تنظیم رنگ پس‌زمینه برای سلول‌های داده
                         let backgroundColor = "";
-                        if (col === 1) backgroundColor = lightColors.deposit; // آورده
-                        else if (col === 2) backgroundColor = lightColors.withdrawal; // برداشت
-                        else if (col === 3) backgroundColor = lightColors.capital; // سرمایه موجود
-                        else if (col === 4) backgroundColor = lightColors.profit; // سود مشارکت
-                        else if (col === 5) backgroundColor = lightColors.total; // مجموع
-                        else if (col === 6) backgroundColor = "F3E5F5"; // متراژ مالکیت
-                        else if (col === 7) backgroundColor = "FFEBEE"; // پرداخت نهایی
-                        else if (col === 8) backgroundColor = "ECEFF1"; // قیمت واگذاری/متر
-                        else if (col === 9) backgroundColor = lightColors.profitIndex; // شاخص نفع
-                        else if (col === 10) backgroundColor = lightColors.capital; // نسبت سرمایه
-                        else if (col === 11) backgroundColor = lightColors.profit; // نسبت سود
+                        if (col === 1) backgroundColor = lightColors.deposit; // آورده نقدی
+                        else if (col === 2) backgroundColor = lightColors.loanDeposit; // آورده وام
+                        else if (col === 3) backgroundColor = lightColors.deposit; // مجموع آورده
+                        else if (col === 4) backgroundColor = lightColors.withdrawal; // برداشت
+                        else if (col === 5) backgroundColor = lightColors.capital; // سرمایه موجود
+                        else if (col === 6) backgroundColor = lightColors.profit; // سود مشارکت
+                        else if (col === 7) backgroundColor = lightColors.total; // مجموع
+                        else if (col === 8) backgroundColor = "F3E5F5"; // متراژ مالکیت
+                        else if (col === 9) backgroundColor = "FFEBEE"; // پرداخت نهایی
+                        else if (col === 10) backgroundColor = "ECEFF1"; // قیمت واگذاری/متر
+                        else if (col === 11) backgroundColor = lightColors.profitIndex; // شاخص نفع
+                        else if (col === 12) backgroundColor = lightColors.capital; // نسبت سرمایه
+                        else if (col === 13) backgroundColor = lightColors.profit; // نسبت سود
                         
                         // تنظیم رنگ متن برای خوانایی بهتر
                         let textColor = "";
-                        if (col >= 1 && col <= 11) {
+                        if (col >= 1 && col <= 13) {
                             textColor = colors[col === 1 ? 'deposit' : 
-                                            col === 2 ? 'withdrawal' : 
-                                            col === 3 ? 'capital' : 
-                                            col === 4 ? 'profit' : 
-                                            col === 5 ? 'total' : 
-                                            col === 6 ? '8E24AA' : 
-                                            col === 7 ? 'FF5722' : 
-                                            col === 8 ? '607D8B' : 
-                                            col === 9 ? 'profitIndex' : 
-                                            col === 10 ? 'capital' : 'profit'];
+                                            col === 2 ? 'loanDeposit' : 
+                                            col === 3 ? 'deposit' : 
+                                            col === 4 ? 'withdrawal' : 
+                                            col === 5 ? 'capital' : 
+                                            col === 6 ? 'profit' : 
+                                            col === 7 ? 'total' : 
+                                            col === 8 ? '8E24AA' : 
+                                            col === 9 ? 'FF5722' : 
+                                            col === 10 ? '607D8B' : 
+                                            col === 11 ? 'profitIndex' : 
+                                            col === 12 ? 'capital' : 'profit'];
                         }
                         
                         if (backgroundColor) {
@@ -2607,17 +2654,17 @@
                     if (ws[cellAddress]) {
                         ws[cellAddress].s = summaryStyle;
                         // تنظیم فرمت اعداد برای ردیف مجموع
-                        if (col >= 1 && col <= 5) {
+                        if (col >= 1 && col <= 7) {
                             ws[cellAddress].z = '#,##0';
-                        } else if (col === 6) { // متراژ مالکیت
+                        } else if (col === 8) { // متراژ مالکیت
                             ws[cellAddress].z = '#,##0.00';
-                        } else if (col === 7) { // پرداخت نهایی
+                        } else if (col === 9) { // پرداخت نهایی
                             ws[cellAddress].z = '#,##0';
-                        } else if (col === 8) { // قیمت واگذاری/متر
+                        } else if (col === 10) { // قیمت واگذاری/متر
                             ws[cellAddress].z = '#,##0';
-                        } else if (col === 9) { // شاخص نفع
+                        } else if (col === 11) { // شاخص نفع
                             ws[cellAddress].z = '#,##0.00';
-                        } else if (col >= 10 && col <= 11) { // نسبت‌ها
+                        } else if (col >= 12 && col <= 13) { // نسبت‌ها
                             ws[cellAddress].z = '#,##0.00';
                         }
                     }

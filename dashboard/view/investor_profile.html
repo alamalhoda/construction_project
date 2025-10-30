@@ -30,6 +30,26 @@
             --gold-color: #ffd700;
             --gold-color-light: rgba(255, 215, 0, 0.1);
             
+            /* Project Standard Colors - Financial Categories */
+            --deposit-color: #2185d0;           /* آبی - آورده */
+            --deposit-color-light: rgba(33, 133, 208, 0.1);
+            --withdrawal-color: #db2828;        /* قرمز - برداشت */
+            --withdrawal-color-light: rgba(219, 40, 40, 0.1);
+            --profit-color: #21ba45;            /* سبز - سود مشارکت */
+            --profit-color-light: rgba(33, 186, 69, 0.1);
+            --capital-color: #aa26ff;           /* بنفش - سرمایه موجود */
+            --capital-color-light: rgba(170, 38, 255, 0.1);
+            --expense-color: #dc3545;           /* قرمز تیره - هزینه‌ها */
+            --expense-color-light: rgba(220, 53, 69, 0.1);
+            --refund-color: #ffc107;            /* زرد - مرجوعی */
+            --refund-color-light: rgba(255, 193, 7, 0.1);
+            --balance-color: #6c757d;           /* خاکستری - مانده */
+            --balance-color-light: rgba(108, 117, 125, 0.1);
+            --total-color: #6c757d;             /* خاکستری - مجموع */
+            --total-color-light: rgba(108, 117, 125, 0.1);
+            --loan-deposit-color: #5ca5e8;      /* آبی روشن - آورده وام (نزدیک به #2185d0 اما روشن‌تر) */
+            --loan-deposit-color-light: rgba(92, 165, 232, 0.1);
+            
             /* Background Colors */
             --bg-primary: #f8f9fa;
             --bg-secondary: #ffffff;
@@ -65,6 +85,26 @@
             --info-color: #17a2b8;
             --gold-color: #ffd700;
             --gold-color-light: rgba(255, 215, 0, 0.15);
+            
+            /* Project Standard Colors - Financial Categories (Dark Theme) */
+            --deposit-color: #4fc3f7;           /* آبی روشن‌تر - آورده */
+            --deposit-color-light: rgba(79, 195, 247, 0.2);
+            --withdrawal-color: #f48fb1;        /* قرمز روشن‌تر - برداشت */
+            --withdrawal-color-light: rgba(244, 143, 177, 0.2);
+            --profit-color: #81c784;            /* سبز روشن‌تر - سود مشارکت */
+            --profit-color-light: rgba(129, 199, 132, 0.2);
+            --capital-color: #c77dff;           /* بنفش روشن‌تر - سرمایه موجود */
+            --capital-color-light: rgba(199, 125, 255, 0.2);
+            --expense-color: #f48fb1;           /* قرمز روشن‌تر - هزینه‌ها */
+            --expense-color-light: rgba(244, 143, 177, 0.2);
+            --refund-color: #ffeb3b;            /* زرد روشن‌تر - مرجوعی */
+            --refund-color-light: rgba(255, 235, 59, 0.2);
+            --balance-color: #b0bec5;           /* خاکستری روشن‌تر - مانده */
+            --balance-color-light: rgba(176, 190, 197, 0.2);
+            --total-color: #b0bec5;             /* خاکستری روشن‌تر - مجموع */
+            --total-color-light: rgba(176, 190, 197, 0.2);
+            --loan-deposit-color: #7eb8f0;      /* آبی روشن‌تر برای حالت تاریک */
+            --loan-deposit-color-light: rgba(126, 184, 240, 0.15);
             
             /* Dark Background Colors */
             --bg-primary: #121212;
@@ -714,6 +754,72 @@
             box-shadow: 0 12px 35px var(--gold-color-light);
         }
 
+        /* کارت آورده (Deposit Card) */
+        .stat-card.deposit-card {
+            border: 2px solid var(--deposit-color);
+            background: linear-gradient(135deg, var(--deposit-color-light), rgba(33, 133, 208, 0.05));
+        }
+
+        .stat-card.deposit-card h4 {
+            color: var(--deposit-color);
+            font-weight: 700;
+        }
+
+        /* کارت آورده وام (Loan Deposit Card) */
+        .stat-card.loan-deposit-card {
+            border: 2px solid var(--loan-deposit-color);
+            background: linear-gradient(135deg, var(--loan-deposit-color-light), rgba(92, 165, 232, 0.05));
+        }
+
+        .stat-card.loan-deposit-card h4 {
+            color: var(--loan-deposit-color);
+            font-weight: 700;
+        }
+
+        /* کارت برداشت (Withdrawal Card) */
+        .stat-card.withdrawal-card {
+            border: 2px solid var(--withdrawal-color);
+            background: linear-gradient(135deg, var(--withdrawal-color-light), rgba(219, 40, 40, 0.05));
+        }
+
+        .stat-card.withdrawal-card h4 {
+            color: var(--withdrawal-color);
+            font-weight: 700;
+        }
+
+        /* کارت سرمایه موجود (Capital Card) */
+        .stat-card.capital-card {
+            border: 2px solid var(--capital-color);
+            background: linear-gradient(135deg, var(--capital-color-light), rgba(170, 38, 255, 0.05));
+        }
+
+        .stat-card.capital-card h4 {
+            color: var(--capital-color);
+            font-weight: 700;
+        }
+
+        /* کارت سود (Profit Card) */
+        .stat-card.profit-card {
+            border: 2px solid var(--profit-color);
+            background: linear-gradient(135deg, var(--profit-color-light), rgba(33, 186, 69, 0.05));
+        }
+
+        .stat-card.profit-card h4 {
+            color: var(--profit-color);
+            font-weight: 700;
+        }
+
+        /* کارت مانده (Balance Card) */
+        .stat-card.balance-card {
+            border: 2px solid var(--balance-color);
+            background: linear-gradient(135deg, var(--balance-color-light), rgba(108, 117, 125, 0.05));
+        }
+
+        .stat-card.balance-card h4 {
+            color: var(--balance-color);
+            font-weight: 700;
+        }
+
         /* Responsive Breakpoints */
         @media (max-width: 768px) {
             .charts-grid {
@@ -892,23 +998,27 @@
                     اطلاعات مالی
                 </h3>
                 <div class="stats-grid">
-                    <div class="stat-card" style="border: 2px solid #007bff; background: linear-gradient(135deg, rgba(0, 123, 255, 0.1), rgba(0, 86, 179, 0.1));">
-                        <h4 id="totalPrincipal">-</h4>
-                        <p>کل آورده (تومان)</p>
+                    <div class="stat-card deposit-card">
+                        <h4 id="totalPrincipalDeposit">-</h4>
+                        <p>آورده نقدی (تومان)</p>
                     </div>
-                    <div class="stat-card" style="border: 2px solid #ff9800; background: linear-gradient(135deg, rgba(255, 152, 0, 0.1), rgba(255, 140, 0, 0.1));">
+                    <div class="stat-card loan-deposit-card">
                         <h4 id="totalLoanDeposit">-</h4>
                         <p>آورده وام (تومان)</p>
                     </div>
-                    <div class="stat-card" style="border: 2px solid #dc3545; background: linear-gradient(135deg, rgba(220, 53, 69, 0.1), rgba(200, 35, 51, 0.1));">
+                    <div class="stat-card deposit-card" style="border: 3px solid var(--deposit-color); background: linear-gradient(135deg, var(--deposit-color-light), rgba(33, 133, 208, 0.15));">
+                        <h4 id="totalPrincipal">-</h4>
+                        <p>مجموع آورده (تومان)</p>
+                    </div>
+                    <div class="stat-card withdrawal-card">
                         <h4 id="totalWithdrawal">-</h4>
                         <p>کل برداشت (تومان)</p>
                     </div>
-                    <div class="stat-card" style="border: 2px solid #aa26ff; background: linear-gradient(135deg, rgba(170, 38, 255, 0.1), rgba(170, 38, 255, 0.05));">
+                    <div class="stat-card capital-card">
                         <h4 id="netPrincipal">-</h4>
                         <p>سرمایه موجود (تومان)</p>
                     </div>
-                    <div class="stat-card" style="border: 2px solid #28a745; background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(25, 135, 84, 0.1));">
+                    <div class="stat-card profit-card">
                         <h4 id="totalProfit">-</h4>
                         <p>کل سود (تومان)</p>
                     </div>
@@ -932,7 +1042,7 @@
                         <h4 id="profitIndex">-</h4>
                         <p>شاخص نفع (نسبت سود به سودکل/ نسبت سرمایه به سرمایه کل )</p>
                     </div>
-                    <div class="stat-card" style="border: 2px solid #6c757d; background: linear-gradient(135deg, rgba(108, 117, 125, 0.1), rgba(73, 80, 87, 0.1));">
+                    <div class="stat-card balance-card">
                         <h4 id="contractDate">-</h4>
                         <p>تاریخ قرارداد</p>
                     </div>
@@ -1426,22 +1536,8 @@
             try {
                 console.log(`📡 دریافت آمار مشارکت کننده ${investorId} از سرور...`);
                 
-                // دریافت آمار تفصیلی مشارکت کننده از API
+                // دریافت آمار تفصیلی مشارکت کننده از API (شامل محاسبات جداگانه آورده و آورده وام)
                 const investorStats = await window.financialService.getInvestorStatistics(investorId);
-                
-                // دریافت تراکنش‌های آورده وام از API
-                let loanDepositTotal = 0;
-                try {
-                    const transactionsResponse = await fetch(`/api/v1/Transaction/?investor=${investorId}`);
-                    if (transactionsResponse.ok) {
-                        const transactionsData = await transactionsResponse.json();
-                        const transactions = transactionsData.results || transactionsData;
-                        const loanDeposits = transactions.filter(t => t.transaction_type === 'loan_deposit');
-                        loanDepositTotal = loanDeposits.reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
-                    }
-                } catch (error) {
-                    console.warn('⚠️ خطا در دریافت آورده وام:', error);
-                }
                 
                 // دریافت نسبت‌های مشارکت کننده از API
                 let investorRatios = null;
@@ -1471,8 +1567,9 @@
                     
                     // تبدیل داده‌های سرور به فرمت قابل مقایسه (استفاده از amounts_toman)
                     const serverCalculations = {
-                        totalPrincipal: investorStats.amounts_toman?.total_principal || 0,
-                        totalLoanDeposit: loanDepositTotal || 0,
+                        totalPrincipalDeposit: investorStats.amounts_toman?.total_principal_deposit || 0,  // فقط آورده عادی
+                        totalLoanDeposit: investorStats.amounts_toman?.total_loan_deposit || 0,  // فقط آورده وام
+                        totalPrincipal: investorStats.amounts_toman?.total_principal || 0,  // مجموع آورده + آورده وام
                         totalWithdrawal: Math.abs(investorStats.amounts_toman?.total_withdrawal || 0),
                         totalProfit: investorStats.amounts_toman?.total_profit || 0,
                         netPrincipal: investorStats.amounts_toman?.net_principal || 0,
@@ -1509,8 +1606,9 @@
         function updateUIWithServerData(serverCalculations) {
             // به‌روزرسانی المان‌های HTML با مقادیر سرور
             const elements = [
-                { id: 'totalPrincipal', value: serverCalculations.totalPrincipal },
+                { id: 'totalPrincipalDeposit', value: serverCalculations.totalPrincipalDeposit },
                 { id: 'totalLoanDeposit', value: serverCalculations.totalLoanDeposit },
+                { id: 'totalPrincipal', value: serverCalculations.totalPrincipal },
                 { id: 'totalWithdrawal', value: serverCalculations.totalWithdrawal },
                 { id: 'netPrincipal', value: serverCalculations.netPrincipal },
                 { id: 'totalProfit', value: serverCalculations.totalProfit },
