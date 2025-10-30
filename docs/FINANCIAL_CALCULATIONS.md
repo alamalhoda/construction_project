@@ -17,7 +17,8 @@
 #### 1.1 سرمایه موجود (Current Capital)
 
 - **نام**: `currentCapital`
-- **فرمول**: `totalDeposits - totalWithdrawals`
+- **فرمول**: `net_capital = deposits + withdrawals` (برداشت‌ها منفی هستند)
+- **مرجع واحد (Server)**: `Transaction.objects.project_totals(project).net_capital`
 - **توضیح**: محاسبه سرمایه موجود پس از کسر برداشت‌ها از آورده‌ها
 - **مکان استفاده**:
   - `project_dashboard.html` (خط 1263)
@@ -40,6 +41,7 @@
 
 - **نام**: `grandTotal`
 - **فرمول**: `netPrincipal + totalProfit`
+- **مرجع واحد (Server)**: `grand_total = net_capital + total_profits` با استفاده از خروجی `project_totals`
 - **توضیح**: مجموع سرمایه موجود و سود کل
 - **مکان استفاده**:
   - `project_dashboard.html` (خط 1273)
@@ -105,6 +107,21 @@
 - **توضیح**: مانده صندوق ساختمان پس از کسر هزینه‌ها از سرمایه
 - **مکان استفاده**: `project_dashboard.html` (کارت جدید)
 - **نوع داده**: عدد اعشاری (تومان)
+- **مرجع واحد (Server)**: `total_capital = Transaction.objects.project_totals(project).net_capital`
+
+---
+
+## 🧭 قوانین SSOT برای تراکنش‌ها (Server-Side)
+
+- تمام محاسبات آورده/برداشت/سود/سرمایه خالص باید از طریق Manager تراکنش انجام شوند:
+  - `Transaction.objects.project_totals(project=None)`
+  - `Transaction.objects.period_totals(project, period)`
+  - `Transaction.objects.cumulative_until(project, upto_period)`
+  - `Transaction.objects.totals(project=None, filters=None)` برای فیلترهای پویا (سرمایه‌گذار/بازه زمانی/نوع)
+- استاندارد:
+  - `deposits = principal_deposit + loan_deposit`
+  - `withdrawals = principal_withdrawal` (منفی)
+  - `net_capital = deposits + withdrawals`
 
 ---
 
