@@ -37,6 +37,16 @@ class FinancialCalculationService:
         """تبدیل به تومان (تقسیم بر 10)"""
         return amount / 10
 
+    @staticmethod
+    def compute_fund_balance(total_capital: float, total_expenses: float, total_sales: float) -> float:
+        """محاسبه مانده صندوق = سرمایه - هزینه + فروش"""
+        return float(total_capital) - float(total_expenses) + float(total_sales)
+
+    @staticmethod
+    def compute_period_fund_balance(net_capital: float, period_expenses: float, period_sales: float) -> float:
+        """محاسبه مانده صندوق دوره = سرمایه دوره - هزینه دوره + فروش دوره"""
+        return float(net_capital) - float(period_expenses) + float(period_sales)
+
 
 class ProjectCalculations(FinancialCalculationService):
     """محاسبات مربوط به پروژه"""
@@ -57,19 +67,11 @@ class ProjectCalculations(FinancialCalculationService):
         if not project:
             return {'error': 'هیچ پروژه فعالی یافت نشد'}
         
-        # آمار واحدها
-        units_stats = models.Unit.objects.filter(project=project).aggregate(
-            total_units=Count('id'),
-            total_area=Sum('area'),
-            total_price=Sum('total_price')
-        )
+        # آمار واحدها (مرجع واحد)
+        units_stats = models.Unit.objects.project_stats(project)
         
-        # آمار تراکنش‌ها
-        transaction_stats = models.Transaction.objects.filter(project=project).aggregate(
-            total_deposits=Sum('amount', filter=Q(transaction_type__in=['principal_deposit', 'loan_deposit'])),
-            total_withdrawals=Sum('amount', filter=Q(transaction_type='principal_withdrawal')),
-            total_profits=Sum('amount', filter=Q(transaction_type='profit_accrual'))
-        )
+        # آمار تراکنش‌ها (مرجع واحد)
+        tx_totals = models.Transaction.objects.project_totals(project)
         
         # آمار هزینه‌ها
         expense_stats = models.Expense.objects.filter(project=project).aggregate(
@@ -82,14 +84,14 @@ class ProjectCalculations(FinancialCalculationService):
         )
         
         # محاسبات اصلی
-        total_deposits = float(transaction_stats['total_deposits'] or 0)
-        total_withdrawals = float(transaction_stats['total_withdrawals'] or 0)
-        total_profits = float(transaction_stats['total_profits'] or 0)
+        total_deposits = float(tx_totals['deposits'] or 0)
+        total_withdrawals = float(tx_totals['withdrawals'] or 0)
+        total_profits = float(tx_totals['profits'] or 0)
         total_expenses = float(expense_stats['total_expenses'] or 0)
         total_sales = float(sale_stats['total_sales'] or 0)
         
         # سرمایه موجود (برداشت‌ها منفی هستند)
-        net_principal = total_deposits + total_withdrawals
+        net_principal = float(tx_totals['net_capital'])
         
         # موجودی کل
         grand_total = net_principal + total_profits
@@ -124,11 +126,7 @@ class ProjectCalculations(FinancialCalculationService):
                 'end_date_gregorian': str(project.end_date_gregorian),
                 'is_active': project.is_active
             },
-            'units_statistics': {
-                'total_units': units_stats['total_units'] or 0,
-                'total_area': float(units_stats['total_area'] or 0),
-                'total_price': float(units_stats['total_price'] or 0)
-            },
+            'units_statistics': units_stats,
             'transaction_statistics': {
                 'total_deposits': total_deposits,
                 'total_withdrawals': total_withdrawals,
@@ -176,11 +174,8 @@ class ProjectCalculations(FinancialCalculationService):
             total_sales=Sum('amount')
         )
         
-        # آمار واحدها
-        units_stats = models.Unit.objects.filter(project=project).aggregate(
-            total_area=Sum('area'),
-            total_price=Sum('total_price')
-        )
+        # آمار واحدها (مرجع واحد)
+        units_stats = models.Unit.objects.project_stats(project)
         
         total_expenses = float(expense_stats['total_expenses'] or 0)
         total_sales = float(sale_stats['total_sales'] or 0)
@@ -205,21 +200,15 @@ class ProjectCalculations(FinancialCalculationService):
         # یا: مجموع کل سرمایه - مجموع هزینه خالص
         # مجموع کل سرمایه = مجموع آورده - مجموع برداشت
         
-        # دریافت آمار تراکنش‌ها برای محاسبه مجموع کل سرمایه
-        transaction_stats = models.Transaction.objects.filter(project=project).aggregate(
-            total_deposits=Sum('amount', filter=Q(transaction_type__in=['principal_deposit', 'loan_deposit'])),
-            total_withdrawals=Sum('amount', filter=Q(transaction_type='principal_withdrawal'))
-        )
-        
-        total_deposits = float(transaction_stats['total_deposits'] or 0)
-        total_withdrawals = float(transaction_stats['total_withdrawals'] or 0)
-        total_capital = total_deposits + total_withdrawals  # withdrawal منفی است
+        # دریافت آمار تراکنش‌ها از مرجع واحد برای محاسبه مجموع کل سرمایه
+        tx_totals = models.Transaction.objects.project_totals(project)
+        total_capital = float(tx_totals['net_capital'])
         
         # محاسبه هزینه خالص
         net_cost = total_expenses - total_sales
         
-        # محاسبه مانده صندوق ساختمان
-        building_fund_balance = total_capital - net_cost
+        # محاسبه مانده صندوق ساختمان (مرجع واحد)
+        building_fund_balance = FinancialCalculationService.compute_fund_balance(total_capital, total_expenses, total_sales)
         
         return {
             'final_cost': final_cost,
@@ -355,33 +344,14 @@ class InvestorCalculations(FinancialCalculationService):
         except models.Investor.DoesNotExist:
             return {'error': 'سرمایه‌گذار یافت نشد'}
         
-        # آمار تراکنش‌های سرمایه‌گذار
-        transactions = models.Transaction.objects.filter(
-            investor=investor
-        ).filter(project=project)
-        
-        # محاسبه مجموع‌ها به صورت جداگانه
-        total_principal_deposit = transactions.filter(
-            transaction_type='principal_deposit'
-        ).aggregate(total=Sum('amount'))['total'] or 0
-        
-        total_loan_deposit = transactions.filter(
-            transaction_type='loan_deposit'
-        ).aggregate(total=Sum('amount'))['total'] or 0
-        
-        # مجموع آورده + آورده وام
-        total_principal = float(total_principal_deposit) + float(total_loan_deposit)
-        
-        total_withdrawal = transactions.filter(
-            transaction_type='principal_withdrawal'
-        ).aggregate(total=Sum('amount'))['total'] or 0
-        
-        total_profit = transactions.filter(
-            transaction_type='profit_accrual'
-        ).aggregate(total=Sum('amount'))['total'] or 0
-        
-        # محاسبات اصلی
-        net_principal = float(total_principal) + float(total_withdrawal)  # withdrawal منفی است
+        # آمار تراکنش‌های سرمایه‌گذار از مرجع واحد
+        totals = models.Transaction.objects.totals(project, {'investor_id': investor.id})
+        total_principal_deposit = totals.get('principal_deposit', 0.0)
+        total_loan_deposit = totals.get('loan_deposit', 0.0)
+        total_principal = totals.get('deposits', 0.0)
+        total_withdrawal = totals.get('withdrawals', 0.0)
+        total_profit = totals.get('profits', 0.0)
+        net_principal = totals.get('net_capital', 0.0)
         total_balance = net_principal + float(total_profit)
         
         return {
@@ -393,23 +363,23 @@ class InvestorCalculations(FinancialCalculationService):
                 'participation_type': investor.participation_type
             },
             'amounts': {
-                'total_principal_deposit': float(total_principal_deposit),  # فقط آورده عادی
-                'total_loan_deposit': float(total_loan_deposit),  # فقط آورده وام
-                'total_principal': float(total_principal),  # مجموع آورده + آورده وام
+                'total_principal_deposit': float(total_principal_deposit),
+                'total_loan_deposit': float(total_loan_deposit),
+                'total_principal': float(total_principal),
                 'total_withdrawal': float(total_withdrawal),
                 'total_profit': float(total_profit),
-                'net_principal': net_principal,
-                'total_balance': total_balance
+                'net_principal': float(net_principal),
+                'total_balance': float(total_balance)
             },
             'amounts_toman': {
                 # حالا که داده‌ها در دیتابیس به تومان هستند، نیازی به تقسیم بر 10 نیست
-                'total_principal_deposit': float(total_principal_deposit),  # فقط آورده عادی
-                'total_loan_deposit': float(total_loan_deposit),  # فقط آورده وام
-                'total_principal': float(total_principal),  # مجموع آورده + آورده وام
+                'total_principal_deposit': float(total_principal_deposit),
+                'total_loan_deposit': float(total_loan_deposit),
+                'total_principal': float(total_principal),
                 'total_withdrawal': abs(float(total_withdrawal)),
                 'total_profit': float(total_profit),
-                'net_principal': net_principal,
-                'total_balance': total_balance
+                'net_principal': float(net_principal),
+                'total_balance': float(total_balance)
             }
         }
     
@@ -723,36 +693,16 @@ class TransactionCalculations(FinancialCalculationService):
         if not project:
             return {'error': 'هیچ پروژه فعالی یافت نشد'}
         
-        # پایه کوئری
-        queryset = models.Transaction.objects.filter(project=project)
+        # محاسبه آمار از مرجع واحد
+        totals = models.Transaction.objects.totals(project, filters or {})
         
-        # اعمال فیلترها
-        if filters:
-            if 'investor_id' in filters:
-                queryset = queryset.filter(investor_id=filters['investor_id'])
-            if 'date_from' in filters:
-                queryset = queryset.filter(date_gregorian__gte=filters['date_from'])
-            if 'date_to' in filters:
-                queryset = queryset.filter(date_gregorian__lte=filters['date_to'])
-            if 'transaction_type' in filters:
-                queryset = queryset.filter(transaction_type=filters['transaction_type'])
-        
-        # محاسبه آمار
-        stats = queryset.aggregate(
-            total_deposits=Sum('amount', filter=Q(transaction_type__in=['principal_deposit', 'loan_deposit'])),
-            total_withdrawals=Sum('amount', filter=Q(transaction_type='principal_withdrawal')),
-            total_profits=Sum('amount', filter=Q(transaction_type='profit_accrual')),
-            total_transactions=Count('id')
-        )
-        
-        # محاسبات
-        total_deposits = float(stats['total_deposits'] or 0)
-        total_withdrawals = float(stats['total_withdrawals'] or 0)
-        total_profits = float(stats['total_profits'] or 0)
-        net_capital = total_deposits + total_withdrawals  # withdrawal منفی است
+        total_deposits = float(totals['deposits'] or 0)
+        total_withdrawals = float(totals['withdrawals'] or 0)
+        total_profits = float(totals['profits'] or 0)
+        net_capital = float(totals['net_capital'])
         
         return {
-            'total_transactions': stats['total_transactions'],
+            'total_transactions': totals.get('total_transactions', 0),
             'total_deposits': total_deposits,
             'total_withdrawals': total_withdrawals,
             'total_profits': total_profits,

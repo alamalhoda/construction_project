@@ -322,8 +322,8 @@ class ExpenseViewSet(viewsets.ModelViewSet):
                 expenses = models.Expense.objects.filter(project=active_project)
                 project = active_project
             
-            # محاسبه مجموع کل هزینه‌ها
-            total_amount = sum(expense.amount for expense in expenses)
+            # محاسبه مجموع کل هزینه‌ها (مرجع واحد)
+            total_amount = models.Expense.objects.project_totals(project)
             
             # محاسبه تعداد هزینه‌ها
             total_count = expenses.count()
@@ -370,63 +370,88 @@ class InvestorViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def summary(self, request):
-        """محاسبه خلاصه مالی تمام سرمایه‌گذاران با استفاده از SQL"""
-        
-        # استفاده از Raw SQL برای محاسبه دقیق
-        with connection.cursor() as cursor:
-            cursor.execute("""
-                SELECT 
-                    i.id as investor_id,
-                    (i.first_name || ' ' || i.last_name) as name,
-                    i.participation_type,
-                    COALESCE(principal_deposits.total, 0) as total_deposits,
-                    COALESCE(ABS(principal_withdrawals.total), 0) as total_withdrawals,
-                    COALESCE(principal_deposits.total, 0) - COALESCE(ABS(principal_withdrawals.total), 0) as net_principal,
-                    COALESCE(profits.total, 0) as total_profit,
-                    COALESCE(principal_deposits.total, 0) - COALESCE(ABS(principal_withdrawals.total), 0) + COALESCE(profits.total, 0) as grand_total
-                FROM 
-                    construction_investor i
-                LEFT JOIN (
-                    SELECT 
-                        investor_id, 
-                        SUM(amount) as total
-                    FROM construction_transaction 
-                    WHERE transaction_type IN ('principal_deposit','loan_deposit')
-                    GROUP BY investor_id
-                ) as principal_deposits ON i.id = principal_deposits.investor_id
-                LEFT JOIN (
-                    SELECT 
-                        investor_id, 
-                        SUM(amount) as total
-                    FROM construction_transaction 
-                    WHERE transaction_type = 'principal_withdrawal'
-                    GROUP BY investor_id
-                ) as principal_withdrawals ON i.id = principal_withdrawals.investor_id
-                LEFT JOIN (
-                    SELECT 
-                        investor_id, 
-                        SUM(amount) as total
-                    FROM construction_transaction 
-                    WHERE transaction_type = 'profit_accrual'
-                    GROUP BY investor_id
-                ) as profits ON i.id = profits.investor_id
-                ORDER BY net_principal DESC
-            """)
-            
-            columns = [col[0] for col in cursor.description]
+        """خلاصه مالی تمام سرمایه‌گذاران - نسخه مرجع واحد (جایگزین SQL خام)"""
+        try:
+            def norm_num(x):
+                try:
+                    xf = float(x)
+                    xi = int(xf)
+                    return xi if xf == xi else xf
+                except Exception:
+                    return x
+
+            investors = models.Investor.objects.all()
             results = []
-            
-            for row in cursor.fetchall():
-                row_dict = dict(zip(columns, row))
-                # تبدیل None به 0
-                for key in ['total_deposits', 'total_withdrawals', 'net_principal', 'total_profit', 'grand_total']:
-                    if row_dict[key] is None:
-                        row_dict[key] = 0
-                
-                # همه سرمایه‌گذاران را برگردان
-                results.append(row_dict)
-        
-        return Response(results)
+
+            for inv in investors:
+                totals = models.Transaction.objects.totals(project=None, filters={'investor_id': inv.id})
+                deposits = float(totals.get('deposits', 0) or 0)
+                withdrawals = float(totals.get('withdrawals', 0) or 0)  # منفی
+                profits = float(totals.get('profits', 0) or 0)
+
+                total_deposits = deposits
+                total_withdrawals_abs = abs(withdrawals)
+                net_principal = deposits + withdrawals
+                total_profit = profits
+                grand_total = net_principal + total_profit
+
+                results.append({
+                    'investor_id': inv.id,
+                    'name': f"{inv.first_name} {inv.last_name}",
+                    'participation_type': inv.participation_type,
+                    'total_deposits': norm_num(total_deposits),
+                    'total_withdrawals': norm_num(total_withdrawals_abs),
+                    'net_principal': norm_num(net_principal),
+                    'total_profit': norm_num(total_profit),
+                    'grand_total': norm_num(grand_total),
+                })
+
+            results.sort(key=lambda x: x['net_principal'], reverse=True)
+            return Response(results)
+        except Exception as e:
+            return Response({'error': f'خطا در خلاصه سرمایه‌گذاران: {str(e)}'}, status=500)
+
+    @action(detail=False, methods=['get'])
+    def summary_ssot(self, request):
+        """خلاصه مالی تمام سرمایه‌گذاران با مرجع واحد (بدون SQL خام)"""
+        try:
+            investors = models.Investor.objects.all()
+            results = []
+
+            for inv in investors:
+                totals = models.Transaction.objects.totals(project=None, filters={'investor_id': inv.id})
+                deposits = float(totals.get('deposits', 0) or 0)
+                withdrawals = float(totals.get('withdrawals', 0) or 0)  # منفی است
+                profits = float(totals.get('profits', 0) or 0)
+
+                total_deposits = deposits
+                total_withdrawals_abs = abs(withdrawals)
+                net_principal = deposits + withdrawals
+                total_profit = profits
+                grand_total = net_principal + total_profit
+
+                def norm_num(x):
+                    xf = float(x)
+                    xi = int(xf)
+                    return xi if xf == xi else xf
+
+                results.append({
+                    'investor_id': inv.id,
+                    'name': f"{inv.first_name} {inv.last_name}",
+                    'participation_type': inv.participation_type,
+                    'total_deposits': norm_num(total_deposits),
+                    'total_withdrawals': norm_num(total_withdrawals_abs),
+                    'net_principal': norm_num(net_principal),
+                    'total_profit': norm_num(total_profit),
+                    'grand_total': norm_num(grand_total),
+                })
+
+            # مرتب‌سازی مشابه نسخه SQL: بر اساس net_principal نزولی
+            results.sort(key=lambda x: x['net_principal'], reverse=True)
+            return Response(results)
+
+        except Exception as e:
+            return Response({'error': f'خطا در خلاصه SSOT سرمایه‌گذاران: {str(e)}'}, status=500)
 
     @action(detail=False, methods=['get'])
     def participation_stats(self, request):
@@ -598,44 +623,24 @@ class PeriodViewSet(viewsets.ModelViewSet):
             cumulative_sales = 0
 
             for period in periods:
-                # محاسبه سرمایه دوره (آورده + برداشت، چون برداشت در دیتابیس منفی است)
-                period_transactions = models.Transaction.objects.filter(
-                    project=active_project,
-                    period=period
-                )
-                
-                deposits = period_transactions.filter(
-                    transaction_type='principal_deposit'
-                ).aggregate(total=Sum('amount'))['total'] or 0
-                
-                withdrawals = period_transactions.filter(
-                    transaction_type='principal_withdrawal'
-                ).aggregate(total=Sum('amount'))['total'] or 0
-                
-                # توجه: withdrawals در دیتابیس منفی است، پس از جمع استفاده می‌کنیم
-                period_capital = float(deposits + withdrawals)
+                # محاسبه سرمایه دوره از مرجع واحد تراکنش‌ها
+                tx_totals = models.Transaction.objects.period_totals(active_project, period)
+                period_capital = float(tx_totals['net_capital'])
                 cumulative_capital += period_capital
 
-                # محاسبه هزینه‌های دوره
-                period_expenses = models.Expense.objects.filter(
-                    project=active_project,
-                    period=period
-                ).aggregate(total=Sum('amount'))['total'] or 0
-                
-                period_expenses = float(period_expenses)
+                # محاسبه هزینه‌های دوره (مرجع واحد)
+                period_expenses = models.Expense.objects.period_totals(active_project, period)
                 cumulative_expenses += period_expenses
 
-                # محاسبه فروش/مرجوعی دوره
-                period_sales = models.Sale.objects.filter(
-                    project=active_project,
-                    period=period
-                ).aggregate(total=Sum('amount'))['total'] or 0
-                
-                period_sales = float(period_sales)
+                # محاسبه فروش/مرجوعی دوره (مرجع واحد)
+                period_sales = models.Sale.objects.period_totals(active_project, period)
                 cumulative_sales += period_sales
 
-                # محاسبه مانده صندوق (سرمایه موجود - هزینه‌ها + فروش)
-                fund_balance = cumulative_capital - cumulative_expenses + cumulative_sales
+                # محاسبه مانده صندوق (مرجع واحد)
+                from .calculations import FinancialCalculationService
+                fund_balance = FinancialCalculationService.compute_fund_balance(
+                    cumulative_capital, cumulative_expenses, cumulative_sales
+                )
 
                 chart_data.append({
                     'period_id': period.id,
@@ -693,57 +698,31 @@ class PeriodViewSet(viewsets.ModelViewSet):
             current_summary = None
 
             for period in periods:
-                # محاسبه تراکنش‌های دوره
-                period_transactions = models.Transaction.objects.filter(
-                    project=active_project,
-                    period=period
-                )
-                
-                # آورده (deposits)
-                deposits = period_transactions.filter(
-                    transaction_type='principal_deposit'
-                ).aggregate(total=Sum('amount'))['total'] or 0
-                deposits = float(deposits)
+                # محاسبات تراکنش‌های دوره از مرجع واحد
+                tx_totals = models.Transaction.objects.period_totals(active_project, period)
+                deposits = tx_totals['deposits']
+                withdrawals = tx_totals['withdrawals']
+                profits = tx_totals['profits']
+                net_capital = tx_totals['net_capital']
+
                 cumulative_deposits += deposits
-                
-                # برداشت (withdrawals)
-                withdrawals = period_transactions.filter(
-                    transaction_type='principal_withdrawal'
-                ).aggregate(total=Sum('amount'))['total'] or 0
-                withdrawals = float(withdrawals)
                 cumulative_withdrawals += withdrawals
-                
-                # سود (profits)
-                profits = period_transactions.filter(
-                    transaction_type='profit_accrual'
-                ).aggregate(total=Sum('amount'))['total'] or 0
-                profits = float(profits)
                 cumulative_profits += profits
-                
-                # سرمایه خالص دوره (net capital)
-                # توجه: withdrawals در دیتابیس منفی است، پس از جمع استفاده می‌کنیم
-                net_capital = deposits + withdrawals
                 cumulative_net_capital += net_capital
 
-                # هزینه‌های دوره
-                expenses = models.Expense.objects.filter(
-                    project=active_project,
-                    period=period
-                ).aggregate(total=Sum('amount'))['total'] or 0
-                expenses = float(expenses)
+                # هزینه‌های دوره (مرجع واحد)
+                expenses = models.Expense.objects.period_totals(active_project, period)
                 cumulative_expenses += expenses
 
-                # فروش/مرجوعی دوره
-                sales = models.Sale.objects.filter(
-                    project=active_project,
-                    period=period
-                ).aggregate(total=Sum('amount'))['total'] or 0
-                sales = float(sales)
+                # فروش/مرجوعی دوره (مرجع واحد)
+                sales = models.Sale.objects.period_totals(active_project, period)
                 cumulative_sales += sales
 
-                # محاسبه مانده صندوق
-                # مانده صندوق = سرمایه موجود - هزینه‌ها + فروش
-                fund_balance = cumulative_net_capital - cumulative_expenses + cumulative_sales
+                # محاسبه مانده صندوق (مرجع واحد)
+                from .calculations import FinancialCalculationService
+                fund_balance = FinancialCalculationService.compute_fund_balance(
+                    cumulative_net_capital, cumulative_expenses, cumulative_sales
+                )
                 final_fund_balance = fund_balance  # ذخیره آخرین مقدار
 
                 # اضافه کردن داده‌های دوره
@@ -780,11 +759,8 @@ class PeriodViewSet(viewsets.ModelViewSet):
                 if period.is_current():
                     # هزینه نهایی تا دوره جاری
                     current_final_cost = cumulative_expenses - cumulative_sales
-                    # آمار واحدها برای محاسبه هزینه هر متر
-                    units_stats_current = models.Unit.objects.filter(project=active_project).aggregate(
-                        total_area=Sum('area')
-                    )
-                    total_area_current = float(units_stats_current['total_area'] or 0)
+                    # آمار واحدها برای محاسبه هزینه هر متر (مرجع واحد)
+                    total_area_current = models.Unit.objects.project_total_area(active_project)
                     total_infrastructure = float(active_project.total_infrastructure)
                     cost_per_meter_net_current = (current_final_cost / total_area_current) if total_area_current > 0 else 0
                     cost_per_meter_gross_current = (current_final_cost / total_infrastructure) if total_infrastructure > 0 else 0
@@ -804,7 +780,7 @@ class PeriodViewSet(viewsets.ModelViewSet):
                             'profits': profits,
                             'expenses': expenses,
                             'sales': sales,
-                            'period_fund_balance': (net_capital - expenses + sales),
+                            'period_fund_balance': FinancialCalculationService.compute_period_fund_balance(net_capital, expenses, sales),
                             'fund_balance': fund_balance
                         },
                         'current_cumulative_totals': {
@@ -894,13 +870,8 @@ class ProjectViewSet(viewsets.ModelViewSet):
                     'error': 'هیچ پروژه فعالی یافت نشد'
                 }, status=400)
 
-            # آمار واحدها برای پروژه فعال
-            from django.db.models import Sum, Count
-            units_stats = models.Unit.objects.filter(project=active_project).aggregate(
-                total_units=Count('id'),
-                total_area=Sum('area'),
-                total_price=Sum('total_price')
-            )
+            # آمار واحدها برای پروژه فعال (مرجع واحد)
+            units_stats = models.Unit.objects.project_stats(active_project)
 
             # اطلاعات پروژه
             project_data = {
@@ -917,11 +888,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
             return Response({
                 'project': project_data,
-                'units_statistics': {
-                    'total_units': units_stats['total_units'] or 0,
-                    'total_area': float(units_stats['total_area'] or 0),
-                    'total_price': float(units_stats['total_price'] or 0)
-                }
+                'units_statistics': units_stats
             })
 
         except Exception as e:
@@ -1230,17 +1197,15 @@ class SaleViewSet(viewsets.ModelViewSet):
                     'error': 'هیچ پروژه فعالی یافت نشد'
                 }, status=400)
 
-            # محاسبه مجموع فروش‌ها برای پروژه فعال
-            total_amount = models.Sale.objects.filter(
-                project=active_project
-            ).aggregate(total=Sum('amount'))['total'] or 0
+            # محاسبه مجموع فروش‌ها برای پروژه فعال (مرجع واحد)
+            total_amount = models.Sale.objects.project_totals(active_project)
 
             # تعداد فروش‌ها
             sales_count = models.Sale.objects.filter(
                 project=active_project
             ).count()
 
-            # فروش‌ها به تفکیک دوره
+            # فروش‌ها به تفکیک دوره (بدون تغییر)
             sales_by_period = models.Sale.objects.filter(
                 project=active_project
             ).values('period__label', 'period__id').annotate(
@@ -1294,17 +1259,10 @@ class TransactionViewSet(viewsets.ModelViewSet):
         
         # محاسبه آمار کلی
         total_transactions = models.Transaction.objects.count()
-        total_deposits = models.Transaction.objects.filter(
-            transaction_type='principal_deposit'
-        ).aggregate(total=Sum('amount'))['total'] or 0
-        
-        total_withdrawals = models.Transaction.objects.filter(
-            transaction_type='principal_withdrawal'
-        ).aggregate(total=Sum('amount'))['total'] or 0
-        
-        total_profits = models.Transaction.objects.filter(
-            transaction_type='profit_accrual'
-        ).aggregate(total=Sum('amount'))['total'] or 0
+        tx_totals_all = models.Transaction.objects.project_totals(project=None)
+        total_deposits = tx_totals_all['deposits']
+        total_withdrawals = tx_totals_all['withdrawals']
+        total_profits = tx_totals_all['profits']
         
         unique_investors = models.Transaction.objects.values('investor').distinct().count()
         
