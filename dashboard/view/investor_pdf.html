@@ -1812,176 +1812,101 @@
         }
 
         async function loadInvestorTrendData(investorId, investorTransactions) {
-            const monthly = {};
-            investorTransactions.forEach(r => {
-                if (!r.date_shamsi) return;
-                const month = r.date_shamsi.substring(0,7);
-                monthly[month] = monthly[month] || { principal:0, withdrawal:0 };
-                const amount = parseFloat(r.amount || 0);
-                if (['principal_deposit','loan_deposit'].includes(r.transaction_type)) monthly[month].principal += amount; else if (r.transaction_type==='principal_withdrawal') monthly[month].withdrawal += amount;
-            });
-            // دریافت دوره‌ها برای لیبل‌ها
-            let periodsData = null;
-            let allMonths = Object.keys(monthly).sort();
             try {
-                const periodsResp = await fetch(`/api/v1/Period/chart_data/`);
-                periodsData = await periodsResp.json();
-                if (periodsData && periodsData.success && Array.isArray(periodsData.data)) {
-                    const pMonths = periodsData.data.map(p => `${p.year}-${String(p.month_number).padStart(2,'0')}`);
-                    // اطمینان از پوشش همه ماه‌ها
-                    const set = new Set([...pMonths, ...allMonths]);
-                    allMonths = Array.from(set).sort();
+                // دریافت داده‌های نمودار ترند از سرور
+                const response = await fetch(`/api/v1/Investor/${investorId}/investor_cumulative_capital_and_unit_cost_chart/`);
+                if (!response.ok) {
+                    console.warn('خطا در دریافت داده‌های نمودار ترند:', response.status);
+                    return;
                 }
-            } catch (_) {}
-
-            const cumulative = [];
-            let sum = 0;
-            allMonths.forEach(m => {
-                if (monthly[m]) sum += monthly[m].principal + monthly[m].withdrawal;
-                cumulative.push(sum / BASE_AMOUNT);
-            });
-            
-            // محاسبه هزینه واحد برای تمام دوره‌ها
-            const unitCostData = await calculateUnitCostForMonths(allMonths, investorId, periodsData);
-            
-            const ctx = document.getElementById('investorTrendChart').getContext('2d');
-            charts.investorTrendChart = new Chart(ctx, {
-                type:'line',
-                data:{ 
-                    labels: allMonths, 
-                    datasets:[
-                        {
-                            type:'line', 
-                            label:'سرمایه موجود (میلیون تومان)', 
-                            data:cumulative, 
-                            borderColor:'rgba(170,38,255,1)', 
-                            backgroundColor:'rgba(170,38,255,0.1)', 
-                            borderWidth:3, 
-                            fill:false, 
-                            tension:0.1,
-                            yAxisID: 'y'
-                        },
-                        {
-                            type:'line', 
-                            label:'هزینه واحد (میلیون تومان)', 
-                            data:unitCostData, 
-                            borderColor:'rgba(220,53,69,1)', 
-                            backgroundColor:'rgba(220,53,69,0.1)', 
-                            borderWidth:3, 
-                            fill:false, 
-                            tension:0.1,
-                            yAxisID: 'y1'
-                        }
-                    ]
-                },
-                options:{
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: projectName ? `پروژه: ${projectName} - ترند سرمایه موجود و هزینه واحد` : 'ترند سرمایه موجود و هزینه واحد'
-                        },
-                        legend: { position: 'top' }
+                
+                const trendData = await response.json();
+                
+                if (trendData.error) {
+                    console.error('خطا در محاسبه داده‌های نمودار ترند:', trendData.error);
+                    return;
+                }
+                
+                // استفاده از داده‌های سرور
+                const allMonths = trendData.periods;
+                const cumulative = trendData.cumulative_capital;
+                const unitCostData = trendData.unit_cost;
+                
+                const ctx = document.getElementById('investorTrendChart').getContext('2d');
+                charts.investorTrendChart = new Chart(ctx, {
+                    type:'line',
+                    data:{ 
+                        labels: allMonths, 
+                        datasets:[
+                            {
+                                type:'line', 
+                                label:'سرمایه موجود (میلیون تومان)', 
+                                data:cumulative, 
+                                borderColor:'rgba(170,38,255,1)', 
+                                backgroundColor:'rgba(170,38,255,0.1)', 
+                                borderWidth:3, 
+                                fill:false, 
+                                tension:0.1,
+                                yAxisID: 'y'
+                            },
+                            {
+                                type:'line', 
+                                label:'هزینه واحد (میلیون تومان)', 
+                                data:unitCostData, 
+                                borderColor:'rgba(220,53,69,1)', 
+                                backgroundColor:'rgba(220,53,69,0.1)', 
+                                borderWidth:3, 
+                                fill:false, 
+                                tension:0.1,
+                                yAxisID: 'y1'
+                            }
+                        ]
                     },
-                    scales: {
-                        x: {
-                            title: { 
-                                display: true, 
-                                text: 'دوره' 
-                            }
-                        },
-                        y: {
-                            type: 'linear',
-                            display: true,
-                            position: 'left',
-                            beginAtZero: true,
-                            title: { 
-                                display: true, 
-                                text: 'سرمایه موجود (میلیون تومان)' 
-                            }
-                        },
-                        y1: {
-                            type: 'linear',
-                            display: true,
-                            position: 'right',
-                            beginAtZero: true,
-                            title: { 
-                                display: true, 
-                                text: 'هزینه واحد (میلیون تومان)' 
+                    options:{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: projectName ? `پروژه: ${projectName} - ترند سرمایه موجود و هزینه واحد` : 'ترند سرمایه موجود و هزینه واحد'
                             },
-                            grid: {
-                                drawOnChartArea: false,
+                            legend: { position: 'top' }
+                        },
+                        scales: {
+                            x: {
+                                title: { 
+                                    display: true, 
+                                    text: 'دوره' 
+                                }
                             },
+                            y: {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                beginAtZero: true,
+                                title: { 
+                                    display: true, 
+                                    text: 'سرمایه موجود (میلیون تومان)' 
+                                }
+                            },
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                beginAtZero: true,
+                                title: { 
+                                    display: true, 
+                                    text: 'هزینه واحد (میلیون تومان)' 
+                                },
+                                grid: {
+                                    drawOnChartArea: false,
+                                },
+                            }
                         }
                     }
-                }
-            });
-        }
-
-        // محاسبه هزینه واحد برای ماه‌های مختلف
-        async function calculateUnitCostForMonths(months, investorId, periodsData) {
-            try {
-                if (!periodsData || !periodsData.success) {
-                    return new Array(months.length).fill(0);
-                }
-                
-                // دریافت اطلاعات مشارکت کننده از API
-                let investorData;
-                try {
-                    const investorResponse = await fetch(`/api/v1/Investor/${investorId}/`);
-                    investorData = await investorResponse.json();
-                } catch (error) {
-                    console.error('خطا در دریافت اطلاعات مشارکت کننده:', error);
-                    return new Array(months.length).fill(0);
-                }
-                
-                // دریافت کل متراژ مفید پروژه از API آمار
-                let projectStatsData;
-                try {
-                    const projectStatsResponse = await fetch(`/api/v1/Project/statistics/`);
-                    projectStatsData = await projectStatsResponse.json();
-                } catch (error) {
-                    console.error('خطا در دریافت آمار پروژه:', error);
-                    return new Array(months.length).fill(0);
-                }
-                
-                // محاسبه متراژ واحد مشارکت کننده (از اطلاعات مشارکت کننده)
-                const investorUnitArea = investorData.units ? 
-                    investorData.units.reduce((sum, unit) => sum + (parseFloat(unit.area) || 0), 0) : 0;
-                
-                // کل متراژ مفید از آمار پروژه
-                const totalNetArea = projectStatsData.units_statistics?.total_area || 1;
-                
-                const unitCostData = [];
-                
-                for (const month of months) {
-                    // ماه در فرمت شمسی است: 1402-05
-                    const [shamsiYear, shamsiMonth] = month.split('-');
-                    
-                    // پیدا کردن دوره مربوط به این ماه شمسی (مقایسه عددی)
-                    const periodData = periodsData.data.find(p => 
-                        parseInt(p.year) === parseInt(shamsiYear) && 
-                        parseInt(p.month_number) === parseInt(shamsiMonth)
-                    );
-                    
-                    if (periodData) {
-                        // محاسبه هزینه واحد مشارکت کننده
-                        // فرمول: (هزینه خالص تجمعی ÷ کل متراژ مفید) × متراژ واحد مشارکت کننده
-                        const cumulativeNetCost = periodData.cumulative_expenses - periodData.cumulative_sales;
-                        const unitCostPerMeter = (cumulativeNetCost / totalNetArea) * investorUnitArea;
-                        const unitCostInMillions = unitCostPerMeter / 1000000; // تبدیل به میلیون تومان
-                        
-                        unitCostData.push(unitCostInMillions);
-                    } else {
-                        unitCostData.push(0);
-                    }
-                }
-                
-                return unitCostData;
+                });
             } catch (error) {
-                console.error('خطا در محاسبه هزینه واحد:', error);
-                return new Array(months.length).fill(0);
+                console.error('خطا در بارگذاری داده‌های نمودار ترند:', error);
             }
         }
     </script>
