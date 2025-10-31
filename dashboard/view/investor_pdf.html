@@ -1037,6 +1037,32 @@
     </div>
 
     <script>
+        // تنظیم فونت پیش‌فرض Chart.js به Vazir
+        Chart.defaults.font.family = "'Vazir', 'Tahoma', 'Arial', sans-serif";
+        Chart.defaults.font.size = 12;
+        
+        // تنظیمات اضافی برای نمودارها
+        Chart.defaults.plugins.legend.labels.font = {
+            family: "'Vazir', 'Tahoma', 'Arial', sans-serif",
+            size: 13
+        };
+        Chart.defaults.plugins.tooltip.titleFont = {
+            family: "'Vazir', 'Tahoma', 'Arial', sans-serif",
+            size: 14
+        };
+        Chart.defaults.plugins.tooltip.bodyFont = {
+            family: "'Vazir', 'Tahoma', 'Arial', sans-serif",
+            size: 12
+        };
+        Chart.defaults.scales.category.ticks.font = {
+            family: "'Vazir', 'Tahoma', 'Arial', sans-serif",
+            size: 11
+        };
+        Chart.defaults.scales.linear.ticks.font = {
+            family: "'Vazir', 'Tahoma', 'Arial', sans-serif",
+            size: 11
+        };
+
         // Format number with commas
         function formatNumber(num) {
             if (num === null || num === undefined || isNaN(num)) {
@@ -1057,6 +1083,9 @@
             return urlParams.get('investor_id');
         }
 
+        // متغیر سراسری برای نام پروژه
+        let projectName = '';
+
         // Fetch project name
         async function fetchProjectName() {
             try {
@@ -1065,9 +1094,10 @@
                     const projectsData = await response.json();
                     const projects = Array.isArray(projectsData) ? projectsData : (projectsData.results || []);
                     if (projects.length > 0 && projects[0].name) {
-                        document.getElementById('projectName').textContent = projects[0].name;
+                        projectName = projects[0].name;
+                        document.getElementById('projectName').textContent = projectName;
                         document.getElementById('projectNameDisplay').style.display = 'block';
-                        console.log('نام پروژه دریافت شد:', projects[0].name);
+                        console.log('نام پروژه دریافت شد:', projectName);
                     }
                 }
             } catch (error) {
@@ -1541,10 +1571,38 @@
                     labels: ['آورده', 'برداشت', 'سود'],
                     datasets: [{
                         data: [totalPrincipal, totalWithdrawal, totalProfit].map(a => a / BASE_AMOUNT),
-                        backgroundColor: ['#2185d0', '#db2828', '#21ba45']
+                        backgroundColor: [
+                            '#2185d0', // آبی - آورده
+                            '#db2828', // قرمز - برداشت
+                            '#21ba45'  // سبز - سود مشارکت
+                        ]
                     }]
                 },
-                options: { responsive: true, maintainAspectRatio: false }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: projectName ? true : false,
+                            text: projectName ? `پروژه: ${projectName}` : '',
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            padding: {
+                                bottom: 10
+                            }
+                        },
+                        legend: { position: 'right' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + context.parsed.toFixed(1) + ' میلیون تومان';
+                                }
+                            }
+                        }
+                    }
+                }
             });
         }
 
@@ -1573,12 +1631,85 @@
             const ctx = document.getElementById('principalTransactionChart').getContext('2d');
             charts.principalTransactionChart = new Chart(ctx, {
                 type: 'bar',
-                data: { labels, datasets: [
-                    { type:'bar', label:'آورده(میلیون تومان)', data:depositAmounts, backgroundColor:'rgba(33,133,208,0.8)', borderColor:'rgba(33,133,208,1)' },
-                    { type:'bar', label:'برداشت(میلیون تومان)', data:withdrawalAmounts, backgroundColor:'rgba(219,40,40,0.8)', borderColor:'rgba(219,40,40,1)' },
-                    { type:'line', label:'سرمایه موجود(میلیون تومان)', data:cumulativeAmounts, borderColor:'rgba(170,38,255,1)', backgroundColor:'rgba(170,38,255,0.2)', borderWidth:3, fill:false, tension:0.1 }
-                ]},
-                options: { responsive:true, maintainAspectRatio:false }
+                data: { 
+                    labels, 
+                    datasets: [
+                        {
+                            type:'bar', 
+                            label:'آورده(میلیون تومان)', 
+                            data:depositAmounts, 
+                            backgroundColor:'rgba(33,133,208,0.8)', 
+                            borderColor:'rgba(33,133,208,1)',
+                            borderWidth: 1,
+                            yAxisID: 'y'
+                        },
+                        { 
+                            type:'bar', 
+                            label:'برداشت (میلیون تومان)', 
+                            data:withdrawalAmounts, 
+                            backgroundColor:'rgba(219,40,40,0.8)', 
+                            borderColor:'rgba(219,40,40,1)',
+                            borderWidth: 1,
+                            yAxisID: 'y'
+                        },
+                        { 
+                            type:'line', 
+                            label:'سرمایه موجود(میلیون تومان)', 
+                            data:cumulativeAmounts, 
+                            borderColor:'rgba(170,38,255,1)', 
+                            backgroundColor:'rgba(170,38,255,0.2)', 
+                            borderWidth:3, 
+                            fill:false, 
+                            tension:0.1,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: projectName ? `پروژه: ${projectName} - روند تراکنش‌های آورده و برداشت` : 'روند تراکنش‌های آورده و برداشت'
+                        },
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { 
+                                display: true, 
+                                text: 'تاریخ' 
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            beginAtZero: true,
+                            title: { 
+                                display: true, 
+                                text: 'مبلغ تراکنش (میلیون تومان)' 
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            beginAtZero: false,
+                            title: { 
+                                display: true, 
+                                text: 'سرمایه موجود (میلیون تومان)' 
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        }
+                    }
+                }
             });
         }
 
@@ -1601,12 +1732,82 @@
             const ctx = document.getElementById('monthlyPrincipalChart').getContext('2d');
             charts.monthlyPrincipalChart = new Chart(ctx, {
                 type:'bar',
-                data:{ labels:months, datasets:[
-                    { type:'bar', label:'آورده (میلیون تومان)', data:principals, backgroundColor:'rgba(33,133,208,0.8)', borderColor:'rgba(33,133,208,1)' },
-                    { type:'bar', label:'برداشت (میلیون تومان)', data:withdrawals, backgroundColor:'rgba(219,40,40,0.8)', borderColor:'rgba(219,40,40,1)' },
-                    { type:'line', label:'سرمایه موجود (میلیون تومان)', data:cumulative, borderColor:'rgba(170,38,255,1)', backgroundColor:'rgba(170,38,255,0.2)', borderWidth:3, fill:false, tension:0.1 }
-                ]},
-                options:{ responsive:true, maintainAspectRatio:false }
+                data:{ 
+                    labels:months, 
+                    datasets:[
+                        {
+                            type:'bar', 
+                            label:'آورده (میلیون تومان)', 
+                            data:principals, 
+                            backgroundColor:'rgba(33,133,208,0.8)', 
+                            borderColor:'rgba(33,133,208,1)',
+                            borderWidth: 1,
+                            yAxisID: 'y'
+                        },
+                        {
+                            type:'bar', 
+                            label:'برداشت (میلیون تومان)', 
+                            data:withdrawals, 
+                            backgroundColor:'rgba(219,40,40,0.8)', 
+                            borderColor:'rgba(219,40,40,1)',
+                            borderWidth: 1,
+                            yAxisID: 'y'
+                        },
+                        {
+                            type:'line', 
+                            label:'سرمایه موجود (میلیون تومان)', 
+                            data:cumulative, 
+                            borderColor:'rgba(170,38,255,1)', 
+                            backgroundColor:'rgba(170,38,255,0.2)', 
+                            borderWidth:3, 
+                            fill:false, 
+                            tension:0.1,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options:{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: projectName ? `پروژه: ${projectName} - نمودار ماهانه آورده، برداشت و سرمایه موجود` : 'نمودار ماهانه آورده، برداشت و سرمایه موجود'
+                        },
+                        legend: { position: 'top' }
+                    },
+                    scales: {
+                        x: {
+                            title: { 
+                                display: true, 
+                                text: 'ماه' 
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            beginAtZero: true,
+                            title: { 
+                                display: true, 
+                                text: 'مبلغ ماهانه (میلیون تومان)' 
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            beginAtZero: false,
+                            title: { 
+                                display: true, 
+                                text: 'سرمایه موجود آورده (میلیون تومان)' 
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        }
+                    }
+                }
             });
         }
 
@@ -1643,11 +1844,75 @@
             const ctx = document.getElementById('investorTrendChart').getContext('2d');
             charts.investorTrendChart = new Chart(ctx, {
                 type:'line',
-                data:{ labels: allMonths, datasets:[
-                    { type:'line', label:'سرمایه موجود (میلیون تومان)', data:cumulative, borderColor:'rgba(170,38,255,1)', backgroundColor:'rgba(170,38,255,0.1)', borderWidth:3, fill:false, tension:0.1 },
-                    { type:'line', label:'هزینه واحد (میلیون تومان)', data:unitCostData, borderColor:'rgba(220,53,69,1)', backgroundColor:'rgba(220,53,69,0.1)', borderWidth:3, fill:false, tension:0.1 }
-                ]},
-                options:{ responsive:true, maintainAspectRatio:false }
+                data:{ 
+                    labels: allMonths, 
+                    datasets:[
+                        {
+                            type:'line', 
+                            label:'سرمایه موجود (میلیون تومان)', 
+                            data:cumulative, 
+                            borderColor:'rgba(170,38,255,1)', 
+                            backgroundColor:'rgba(170,38,255,0.1)', 
+                            borderWidth:3, 
+                            fill:false, 
+                            tension:0.1,
+                            yAxisID: 'y'
+                        },
+                        {
+                            type:'line', 
+                            label:'هزینه واحد (میلیون تومان)', 
+                            data:unitCostData, 
+                            borderColor:'rgba(220,53,69,1)', 
+                            backgroundColor:'rgba(220,53,69,0.1)', 
+                            borderWidth:3, 
+                            fill:false, 
+                            tension:0.1,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options:{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: projectName ? `پروژه: ${projectName} - ترند سرمایه موجود و هزینه واحد` : 'ترند سرمایه موجود و هزینه واحد'
+                        },
+                        legend: { position: 'top' }
+                    },
+                    scales: {
+                        x: {
+                            title: { 
+                                display: true, 
+                                text: 'دوره' 
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            beginAtZero: true,
+                            title: { 
+                                display: true, 
+                                text: 'سرمایه موجود (میلیون تومان)' 
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            beginAtZero: true,
+                            title: { 
+                                display: true, 
+                                text: 'هزینه واحد (میلیون تومان)' 
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        }
+                    }
+                }
             });
         }
     </script>
