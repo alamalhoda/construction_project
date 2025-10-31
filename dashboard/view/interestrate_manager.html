@@ -39,6 +39,7 @@
             --profit-color: #21ba45;            /* سبز - سود مشارکت */
             --capital-color: #667eea;           /* بنفش - سرمایه موجود */
             --expense-color: #dc3545;           /* قرمز تیره - هزینه‌ها */
+            --refund-color: #ffc107;            /* زرد - فروش/مرجوعی */
             --total-color: #6c757d;             /* خاکستری - مجموع */
         }
 
@@ -613,11 +614,11 @@
         }
 
         .stat-card.sales-card::before {
-            background: linear-gradient(90deg, #4caf50, #81c784) !important;
+            background: linear-gradient(90deg, var(--refund-color), #ffd700) !important;
         }
 
         .stat-card.final-cost-card::before {
-            background: linear-gradient(90deg, var(--total-color), #90a4ae) !important;
+            background: linear-gradient(90deg, var(--expense-color), #f48fb1) !important;
         }
 
         .stat-icon {
@@ -638,11 +639,11 @@
         }
 
         .stat-card.sales-card .stat-icon {
-            background: linear-gradient(135deg, #4caf50, #81c784) !important;
+            background: linear-gradient(135deg, var(--refund-color), #ffd700) !important;
         }
 
         .stat-card.final-cost-card .stat-icon {
-            background: linear-gradient(135deg, var(--total-color), #90a4ae) !important;
+            background: linear-gradient(135deg, var(--expense-color), #f48fb1) !important;
         }
 
         .stat-content {
@@ -709,11 +710,11 @@
         }
 
         .stat-card.sales-card .stat-value {
-            color: #4caf50 !important;
+            color: var(--refund-color) !important;
         }
 
         .stat-card.final-cost-card .stat-value {
-            color: var(--total-color) !important;
+            color: var(--expense-color) !important;
         }
 
         /* Current Final Cost Card */
@@ -753,6 +754,72 @@
 
         .stat-card.current-building-fund-card .stat-value {
             color: var(--balance-color) !important;
+        }
+
+        /* Special Current Period Section Styling */
+        .current-period-section {
+            position: relative;
+            margin: 20px 0;
+            padding: 25px;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, rgba(255, 193, 7, 0.05) 100%);
+            border-radius: 20px;
+            border: 3px solid var(--gold-color) !important;
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.3) !important;
+        }
+
+        .current-period-badge {
+            position: absolute;
+            top: -15px;
+            right: 30px;
+            background: linear-gradient(135deg, var(--gold-color) 0%, #ffc107 100%);
+            color: rgb(0, 0, 0);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .current-period-badge i {
+            font-size: 1rem;
+        }
+
+        /* Special styling for cards in current-period-section */
+        .current-period-section .stat-card {
+            border: 3px solid !important;
+            background: white !important;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        .current-period-section .stat-card.current-final-cost-card {
+            border-color: var(--total-color) !important;
+            background: linear-gradient(135deg, rgba(108, 117, 125, 0.03) 0%, white 100%) !important;
+        }
+
+        .current-period-section .stat-card.current-building-fund-card {
+            border-color: var(--balance-color) !important;
+            background: linear-gradient(135deg, rgba(108, 117, 125, 0.03) 0%, white 100%) !important;
+        }
+
+        .current-period-section .stat-card.building-fund-card {
+            border-color: var(--balance-color) !important;
+            background: linear-gradient(135deg, rgba(108, 117, 125, 0.03) 0%, white 100%) !important;
+        }
+
+        .current-period-section .stat-card .stat-value {
+            font-size: 2rem !important;
+            font-weight: 700 !important;
+            color: rgb(0, 0, 0) !important;
+        }
+
+        .current-period-section .stat-card .stat-label {
+            font-size: 1rem !important;
+            font-weight: 600 !important;
+            color: rgb(0, 0, 0) !important;
         }
 
         .stat-card.units-card .stat-icon {
@@ -1201,54 +1268,8 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-4 col-sm-12 mb-3">
-                <div class="stat-card current-final-cost-card">
-                    <div class="info-icon" data-tooltip="هزینه خالص تجمیعی تا پایان دوره جاری (ماه سال اکنون). این عدد هزینه واقعی پروژه تا تاریخ فعلی را نشان می‌دهد">
-                        <i class="fas fa-info"></i>
-                    </div>
-                    <div class="stat-icon">
-                        <i class="fas fa-calendar-check"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value" id="currentFinalCost">-</div>
-                        <div class="stat-label">هزینه خالص فعلی(تومان)</div>
-                    </div>
-                </div>
-            </div>
         </div>
         
-        <!-- Current Period Financial Cards -->
-        <div class="row mb-4" id="currentPeriodCards" style="display: none;">
-            <div class="col-lg-6 col-md-6 col-sm-12 mb-3">
-                <div class="stat-card building-fund-card">
-                    <div class="info-icon" data-tooltip="مانده صندوق ساختمان که از فرمول (مجموع کل سرمایه + فروش/مرجوع - کل هزینه) محاسبه می‌شود">
-                        <i class="fas fa-info"></i>
-                    </div>
-                    <div class="stat-icon">
-                        <i class="fas fa-building"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value" id="buildingFundBalance">-</div>
-                        <div class="stat-label">مانده صندوق ساختمان(تومان)</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-6 col-md-6 col-sm-12 mb-3">
-                <div class="stat-card current-building-fund-card">
-                    <div class="info-icon" data-tooltip="مانده صندوق ساختمان تا پایان دوره جاری (ماه سال اکنون). این عدد مانده فعلی صندوق را نشان می‌دهد">
-                        <i class="fas fa-info"></i>
-                    </div>
-                    <div class="stat-icon">
-                        <i class="fas fa-calendar"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value" id="currentBuildingFundBalance">-</div>
-                        <div class="stat-label">مانده صندوق فعلی(تومان)</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- Project Statistics Cards -->
         <div class="row mb-4" id="projectStatsCards" style="display: none;">
             <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
@@ -1799,12 +1820,8 @@
                 displayFinancialSummary(
                     costMetrics.total_expenses,
                     costMetrics.total_sales,
-                    costMetrics.final_cost,
-                    costMetrics.building_fund_balance
+                    costMetrics.final_cost
                 );
-
-                // دریافت داده‌های دوره جاری از API دوره‌ها
-                await loadCurrentPeriodData();
 
             } catch (error) {
                 console.error('Error loading financial summary:', error);
@@ -1844,88 +1861,15 @@
                 });
 
                 // Display the data
-                displayFinancialSummary(totalExpenses, totalSales, finalCost, undefined);
-
-                // دریافت داده‌های دوره جاری
-                await loadCurrentPeriodData();
+                displayFinancialSummary(totalExpenses, totalSales, finalCost);
 
             } catch (error) {
                 console.error('Error loading financial summary (Legacy):', error);
             }
         }
 
-        // Load current period data from period_summary API
-        async function loadCurrentPeriodData() {
-            try {
-                const response = await fetch(`${API_BASE}Period/period_summary/`);
-                if (!response.ok) {
-                    console.error('Error loading period data');
-                    return;
-                }
-                
-                const data = await response.json();
-                console.log('Period Summary Data:', data);
-                console.log('Current:', data.current);
-                console.log('Totals:', data.totals);
-
-                // Format numbers with English locale and 3-digit separators
-                const formatNumber = (num) => {
-                    return new Intl.NumberFormat('en-US').format(Math.round(num));
-                };
-
-                // Check if current exists
-                if (data.current && data.current.current_cumulative_totals) {
-                    const currentData = data.current.current_cumulative_totals;
-                    
-                    console.log('Current Cumulative Totals:', currentData);
-                    
-                    // Display current period values if they exist
-                    if (currentData.final_cost !== undefined && currentData.final_cost !== null) {
-                        document.getElementById('currentFinalCost').textContent = formatNumber(currentData.final_cost);
-                    } else {
-                        document.getElementById('currentFinalCost').textContent = '0';
-                    }
-                    
-                    if (currentData.final_fund_balance !== undefined && currentData.final_fund_balance !== null) {
-                        document.getElementById('currentBuildingFundBalance').textContent = formatNumber(currentData.final_fund_balance);
-                    } else {
-                        document.getElementById('currentBuildingFundBalance').textContent = '0';
-                    }
-                    
-                    // Show current period cards
-                    document.getElementById('currentPeriodCards').style.display = 'flex';
-                } else {
-                    console.warn('No current data found, trying to get from totals');
-                    // اگر current موجود نبود، از totals استفاده کن
-                    if (data.totals) {
-                        const totals = data.totals;
-                        if (totals.final_cost !== undefined && totals.final_cost !== null) {
-                            document.getElementById('currentFinalCost').textContent = formatNumber(totals.final_cost);
-                        } else {
-                            document.getElementById('currentFinalCost').textContent = '0';
-                        }
-                        
-                        if (totals.final_fund_balance !== undefined && totals.final_fund_balance !== null) {
-                            document.getElementById('currentBuildingFundBalance').textContent = formatNumber(totals.final_fund_balance);
-                        } else {
-                            document.getElementById('currentBuildingFundBalance').textContent = '0';
-                        }
-                        
-                        document.getElementById('currentPeriodCards').style.display = 'flex';
-                    } else {
-                        // اگر هیچ داده‌ای نبود، صفر نمایش بده
-                        document.getElementById('currentFinalCost').textContent = '0';
-                        document.getElementById('currentBuildingFundBalance').textContent = '0';
-                        document.getElementById('currentPeriodCards').style.display = 'flex';
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading current period data:', error);
-            }
-        }
-
         // Display financial summary
-        function displayFinancialSummary(totalExpenses, totalSales, finalCost, buildingFundBalance) {
+        function displayFinancialSummary(totalExpenses, totalSales, finalCost) {
             // Format numbers with English locale and 3-digit separators
             const formatNumber = (num) => {
                 return new Intl.NumberFormat('en-US').format(Math.round(num));
@@ -1934,12 +1878,6 @@
             document.getElementById('totalExpenses').textContent = formatNumber(totalExpenses);
             document.getElementById('totalSales').textContent = formatNumber(totalSales);
             document.getElementById('finalCost').textContent = formatNumber(finalCost);
-            
-            // Display building fund balance if provided
-            if (buildingFundBalance !== undefined) {
-                document.getElementById('buildingFundBalance').textContent = formatNumber(buildingFundBalance);
-                document.getElementById('currentPeriodCards').style.display = 'flex';
-            }
 
             // Show the financial summary cards
             document.getElementById('financialSummaryCards').style.display = 'flex';
