@@ -525,6 +525,29 @@ class InvestorViewSet(viewsets.ModelViewSet):
                 'error': f'خطا در محاسبه مالکیت سرمایه‌گذار: {str(e)}'
             }, status=500)
 
+    @action(detail=True, methods=['get'])
+    def investor_cumulative_capital_and_unit_cost_chart(self, request, pk=None):
+        """
+        دریافت داده‌های نمودار ترند سرمایه موجود و هزینه واحد برای سرمایه‌گذار
+        
+        این endpoint داده‌های لازم برای نمودار ترند را محاسبه می‌کند:
+        - سرمایه موجود تجمعی به میلیون تومان
+        - هزینه واحد به میلیون تومان برای هر دوره
+        """
+        try:
+            project_id = request.query_params.get('project_id')
+            trend_data = calculations.InvestorCalculations.calculate_investor_trend_chart(pk, project_id)
+            
+            if 'error' in trend_data:
+                return Response(trend_data, status=400)
+            
+            return Response(trend_data)
+            
+        except Exception as e:
+            return Response({
+                'error': f'خطا در محاسبه داده‌های نمودار ترند سرمایه‌گذار: {str(e)}'
+            }, status=500)
+
     @action(detail=False, methods=['get'])
     def all_investors_summary(self, request):
         """

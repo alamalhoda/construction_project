@@ -671,6 +671,120 @@ class InvestorCalculations(FinancialCalculationService):
                 continue
         
         return summary
+    
+    @staticmethod
+    def calculate_investor_trend_chart(investor_id: int, project_id: Optional[int] = None) -> Dict:
+        """
+        محاسبه داده‌های نمودار ترند سرمایه موجود و هزینه واحد برای سرمایه‌گذار
+        
+        Args:
+            investor_id: شناسه سرمایه‌گذار
+            project_id: شناسه پروژه
+            
+        Returns:
+            Dict: داده‌های نمودار شامل:
+                - periods: لیست دوره‌ها با فرمت YYYY-MM
+                - cumulative_capital: سرمایه موجود تجمعی به میلیون تومان
+                - unit_cost: هزینه واحد به میلیون تومان
+        """
+        project = models.Project.objects.get(id=project_id) if project_id else FinancialCalculationService.get_active_project()
+        
+        if not project:
+            return {'error': 'هیچ پروژه فعالی یافت نشد'}
+        
+        # دریافت سرمایه‌گذار
+        try:
+            investor = models.Investor.objects.get(id=investor_id)
+        except models.Investor.DoesNotExist:
+            return {'error': 'سرمایه‌گذار یافت نشد'}
+        
+        # دریافت تمام دوره‌ها
+        periods = models.Period.objects.filter(project=project).order_by('year', 'month_number')
+        
+        # دریافت تراکنش‌های سرمایه‌گذار
+        transactions = models.Transaction.objects.filter(
+            investor=investor,
+            project=project
+        ).order_by('date_gregorian')
+        
+        # پردازش تراکنش‌ها به صورت ماهانه
+        monthly_data = {}
+        for transaction in transactions:
+            if not transaction.date_shamsi:
+                continue
+                
+            # استخراج ماه از تاریخ شمسی (jdatetime.date object)
+            month = f"{transaction.date_shamsi.year}-{str(transaction.date_shamsi.month).zfill(2)}"  # YYYY-MM
+            
+            if month not in monthly_data:
+                monthly_data[month] = {
+                    'principal': 0,
+                    'withdrawal': 0,
+                    'profit': 0
+                }
+            
+            amount = float(transaction.amount or 0)
+            
+            if transaction.transaction_type in ['principal_deposit', 'loan_deposit']:
+                monthly_data[month]['principal'] += amount
+            elif transaction.transaction_type == 'principal_withdrawal':
+                monthly_data[month]['withdrawal'] += amount
+            elif transaction.transaction_type == 'profit_accrual':
+                monthly_data[month]['profit'] += amount
+        
+        # تبدیل دوره‌ها به فرمت ماهانه
+        all_months = [f"{p.year}-{str(p.month_number).zfill(2)}" for p in periods]
+        
+        # محاسبه سرمایه موجود تجمعی
+        cumulative_capital_data = []
+        cumulative_sum = 0
+        
+        for month in all_months:
+            if month in monthly_data:
+                monthly_net = monthly_data[month]['principal'] + monthly_data[month]['withdrawal']
+                cumulative_sum += monthly_net
+            cumulative_capital_data.append(cumulative_sum / 1000000)  # تبدیل به میلیون تومان
+        
+        # محاسبه متراژ واحد سرمایه‌گذار
+        units = investor.units.all()
+        investor_unit_area = sum(float(unit.area) for unit in units)
+        
+        # دریافت کل متراژ مفید پروژه
+        total_net_area = models.Unit.objects.project_total_area(project)
+        
+        # محاسبه هزینه واحد برای هر دوره
+        unit_cost_data = []
+        
+        cumulative_expenses_total = 0
+        cumulative_sales_total = 0
+        
+        for period in periods:
+            # محاسبه هزینه‌ها و فروش‌های تجمعی تا این دوره
+            period_expenses = models.Expense.objects.period_totals(project, period)
+            period_sales = models.Sale.objects.period_totals(project, period)
+            
+            cumulative_expenses_total += period_expenses
+            cumulative_sales_total += period_sales
+            
+            # محاسبه هزینه خالص تجمعی
+            cumulative_net_cost = cumulative_expenses_total - cumulative_sales_total
+            
+            # محاسبه هزینه واحد مشارکت کننده
+            # فرمول: (هزینه خالص تجمعی ÷ کل متراژ مفید) × متراژ واحد مشارکت کننده
+            unit_cost_per_meter = (cumulative_net_cost / total_net_area) * investor_unit_area if total_net_area > 0 else 0
+            unit_cost_in_millions = unit_cost_per_meter / 1000000  # تبدیل به میلیون تومان
+            
+            unit_cost_data.append(unit_cost_in_millions)
+        
+        return {
+            'success': True,
+            'investor_id': investor_id,
+            'investor_name': f"{investor.first_name} {investor.last_name}",
+            'periods': all_months,
+            'cumulative_capital': cumulative_capital_data,
+            'unit_cost': unit_cost_data,
+            'active_project': project.name
+        }
 
 
 class TransactionCalculations(FinancialCalculationService):
