@@ -340,6 +340,81 @@
             color: var(--balance-color);
         }
 
+        /* Current Period Section - Special styling */
+        .current-period-section {
+            grid-column: 1 / -1;
+            position: relative;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin: 20px 0;
+            padding: 25px;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, rgba(255, 193, 7, 0.05) 100%);
+            border-radius: 20px;
+            border: 2px dashed var(--gold-color);
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.15);
+        }
+
+        .current-period-badge {
+            position: absolute;
+            top: -15px;
+            right: 30px;
+            background: linear-gradient(135deg, var(--gold-color) 0%, #ffc107 100%);
+            color: rgb(0, 0, 0);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .current-period-badge i {
+            font-size: 1rem;
+        }
+
+        .stats-section .current-period-section .stat-card {
+            border: 3px solid !important;
+            background: var(--bg-card) !important;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
+            transform: none !important;
+        }
+
+        .stats-section .current-period-section .stat-card:hover {
+            transform: translateY(-8px) !important;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        .stats-section .current-period-section .current-final-cost-card {
+            border-color: var(--expense-color) !important;
+            background: linear-gradient(135deg, rgba(220, 53, 69, 0.05) 0%, var(--bg-card) 100%) !important;
+        }
+
+        .stats-section .current-period-section .current-building-fund-card {
+            border-color: var(--balance-color) !important;
+            background: linear-gradient(135deg, rgba(108, 117, 125, 0.03) 0%, var(--bg-card) 100%) !important;
+        }
+
+        .stats-section .current-period-section .stat-card h4 {
+            font-size: 2.3rem !important;
+            font-weight: 700 !important;
+            color: rgb(0, 0, 0) !important;
+        }
+
+        .stats-section .current-period-section .stat-card i {
+            color: rgb(0, 0, 0) !important;
+            font-size: 3rem !important;
+        }
+
+        .stats-section .current-period-section .stat-card p {
+            font-size: 1.1rem !important;
+            font-weight: 600 !important;
+            color: rgb(0, 0, 0) !important;
+        }
+
         /* Transactions Table */
         .transactions-section {
             margin-top: 40px;
@@ -918,6 +993,24 @@
                 </div>
             </div>
 
+            <!-- کارت‌های ویژه دوره جاری -->
+            <div class="current-period-section">
+                <div class="current-period-badge">
+                    <i class="fas fa-star"></i>
+                    وضعیت فعلی
+                </div>
+                <div class="stat-card current-final-cost-card">
+                    <i class="fas fa-calendar-check"></i>
+                    <h4 id="currentFinalCost">-</h4>
+                    <p>هزینه خالص فعلی (تومان)</p>
+                </div>
+                <div class="stat-card current-building-fund-card">
+                    <i class="fas fa-building"></i>
+                    <h4 id="currentBuildingFundBalance">-</h4>
+                    <p>مانده صندوق فعلی (تومان)</p>
+                </div>
+            </div>
+
             <!-- Unit Info Section -->
             <div class="stats-section unit-section">
                 <h3 class="section-title">
@@ -1175,6 +1268,43 @@
                 console.log('اطلاعات جامع پروژه بارگذاری شد');
             } catch (error) {
                 console.error('خطا در نمایش اطلاعات جامع پروژه:', error);
+            }
+        }
+
+        // تابع بارگذاری داده‌های دوره فعلی
+        async function loadCurrentPeriodData() {
+            try {
+                const response = await fetch('/api/v1/Period/period_summary/');
+                if (!response.ok) {
+                    console.warn('خطا در دریافت داده‌های دوره فعلی:', response.status);
+                    return;
+                }
+                
+                const result = await response.json();
+                
+                if (result.success && result.current && result.current.current_cumulative_totals) {
+                    const currentData = result.current.current_cumulative_totals;
+                    
+                    const currentFinalCostElement = document.getElementById('currentFinalCost');
+                    if (currentFinalCostElement) {
+                        currentFinalCostElement.textContent = formatNumber(currentData.final_cost || 0);
+                    }
+                    
+                    const currentBuildingFundBalanceElement = document.getElementById('currentBuildingFundBalance');
+                    if (currentBuildingFundBalanceElement) {
+                        currentBuildingFundBalanceElement.textContent = formatNumber(currentData.final_fund_balance || 0);
+                    }
+                    
+                    console.log('✅ داده‌های دوره فعلی بارگذاری شدند');
+                } else {
+                    console.warn('⚠️ داده‌های دوره فعلی یافت نشد');
+                    document.getElementById('currentFinalCost').textContent = '0';
+                    document.getElementById('currentBuildingFundBalance').textContent = '0';
+                }
+            } catch (error) {
+                console.error('❌ خطا در بارگذاری داده‌های دوره فعلی:', error);
+                document.getElementById('currentFinalCost').textContent = '-';
+                document.getElementById('currentBuildingFundBalance').textContent = '-';
             }
         }
 
@@ -1499,6 +1629,9 @@
                     displayComprehensiveData(comprehensiveData);
                     document.getElementById('projectOverviewSection').style.display = 'block';
                 }
+
+                // بارگذاری داده‌های دوره فعلی (هزینه خالص فعلی و مانده صندوق فعلی)
+                loadCurrentPeriodData();
 
                 // Show main content
                 document.getElementById('loadingState').style.display = 'none';
