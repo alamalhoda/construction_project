@@ -1778,7 +1778,9 @@
                         // برای نسبت‌ها و شاخص‌ها، مقدار را مستقیماً نمایش دهیم
                         if (element.id === 'profitIndex') {
                             // شاخص نفع را تا ۲ رقم اعشار فرمت کن
-                            const formatted = parseFloat(element.value).toFixed(2);
+                            const profitIndexValue = parseFloat(element.value);
+                            // اگر شاخص نفع صفر است (برای سرمایه‌گذاران)، "-" نمایش بده
+                            const formatted = profitIndexValue === 0 ? '-' : profitIndexValue.toFixed(2);
                             domElement.textContent = formatted;
                         } else {
                             domElement.textContent = element.value;

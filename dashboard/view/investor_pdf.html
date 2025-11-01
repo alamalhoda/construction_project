@@ -1446,7 +1446,9 @@
                     capitalRatio = investorRatios.capital_ratio_formatted || '0.00%';
                     profitRatioToTotal = investorRatios.profit_ratio_formatted || '0.00%';
                     totalRatioToGrandTotal = investorRatios.total_ratio_formatted || '0.00%';
-                    profitIndex = (investorRatios.profit_index || 0).toFixed(2);
+                    // اگر شاخص نفع صفر است (برای سرمایه‌گذاران)، "-" نمایش بده
+                    const profitIndexValue = investorRatios.profit_index || 0;
+                    profitIndex = profitIndexValue === 0 ? '-' : profitIndexValue.toFixed(2);
                 }
 
                 // دریافت مالکیت مشارکت کننده از API

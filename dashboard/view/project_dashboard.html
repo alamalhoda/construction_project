@@ -2487,6 +2487,11 @@
                     const paymentClass = finalPayment >= 0 ? 'cell-payment-positive' : 'cell-payment-negative';
                     const paymentSign = finalPayment >= 0 ? '+' : '';
                     
+                    // فرمت‌گذاری برای سه ستون: اگر صفر بود، "-" نمایش بده
+                    const finalPaymentDisplay = finalPayment === 0 ? '-' : `${paymentSign}${Math.round(finalPayment).toLocaleString('en-US')}`;
+                    const transferPriceDisplay = transferPricePerMeter === 0 ? '-' : Math.round(transferPricePerMeter).toLocaleString('en-US');
+                    const profitIndexDisplay = parseFloat(profitIndex) === 0 ? '-' : profitIndex;
+                    
                     // آیکون نوع سرمایه‌گذار
                     const typeIcon = investor.participation_type === 'owner' 
                         ? '<i class="fas fa-building" style="color: #667eea; margin-left: 8px;" title="مالک"></i>' 
@@ -2503,9 +2508,9 @@
                             <td>${Math.round(investor.total_profit).toLocaleString('en-US')}</td>
                             <td>${Math.round(investor.grand_total).toLocaleString('en-US')}</td>
                             <td class="cell-ownership-area">${ownershipArea.toLocaleString('en-US', {minimumFractionDigits: 3, maximumFractionDigits: 3})}</td>
-                            <td class="${paymentClass}">${paymentSign}${Math.round(finalPayment).toLocaleString('en-US')}</td>
-                            <td class="cell-price">${Math.round(transferPricePerMeter).toLocaleString('en-US')}</td>
-                            <td class="cell-profit-index">${profitIndex}</td>
+                            <td class="${paymentClass}">${finalPaymentDisplay}</td>
+                            <td class="cell-price">${transferPriceDisplay}</td>
+                            <td class="cell-profit-index">${profitIndexDisplay}</td>
                             <td class="cell-capital-ratio">${capitalRatio}</td>
                             <td class="cell-profit-ratio">${profitToTotalRatio}%</td>
                         </tr>
@@ -2629,6 +2634,11 @@
                     const finalPayment = ownership.final_payment || 0;
                     const transferPricePerMeter = ownership.transfer_price_per_meter || 0;
                     
+                    // فرمت‌گذاری برای سه ستون: اگر صفر بود، "-" نمایش بده
+                    const finalPaymentExcel = finalPayment === 0 ? '-' : Math.round(finalPayment);
+                    const transferPriceExcel = transferPricePerMeter === 0 ? '-' : Math.round(transferPricePerMeter);
+                    const profitIndexExcel = parseFloat(profitIndex) === 0 ? '-' : profitIndex;
+                    
                     excelData.push([
                         investor.name,
                         investor.total_principal_deposit || 0,
@@ -2639,9 +2649,9 @@
                         Math.round(investor.total_profit),
                         Math.round(investor.grand_total),
                         ownershipArea.toFixed(2),
-                        Math.round(finalPayment),
-                        Math.round(transferPricePerMeter),
-                        profitIndex,
+                        finalPaymentExcel,
+                        transferPriceExcel,
+                        profitIndexExcel,
                         capitalRatio,
                         profitToTotalRatio
                     ]);
