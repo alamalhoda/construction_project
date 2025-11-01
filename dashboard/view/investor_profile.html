@@ -1197,6 +1197,10 @@
                         <h4 id="transferPricePerMeter">-</h4>
                         <p>قیمت واگذار شده (تومان/متر مربع)</p>
                     </div>
+                    <div class="stat-card" style="border: 2px solid var(--expense-color); background: linear-gradient(135deg, var(--expense-color-light), rgba(220, 53, 69, 0.05));">
+                        <h4 id="currentUnitCost">-</h4>
+                        <p>هزینه فعلی واحد (تومان)</p>
+                    </div>
                 </div>
 
                 <!-- حالت سرمایه‌گذار: فقط نمایش مالکیت محاسبه‌شده -->
@@ -1698,7 +1702,8 @@
                         transferPricePerMeter: investorOwnership?.transfer_price_per_meter || 0,
                         totalUnitsPrice: investorOwnership?.total_units_price || 0,
                         averagePricePerMeter: investorOwnership?.average_price_per_meter || 0,
-                        value_per_meter: investorOwnership?.value_per_meter || 0
+                        value_per_meter: investorOwnership?.value_per_meter || 0,
+                        currentUnitCost: investorOwnership?.current_unit_cost || 0
                     };
 
 
@@ -1738,7 +1743,8 @@
                 { id: 'finalPayment', value: serverCalculations.finalPayment },
                 { id: 'transferPricePerMeter', value: serverCalculations.transferPricePerMeter },
                 { id: 'totalUnitsPrice', value: serverCalculations.totalUnitsPrice },
-                { id: 'averagePricePerMeter', value: serverCalculations.averagePricePerMeter }
+                { id: 'averagePricePerMeter', value: serverCalculations.averagePricePerMeter },
+                { id: 'currentUnitCost', value: serverCalculations.currentUnitCost }
             ];
 
             elements.forEach(element => {
@@ -1762,6 +1768,10 @@
                         domElement.textContent = formatted;
                     } else if (element.id === 'transferPricePerMeter' || element.id === 'averagePricePerMeter' || element.id === 'valuePerMeterInvestor') {
                         // برای قیمت واگذار شده و میانگین وزنی قیمت هر متر، فرمت عددی با جداکننده
+                        const v = parseFloat(element.value);
+                        domElement.textContent = (isNaN(v) || v <= 0) ? '-' : formatNumberWithCommas(v);
+                    } else if (element.id === 'currentUnitCost') {
+                        // برای هزینه فعلی واحد، فرمت عددی با جداکننده
                         const v = parseFloat(element.value);
                         domElement.textContent = (isNaN(v) || v <= 0) ? '-' : formatNumberWithCommas(v);
                     } else if (element.id === 'finalPayment') {
@@ -1829,6 +1839,7 @@
                 document.getElementById('currentBuildingFundBalance').textContent = '-';
             }
         }
+
 
         // تابع اضافه کردن نشانگر داده‌های سرور
         function addServerDataIndicator() {

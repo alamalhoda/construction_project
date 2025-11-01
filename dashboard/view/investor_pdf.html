@@ -938,7 +938,23 @@
                     </div>
                 </div>
             </div>
-
+ <!-- کارت‌های ویژه دوره جاری -->
+ <div class="current-period-section">
+    <div class="current-period-badge">
+        <i class="fas fa-star"></i>
+        وضعیت فعلی
+    </div>
+    <div class="stat-card current-final-cost-card">
+        <i class="fas fa-calendar-check"></i>
+        <h4 id="currentFinalCost">-</h4>
+        <p>هزینه خالص فعلی (تومان)</p>
+    </div>
+    <div class="stat-card current-building-fund-card">
+        <i class="fas fa-building"></i>
+        <h4 id="currentBuildingFundBalance">-</h4>
+        <p>مانده صندوق فعلی (تومان)</p>
+    </div>
+</div>
             <!-- Financial Stats Section -->
             <div class="stats-section">
                 <h3 class="section-title">
@@ -993,23 +1009,7 @@
                 </div>
             </div>
 
-            <!-- کارت‌های ویژه دوره جاری -->
-            <div class="current-period-section">
-                <div class="current-period-badge">
-                    <i class="fas fa-star"></i>
-                    وضعیت فعلی
-                </div>
-                <div class="stat-card current-final-cost-card">
-                    <i class="fas fa-calendar-check"></i>
-                    <h4 id="currentFinalCost">-</h4>
-                    <p>هزینه خالص فعلی (تومان)</p>
-                </div>
-                <div class="stat-card current-building-fund-card">
-                    <i class="fas fa-building"></i>
-                    <h4 id="currentBuildingFundBalance">-</h4>
-                    <p>مانده صندوق فعلی (تومان)</p>
-                </div>
-            </div>
+           
 
             <!-- Unit Info Section -->
             <div class="stats-section unit-section">
@@ -1046,6 +1046,10 @@
                     <div class="stat-card">
                         <h4 id="transferPricePerMeter">-</h4>
                         <p>قیمت واگذار شده (تومان/متر مربع)</p>
+                    </div>
+                    <div class="stat-card" style="border: 2px solid var(--expense-color); background: linear-gradient(135deg, var(--expense-color-light), rgba(220, 53, 69, 0.05));">
+                        <h4 id="currentUnitCost">-</h4>
+                        <p>هزینه فعلی واحد (تومان)</p>
                     </div>
                 </div>
                 <!-- حالت سرمایه‌گذار: فقط مالکیت محاسبه شده و ارزش متری ساختمان -->
@@ -1466,6 +1470,7 @@
                 const transferPricePerMeter = ownershipData?.transfer_price_per_meter || 0;
                 const totalUnitsPrice = ownershipData?.total_units_price || unitInfo.price;
                 const valuePerMeter = ownershipData?.value_per_meter || 0;
+                const currentUnitCost = ownershipData?.current_unit_cost || 0;
 
                 // Update UI
                 document.getElementById('reportDate').textContent = `تاریخ گزارش: ${getCurrentPersianDate()}`;
@@ -1558,6 +1563,10 @@
                 }
                 
                 document.getElementById('transferPricePerMeter').textContent = formatNumber(transferPricePerMeter);
+                const currentUnitCostEl = document.getElementById('currentUnitCost');
+                if (currentUnitCostEl) {
+                    currentUnitCostEl.textContent = (currentUnitCost && currentUnitCost > 0) ? formatNumber(currentUnitCost) : '-';
+                }
                 const valuePerMeterInvestorEl = document.getElementById('valuePerMeterInvestor');
                 if (valuePerMeterInvestorEl) {
                     valuePerMeterInvestorEl.textContent = (valuePerMeter && valuePerMeter > 0) ? formatNumber(valuePerMeter) : '-';
