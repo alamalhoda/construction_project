@@ -227,6 +227,18 @@
             font-size: 1.5rem;
         }
 
+        .summary-cards .current-period-section .summary-card.current-final-cost h4 {
+            color: var(--expense-color);
+        }
+
+        .summary-cards .current-period-section .summary-card.current-final-cost .value {
+            color: var(--expense-color);
+        }
+
+        .summary-cards .current-period-section .summary-card.current-final-cost h4 i {
+            color: var(--expense-color);
+        }
+
         .summary-card {
             background: white;
             border-radius: 15px;
@@ -252,7 +264,7 @@
         .summary-card.cost-per-meter-net { border-color: var(--expense-color); }
         .summary-card.cost-per-meter-gross { border-color: var(--expense-color); }
         .summary-card.final-cost { border-color: var(--total-color); }
-        .summary-card.current-final-cost { border-color: var(--total-color); }
+        .summary-card.current-final-cost { border-color: var(--expense-color); }
         .summary-card.current-building-fund { border-color: var(--balance-color); }
 
         .summary-card h4 {
@@ -285,7 +297,9 @@
         .summary-card.cost-per-meter-net .value { color: var(--expense-color); }
         .summary-card.cost-per-meter-gross .value { color: var(--expense-color); }
         .summary-card.final-cost .value { color: var(--total-color); }
-        .summary-card.current-final-cost .value { color: var(--total-color); }
+        .summary-card.current-final-cost .value { color: var(--expense-color); }
+        .summary-card.current-final-cost h4 { color: var(--expense-color); }
+        .summary-card.current-final-cost h4 i { color: var(--expense-color); }
         .summary-card.current-building-fund .value { color: var(--balance-color); }
 
         .summary-card .label {
@@ -600,7 +614,7 @@
             <div class="current-period-section">
                 <div class="current-period-badge">
                     <i class="fas fa-star"></i>
-                    وضعیت فعلی
+                     وضعیت فعلی پروژه
                 </div>
                 <div class="summary-card current-final-cost">
                     <h4><i class="fas fa-calendar-check"></i> هزینه خالص فعلی</h4>
