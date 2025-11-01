@@ -386,6 +386,18 @@
             color: rgb(0, 0, 0) !important;
         }
 
+        .stats-grid .current-period-section .current-final-cost-card i {
+            color: var(--expense-color) !important;
+        }
+
+        .stats-grid .current-period-section .current-final-cost-card h3 {
+            color: var(--expense-color) !important;
+        }
+
+        .stats-grid .current-period-section .current-final-cost-card p {
+            color: var(--expense-color) !important;
+        }
+
         .stat-card.interest-rate-card {
             /* grid-column: span 2; */
             background: linear-gradient(
@@ -525,9 +537,9 @@
 
         .stat-card.current-final-cost-card {
             grid-column: span 1;
-            background: linear-gradient(135deg, var(--total-color) 0%, #90a4ae 100%);
+            background: linear-gradient(135deg, var(--expense-color) 0%, #e74c3c 100%);
             color: white;
-            box-shadow: 0 12px 40px var(--total-color-light);
+            box-shadow: 0 12px 40px var(--expense-color-light);
             margin: 10px;
         }
 
@@ -1447,7 +1459,7 @@
                 <div class="current-period-section">
                     <div class="current-period-badge">
                         <i class="fas fa-star"></i>
-                        وضعیت فعلی
+                        وضعیت فعلی پروژه
                     </div>
                     <div class="stat-card current-final-cost-card">
                         <i class="fas fa-calendar-check"></i>
