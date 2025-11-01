@@ -23,7 +23,7 @@ class ExpenseViewSet(viewsets.ModelViewSet):
         """دریافت هزینه‌ها با اطلاعات دوره‌ها برای محاسبه دوره متوسط ساخت"""
         try:
             # دریافت پروژه فعال
-            active_project = models.Project.get_active_project()
+            active_project = models.Project.get_active_project()  # پروژه فعال
             if not active_project:
                 return Response({
                     'error': 'هیچ پروژه فعالی یافت نشد'
@@ -32,15 +32,15 @@ class ExpenseViewSet(viewsets.ModelViewSet):
             # دریافت تمام هزینه‌ها برای پروژه فعال با اطلاعات دوره
             expenses = models.Expense.objects.filter(
                 project=active_project
-            ).select_related('period')
+            ).select_related('period')  # لیست هزینه‌های پروژه فعال با اطلاعات دوره
 
             # بررسی آمار دوره‌ها
-            total_expenses = expenses.count()
-            expenses_with_period = expenses.exclude(period__isnull=True).count()
-            expenses_without_period = expenses.filter(period__isnull=True).count()
+            total_expenses = expenses.count()  # تعداد کل هزینه‌ها
+            expenses_with_period = expenses.exclude(period__isnull=True).count()  # تعداد هزینه‌های دارای دوره
+            expenses_without_period = expenses.filter(period__isnull=True).count()  # تعداد هزینه‌های بدون دوره
 
             # استفاده از serializer مخصوص
-            serializer = serializers.ExpenseSerializer(expenses, many=True)
+            serializer = serializers.ExpenseSerializer(expenses, many=True)  # سریالایزر هزینه‌ها
             
             return Response({
                 'expenses': serializer.data,
@@ -60,7 +60,7 @@ class ExpenseViewSet(viewsets.ModelViewSet):
         """دریافت داده‌های لیست هزینه ها"""
         try:
             # دریافت پروژه فعال
-            active_project = models.Project.get_active_project()
+            active_project = models.Project.get_active_project()  # پروژه فعال
             if not active_project:
                 return Response({
                     'error': 'هیچ پروژه فعالی یافت نشد'
@@ -71,13 +71,13 @@ class ExpenseViewSet(viewsets.ModelViewSet):
                 project=active_project,
                 year__gte=1402,
                 year__lte=1405
-            ).order_by('year', 'month_number')
+            ).order_by('year', 'month_number')  # لیست دوره‌ها از سال 1402 تا 1405
 
             # دریافت تمام هزینه‌ها برای پروژه فعال
-            expenses = models.Expense.objects.filter(project=active_project)
+            expenses = models.Expense.objects.filter(project=active_project)  # لیست هزینه‌های پروژه فعال
 
             # ساختار داده‌ها
-            expense_types = [
+            expense_types = [  # انواع هزینه‌ها
                 ('project_manager', 'مدیر پروژه'),
                 ('facilities_manager', 'سرپرست کارگاه'),
                 ('procurement', 'کارپرداز'),
@@ -87,19 +87,19 @@ class ExpenseViewSet(viewsets.ModelViewSet):
             ]
 
             # ایجاد ماتریس داده‌ها
-            dashboard_data = []
-            cumulative_total = 0
+            dashboard_data = []  # داده‌های داشبورد
+            cumulative_total = 0  # مجموع تجمعی کل
 
             for period in periods:
                 period_data = {
-                    'period_id': period.id,
-                    'period_label': period.label,
-                    'year': period.year,
-                    'month_name': period.month_name,
-                    'is_current_period': period.is_current(),
-                    'expenses': {},
-                    'period_total': 0,
-                    'cumulative_total': 0
+                    'period_id': period.id,  # شناسه دوره
+                    'period_label': period.label,  # برچسب دوره
+                    'year': period.year,  # سال دوره
+                    'month_name': period.month_name,  # نام ماه دوره
+                    'is_current_period': period.is_current(),  # آیا دوره جاری است
+                    'expenses': {},  # هزینه‌های دوره
+                    'period_total': 0,  # مجموع هزینه‌های دوره
+                    'cumulative_total': 0  # مجموع تجمعی تا این دوره
                 }
 
                 # محاسبه هزینه‌های هر نوع برای این دوره
@@ -107,7 +107,7 @@ class ExpenseViewSet(viewsets.ModelViewSet):
                     expense_amount = expenses.filter(
                         period=period,
                         expense_type=expense_type
-                    ).aggregate(total=Sum('amount'))['total'] or 0
+                    ).aggregate(total=Sum('amount'))['total'] or 0  # مبلغ هزینه این نوع برای این دوره
 
                     # دریافت توضیحات هزینه - ابتدا رکورد دستی
                     expense_obj = expenses.filter(
@@ -115,39 +115,39 @@ class ExpenseViewSet(viewsets.ModelViewSet):
                         expense_type=expense_type
                     ).exclude(
                         description__icontains='محاسبه خودکار'
-                    ).first()
+                    ).first()  # رکورد دستی هزینه
                     
                     # اگر رکورد دستی نباشد، رکورد خودکار را بردار
                     if not expense_obj:
                         expense_obj = expenses.filter(
                             period=period,
                             expense_type=expense_type
-                        ).first()
+                        ).first()  # رکورد خودکار هزینه
                     
                     period_data['expenses'][expense_type] = {
-                        'amount': float(expense_amount),
-                        'label': expense_label,
-                        'description': expense_obj.description if expense_obj else '',
-                        'expense_id': expense_obj.id if expense_obj else None
+                        'amount': float(expense_amount),  # مبلغ هزینه
+                        'label': expense_label,  # برچسب هزینه
+                        'description': expense_obj.description if expense_obj else '',  # توضیحات هزینه
+                        'expense_id': expense_obj.id if expense_obj else None  # شناسه هزینه
                     }
                     period_data['period_total'] += float(expense_amount)
 
                 # محاسبه مجموع تجمیعی
-                cumulative_total += period_data['period_total']
-                period_data['cumulative_total'] = cumulative_total
+                cumulative_total += period_data['period_total']  # افزودن به مجموع تجمعی
+                period_data['cumulative_total'] = cumulative_total  # ذخیره مجموع تجمعی
 
                 dashboard_data.append(period_data)
 
             # محاسبه مجموع ستون‌ها
-            column_totals = {}
+            column_totals = {}  # مجموع هر ستون (هر نوع هزینه)
             for expense_type, _ in expense_types:
                 column_totals[expense_type] = sum(
                     period['expenses'][expense_type]['amount'] 
                     for period in dashboard_data
-                )
+                )  # مجموع هزینه‌های این نوع در تمام دوره‌ها
 
             # مجموع کل
-            grand_total = sum(period['period_total'] for period in dashboard_data)
+            grand_total = sum(period['period_total'] for period in dashboard_data)  # مجموع کل همه هزینه‌ها
 
             return Response({
                 'success': True,
@@ -169,10 +169,10 @@ class ExpenseViewSet(viewsets.ModelViewSet):
     def update_expense(self, request):
         """به‌روزرسانی هزینه"""
         try:
-            period_id = request.data.get('period_id')
-            expense_type = request.data.get('expense_type')
-            amount = request.data.get('amount')
-            description = request.data.get('description', '')
+            period_id = request.data.get('period_id')  # شناسه دوره
+            expense_type = request.data.get('expense_type')  # نوع هزینه
+            amount = request.data.get('amount')  # مبلغ هزینه
+            description = request.data.get('description', '')  # توضیحات هزینه
 
             if not all([period_id, expense_type, amount is not None]):
                 return Response({
@@ -180,7 +180,7 @@ class ExpenseViewSet(viewsets.ModelViewSet):
                 }, status=400)
 
             # دریافت پروژه فعال
-            active_project = models.Project.get_active_project()
+            active_project = models.Project.get_active_project()  # پروژه فعال
             if not active_project:
                 return Response({
                     'error': 'هیچ پروژه فعالی یافت نشد'
@@ -188,7 +188,7 @@ class ExpenseViewSet(viewsets.ModelViewSet):
 
             # دریافت دوره
             try:
-                period = models.Period.objects.get(id=period_id, project=active_project)
+                period = models.Period.objects.get(id=period_id, project=active_project)  # دوره مورد نظر
             except models.Period.DoesNotExist:
                 return Response({
                     'error': 'دوره مورد نظر یافت نشد'
@@ -196,7 +196,7 @@ class ExpenseViewSet(viewsets.ModelViewSet):
 
             # تبدیل amount به Decimal
             from decimal import Decimal
-            amount = Decimal(str(amount))
+            amount = Decimal(str(amount))  # مبلغ به صورت Decimal
 
             # یافتن یا ایجاد هزینه
             expense, created = models.Expense.objects.get_or_create(
@@ -204,7 +204,7 @@ class ExpenseViewSet(viewsets.ModelViewSet):
                 period=period,
                 expense_type=expense_type,
                 defaults={'amount': amount, 'description': description}
-            )
+            )  # هزینه (expense) و وضعیت ایجاد (created)
 
             if not created:
                 expense.amount = amount
@@ -231,8 +231,8 @@ class ExpenseViewSet(viewsets.ModelViewSet):
     def get_expense_details(self, request):
         """دریافت جزئیات هزینه برای ویرایش"""
         try:
-            period_id = request.query_params.get('period_id')
-            expense_type = request.query_params.get('expense_type')
+            period_id = request.query_params.get('period_id')  # شناسه دوره از پارامترهای درخواست
+            expense_type = request.query_params.get('expense_type')  # نوع هزینه از پارامترهای درخواست
 
             if not all([period_id, expense_type]):
                 return Response({
@@ -240,7 +240,7 @@ class ExpenseViewSet(viewsets.ModelViewSet):
                 }, status=400)
 
             # دریافت پروژه فعال
-            active_project = models.Project.get_active_project()
+            active_project = models.Project.get_active_project()  # پروژه فعال
             if not active_project:
                 return Response({
                     'error': 'هیچ پروژه فعالی یافت نشد'
@@ -248,7 +248,7 @@ class ExpenseViewSet(viewsets.ModelViewSet):
 
             # دریافت دوره
             try:
-                period = models.Period.objects.get(id=period_id, project=active_project)
+                period = models.Period.objects.get(id=period_id, project=active_project)  # دوره مورد نظر
             except models.Period.DoesNotExist:
                 return Response({
                     'error': 'دوره مورد نظر یافت نشد'
@@ -261,17 +261,17 @@ class ExpenseViewSet(viewsets.ModelViewSet):
                 expense_type=expense_type
             ).exclude(
                 description__icontains='محاسبه خودکار'
-            ).first()
+            ).first()  # هزینه دستی (بدون محاسبه خودکار)
             
             if manual_expense:
-                expense = manual_expense
+                expense = manual_expense  # استفاده از هزینه دستی
             else:
                 # اگر رکورد دستی نباشد، رکورد خودکار را بردار
                 expense = models.Expense.objects.filter(
                     project=active_project,
                     period=period,
                     expense_type=expense_type
-                ).first()
+                ).first()  # هزینه خودکار
             
             if expense:
                 return Response({
@@ -303,44 +303,44 @@ class ExpenseViewSet(viewsets.ModelViewSet):
     def total_expenses(self, request):
         """دریافت مجموع کل هزینه‌های پروژه"""
         try:
-            project_id = request.query_params.get('project_id')
+            project_id = request.query_params.get('project_id')  # شناسه پروژه از پارامترهای درخواست
             
             if project_id:
                 try:
-                    project = models.Project.objects.get(id=project_id)
-                    expenses = models.Expense.objects.filter(project=project)
+                    project = models.Project.objects.get(id=project_id)  # پروژه با شناسه مشخص شده
+                    expenses = models.Expense.objects.filter(project=project)  # هزینه‌های این پروژه
                 except models.Project.DoesNotExist:
                     return Response({
                         'error': f'پروژه با شناسه {project_id} یافت نشد'
                     }, status=404)
             else:
                 # اگر project_id مشخص نشده، از پروژه فعال استفاده کن
-                active_project = models.Project.get_active_project()
+                active_project = models.Project.get_active_project()  # پروژه فعال
                 if not active_project:
                     return Response({
                         'error': 'هیچ پروژه فعالی یافت نشد'
                     }, status=404)
-                expenses = models.Expense.objects.filter(project=active_project)
-                project = active_project
+                expenses = models.Expense.objects.filter(project=active_project)  # هزینه‌های پروژه فعال
+                project = active_project  # استفاده از پروژه فعال
             
             # محاسبه مجموع کل هزینه‌ها (مرجع واحد)
-            total_amount = models.Expense.objects.project_totals(project)
+            total_amount = models.Expense.objects.project_totals(project)  # مجموع کل هزینه‌های پروژه
             
             # محاسبه تعداد هزینه‌ها
-            total_count = expenses.count()
+            total_count = expenses.count()  # تعداد کل هزینه‌ها
             
             # محاسبه مجموع هزینه‌ها بر اساس نوع
-            expenses_by_type = {}
+            expenses_by_type = {}  # هزینه‌ها به تفکیک نوع
             for expense_type, display_name in models.Expense.EXPENSE_TYPES:
-                type_expenses = expenses.filter(expense_type=expense_type)
-                type_total = sum(expense.amount for expense in type_expenses)
-                type_count = type_expenses.count()
+                type_expenses = expenses.filter(expense_type=expense_type)  # هزینه‌های این نوع
+                type_total = sum(expense.amount for expense in type_expenses)  # مجموع هزینه‌های این نوع
+                type_count = type_expenses.count()  # تعداد هزینه‌های این نوع
                 
                 if type_total > 0 or type_count > 0:
                     expenses_by_type[expense_type] = {
-                        'display_name': display_name,
-                        'total_amount': float(type_total),
-                        'count': type_count
+                        'display_name': display_name,  # نام نمایشی نوع هزینه
+                        'total_amount': float(type_total),  # مجموع مبلغ این نوع
+                        'count': type_count  # تعداد این نوع
                     }
             
             return Response({
@@ -373,28 +373,28 @@ class InvestorViewSet(viewsets.ModelViewSet):
     def summary(self, request):
         """خلاصه مالی تمام سرمایه‌گذاران - نسخه مرجع واحد (جایگزین SQL خام)"""
         try:
-            def norm_num(x):
+            def norm_num(x):  # تابع نرمال‌سازی عدد (حذف اعشار در صورت امکان)
                 try:
-                    xf = float(x)
-                    xi = int(xf)
-                    return xi if xf == xi else xf
+                    xf = float(x)  # تبدیل به float
+                    xi = int(xf)  # تبدیل به int
+                    return xi if xf == xi else xf  # برگرداندن int اگر اعشار نداشت، در غیر این صورت float
                 except Exception:
                     return x
 
-            investors = models.Investor.objects.all()
-            results = []
+            investors = models.Investor.objects.all()  # لیست تمام سرمایه‌گذاران
+            results = []  # لیست نتایج
 
             for inv in investors:
-                totals = models.Transaction.objects.totals(project=None, filters={'investor_id': inv.id})
-                deposits = float(totals.get('deposits', 0) or 0)
-                withdrawals = float(totals.get('withdrawals', 0) or 0)  # منفی
-                profits = float(totals.get('profits', 0) or 0)
+                totals = models.Transaction.objects.totals(project=None, filters={'investor_id': inv.id})  # محاسبه مجموع تراکنش‌های سرمایه‌گذار
+                deposits = float(totals.get('deposits', 0) or 0)  # مجموع آورده‌ها
+                withdrawals = float(totals.get('withdrawals', 0) or 0)  # مجموع برداشت‌ها (منفی)
+                profits = float(totals.get('profits', 0) or 0)  # مجموع سود
 
-                total_deposits = deposits
-                total_withdrawals_abs = abs(withdrawals)
-                net_principal = deposits + withdrawals
-                total_profit = profits
-                grand_total = net_principal + total_profit
+                total_deposits = deposits  # مجموع آورده‌ها
+                total_withdrawals_abs = abs(withdrawals)  # مجموع برداشت‌ها (مقدار مثبت)
+                net_principal = deposits + withdrawals  # سرمایه خالص (آورده + برداشت که منفی است)
+                total_profit = profits  # مجموع سود
+                grand_total = net_principal + total_profit  # مجموع کل (سرمایه خالص + سود)
 
                 results.append({
                     'investor_id': inv.id,
@@ -416,25 +416,25 @@ class InvestorViewSet(viewsets.ModelViewSet):
     def summary_ssot(self, request):
         """خلاصه مالی تمام سرمایه‌گذاران با مرجع واحد (بدون SQL خام)"""
         try:
-            investors = models.Investor.objects.all()
-            results = []
+            investors = models.Investor.objects.all()  # لیست تمام سرمایه‌گذاران
+            results = []  # لیست نتایج
 
             for inv in investors:
-                totals = models.Transaction.objects.totals(project=None, filters={'investor_id': inv.id})
-                deposits = float(totals.get('deposits', 0) or 0)
-                withdrawals = float(totals.get('withdrawals', 0) or 0)  # منفی است
-                profits = float(totals.get('profits', 0) or 0)
+                totals = models.Transaction.objects.totals(project=None, filters={'investor_id': inv.id})  # محاسبه مجموع تراکنش‌های سرمایه‌گذار
+                deposits = float(totals.get('deposits', 0) or 0)  # مجموع آورده‌ها
+                withdrawals = float(totals.get('withdrawals', 0) or 0)  # مجموع برداشت‌ها (منفی است)
+                profits = float(totals.get('profits', 0) or 0)  # مجموع سود
 
-                total_deposits = deposits
-                total_withdrawals_abs = abs(withdrawals)
-                net_principal = deposits + withdrawals
-                total_profit = profits
-                grand_total = net_principal + total_profit
+                total_deposits = deposits  # مجموع آورده‌ها
+                total_withdrawals_abs = abs(withdrawals)  # مجموع برداشت‌ها (مقدار مثبت)
+                net_principal = deposits + withdrawals  # سرمایه خالص (آورده + برداشت که منفی است)
+                total_profit = profits  # مجموع سود
+                grand_total = net_principal + total_profit  # مجموع کل (سرمایه خالص + سود)
 
-                def norm_num(x):
-                    xf = float(x)
-                    xi = int(xf)
-                    return xi if xf == xi else xf
+                def norm_num(x):  # تابع نرمال‌سازی عدد (حذف اعشار در صورت امکان)
+                    xf = float(x)  # تبدیل به float
+                    xi = int(xf)  # تبدیل به int
+                    return xi if xf == xi else xf  # برگرداندن int اگر اعشار نداشت، در غیر این صورت float
 
                 results.append({
                     'investor_id': inv.id,
@@ -459,11 +459,11 @@ class InvestorViewSet(viewsets.ModelViewSet):
         """دریافت آمار مشارکت کنندگان بر اساس نوع (مالک و سرمایه گذار)"""
         
         # شمارش کل مشارکت کنندگان
-        total_count = models.Investor.objects.count()
+        total_count = models.Investor.objects.count()  # تعداد کل سرمایه‌گذاران
         
         # شمارش مشارکت کنندگان بر اساس نوع
-        owner_count = models.Investor.objects.filter(participation_type='owner').count()
-        investor_count = models.Investor.objects.filter(participation_type='investor').count()
+        owner_count = models.Investor.objects.filter(participation_type='owner').count()  # تعداد مالکان
+        investor_count = models.Investor.objects.filter(participation_type='investor').count()  # تعداد سرمایه‌گذاران (غیر مالک)
         
         return Response({
             'total_count': total_count,
@@ -475,8 +475,8 @@ class InvestorViewSet(viewsets.ModelViewSet):
     def detailed_statistics(self, request, pk=None):
         """دریافت آمار تفصیلی سرمایه‌گذار"""
         try:
-            project_id = request.query_params.get('project_id')
-            stats = calculations.InvestorCalculations.calculate_investor_statistics(pk, project_id)
+            project_id = request.query_params.get('project_id')  # شناسه پروژه از پارامترهای درخواست
+            stats = calculations.InvestorCalculations.calculate_investor_statistics(pk, project_id)  # محاسبه آمار تفصیلی سرمایه‌گذار
             
             if 'error' in stats:
                 return Response(stats, status=400)
@@ -492,8 +492,8 @@ class InvestorViewSet(viewsets.ModelViewSet):
     def ratios(self, request, pk=None):
         """دریافت نسبت‌های سرمایه‌گذار"""
         try:
-            project_id = request.query_params.get('project_id')
-            ratios = calculations.InvestorCalculations.calculate_investor_ratios(pk, project_id)
+            project_id = request.query_params.get('project_id')  # شناسه پروژه از پارامترهای درخواست
+            ratios = calculations.InvestorCalculations.calculate_investor_ratios(pk, project_id)  # محاسبه نسبت‌های سرمایه‌گذار
             
             if 'error' in ratios:
                 return Response(ratios, status=400)
@@ -513,8 +513,8 @@ class InvestorViewSet(viewsets.ModelViewSet):
         محاسبه: (آورده + سود) / قیمت هر متر مربع واحد انتخابی
         """
         try:
-            project_id = request.query_params.get('project_id')
-            ownership = calculations.InvestorCalculations.calculate_investor_ownership(pk, project_id)
+            project_id = request.query_params.get('project_id')  # شناسه پروژه از پارامترهای درخواست
+            ownership = calculations.InvestorCalculations.calculate_investor_ownership(pk, project_id)  # محاسبه مالکیت سرمایه‌گذار
             
             if 'error' in ownership:
                 return Response(ownership, status=400)
@@ -536,8 +536,8 @@ class InvestorViewSet(viewsets.ModelViewSet):
         - هزینه واحد به میلیون تومان برای هر دوره
         """
         try:
-            project_id = request.query_params.get('project_id')
-            trend_data = calculations.InvestorCalculations.calculate_investor_trend_chart(pk, project_id)
+            project_id = request.query_params.get('project_id')  # شناسه پروژه از پارامترهای درخواست
+            trend_data = calculations.InvestorCalculations.calculate_investor_trend_chart(pk, project_id)  # محاسبه داده‌های نمودار ترند سرمایه‌گذار
             
             if 'error' in trend_data:
                 return Response(trend_data, status=400)
@@ -558,14 +558,14 @@ class InvestorViewSet(viewsets.ModelViewSet):
         تا آمار کامل شامل نسبت‌های سرمایه، سود و شاخص نفع را ارائه دهد.
         """
         try:
-            project_id = request.query_params.get('project_id')
+            project_id = request.query_params.get('project_id')  # شناسه پروژه از پارامترهای درخواست
             
             # تبدیل project_id به عدد در صورت وجود
             if project_id:
-                project_id = int(project_id)
+                project_id = int(project_id)  # تبدیل به عدد صحیح
             
             # استفاده از تابع محاسباتی برای دریافت خلاصه سرمایه‌گذاران
-            summary = InvestorCalculations.get_all_investors_summary(project_id)
+            summary = InvestorCalculations.get_all_investors_summary(project_id)  # دریافت خلاصه تمام سرمایه‌گذاران
             
             if not summary:
                 return Response({
@@ -593,15 +593,15 @@ class ComprehensiveAnalysisViewSet(viewsets.ViewSet):
     def comprehensive_analysis(self, request):
         """دریافت تحلیل جامع پروژه"""
         try:
-            project_id = request.query_params.get('project_id')
+            project_id = request.query_params.get('project_id')  # شناسه پروژه از پارامترهای درخواست
             
             # تبدیل project_id به عدد در صورت وجود
             if project_id:
-                project_id = int(project_id)
+                project_id = int(project_id)  # تبدیل به عدد صحیح
             
             # استفاده از تابع محاسباتی برای دریافت تحلیل جامع
             from .calculations import ComprehensiveCalculations
-            analysis = ComprehensiveCalculations.get_comprehensive_project_analysis(project_id)
+            analysis = ComprehensiveCalculations.get_comprehensive_project_analysis(project_id)  # دریافت تحلیل جامع پروژه
             
             if 'error' in analysis:
                 return Response(analysis, status=400)
@@ -630,7 +630,7 @@ class PeriodViewSet(viewsets.ModelViewSet):
         """دریافت داده‌های دوره‌ای برای نمودارها (سرمایه، هزینه، فروش، مانده صندوق)"""
         try:
             # دریافت پروژه فعال
-            active_project = models.Project.get_active_project()
+            active_project = models.Project.get_active_project()  # پروژه فعال
             if not active_project:
                 return Response({
                     'error': 'هیچ پروژه فعالی یافت نشد'
@@ -639,32 +639,32 @@ class PeriodViewSet(viewsets.ModelViewSet):
             # دریافت تمام دوره‌ها مرتب شده
             periods = models.Period.objects.filter(
                 project=active_project
-            ).order_by('year', 'month_number')
+            ).order_by('year', 'month_number')  # لیست دوره‌های پروژه فعال
 
-            chart_data = []
-            cumulative_capital = 0
-            cumulative_expenses = 0
-            cumulative_sales = 0
+            chart_data = []  # داده‌های نمودار
+            cumulative_capital = 0  # سرمایه تجمعی
+            cumulative_expenses = 0  # هزینه‌های تجمعی
+            cumulative_sales = 0  # فروش/مرجوعی تجمعی
 
             for period in periods:
                 # محاسبه سرمایه دوره از مرجع واحد تراکنش‌ها
-                tx_totals = models.Transaction.objects.period_totals(active_project, period)
-                period_capital = float(tx_totals['net_capital'])
-                cumulative_capital += period_capital
+                tx_totals = models.Transaction.objects.period_totals(active_project, period)  # محاسبه مجموع تراکنش‌های دوره
+                period_capital = float(tx_totals['net_capital'])  # سرمایه خالص دوره
+                cumulative_capital += period_capital  # افزودن به سرمایه تجمعی
 
                 # محاسبه هزینه‌های دوره (مرجع واحد)
-                period_expenses = models.Expense.objects.period_totals(active_project, period)
-                cumulative_expenses += period_expenses
+                period_expenses = models.Expense.objects.period_totals(active_project, period)  # مجموع هزینه‌های دوره
+                cumulative_expenses += period_expenses  # افزودن به هزینه‌های تجمعی
 
                 # محاسبه فروش/مرجوعی دوره (مرجع واحد)
-                period_sales = models.Sale.objects.period_totals(active_project, period)
-                cumulative_sales += period_sales
+                period_sales = models.Sale.objects.period_totals(active_project, period)  # مجموع فروش/مرجوعی دوره
+                cumulative_sales += period_sales  # افزودن به فروش/مرجوعی تجمعی
 
                 # محاسبه مانده صندوق (مرجع واحد)
                 from .calculations import FinancialCalculationService
                 fund_balance = FinancialCalculationService.compute_fund_balance(
                     cumulative_capital, cumulative_expenses, cumulative_sales
-                )
+                )  # مانده صندوق ساختمان
 
                 chart_data.append({
                     'period_id': period.id,
@@ -696,7 +696,7 @@ class PeriodViewSet(viewsets.ModelViewSet):
         """دریافت خلاصه کامل دوره‌ای شامل تمام فاکتورها و مقادیر تجمعی"""
         try:
             # دریافت پروژه فعال
-            active_project = models.Project.get_active_project()
+            active_project = models.Project.get_active_project()  # پروژه فعال
             if not active_project:
                 return Response({
                     'error': 'هیچ پروژه فعالی یافت نشد'
@@ -705,48 +705,48 @@ class PeriodViewSet(viewsets.ModelViewSet):
             # دریافت تمام دوره‌ها مرتب شده
             periods = models.Period.objects.filter(
                 project=active_project
-            ).order_by('year', 'month_number')
+            ).order_by('year', 'month_number')  # لیست دوره‌های پروژه فعال
 
-            summary_data = []
+            summary_data = []  # داده‌های خلاصه دوره‌ای
             
             # متغیرهای تجمعی
-            cumulative_deposits = 0
-            cumulative_withdrawals = 0
-            cumulative_net_capital = 0
-            cumulative_profits = 0
-            cumulative_expenses = 0
-            cumulative_sales = 0
+            cumulative_deposits = 0  # آورده‌های تجمعی
+            cumulative_withdrawals = 0  # برداشت‌های تجمعی
+            cumulative_net_capital = 0  # سرمایه خالص تجمعی
+            cumulative_profits = 0  # سود تجمعی
+            cumulative_expenses = 0  # هزینه‌های تجمعی
+            cumulative_sales = 0  # فروش/مرجوعی تجمعی
             final_fund_balance = 0  # مانده صندوق نهایی
 
             # خلاصه ویژه دوره جاری
-            current_summary = None
+            current_summary = None  # خلاصه دوره جاری
 
             for period in periods:
                 # محاسبات تراکنش‌های دوره از مرجع واحد
-                tx_totals = models.Transaction.objects.period_totals(active_project, period)
-                deposits = tx_totals['deposits']
-                withdrawals = tx_totals['withdrawals']
-                profits = tx_totals['profits']
-                net_capital = tx_totals['net_capital']
+                tx_totals = models.Transaction.objects.period_totals(active_project, period)  # محاسبه مجموع تراکنش‌های دوره
+                deposits = tx_totals['deposits']  # آورده‌های دوره
+                withdrawals = tx_totals['withdrawals']  # برداشت‌های دوره
+                profits = tx_totals['profits']  # سود دوره
+                net_capital = tx_totals['net_capital']  # سرمایه خالص دوره
 
-                cumulative_deposits += deposits
-                cumulative_withdrawals += withdrawals
-                cumulative_profits += profits
-                cumulative_net_capital += net_capital
+                cumulative_deposits += deposits  # افزودن به آورده‌های تجمعی
+                cumulative_withdrawals += withdrawals  # افزودن به برداشت‌های تجمعی
+                cumulative_profits += profits  # افزودن به سود تجمعی
+                cumulative_net_capital += net_capital  # افزودن به سرمایه خالص تجمعی
 
                 # هزینه‌های دوره (مرجع واحد)
-                expenses = models.Expense.objects.period_totals(active_project, period)
-                cumulative_expenses += expenses
+                expenses = models.Expense.objects.period_totals(active_project, period)  # مجموع هزینه‌های دوره
+                cumulative_expenses += expenses  # افزودن به هزینه‌های تجمعی
 
                 # فروش/مرجوعی دوره (مرجع واحد)
-                sales = models.Sale.objects.period_totals(active_project, period)
-                cumulative_sales += sales
+                sales = models.Sale.objects.period_totals(active_project, period)  # مجموع فروش/مرجوعی دوره
+                cumulative_sales += sales  # افزودن به فروش/مرجوعی تجمعی
 
                 # محاسبه مانده صندوق (مرجع واحد)
                 from .calculations import FinancialCalculationService
                 fund_balance = FinancialCalculationService.compute_fund_balance(
                     cumulative_net_capital, cumulative_expenses, cumulative_sales
-                )
+                )  # مانده صندوق ساختمان
                 final_fund_balance = fund_balance  # ذخیره آخرین مقدار
 
                 # اضافه کردن داده‌های دوره
@@ -783,28 +783,28 @@ class PeriodViewSet(viewsets.ModelViewSet):
                 if period.is_current():
                     # هزینه نهایی تجمعی تا دوره جاری (نه هزینه کل پروژه)
                     # این مقدار از تفاضل هزینه‌های تجمعی و فروش‌های تجمعی تا این دوره محاسبه می‌شود
-                    current_final_cost = cumulative_expenses - cumulative_sales
+                    current_final_cost = cumulative_expenses - cumulative_sales  # هزینه نهایی تا دوره جاری
                     
                     # آمار واحدها برای محاسبه هزینه هر متر (مرجع واحد)
                     # مساحت خالص واحدها: مجموع مساحت تمام واحدهای ثبت‌شده در سیستم
                     # شامل فقط واحدهای مسکونی/تجاری که به مالکین تعلق دارند
-                    total_area_current = models.Unit.objects.project_total_area(active_project)
+                    total_area_current = models.Unit.objects.project_total_area(active_project)  # مجموع مساحت واحدها تا دوره جاری
                     
                     # زیربنای کل پروژه: تمام زیربنای ساختمان از جمله واحدها، راهرو، پارکینگ، انباری، پله‌ها و...
                     # این مقدار به صورت دستی در تنظیمات پروژه تعریف می‌شود
-                    total_infrastructure = float(active_project.total_infrastructure)
+                    total_infrastructure = float(active_project.total_infrastructure)  # مساحت کل زیربنا
                     
                     # هزینه هر متر خالص تا دوره جاری (Net Current): هزینه تجمعی تا دوره جاری تقسیم بر مساحت واحدها
                     # این شاخص نشان می‌دهد برای هر متر مربع واحد، چه هزینه‌ای تا این دوره شده است
                     # نکته: این هزینه نهایی کل پروژه نیست، بلکه هزینه تا دوره جاری است
                     # کاربرد: محاسبه سهم هزینه هر واحد بر اساس مساحت آن (تا دوره جاری)
-                    cost_per_meter_net_current = (current_final_cost / total_area_current) if total_area_current > 0 else 0
+                    cost_per_meter_net_current = (current_final_cost / total_area_current) if total_area_current > 0 else 0  # هزینه خالص هر متر مربع تا دوره جاری
                     
                     # هزینه هر متر ناخالص تا دوره جاری (Gross Current): هزینه تجمعی تا دوره جاری تقسیم بر زیربنای کل پروژه
                     # این شاخص نشان می‌دهد برای هر متر مربع از کل ساختمان (شامل فضاهای مشترک)، چه هزینه‌ای تا این دوره شده است
                     # نکته: این هزینه نهایی کل پروژه نیست، بلکه هزینه تا دوره جاری است
                     # کاربرد: ارزیابی هزینه‌های پروژه تا دوره جاری و مقایسه با پروژه‌های مشابه
-                    cost_per_meter_gross_current = (current_final_cost / total_infrastructure) if total_infrastructure > 0 else 0
+                    cost_per_meter_gross_current = (current_final_cost / total_infrastructure) if total_infrastructure > 0 else 0  # هزینه ناخالص هر متر مربع تا دوره جاری
 
                     current_summary = {
                         'period': {
@@ -841,31 +841,31 @@ class PeriodViewSet(viewsets.ModelViewSet):
             # محاسبه هزینه هر متر خالص و ناخالص
             # دریافت آمار واحدها
             units_stats = models.Unit.objects.filter(project=active_project).aggregate(
-                total_area=Sum('area'),
-                total_price=Sum('total_price')
+                total_area=Sum('area'),  # مجموع مساحت واحدها
+                total_price=Sum('total_price')  # مجموع قیمت واحدها
             )
             
-            total_area = float(units_stats['total_area'] or 0)
-            total_infrastructure = float(active_project.total_infrastructure)
-            final_cost = cumulative_expenses - cumulative_sales
+            total_area = float(units_stats['total_area'] or 0)  # مجموع مساحت واحدها
+            total_infrastructure = float(active_project.total_infrastructure)  # مساحت کل زیربنا
+            final_cost = cumulative_expenses - cumulative_sales  # هزینه نهایی (هزینه‌ها - فروش)
             
             # محاسبه هزینه هر متر
-            cost_per_meter_net = final_cost / total_area if total_area > 0 else 0
-            cost_per_meter_gross = final_cost / total_infrastructure if total_infrastructure > 0 else 0
+            cost_per_meter_net = final_cost / total_area if total_area > 0 else 0  # هزینه خالص هر متر مربع
+            cost_per_meter_gross = final_cost / total_infrastructure if total_infrastructure > 0 else 0  # هزینه ناخالص هر متر مربع
 
             # محاسبه خلاصه کلی
             totals = {
-                'total_deposits': cumulative_deposits,
-                'total_withdrawals': cumulative_withdrawals,
-                'total_net_capital': cumulative_net_capital,
-                'total_profits': cumulative_profits,
-                'total_expenses': cumulative_expenses,
-                'total_sales': cumulative_sales,
-                'final_fund_balance': final_fund_balance,
-                'total_periods': periods.count(),
-                'cost_per_meter_net': cost_per_meter_net,
-                'cost_per_meter_gross': cost_per_meter_gross,
-                'final_cost': final_cost
+                'total_deposits': cumulative_deposits,  # مجموع آورده‌ها
+                'total_withdrawals': cumulative_withdrawals,  # مجموع برداشت‌ها
+                'total_net_capital': cumulative_net_capital,  # مجموع سرمایه خالص
+                'total_profits': cumulative_profits,  # مجموع سود
+                'total_expenses': cumulative_expenses,  # مجموع هزینه‌ها
+                'total_sales': cumulative_sales,  # مجموع فروش/مرجوعی
+                'final_fund_balance': final_fund_balance,  # مانده صندوق نهایی
+                'total_periods': periods.count(),  # تعداد دوره‌ها
+                'cost_per_meter_net': cost_per_meter_net,  # هزینه خالص هر متر مربع
+                'cost_per_meter_gross': cost_per_meter_gross,  # هزینه ناخالص هر متر مربع
+                'final_cost': final_cost  # هزینه نهایی
             }
 
             return Response({
@@ -893,9 +893,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def active(self, request):
         """دریافت پروژه فعال"""
-        active_project = models.Project.get_active_project()
+        active_project = models.Project.get_active_project()  # پروژه فعال
         if active_project:
-            serializer = self.get_serializer(active_project)
+            serializer = self.get_serializer(active_project)  # سریالایزر پروژه
             return Response(serializer.data)
         else:
             return Response({'error': 'هیچ پروژه فعالی یافت نشد'}, status=404)
@@ -905,26 +905,26 @@ class ProjectViewSet(viewsets.ModelViewSet):
         """دریافت آمار کامل پروژه فعال شامل اطلاعات پروژه و آمار واحدها"""
         try:
             # دریافت پروژه فعال
-            active_project = models.Project.get_active_project()
+            active_project = models.Project.get_active_project()  # پروژه فعال
             if not active_project:
                 return Response({
                     'error': 'هیچ پروژه فعالی یافت نشد'
                 }, status=400)
 
             # آمار واحدها برای پروژه فعال (مرجع واحد)
-            units_stats = models.Unit.objects.project_stats(active_project)
+            units_stats = models.Unit.objects.project_stats(active_project)  # آمار واحدهای پروژه فعال
 
             # اطلاعات پروژه
             project_data = {
-                'id': active_project.id,
-                'name': active_project.name,
-                'total_infrastructure': float(active_project.total_infrastructure),
-                'correction_factor': float(active_project.correction_factor),
-                'start_date_shamsi': str(active_project.start_date_shamsi),
-                'end_date_shamsi': str(active_project.end_date_shamsi),
-                'start_date_gregorian': str(active_project.start_date_gregorian),
-                'end_date_gregorian': str(active_project.end_date_gregorian),
-                'is_active': active_project.is_active
+                'id': active_project.id,  # شناسه پروژه
+                'name': active_project.name,  # نام پروژه
+                'total_infrastructure': float(active_project.total_infrastructure),  # مساحت کل زیربنا
+                'correction_factor': float(active_project.correction_factor),  # ضریب اصلاحی
+                'start_date_shamsi': str(active_project.start_date_shamsi),  # تاریخ شروع (شمسی)
+                'end_date_shamsi': str(active_project.end_date_shamsi),  # تاریخ پایان (شمسی)
+                'start_date_gregorian': str(active_project.start_date_gregorian),  # تاریخ شروع (میلادی)
+                'end_date_gregorian': str(active_project.end_date_gregorian),  # تاریخ پایان (میلادی)
+                'is_active': active_project.is_active  # وضعیت فعال بودن پروژه
             }
 
             return Response({
@@ -940,14 +940,14 @@ class ProjectViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def set_active(self, request):
         """تنظیم پروژه فعال"""
-        project_id = request.data.get('project_id')
+        project_id = request.data.get('project_id')  # شناسه پروژه از داده‌های درخواست
         if not project_id:
             return Response({'error': 'شناسه پروژه الزامی است'}, status=400)
         
         try:
-            project = models.Project.set_active_project(project_id)
+            project = models.Project.set_active_project(project_id)  # تنظیم پروژه به عنوان فعال
             if project:
-                serializer = self.get_serializer(project)
+                serializer = self.get_serializer(project)  # سریالایزر پروژه
                 return Response({
                     'success': True,
                     'message': f'پروژه "{project.name}" به عنوان پروژه فعال تنظیم شد',
@@ -965,46 +965,46 @@ class ProjectViewSet(viewsets.ModelViewSet):
         
         try:
             # دریافت پروژه فعال
-            active_project = models.Project.get_active_project()
+            active_project = models.Project.get_active_project()  # پروژه فعال
             if not active_project:
                 return Response({
                     'error': 'هیچ پروژه فعالی یافت نشد'
                 }, status=400)
 
             # تاریخ امروز
-            today = date.today()
+            today = date.today()  # تاریخ امروز
             
             # محاسبه روزهای مانده تا پایان پروژه
-            days_remaining = 0
+            days_remaining = 0  # روزهای مانده تا پایان پروژه
             if active_project.end_date_gregorian:
-                end_date = active_project.end_date_gregorian
+                end_date = active_project.end_date_gregorian  # تاریخ پایان پروژه
                 if isinstance(end_date, str):
                     from datetime import datetime
-                    end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
-                days_remaining = (end_date - today).days
+                    end_date = datetime.strptime(end_date, '%Y-%m-%d').date()  # تبدیل به date
+                days_remaining = (end_date - today).days  # محاسبه روزهای مانده
             
             # محاسبه روزهای گذشته از ابتدای پروژه
-            days_from_start = 0
+            days_from_start = 0  # روزهای گذشته از ابتدای پروژه
             if active_project.start_date_gregorian:
-                start_date = active_project.start_date_gregorian
+                start_date = active_project.start_date_gregorian  # تاریخ شروع پروژه
                 if isinstance(start_date, str):
                     from datetime import datetime
-                    start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
-                days_from_start = (today - start_date).days
+                    start_date = datetime.strptime(start_date, '%Y-%m-%d').date()  # تبدیل به date
+                days_from_start = (today - start_date).days  # محاسبه روزهای گذشته
             
             # محاسبه مدت کل پروژه
-            total_project_days = 0
+            total_project_days = 0  # مدت کل پروژه (روز)
             if (active_project.start_date_gregorian and 
                 active_project.end_date_gregorian):
-                start_date = active_project.start_date_gregorian
-                end_date = active_project.end_date_gregorian
+                start_date = active_project.start_date_gregorian  # تاریخ شروع پروژه
+                end_date = active_project.end_date_gregorian  # تاریخ پایان پروژه
                 if isinstance(start_date, str):
                     from datetime import datetime
-                    start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+                    start_date = datetime.strptime(start_date, '%Y-%m-%d').date()  # تبدیل به date
                 if isinstance(end_date, str):
                     from datetime import datetime
-                    end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
-                total_project_days = (end_date - start_date).days
+                    end_date = datetime.strptime(end_date, '%Y-%m-%d').date()  # تبدیل به date
+                total_project_days = (end_date - start_date).days  # محاسبه مدت کل پروژه
 
             return Response({
                 'success': True,
@@ -1034,8 +1034,8 @@ class ProjectViewSet(viewsets.ModelViewSet):
     def comprehensive_analysis(self, request):
         """دریافت تحلیل جامع پروژه شامل تمام محاسبات مالی"""
         try:
-            project_id = request.query_params.get('project_id')
-            analysis = calculations.ComprehensiveCalculations.get_comprehensive_project_analysis(project_id)
+            project_id = request.query_params.get('project_id')  # شناسه پروژه از پارامترهای درخواست
+            analysis = calculations.ComprehensiveCalculations.get_comprehensive_project_analysis(project_id)  # دریافت تحلیل جامع پروژه
             
             if 'error' in analysis:
                 return Response(analysis, status=400)
@@ -1051,8 +1051,8 @@ class ProjectViewSet(viewsets.ModelViewSet):
     def profit_metrics(self, request):
         """دریافت متریک‌های سود (کل، سالانه، ماهانه، روزانه)"""
         try:
-            project_id = request.query_params.get('project_id')
-            metrics = calculations.ProfitCalculations.calculate_profit_percentages(project_id)
+            project_id = request.query_params.get('project_id')  # شناسه پروژه از پارامترهای درخواست
+            metrics = calculations.ProfitCalculations.calculate_profit_percentages(project_id)  # محاسبه متریک‌های سود
             
             if 'error' in metrics:
                 return Response(metrics, status=400)
@@ -1068,8 +1068,8 @@ class ProjectViewSet(viewsets.ModelViewSet):
     def cost_metrics(self, request):
         """دریافت متریک‌های هزینه"""
         try:
-            project_id = request.query_params.get('project_id')
-            metrics = calculations.ProjectCalculations.calculate_cost_metrics(project_id)
+            project_id = request.query_params.get('project_id')  # شناسه پروژه از پارامترهای درخواست
+            metrics = calculations.ProjectCalculations.calculate_cost_metrics(project_id)  # محاسبه متریک‌های هزینه
             
             if 'error' in metrics:
                 return Response(metrics, status=400)
@@ -1085,8 +1085,8 @@ class ProjectViewSet(viewsets.ModelViewSet):
     def project_statistics_detailed(self, request):
         """دریافت آمار تفصیلی پروژه"""
         try:
-            project_id = request.query_params.get('project_id')
-            stats = calculations.ProjectCalculations.calculate_project_statistics(project_id)
+            project_id = request.query_params.get('project_id')  # شناسه پروژه از پارامترهای درخواست
+            stats = calculations.ProjectCalculations.calculate_project_statistics(project_id)  # محاسبه آمار تفصیلی پروژه
             
             if 'error' in stats:
                 return Response(stats, status=400)
@@ -1232,42 +1232,42 @@ class SaleViewSet(viewsets.ModelViewSet):
         """دریافت مجموع فروش‌ها"""
         try:
             # دریافت پروژه فعال
-            active_project = models.Project.get_active_project()
+            active_project = models.Project.get_active_project()  # پروژه فعال
             if not active_project:
                 return Response({
                     'error': 'هیچ پروژه فعالی یافت نشد'
                 }, status=400)
 
             # محاسبه مجموع فروش‌ها برای پروژه فعال (مرجع واحد)
-            total_amount = models.Sale.objects.project_totals(active_project)
+            total_amount = models.Sale.objects.project_totals(active_project)  # مجموع کل فروش/مرجوعی پروژه
 
             # تعداد فروش‌ها
             sales_count = models.Sale.objects.filter(
                 project=active_project
-            ).count()
+            ).count()  # تعداد فروش/مرجوعی‌های پروژه
 
             # فروش‌ها به تفکیک دوره (بدون تغییر)
             sales_by_period = models.Sale.objects.filter(
                 project=active_project
             ).values('period__label', 'period__id').annotate(
-                period_total=Sum('amount'),
-                period_count=Count('id')
-            ).order_by('period__id')
+                period_total=Sum('amount'),  # مجموع فروش/مرجوعی هر دوره
+                period_count=Count('id')  # تعداد فروش/مرجوعی هر دوره
+            ).order_by('period__id')  # لیست فروش/مرجوعی‌ها به تفکیک دوره
 
             # محاسبه تجمعی فروش‌ها در هر دوره
-            cumulative_sales = []
-            cumulative_total = 0
+            cumulative_sales = []  # لیست فروش/مرجوعی تجمعی
+            cumulative_total = 0  # مجموع تجمعی کل
             
             for period_data in sales_by_period:
-                period_amount = period_data['period_total'] or 0
-                cumulative_total += period_amount
+                period_amount = period_data['period_total'] or 0  # مبلغ فروش/مرجوعی این دوره
+                cumulative_total += period_amount  # افزودن به مجموع تجمعی
                 
                 cumulative_sales.append({
-                    'period_id': period_data['period__id'],
-                    'period_label': period_data['period__label'],
-                    'period_amount': period_amount,
-                    'period_count': period_data['period_count'],
-                    'cumulative_amount': cumulative_total
+                    'period_id': period_data['period__id'],  # شناسه دوره
+                    'period_label': period_data['period__label'],  # برچسب دوره
+                    'period_amount': period_amount,  # مبلغ فروش/مرجوعی دوره
+                    'period_count': period_data['period_count'],  # تعداد فروش/مرجوعی دوره
+                    'cumulative_amount': cumulative_total  # مبلغ تجمعی تا این دوره
                 })
 
             return Response({
@@ -1299,21 +1299,21 @@ class TransactionViewSet(viewsets.ModelViewSet):
         from django.db.models import Count, Sum, Q
         
         # محاسبه آمار کلی
-        total_transactions = models.Transaction.objects.count()
-        tx_totals_all = models.Transaction.objects.project_totals(project=None)
-        total_deposits = tx_totals_all['deposits']
-        total_withdrawals = tx_totals_all['withdrawals']
-        total_profits = tx_totals_all['profits']
+        total_transactions = models.Transaction.objects.count()  # تعداد کل تراکنش‌ها
+        tx_totals_all = models.Transaction.objects.project_totals(project=None)  # محاسبه مجموع تراکنش‌ها (همه پروژه‌ها)
+        total_deposits = tx_totals_all['deposits']  # مجموع آورده‌ها
+        total_withdrawals = tx_totals_all['withdrawals']  # مجموع برداشت‌ها (منفی)
+        total_profits = tx_totals_all['profits']  # مجموع سود
         
-        unique_investors = models.Transaction.objects.values('investor').distinct().count()
+        unique_investors = models.Transaction.objects.values('investor').distinct().count()  # تعداد سرمایه‌گذاران منحصر به فرد
         
         # محاسبه مجموع سرمایه (آورده منهای برداشت)
         # total_withdrawals منفی است پس به جای تفریق باید جمع بشه
         # net_principal = float(total_deposits) - float(total_withdrawals)
-        net_principal = float(total_deposits) + float(total_withdrawals)
+        net_principal = float(total_deposits) + float(total_withdrawals)  # سرمایه خالص (آورده + برداشت که منفی است)
         
         # محاسبه مجموع سرمایه + سود
-        grand_total = net_principal + float(total_profits)
+        grand_total = net_principal + float(total_profits)  # مجموع کل (سرمایه خالص + سود)
         
         return Response({
             'total_transactions': total_transactions,
@@ -1384,14 +1384,14 @@ class TransactionViewSet(viewsets.ModelViewSet):
         """محاسبه مجدد سودها با نرخ سود فعال فعلی"""
         try:
             # دریافت نرخ سود فعال فعلی
-            current_rate = models.InterestRate.get_current_rate()
+            current_rate = models.InterestRate.get_current_rate()  # نرخ سود فعال فعلی
             if not current_rate:
                 return Response({
                     'error': 'هیچ نرخ سود فعالی یافت نشد. لطفاً ابتدا نرخ سود را تنظیم کنید.'
                 }, status=400)
             
             # اجرای عملیات محاسبه مجدد
-            result = models.Transaction.recalculate_all_profits_with_new_rate(current_rate)
+            result = models.Transaction.recalculate_all_profits_with_new_rate(current_rate)  # محاسبه مجدد سودها با نرخ فعلی
             
             return Response({
                 'success': True,
@@ -1411,20 +1411,20 @@ class TransactionViewSet(viewsets.ModelViewSet):
     def detailed_statistics(self, request):
         """دریافت آمار تفصیلی تراکنش‌ها با فیلترهای پیشرفته"""
         try:
-            project_id = request.query_params.get('project_id')
+            project_id = request.query_params.get('project_id')  # شناسه پروژه از پارامترهای درخواست
             
             # فیلترهای اضافی
-            filters = {}
+            filters = {}  # دیکشنری فیلترها
             if request.query_params.get('investor_id'):
-                filters['investor_id'] = int(request.query_params.get('investor_id'))
+                filters['investor_id'] = int(request.query_params.get('investor_id'))  # فیلتر شناسه سرمایه‌گذار
             if request.query_params.get('date_from'):
-                filters['date_from'] = request.query_params.get('date_from')
+                filters['date_from'] = request.query_params.get('date_from')  # فیلتر تاریخ از
             if request.query_params.get('date_to'):
-                filters['date_to'] = request.query_params.get('date_to')
+                filters['date_to'] = request.query_params.get('date_to')  # فیلتر تاریخ تا
             if request.query_params.get('transaction_type'):
-                filters['transaction_type'] = request.query_params.get('transaction_type')
+                filters['transaction_type'] = request.query_params.get('transaction_type')  # فیلتر نوع تراکنش
             
-            stats = calculations.TransactionCalculations.calculate_transaction_statistics(project_id, filters)
+            stats = calculations.TransactionCalculations.calculate_transaction_statistics(project_id, filters)  # محاسبه آمار تفصیلی تراکنش‌ها
             
             if 'error' in stats:
                 return Response(stats, status=400)
@@ -1440,27 +1440,27 @@ class TransactionViewSet(viewsets.ModelViewSet):
     def recalculate_construction_contractor(self, request):
         """محاسبه مجدد همه هزینه‌های پیمان ساختمان"""
         try:
-            project_id = request.data.get('project_id')
+            project_id = request.data.get('project_id')  # شناسه پروژه از داده‌های درخواست
             
             if project_id:
                 try:
-                    project = models.Project.objects.get(id=project_id)
-                    updated_count = models.Expense.recalculate_all_construction_contractor_expenses(project)
+                    project = models.Project.objects.get(id=project_id)  # دریافت پروژه
+                    updated_count = models.Expense.recalculate_all_construction_contractor_expenses(project)  # محاسبه مجدد هزینه‌های پیمان ساختمان برای پروژه
                     return Response({
                         'success': True,
                         'message': f'محاسبه مجدد برای پروژه "{project.name}" با موفقیت انجام شد',
-                        'updated_periods': updated_count
+                        'updated_periods': updated_count  # تعداد دوره‌های به‌روزرسانی شده
                     })
                 except models.Project.DoesNotExist:
                     return Response({
                         'error': f'پروژه با شناسه {project_id} یافت نشد'
                     }, status=404)
             else:
-                updated_count = models.Expense.recalculate_all_construction_contractor_expenses()
+                updated_count = models.Expense.recalculate_all_construction_contractor_expenses()  # محاسبه مجدد هزینه‌های پیمان ساختمان برای همه پروژه‌ها
                 return Response({
                     'success': True,
                     'message': 'محاسبه مجدد برای همه پروژه‌ها با موفقیت انجام شد',
-                    'updated_periods': updated_count
+                    'updated_periods': updated_count  # تعداد دوره‌های به‌روزرسانی شده
                 })
                 
         except Exception as e:
@@ -1480,9 +1480,9 @@ class InterestRateViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def current(self, request):
         """دریافت نرخ سود فعال فعلی"""
-        current_rate = models.InterestRate.get_current_rate()
+        current_rate = models.InterestRate.get_current_rate()  # نرخ سود فعال فعلی
         if current_rate:
-            serializer = self.get_serializer(current_rate)
+            serializer = self.get_serializer(current_rate)  # سریالایزر نرخ سود
             return Response(serializer.data)
         else:
             return Response({'error': 'هیچ نرخ سود فعالی یافت نشد'}, status=404)
@@ -1502,26 +1502,26 @@ class UnitViewSet(viewsets.ModelViewSet):
         
         # محاسبه آمار کلی
         stats = self.queryset.aggregate(
-            total_units=Count('id'),
-            total_area=Sum('area'),
-            total_price=Sum('total_price')
-        )
+            total_units=Count('id'),  # تعداد کل واحدها
+            total_area=Sum('area'),  # مجموع مساحت واحدها
+            total_price=Sum('total_price')  # مجموع قیمت واحدها
+        )  # آمار کلی واحدها
         
         # محاسبه آمار به تفکیک پروژه
-        project_stats = []
+        project_stats = []  # لیست آمار به تفکیک پروژه
         for project in models.Project.objects.all():
-            project_units = self.queryset.filter(project=project)
+            project_units = self.queryset.filter(project=project)  # واحدهای این پروژه
             project_stat = project_units.aggregate(
-                units_count=Count('id'),
-                total_area=Sum('area'),
-                total_price=Sum('total_price')
-            )
+                units_count=Count('id'),  # تعداد واحدهای این پروژه
+                total_area=Sum('area'),  # مجموع مساحت واحدهای این پروژه
+                total_price=Sum('total_price')  # مجموع قیمت واحدهای این پروژه
+            )  # آمار واحدهای این پروژه
             project_stats.append({
-                'project_name': project.name,
-                'project_id': project.id,
-                'units_count': project_stat['units_count'] or 0,
-                'total_area': float(project_stat['total_area'] or 0),
-                'total_price': float(project_stat['total_price'] or 0)
+                'project_name': project.name,  # نام پروژه
+                'project_id': project.id,  # شناسه پروژه
+                'units_count': project_stat['units_count'] or 0,  # تعداد واحدها
+                'total_area': float(project_stat['total_area'] or 0),  # مجموع مساحت
+                'total_price': float(project_stat['total_price'] or 0)  # مجموع قیمت
             })
         
         return Response({
