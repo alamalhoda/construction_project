@@ -479,6 +479,9 @@ class InvestorCalculations(FinancialCalculationService):
         if 'error' in investor_stats:
             return investor_stats
         
+        # دریافت نوع مشارکت
+        participation_type = investor_stats['investor']['participation_type']  # نوع مشارکت (owner/investor)
+        
         # آمار کل پروژه
         project_stats = ProjectCalculations.calculate_project_statistics(project_id)
         
@@ -500,20 +503,21 @@ class InvestorCalculations(FinancialCalculationService):
         profit_ratio = (total_profit / project_total_profits * 100) if project_total_profits > 0 else 0  # نسبت سود
         total_ratio = (total_balance / project_grand_total * 100) if project_grand_total > 0 else 0  # نسبت کل
         
-        # محاسبه شاخص نفع
+        # محاسبه شاخص نفع (فقط برای مالکان - owner)
         profit_index = 0  # شاخص نفع
-        if project_net_principal > 0 and project_total_profits > 0 and net_principal > 0:
-            capital_ratio_decimal = net_principal / project_net_principal  # نسبت سرمایه (اعشاری)
-            profit_ratio_decimal = total_profit / project_total_profits  # نسبت سود (اعشاری)
-            
-            if capital_ratio_decimal > 0:
-                profit_index = profit_ratio_decimal / capital_ratio_decimal  # شاخص نفع (نسبت سود به سرمایه)
+        if participation_type == 'owner':  # فقط برای مالکان محاسبه می‌شود
+            if project_net_principal > 0 and project_total_profits > 0 and net_principal > 0:
+                capital_ratio_decimal = net_principal / project_net_principal  # نسبت سرمایه (اعشاری)
+                profit_ratio_decimal = total_profit / project_total_profits  # نسبت سود (اعشاری)
+                
+                if capital_ratio_decimal > 0:
+                    profit_index = profit_ratio_decimal / capital_ratio_decimal  # شاخص نفع (نسبت سود به سرمایه)
         
         return {
             'capital_ratio': round(capital_ratio, 10),  # نسبت سرمایه
             'profit_ratio': round(profit_ratio, 10),  # نسبت سود
             'total_ratio': round(total_ratio, 10),  # نسبت کل
-            'profit_index': round(profit_index, 10),  # شاخص نفع
+            'profit_index': round(profit_index, 10),  # شاخص نفع (فقط برای مالکان، برای سرمایه‌گذاران صفر)
             'capital_ratio_formatted': FinancialCalculationService.format_percentage(capital_ratio),  # نسبت سرمایه (فرمت شده)
             'profit_ratio_formatted': FinancialCalculationService.format_percentage(profit_ratio),  # نسبت سود (فرمت شده)
             'total_ratio_formatted': FinancialCalculationService.format_percentage(total_ratio)  # نسبت کل (فرمت شده)
