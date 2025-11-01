@@ -315,6 +315,27 @@
             background: var(--other-bg) !important;
         }
 
+        /* Current Period Row */
+        tbody tr.current-period {
+            background: linear-gradient(90deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-left: 4px solid var(--primary-color);
+            border-right: 4px solid var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            font-weight: 600;
+        }
+
+        tbody tr.current-period td {
+            background: transparent;
+        }
+
+        tbody tr.current-period td:first-child {
+            border-right: none;
+        }
+
+        tbody tr.current-period td:last-child {
+            border-left: none;
+        }
+
         .editable-cell {
             cursor: pointer;
             position: relative;
@@ -1123,6 +1144,12 @@
             // سطرهای دوره‌ها
             dashboardData.periods.forEach(period => {
                 const row = document.createElement('tr');
+                
+                // افزودن کلاس برای دوره جاری
+                if (period.is_current_period) {
+                    row.classList.add('current-period');
+                }
+                
                 row.innerHTML = `
                     <td class="period-cell">${period.period_label}</td>
                     ${dashboardData.expense_types.map(type => `

@@ -512,6 +512,10 @@ class InvestorCalculations(FinancialCalculationService):
             # محاسبه متراژ مالکیت بر اساس ارزش ساختمان(متری)
             ownership_area = total_amount / value_per_meter
             
+            # محاسبه هزینه فعلی واحد (برای سرمایه‌گذارانی که واحد ندارند، هزینه فعلی مالکیت محاسبه می‌شود)
+            net_cost_per_meter = cost_metrics.get('net_cost_per_meter', 0)
+            current_unit_cost = net_cost_per_meter * ownership_area if ownership_area > 0 else 0
+            
             return {
                 'ownership_area': round(ownership_area, 10),
                 'total_amount': total_amount,
@@ -520,6 +524,7 @@ class InvestorCalculations(FinancialCalculationService):
                 'value_per_meter': round(value_per_meter, 10),
                 'units_count': 0,
                 'units': [],
+                'current_unit_cost': round(current_unit_cost, 10),
                 'calculation_method': 'value_per_meter',
                 'message': 'محاسبه بر اساس ارزش ساختمان(متری)'
             }
@@ -563,6 +568,15 @@ class InvestorCalculations(FinancialCalculationService):
         actual_paid = net_principal - final_payment
         transfer_price_per_meter = actual_paid / total_area if total_area > 0 else 0
         
+        # محاسبه هزینه فعلی واحد
+        # فرمول: هزینه هر متر مربع خالص فعلی × مساحت واحد
+        cost_metrics = ProjectCalculations.calculate_cost_metrics(project.id)
+        if 'error' not in cost_metrics:
+            net_cost_per_meter = cost_metrics.get('net_cost_per_meter', 0)
+            current_unit_cost = net_cost_per_meter * total_area if total_area > 0 else 0
+        else:
+            current_unit_cost = 0
+        
         return {
             'ownership_area': round(ownership_area, 10),
             'total_amount': total_amount,
@@ -577,6 +591,7 @@ class InvestorCalculations(FinancialCalculationService):
             'final_payment': round(final_payment, 10),
             'transfer_price_per_meter': round(transfer_price_per_meter, 10),
             'actual_paid': round(actual_paid, 10),
+            'current_unit_cost': round(current_unit_cost, 10),
             'calculation_method': 'unit_based',
             'message': 'محاسبه بر اساس واحدهای مالکیت'
         }
