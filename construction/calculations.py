@@ -226,6 +226,79 @@ class ProjectCalculations(FinancialCalculationService):
             'net_cost': net_cost,
             'building_fund_balance': building_fund_balance
         }
+    
+    @staticmethod
+    def calculate_current_cost_metrics(project_id: Optional[int] = None) -> Dict:
+        """
+        محاسبه متریک‌های هزینه تا دوره جاری (نه هزینه نهایی کل پروژه)
+        
+        این متد هزینه‌ها و فروش‌های تا دوره جاری را محاسبه می‌کند و هزینه هر متر خالص
+        فعلی را برمی‌گرداند که برای محاسبه هزینه فعلی واحد استفاده می‌شود.
+        
+        این متد از متدهای cumulative_until موجود در مدل‌های Expense و Sale استفاده می‌کند.
+        
+        Args:
+            project_id: شناسه پروژه
+            
+        Returns:
+            Dict: متریک‌های هزینه فعلی شامل net_cost_per_meter_current
+        """
+        project = models.Project.objects.get(id=project_id) if project_id else FinancialCalculationService.get_active_project()
+        
+        if not project:
+            return {'error': 'هیچ پروژه فعالی یافت نشد'}
+        
+        # یافتن دوره جاری
+        current_period = None
+        try:
+            import jdatetime
+            today_jalali = jdatetime.datetime.now()
+            current_year = today_jalali.year
+            current_month = today_jalali.month
+            
+            current_period = models.Period.objects.filter(
+                project=project,
+                year=current_year,
+                month_number=current_month
+            ).first()
+        except Exception:
+            pass
+        
+        # اگر دوره جاری پیدا نشد، از آخرین دوره استفاده می‌کنیم
+        if not current_period:
+            current_period = models.Period.objects.filter(
+                project=project
+            ).order_by('-year', '-month_number').first()
+        
+        if not current_period:
+            # اگر هیچ دوره‌ای وجود ندارد، از هزینه نهایی استفاده می‌کنیم
+            return ProjectCalculations.calculate_cost_metrics(project_id)
+        
+        # استفاده از متد cumulative_until موجود برای محاسبه هزینه‌های تجمعی تا دوره جاری
+        total_expenses_current = models.Expense.objects.cumulative_until(project, current_period)
+        total_sales_current = models.Sale.objects.cumulative_until(project, current_period)
+        
+        # محاسبه هزینه نهایی تا دوره جاری
+        current_final_cost = total_expenses_current - total_sales_current
+        
+        # آمار واحدها (مساحت واحدها برای محاسبه هزینه هر متر)
+        units_stats = models.Unit.objects.project_stats(project)
+        total_area = float(units_stats['total_area'] or 0)
+        total_infrastructure = float(project.total_infrastructure)
+        
+        # محاسبه هزینه هر متر خالص و ناخالص تا دوره جاری
+        net_cost_per_meter_current = current_final_cost / total_area if total_area > 0 else 0
+        gross_cost_per_meter_current = current_final_cost / total_infrastructure if total_infrastructure > 0 else 0
+        
+        return {
+            'net_cost_per_meter_current': net_cost_per_meter_current,
+            'gross_cost_per_meter_current': gross_cost_per_meter_current,
+            'current_final_cost': current_final_cost,
+            'total_expenses_current': total_expenses_current,
+            'total_sales_current': total_sales_current,
+            'current_period_id': current_period.id,
+            'current_period_label': current_period.label
+        }
 
 
 class ProfitCalculations(FinancialCalculationService):
@@ -513,8 +586,15 @@ class InvestorCalculations(FinancialCalculationService):
             ownership_area = total_amount / value_per_meter
             
             # محاسبه هزینه فعلی واحد (برای سرمایه‌گذارانی که واحد ندارند، هزینه فعلی مالکیت محاسبه می‌شود)
-            net_cost_per_meter = cost_metrics.get('net_cost_per_meter', 0)
-            current_unit_cost = net_cost_per_meter * ownership_area if ownership_area > 0 else 0
+            # استفاده از هزینه فعلی (تا دوره جاری) به جای هزینه نهایی کل پروژه
+            current_cost_metrics = ProjectCalculations.calculate_current_cost_metrics(project.id)
+            if 'error' not in current_cost_metrics:
+                net_cost_per_meter_current = current_cost_metrics.get('net_cost_per_meter_current', 0)
+            else:
+                # در صورت خطا، از هزینه نهایی استفاده می‌کنیم
+                net_cost_per_meter_current = cost_metrics.get('net_cost_per_meter', 0)
+            
+            current_unit_cost = net_cost_per_meter_current * ownership_area if ownership_area > 0 else 0
             
             return {
                 'ownership_area': round(ownership_area, 10),
@@ -570,12 +650,19 @@ class InvestorCalculations(FinancialCalculationService):
         
         # محاسبه هزینه فعلی واحد
         # فرمول: هزینه هر متر مربع خالص فعلی × مساحت واحد
-        cost_metrics = ProjectCalculations.calculate_cost_metrics(project.id)
-        if 'error' not in cost_metrics:
-            net_cost_per_meter = cost_metrics.get('net_cost_per_meter', 0)
-            current_unit_cost = net_cost_per_meter * total_area if total_area > 0 else 0
+        # استفاده از هزینه فعلی (تا دوره جاری) به جای هزینه نهایی کل پروژه
+        current_cost_metrics = ProjectCalculations.calculate_current_cost_metrics(project.id)
+        if 'error' not in current_cost_metrics:
+            net_cost_per_meter_current = current_cost_metrics.get('net_cost_per_meter_current', 0)
+            current_unit_cost = net_cost_per_meter_current * total_area if total_area > 0 else 0
         else:
-            current_unit_cost = 0
+            # در صورت خطا، از هزینه نهایی استفاده می‌کنیم
+            cost_metrics = ProjectCalculations.calculate_cost_metrics(project.id)
+            if 'error' not in cost_metrics:
+                net_cost_per_meter = cost_metrics.get('net_cost_per_meter', 0)
+                current_unit_cost = net_cost_per_meter * total_area if total_area > 0 else 0
+            else:
+                current_unit_cost = 0
         
         return {
             'ownership_area': round(ownership_area, 10),
