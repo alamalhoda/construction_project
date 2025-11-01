@@ -415,6 +415,30 @@
             color: rgb(0, 0, 0) !important;
         }
 
+        .stats-section .current-period-section .current-final-cost-card i {
+            color: var(--expense-color) !important;
+        }
+
+        .stats-section .current-period-section .current-final-cost-card h4 {
+            color: var(--expense-color) !important;
+        }
+
+        .stats-section .current-period-section .current-final-cost-card p {
+            color: var(--expense-color) !important;
+        }
+
+        .current-period-section .current-final-cost-card i {
+            color: var(--expense-color) !important;
+        }
+
+        .current-period-section .current-final-cost-card h4 {
+            color: var(--expense-color) !important;
+        }
+
+        .current-period-section .current-final-cost-card p {
+            color: var(--expense-color) !important;
+        }
+
         /* Transactions Table */
         .transactions-section {
             margin-top: 40px;
@@ -874,7 +898,7 @@
                     </div>
                     <div class="stat-card project-overview expense">
                         <h4 id="projectTotalExpenses">-</h4>
-                        <p>برآورد کل هزینه (تومان)</p>
+                        <p>برآورد کل هزینه ساختمان(تومان)</p>
                     </div>
                     <div class="stat-card project-overview sales">
                         <h4 id="projectTotalSales">-</h4>
@@ -942,7 +966,7 @@
  <div class="current-period-section">
     <div class="current-period-badge">
         <i class="fas fa-star"></i>
-        وضعیت فعلی
+     وضعیت فعلی پروژه
     </div>
     <div class="stat-card current-final-cost-card">
         <i class="fas fa-calendar-check"></i>
@@ -1037,7 +1061,7 @@
                     </div>
                     <div class="stat-card">
                         <h4 id="ownershipArea">-</h4>
-                        <p>مالکیت (متر مربع)</p>
+                        <p>مالکیت فعلی(متر مربع)</p>
                     </div>
                     <div class="stat-card">
                         <h4 id="finalPayment">-</h4>
@@ -1045,7 +1069,7 @@
                     </div>
                     <div class="stat-card">
                         <h4 id="transferPricePerMeter">-</h4>
-                        <p>قیمت واگذار شده (تومان/متر مربع)</p>
+                        <p>قیمت واگذار شده به مشارکت کننده(تومان/متر مربع)</p>
                     </div>
                     <div class="stat-card" style="border: 2px solid var(--expense-color); background: linear-gradient(135deg, var(--expense-color-light), rgba(220, 53, 69, 0.05));">
                         <h4 id="currentUnitCost">-</h4>
@@ -1343,13 +1367,6 @@
                 if (!transactionsResponse.ok) throw new Error('خطا در دریافت تراکنش‌ها');
                 const transactions = await transactionsResponse.json();
 
-                // Fetch global statistics for ratios
-                const statsResponse = await fetch('/api/v1/Transaction/statistics/');
-                let globalStats = null;
-                if (statsResponse.ok) {
-                    globalStats = await statsResponse.json();
-                }
-
                 // Fetch active interest rate
                 const interestRateResponse = await fetch('/api/v1/InterestRate/');
                 let activeInterestRate = null;
@@ -1376,6 +1393,18 @@
                     }
                 } catch (error) {
                     console.warn('⚠️ خطا در دریافت آمار تفصیلی از API:', error);
+                }
+
+                // دریافت نسبت‌های مشارکت کننده از API (شامل شاخص نفع)
+                let investorRatios = null;
+                try {
+                    const ratiosResponse = await fetch(`/api/v1/Investor/${investorId}/ratios/`);
+                    if (ratiosResponse.ok) {
+                        investorRatios = await ratiosResponse.json();
+                        console.log('✅ نسبت‌های مشارکت کننده از API دریافت شد:', investorRatios);
+                    }
+                } catch (error) {
+                    console.warn('⚠️ خطا در دریافت نسبت‌ها از API:', error);
                 }
 
                 // استفاده از داده‌های API در صورت موجود بودن، در غیر این صورت محاسبه محلی
@@ -1406,33 +1435,20 @@
                     totalBalance = netPrincipal + totalProfit;
                 }
 
-                // Calculate ratios
+                // دریافت نسبت‌ها از سرور (شامل شاخص نفع)
                 let capitalRatio = '0.00%';
                 let profitRatioToTotal = '0.00%';
                 let totalRatioToGrandTotal = '0.00%';
                 let profitIndex = '0.00';
 
-                if (globalStats) {
-                    const totalCapital = parseFloat(globalStats.total_deposits || 0) - Math.abs(parseFloat(globalStats.total_withdrawals || 0));
-                    const totalGlobalProfit = parseFloat(globalStats.total_profits || 0);
-                    const grandTotal = totalCapital + totalGlobalProfit;
-
-                    if (totalCapital > 0) {
-                        capitalRatio = ((netPrincipal / totalCapital) * 100).toFixed(2) + '%';
-                    }
-                    if (totalGlobalProfit > 0) {
-                        profitRatioToTotal = ((totalProfit / totalGlobalProfit) * 100).toFixed(2) + '%';
-                    }
-                    if (grandTotal > 0) {
-                        totalRatioToGrandTotal = ((totalBalance / grandTotal) * 100).toFixed(2) + '%';
-                    }
-                    
-                    // Calculate profit index
-                    const capitalRatioNum = totalCapital > 0 ? (netPrincipal / totalCapital) : 0;
-                    const profitRatioNum = totalGlobalProfit > 0 ? (totalProfit / totalGlobalProfit) : 0;
-                    if (capitalRatioNum > 0) {
-                        profitIndex = (profitRatioNum / capitalRatioNum).toFixed(2);
-                    }
+                if (investorRatios) {
+                    // استفاده از نسبت‌های محاسبه شده از سرور
+                    capitalRatio = investorRatios.capital_ratio_formatted || '0.00%';
+                    profitRatioToTotal = investorRatios.profit_ratio_formatted || '0.00%';
+                    totalRatioToGrandTotal = investorRatios.total_ratio_formatted || '0.00%';
+                    // اگر شاخص نفع صفر است (برای سرمایه‌گذاران)، "-" نمایش بده
+                    const profitIndexValue = investorRatios.profit_index || 0;
+                    profitIndex = profitIndexValue === 0 ? '-' : profitIndexValue.toFixed(2);
                 }
 
                 // دریافت مالکیت مشارکت کننده از API
@@ -1545,8 +1561,8 @@
                 const ownershipAreaOwnerEl = document.getElementById('ownershipArea');
                 const ownershipAreaInvestorEl = document.getElementById('ownershipAreaInvestor');
                 const ownershipAreaFormatted = parseFloat(ownershipArea).toLocaleString('en-US', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
+                    minimumFractionDigits: 3,
+                    maximumFractionDigits: 3
                 });
                 if (ownershipAreaOwnerEl) ownershipAreaOwnerEl.textContent = ownershipAreaFormatted;
                 if (ownershipAreaInvestorEl) ownershipAreaInvestorEl.textContent = ownershipAreaFormatted;
