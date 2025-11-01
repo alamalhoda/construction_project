@@ -96,6 +96,7 @@ class ExpenseViewSet(viewsets.ModelViewSet):
                     'period_label': period.label,
                     'year': period.year,
                     'month_name': period.month_name,
+                    'is_current_period': period.is_current(),
                     'expenses': {},
                     'period_total': 0,
                     'cumulative_total': 0
