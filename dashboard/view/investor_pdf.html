@@ -1471,12 +1471,16 @@
                 };
 
                 if (investor.units && investor.units.length > 0) {
-                    const unit = investor.units[0];
+                    // اگر بیش از یک واحد داریم، نام همه را با کاما نمایش دهیم
+                    const unitNames = investor.units.map(unit => unit.name).join(', ');
+                    const totalArea = investor.units.reduce((sum, unit) => sum + (parseFloat(unit.area) || 0), 0);
+                    const totalPrice = investor.units.reduce((sum, unit) => sum + (parseFloat(unit.total_price) || 0), 0);
+                    
                     unitInfo = {
-                        name: unit.name || 'نامشخص',
-                        area: parseFloat(unit.area) || 0,
-                        price: parseFloat(unit.total_price) || 0,
-                        ownership_area: parseFloat(unit.area) || 0
+                        name: unitNames,
+                        area: totalArea,
+                        price: totalPrice,
+                        ownership_area: totalArea
                     };
                 }
 
