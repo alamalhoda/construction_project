@@ -1166,6 +1166,17 @@
                 </div>
             </div>
 
+            <!-- بخش توضیحات -->
+            <div class="stats-section" id="descriptionSection" style="display: none;">
+                <h3 class="section-title">
+                    <i class="fas fa-info-circle"></i>
+                    توضیحات
+                </h3>
+                <div style="background: var(--bg-card); padding: 20px; border-radius: 10px; border: 1px solid var(--border-color);">
+                    <p id="investorDescription" style="color: var(--text-primary); line-height: 1.8; margin: 0; white-space: pre-wrap;"></p>
+                </div>
+            </div>
+
             <!-- کارت‌های ویژه دوره جاری -->
             <div class="current-period-section">
                 <div class="current-period-badge">
@@ -1988,6 +1999,18 @@
                 document.getElementById('unitName').textContent = 'هیچ واحدی یافت نشد';
                 document.getElementById('unitArea').textContent = '0';
                 console.warn('⚠️ هیچ واحدی برای مشارکت کننده یافت نشد');
+            }
+            
+            // نمایش توضیحات
+            const descriptionEl = document.getElementById('investorDescription');
+            const descriptionSection = document.getElementById('descriptionSection');
+            if (descriptionEl && descriptionSection) {
+                if (investorData.description && investorData.description.trim()) {
+                    descriptionEl.textContent = investorData.description;
+                    descriptionSection.style.display = 'block';
+                } else {
+                    descriptionSection.style.display = 'none';
+                }
             }
         }
 

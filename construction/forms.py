@@ -68,6 +68,7 @@ class InvestorForm(forms.ModelForm):
             "participation_type",
             "units",
             "contract_date_shamsi",
+            "description",
         ]
         # project فیلد را حذف کردیم تا خودکار از پروژه فعال استفاده شود
     

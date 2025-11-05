@@ -865,7 +865,16 @@
                     </div>
                 </div>
             </div>
-
+            <!-- بخش توضیحات -->
+            <div class="stats-section" id="descriptionSection" style="display: none;">
+                <h3 class="section-title">
+                    <i class="fas fa-info-circle"></i>
+                    توضیحات
+                </h3>
+                <div style="background: var(--bg-card); padding: 20px; border-radius: 10px; border: 1px solid var(--border-color);">
+                    <p id="investorDescription" style="color: var(--text-primary); line-height: 1.8; margin: 0; white-space: pre-wrap;"></p>
+                </div>
+            </div>
             <!-- Project Overview Section -->
             <div class="stats-section" id="projectOverviewSection" style="display: none;">
                 <h3 class="section-title">
@@ -1514,6 +1523,18 @@
                 document.getElementById('investorPhone').textContent = investor.phone || 'ثبت نشده';
                 document.getElementById('contractDate').textContent = `تاریخ قرارداد: ${investor.contract_date_shamsi || 'ثبت نشده'}`;
                 document.getElementById('unitName').textContent = `واحد: ${unitInfo.name}`;
+
+                // نمایش توضیحات
+                const descriptionEl = document.getElementById('investorDescription');
+                const descriptionSection = document.getElementById('descriptionSection');
+                if (descriptionEl && descriptionSection) {
+                    if (investor.description && investor.description.trim()) {
+                        descriptionEl.textContent = investor.description;
+                        descriptionSection.style.display = 'block';
+                    } else {
+                        descriptionSection.style.display = 'none';
+                    }
+                }
 
                 // Interest Rate
                 if (activeInterestRate) {
