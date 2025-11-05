@@ -65,6 +65,7 @@ class InvestorAdmin(admin.ModelAdmin):
         "last_name",
         "phone",
         "email",
+        "description",
     ]
     filter_horizontal = [
         "units",
@@ -133,6 +134,7 @@ class ProjectAdmin(admin.ModelAdmin):
     ]
     search_fields = [
         "name",
+        "description",
     ]
     readonly_fields = [
         "created_at",

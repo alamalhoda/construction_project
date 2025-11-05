@@ -1166,6 +1166,28 @@
                 </div>
             </div>
 
+            <!-- بخش توضیحات پروژه -->
+            <div class="stats-section" id="projectDescriptionSection" style="display: none;">
+                <h3 class="section-title">
+                    <i class="fas fa-building"></i>
+                    توضیحات پروژه
+                </h3>
+                <div style="background: var(--bg-card); padding: 20px; border-radius: 10px; border: 1px solid var(--border-color);">
+                    <p id="projectDescription" style="color: var(--text-primary); line-height: 1.8; margin: 0; white-space: pre-wrap;"></p>
+                </div>
+            </div>
+
+            <!-- بخش توضیحات سرمایه‌گذار -->
+            <div class="stats-section" id="descriptionSection" style="display: none;">
+                <h3 class="section-title">
+                    <i class="fas fa-info-circle"></i>
+                    توضیحات سرمایه‌گذار
+                </h3>
+                <div style="background: var(--bg-card); padding: 20px; border-radius: 10px; border: 1px solid var(--border-color);">
+                    <p id="investorDescription" style="color: var(--text-primary); line-height: 1.8; margin: 0; white-space: pre-wrap;"></p>
+                </div>
+            </div>
+
             <!-- کارت‌های ویژه دوره جاری -->
             <div class="current-period-section">
                 <div class="current-period-badge">
@@ -1375,7 +1397,7 @@
             }
         }
         
-        // تابع دریافت نام پروژه از API
+        // تابع دریافت نام پروژه و توضیحات از API
         async function fetchProjectName() {
             try {
                 const response = await fetch('/api/v1/Project/');
@@ -1385,6 +1407,16 @@
                     if (projects.length > 0) {
                         projectName = projects[0].name || '';
                         console.log('نام پروژه دریافت شد:', projectName);
+                        
+                        // نمایش توضیحات پروژه
+                        const projectDescriptionEl = document.getElementById('projectDescription');
+                        const projectDescriptionSection = document.getElementById('projectDescriptionSection');
+                        if (projectDescriptionEl && projectDescriptionSection && projects[0].description && projects[0].description.trim()) {
+                            projectDescriptionEl.textContent = projects[0].description;
+                            projectDescriptionSection.style.display = 'block';
+                        } else if (projectDescriptionSection) {
+                            projectDescriptionSection.style.display = 'none';
+                        }
                     }
                 } else {
                     console.warn('خطا در دریافت اطلاعات پروژه:', response.status);
@@ -1988,6 +2020,18 @@
                 document.getElementById('unitName').textContent = 'هیچ واحدی یافت نشد';
                 document.getElementById('unitArea').textContent = '0';
                 console.warn('⚠️ هیچ واحدی برای مشارکت کننده یافت نشد');
+            }
+            
+            // نمایش توضیحات
+            const descriptionEl = document.getElementById('investorDescription');
+            const descriptionSection = document.getElementById('descriptionSection');
+            if (descriptionEl && descriptionSection) {
+                if (investorData.description && investorData.description.trim()) {
+                    descriptionEl.textContent = investorData.description;
+                    descriptionSection.style.display = 'block';
+                } else {
+                    descriptionSection.style.display = 'none';
+                }
             }
         }
 

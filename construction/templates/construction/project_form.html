@@ -97,19 +97,24 @@
                                     <small class="form-text text-muted">{{ form.correction_factor.help_text }}</small>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <!-- فیلد خالی برای تعادل layout -->
-                            </div>
-                        </div>
+                           
+                        
                         
                         <div class="form-group">
                             <div class="form-check">
                                 {{ form.is_active }}
-                                <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                <label class="form-check-label" for="{{ form.is_active.id_for_label }}" style="padding-right: 20px;">
                                     {{ form.is_active.label }}
                                 </label>
                                 <small class="form-text text-muted">فقط یک پروژه می‌تواند فعال باشد</small>
                             </div>
+                        </div>
+                    </div>
+                        <div class="form-group">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">توضیحات</label>
+                            <textarea class="form-control" id="{{ form.description.id_for_label }}" name="description" rows="4" 
+                                      placeholder="توضیحات اضافی درباره پروژه...">{{ form.description.value|default:'' }}</textarea>
+                            <small class="form-text text-muted">می‌توانید توضیحات اضافی درباره پروژه را در اینجا وارد کنید</small>
                         </div>
                         
                         <div class="form-actions mt-4">
