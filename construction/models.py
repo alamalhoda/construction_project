@@ -40,6 +40,7 @@ class Project(models.Model):
         verbose_name="درصد پیمان ساخت",
         help_text="درصد پیمان ساخت از مجموع سایر هزینه‌ها (به صورت اعشاری، مثلاً 0.100 برای 10%)"
     )
+    description = models.TextField(blank=True, null=True, verbose_name="توضیحات", help_text="توضیحات اضافی درباره پروژه")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="تاریخ به‌روزرسانی")
 
@@ -190,6 +191,7 @@ class Investor(models.Model):
     )
     units = models.ManyToManyField(Unit, blank=True, verbose_name="واحدها")
     contract_date_shamsi = jmodels.jDateField(null=True, blank=True, verbose_name="تاریخ قرارداد (شمسی)")
+    description = models.TextField(blank=True, null=True, verbose_name="توضیحات", help_text="توضیحات اضافی درباره این سرمایه‌گذار")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
 
     class Meta:

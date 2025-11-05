@@ -80,6 +80,7 @@ class InvestorSerializer(serializers.ModelSerializer):
             "participation_type",
             "units",
             "contract_date_shamsi",
+            "description",
             "created_at",
         ]
     
@@ -138,6 +139,7 @@ class ProjectSerializer(serializers.ModelSerializer):
             "total_infrastructure",
             "correction_factor",
             "construction_contractor_percentage",
+            "description",
             "created_at",
             "updated_at",
         ]
