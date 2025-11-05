@@ -134,6 +134,7 @@ class ProjectAdmin(admin.ModelAdmin):
     ]
     search_fields = [
         "name",
+        "description",
     ]
     readonly_fields = [
         "created_at",

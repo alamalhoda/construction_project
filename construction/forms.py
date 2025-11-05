@@ -194,6 +194,7 @@ class ProjectForm(forms.ModelForm):
             "total_infrastructure",
             "correction_factor",
             "construction_contractor_percentage",
+            "description",
         ]
     
     def save(self, commit=True):
