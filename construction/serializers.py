@@ -80,6 +80,7 @@ class InvestorSerializer(serializers.ModelSerializer):
             "participation_type",
             "units",
             "contract_date_shamsi",
+            "description",
             "created_at",
         ]
     

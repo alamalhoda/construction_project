@@ -190,6 +190,7 @@ class Investor(models.Model):
     )
     units = models.ManyToManyField(Unit, blank=True, verbose_name="واحدها")
     contract_date_shamsi = jmodels.jDateField(null=True, blank=True, verbose_name="تاریخ قرارداد (شمسی)")
+    description = models.TextField(blank=True, null=True, verbose_name="توضیحات", help_text="توضیحات اضافی درباره این سرمایه‌گذار")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
 
     class Meta:

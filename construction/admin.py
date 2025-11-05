@@ -65,6 +65,7 @@ class InvestorAdmin(admin.ModelAdmin):
         "last_name",
         "phone",
         "email",
+        "description",
     ]
     filter_horizontal = [
         "units",
