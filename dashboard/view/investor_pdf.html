@@ -835,6 +835,8 @@
             </div>
 
             <!-- Interest Rate Info -->
+            <!-- کامنت شده - بخش نرخ سود غیرفعال است -->
+            <!--
             <div class="stats-section" style="background: linear-gradient(135deg, rgba(33, 186, 69, 0.05), rgba(33, 186, 69, 0.02)); border: 2px solid var(--profit-color); border-radius: 10px; padding: 20px; margin-bottom: 30px;">
                 <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px;">
                     <div style="display: flex; gap: 30px; flex-wrap: wrap;">
@@ -865,6 +867,7 @@
                     </div>
                 </div>
             </div>
+            -->
             <!-- بخش توضیحات پروژه -->
             <div class="stats-section" id="projectDescriptionSection" style="display: none;">
                 <h3 class="section-title">
@@ -879,7 +882,7 @@
             <div class="stats-section" id="descriptionSection" style="display: none;">
                 <h3 class="section-title">
                     <i class="fas fa-info-circle"></i>
-                    توضیحات سرمایه‌گذار
+                    توضیحات مشارکت کننده
                 </h3>
                 <div style="background: var(--bg-card); padding: 20px; border-radius: 10px; border: 1px solid var(--border-color);">
                     <p id="investorDescription" style="color: var(--text-primary); line-height: 1.8; margin: 0; white-space: pre-wrap;"></p>
@@ -1396,7 +1399,8 @@
                 if (!transactionsResponse.ok) throw new Error('خطا در دریافت تراکنش‌ها');
                 const transactions = await transactionsResponse.json();
 
-                // Fetch active interest rate
+                // Fetch active interest rate - کامنت شده (بخش Interest Rate Info غیرفعال است)
+                /*
                 const interestRateResponse = await fetch('/api/v1/InterestRate/');
                 let activeInterestRate = null;
                 if (interestRateResponse.ok) {
@@ -1411,6 +1415,7 @@
                 if (profitMetricsResponse.ok) {
                     profitMetrics = await profitMetricsResponse.json();
                 }
+                */
 
                 // دریافت آمار تفصیلی از API (شامل محاسبات جداگانه آورده و آورده وام)
                 let investorStatsData = null;
@@ -1556,7 +1561,8 @@
                     }
                 }
 
-                // Interest Rate
+                // Interest Rate - کامنت شده (بخش Interest Rate Info غیرفعال است)
+                /*
                 if (activeInterestRate) {
                     const dailyRate = parseFloat(activeInterestRate.rate);
                     const dailyRatePercent = (dailyRate * 100).toFixed(12);
@@ -1578,6 +1584,7 @@
                 } else {
                     document.getElementById('annualInterestRate').textContent = 'تعیین نشده';
                 }
+                */
 
                 // Financial stats
                 document.getElementById('totalPrincipalDeposit').textContent = formatNumber(totalPrincipalDeposit);
