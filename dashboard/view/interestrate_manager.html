@@ -1889,9 +1889,11 @@
                     modal.hide();
                     // Reset form
                     form.reset();
-                    // Reload data
+                    // Reload all data
                     loadRates();
                     loadCurrentRate();
+                    loadFinancialSummary();
+                    loadProjectStatistics();
                     
                     // نمایش modal محاسبه مجدد سود پس از ذخیره نرخ جدید
                     setTimeout(() => {

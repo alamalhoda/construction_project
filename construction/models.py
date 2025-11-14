@@ -599,18 +599,28 @@ class Transaction(models.Model):
         return profit.quantize(Decimal('0.01'))  # گرد کردن به 2 رقم اعشار
 
     @classmethod
-    def calculate_all_profits(cls, interest_rate=None):
+    def calculate_all_profits(cls, interest_rate=None, project=None):
         """
         محاسبه سود برای همه آورده‌ها
+        
+        Args:
+            interest_rate: نرخ سود (در صورت None، از نرخ فعال پروژه استفاده می‌شود)
+            project: پروژه (در صورت None، از پروژه فعال استفاده می‌شود)
         """
+        if not project:
+            project = Project.get_active_project()
+            if not project:
+                return []
+        
         if not interest_rate:
-            interest_rate = InterestRate.get_current_rate()
+            interest_rate = InterestRate.get_current_rate(project=project)
         
         if not interest_rate:
             return []
         
-        # دریافت همه تراکنش‌های سرمایه (آورده و خروج)
+        # دریافت همه تراکنش‌های سرمایه (آورده و خروج) برای پروژه مشخص
         capital_transactions = cls.objects.filter(
+            project=project,
             transaction_type__in=['principal_deposit', 'loan_deposit', 'principal_withdrawal'],
             day_remaining__gt=0
         )
@@ -642,18 +652,28 @@ class Transaction(models.Model):
         return profit_transactions
 
     @classmethod
-    def recalculate_profits_with_new_rate(cls, new_interest_rate):
+    def recalculate_profits_with_new_rate(cls, new_interest_rate, project=None):
         """
         محاسبه مجدد سودها با نرخ جدید
+        
+        Args:
+            new_interest_rate: نرخ سود جدید (InterestRate instance)
+            project: پروژه (در صورت None، از پروژه فعال استفاده می‌شود)
         """
-        # حذف سودهای قبلی که توسط سیستم تولید شده‌اند
+        if not project:
+            project = Project.get_active_project()
+            if not project:
+                return 0
+        
+        # حذف سودهای قبلی که توسط سیستم تولید شده‌اند برای پروژه
         cls.objects.filter(
+            project=project,
             transaction_type='profit_accrual',
             is_system_generated=True
         ).delete()
         
-        # محاسبه سودهای جدید
-        new_profit_transactions = cls.calculate_all_profits(new_interest_rate)
+        # محاسبه سودهای جدید برای پروژه
+        new_profit_transactions = cls.calculate_all_profits(interest_rate=new_interest_rate, project=project)
         
         # ذخیره سودهای جدید
         for profit_transaction in new_profit_transactions:
@@ -662,22 +682,32 @@ class Transaction(models.Model):
         return len(new_profit_transactions)
     
     @classmethod
-    def delete_all_profit_transactions(cls):
+    def delete_all_profit_transactions(cls, project=None):
         """
-        حذف همه رکوردهای سود (اعم از سیستم‌ی و دستی)
+        حذف همه رکوردهای سود (اعم از سیستم‌ی و دستی) برای پروژه مشخص
+        
+        Args:
+            project: پروژه (در صورت None، از پروژه فعال استفاده می‌شود)
         """
+        if not project:
+            project = Project.get_active_project()
+            if not project:
+                return 0
+        
         deleted_count = cls.objects.filter(
+            project=project,
             transaction_type='profit_accrual'
         ).count()
         
         cls.objects.filter(
+            project=project,
             transaction_type='profit_accrual'
         ).delete()
         
         return deleted_count
     
     @classmethod
-    def recalculate_all_profits_with_new_rate(cls, new_interest_rate):
+    def recalculate_all_profits_with_new_rate(cls, new_interest_rate, project=None):
         """
         سناریوی کامل: حذف همه سودهای قبلی و محاسبه مجدد با نرخ جدید
         
@@ -687,16 +717,26 @@ class Transaction(models.Model):
         3. سودهای جدید را ذخیره می‌کند
         
         Args:
-            new_interest_rate (Decimal): نرخ سود جدید
+            new_interest_rate: نرخ سود جدید (InterestRate instance)
+            project: پروژه (در صورت None، از پروژه فعال استفاده می‌شود)
             
         Returns:
             dict: شامل تعداد رکوردهای حذف شده و تعداد رکوردهای جدید
         """
-        # مرحله 1: حذف همه رکوردهای سود قبلی
-        deleted_count = cls.delete_all_profit_transactions()
+        if not project:
+            project = Project.get_active_project()
+            if not project:
+                return {
+                    'deleted_count': 0,
+                    'new_count': 0,
+                    'total_affected': 0
+                }
         
-        # مرحله 2: محاسبه سودهای جدید با نرخ جدید
-        new_profit_transactions = cls.calculate_all_profits(new_interest_rate)
+        # مرحله 1: حذف همه رکوردهای سود قبلی برای پروژه
+        deleted_count = cls.delete_all_profit_transactions(project=project)
+        
+        # مرحله 2: محاسبه سودهای جدید با نرخ جدید برای پروژه
+        new_profit_transactions = cls.calculate_all_profits(interest_rate=new_interest_rate, project=project)
         
         # مرحله 3: ذخیره سودهای جدید
         for profit_transaction in new_profit_transactions:
