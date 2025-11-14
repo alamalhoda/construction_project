@@ -140,6 +140,8 @@ class ProjectSerializer(serializers.ModelSerializer):
             "correction_factor",
             "construction_contractor_percentage",
             "description",
+            "color",
+            "icon",
             "created_at",
             "updated_at",
         ]

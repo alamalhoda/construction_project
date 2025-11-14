@@ -41,6 +41,18 @@ class Project(models.Model):
         help_text="درصد پیمان ساخت از مجموع سایر هزینه‌ها (به صورت اعشاری، مثلاً 0.100 برای 10%)"
     )
     description = models.TextField(blank=True, null=True, verbose_name="توضیحات", help_text="توضیحات اضافی درباره پروژه")
+    color = models.CharField(
+        max_length=7,
+        default='#667eea',
+        verbose_name="رنگ پروژه",
+        help_text="رنگ نمایش پروژه (فرمت HEX)"
+    )
+    icon = models.CharField(
+        max_length=50,
+        default='fa-building',
+        verbose_name="آیکون پروژه",
+        help_text="نام کلاس آیکون Font Awesome (مثال: fa-building)"
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="تاریخ به‌روزرسانی")
 

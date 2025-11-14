@@ -1,0 +1,219 @@
+/* Project Switcher Styles */
+
+/* Container اصلی */
+.project-switcher {
+    position: relative;
+    display: inline-block;
+    margin: 0 15px;
+    z-index: 1000;
+}
+
+/* نمایش پروژه فعلی */
+.current-project-display {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 15px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 180px;
+    justify-content: space-between;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.current-project-display:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+.current-project-display .project-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: white;
+    flex: 1;
+    text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.current-project-display .dropdown-arrow {
+    font-size: 12px;
+    color: white;
+    transition: transform 0.3s ease;
+}
+
+.project-switcher.open .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+/* Dropdown منو */
+.project-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    min-width: 280px;
+    max-width: 350px;
+    z-index: 1000;
+    max-height: 500px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header dropdown */
+.project-dropdown-header {
+    padding: 12px 15px;
+    border-bottom: 1px solid #e9ecef;
+    font-weight: 600;
+    color: #495057;
+    background: #f8f9fa;
+    font-size: 14px;
+}
+
+/* لیست پروژه‌ها */
+.project-list {
+    max-height: 350px;
+    overflow-y: auto;
+}
+
+/* آیتم هر پروژه */
+.project-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.project-item:hover {
+    background: #f8f9fa;
+}
+
+.project-item.active {
+    background: #e7f3ff;
+    border-right: 4px solid #667eea;
+}
+
+.project-item i[class*="fa-"]:first-child {
+    font-size: 18px;
+    width: 20px;
+    text-align: center;
+}
+
+.project-item-name {
+    flex: 1;
+    color: #495057;
+    font-size: 14px;
+}
+
+.project-item.active .project-item-name {
+    font-weight: 600;
+    color: #667eea;
+}
+
+.project-item .badge {
+    font-size: 11px;
+    padding: 4px 8px;
+    background: #28a745;
+    color: white;
+    border-radius: 12px;
+}
+
+.project-check-icon {
+    color: #667eea;
+    font-size: 14px;
+}
+
+/* آیتم خالی */
+.project-item-empty {
+    padding: 20px;
+    text-align: center;
+    color: #6c757d;
+    font-size: 14px;
+}
+
+/* Scrollbar برای لیست پروژه‌ها */
+.project-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.project-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.project-list::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+.project-list::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .project-switcher {
+        margin: 0 10px;
+    }
+    
+    .current-project-display {
+        min-width: 150px;
+        padding: 6px 12px;
+    }
+    
+    .current-project-display .project-name {
+        font-size: 12px;
+    }
+    
+    .project-dropdown {
+        min-width: 250px;
+        right: -50px; /* تنظیم موقعیت در موبایل */
+    }
+}
+
+/* استایل برای unified-header */
+.unified-header .project-switcher {
+    margin: 0;
+}
+
+.unified-header .project-switcher .current-project-display {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.unified-header .project-switcher .current-project-display:hover {
+    background: rgba(255, 255, 255, 0.35);
+}
+
+/* استایل برای dashboard-header */
+.dashboard-header .project-switcher {
+    margin: 0;
+}
+
+.dashboard-header .project-switcher .current-project-display {
+    background: rgba(255, 255, 255, 0.95);
+    color: #333;
+}
+
+.dashboard-header .project-switcher .current-project-display .project-name {
+    color: #333;
+}
+
+.dashboard-header .project-switcher .current-project-display .dropdown-arrow {
+    color: #333;
+}
+
+.dashboard-header .project-switcher .current-project-display:hover {
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
