@@ -61,7 +61,7 @@
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown">
                             <i class="fas fa-cogs"></i> مدیریت
                         </a>
-                        <div class="dropdown-menu">
+                        <div class="dropdown-menu" style="direction: rtl;text-align: right;">
                             <a class="dropdown-item" href="{% url 'construction_Project_list' %}">
                                 <i class="fas fa-project-diagram"></i> پروژه‌ها
                             </a>
@@ -73,6 +73,9 @@
                             </a>
                             <a class="dropdown-item" href="{% url 'construction_Unit_list' %}">
                                 <i class="fas fa-building"></i> واحدها
+                            </a>                            
+                            <a class="dropdown-item" href="{% url 'construction_UnitSpecificExpense_list' %}">
+                                <i class="fas fa-file-invoice-dollar"></i> هزینه‌های اختصاصی واحد
                             </a>
                             <a class="dropdown-item" href="{% url 'construction_Period_list' %}">
                                 <i class="fas fa-calendar-alt"></i> دوره‌ها

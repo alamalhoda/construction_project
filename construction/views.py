@@ -384,3 +384,43 @@ class InterestRateUpdateView(generic.UpdateView):
 class InterestRateDeleteView(generic.DeleteView):
     model = models.InterestRate
     success_url = reverse_lazy("construction_InterestRate_list")
+
+
+@method_decorator(login_required, name='dispatch')
+class UnitSpecificExpenseListView(generic.ListView):
+    model = models.UnitSpecificExpense
+    form_class = forms.UnitSpecificExpenseForm
+    ordering = ['-date_shamsi', '-created_at']
+
+
+@method_decorator(login_required, name='dispatch')
+class UnitSpecificExpenseCreateView(generic.CreateView):
+    model = models.UnitSpecificExpense
+    form_class = forms.UnitSpecificExpenseForm
+    
+    def get_initial(self):
+        initial = super().get_initial()
+        # اگر unit_id از query parameter ارسال شده باشد، آن را تنظیم کن
+        unit_id = self.request.GET.get('unit_id')
+        if unit_id:
+            initial['unit'] = unit_id
+        return initial
+
+
+@method_decorator(login_required, name='dispatch')
+class UnitSpecificExpenseDetailView(generic.DetailView):
+    model = models.UnitSpecificExpense
+    form_class = forms.UnitSpecificExpenseForm
+
+
+@method_decorator(login_required, name='dispatch')
+class UnitSpecificExpenseUpdateView(generic.UpdateView):
+    model = models.UnitSpecificExpense
+    form_class = forms.UnitSpecificExpenseForm
+    pk_url_kwarg = "pk"
+
+
+@method_decorator(login_required, name='dispatch')
+class UnitSpecificExpenseDeleteView(generic.DeleteView):
+    model = models.UnitSpecificExpense
+    success_url = reverse_lazy("construction_UnitSpecificExpense_list")

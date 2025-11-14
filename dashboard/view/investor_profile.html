@@ -1247,6 +1247,10 @@
                         <h4 id="currentUnitCost">-</h4>
                         <p>هزینه فعلی واحد (تومان)</p>
                     </div>
+                    <div class="stat-card" style="border: 2px solid var(--expense-color); background: linear-gradient(135deg, var(--expense-color-light), rgba(220, 53, 69, 0.05));">
+                        <h4 id="unitSpecificExpenseTotal">-</h4>
+                        <p>هزینه اختصاصی واحد (تومان)</p>
+                    </div>
                 </div>
 
                 <!-- حالت سرمایه‌گذار: فقط نمایش مالکیت محاسبه‌شده -->
@@ -1978,6 +1982,47 @@
             
             // دریافت محاسبات از سرور
             await updateInvestorStatsFromServer(investorId, investorId);
+            
+            // دریافت هزینه‌های اختصاصی واحد
+            await loadUnitSpecificExpenses(investorId);
+        }
+        
+        // تابع بارگذاری هزینه‌های اختصاصی واحد
+        async function loadUnitSpecificExpenses(investorId) {
+            try {
+                // دریافت اطلاعات سرمایه‌گذار برای دسترسی به واحدها
+                const investorResponse = await fetch(`/api/v1/Investor/${investorId}/`);
+                if (!investorResponse.ok) {
+                    console.warn('خطا در دریافت اطلاعات سرمایه‌گذار برای هزینه‌های اختصاصی واحد');
+                    document.getElementById('unitSpecificExpenseTotal').textContent = '0';
+                    return;
+                }
+                
+                const investorData = await investorResponse.json();
+                
+                if (!investorData.units || investorData.units.length === 0) {
+                    document.getElementById('unitSpecificExpenseTotal').textContent = '0';
+                    return;
+                }
+                
+                // دریافت هزینه‌های اختصاصی برای همه واحدهای سرمایه‌گذار
+                let totalExpense = 0;
+                for (const unit of investorData.units) {
+                    const expenseResponse = await fetch(`/api/v1/UnitSpecificExpense/?unit=${unit.id}`);
+                    if (expenseResponse.ok) {
+                        const expensesData = await expenseResponse.json();
+                        const expenses = Array.isArray(expensesData) ? expensesData : (expensesData.results || []);
+                        const unitTotal = expenses.reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0);
+                        totalExpense += unitTotal;
+                    }
+                }
+                
+                // نمایش مجموع هزینه‌های اختصاصی
+                document.getElementById('unitSpecificExpenseTotal').textContent = formatNumberWithCommas(totalExpense);
+            } catch (error) {
+                console.error('خطا در بارگذاری هزینه‌های اختصاصی واحد:', error);
+                document.getElementById('unitSpecificExpenseTotal').textContent = '0';
+            }
         }
         
         // تابع کمکی برای به‌روزرسانی UI با اطلاعات مشارکت‌کننده
