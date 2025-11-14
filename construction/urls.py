@@ -17,6 +17,8 @@ router.register("Project", api.ProjectViewSet)
 router.register("Sale", api.SaleViewSet)
 router.register("Transaction", api.TransactionViewSet)
 router.register("Unit", api.UnitViewSet)
+router.register("UnitSpecificExpense", api.UnitSpecificExpenseViewSet)
+router.register("comprehensive", api.ComprehensiveAnalysisViewSet, basename="comprehensive")
 
 
 
@@ -75,6 +77,11 @@ urlpatterns = (
     path("construction/Sale/detail/<int:pk>/", views.SaleDetailView.as_view(), name="construction_Sale_detail"),
     path("construction/Sale/update/<int:pk>/", views.SaleUpdateView.as_view(), name="construction_Sale_update"),
     path("construction/Sale/delete/<int:pk>/", views.SaleDeleteView.as_view(), name="construction_Sale_delete"),
+    path("construction/UnitSpecificExpense/", views.UnitSpecificExpenseListView.as_view(), name="construction_UnitSpecificExpense_list"),
+    path("construction/UnitSpecificExpense/create/", views.UnitSpecificExpenseCreateView.as_view(), name="construction_UnitSpecificExpense_create"),
+    path("construction/UnitSpecificExpense/detail/<int:pk>/", views.UnitSpecificExpenseDetailView.as_view(), name="construction_UnitSpecificExpense_detail"),
+    path("construction/UnitSpecificExpense/update/<int:pk>/", views.UnitSpecificExpenseUpdateView.as_view(), name="construction_UnitSpecificExpense_update"),
+    path("construction/UnitSpecificExpense/delete/<int:pk>/", views.UnitSpecificExpenseDeleteView.as_view(), name="construction_UnitSpecificExpense_delete"),
 
     # User Authentication URLs - moved to root level in main urls.py
     # path("login/", user_views.user_login_view, name="user_login"),

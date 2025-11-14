@@ -43,6 +43,10 @@
             --refund-color-light: rgba(255, 193, 7, 0.1);
             --balance-color: #6c757d;
             --balance-color-light: rgba(108, 117, 125, 0.1);
+            --total-color: #6c757d;
+            --total-color-light: rgba(108, 117, 125, 0.1);
+            --gold-color: #ffd700;              /* طلایی - شاخص نفع و عملکرد برتر */
+            --gold-color-light: rgba(255, 215, 0, 0.1);
         }
 
         * {
@@ -149,6 +153,92 @@
             background: var(--bg-primary);
         }
 
+        /* Current Period Section - Special styling */
+        .current-period-section {
+            grid-column: 1 / -1;
+            position: relative;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin: 20px 0;
+            padding: 25px;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, rgba(255, 193, 7, 0.05) 100%);
+            border-radius: 20px;
+            border: 2px dashed var(--gold-color) !important;
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.15) !important;
+        }
+
+        .current-period-badge {
+            position: absolute;
+            top: -15px;
+            right: 30px;
+            background: linear-gradient(135deg, var(--gold-color) 0%, #ffc107 100%);
+            color: rgb(0, 0, 0);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .current-period-badge i {
+            font-size: 1rem;
+        }
+
+        .summary-cards .current-period-section .summary-card {
+            border: 3px solid;
+            background: white;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            transform: none;
+        }
+
+        .summary-cards .current-period-section .summary-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
+        }
+
+        .summary-cards .current-period-section .current-final-cost {
+            border-color: var(--expense-color);
+            background: linear-gradient(135deg, rgba(220, 53, 69, 0.05) 0%, white 100%);
+        }
+
+        .summary-cards .current-period-section .current-building-fund {
+            border-color: var(--balance-color);
+            background: linear-gradient(135deg, rgba(108, 117, 125, 0.03) 0%, white 100%);
+        }
+
+        .summary-cards .current-period-section .summary-card h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: rgb(0, 0, 0);
+        }
+
+        .summary-cards .current-period-section .summary-card .value {
+            font-size: 2.3rem;
+            font-weight: 700;
+            color: rgb(0, 0, 0);
+        }
+
+        .summary-cards .current-period-section .summary-card h4 i {
+            font-size: 1.5rem;
+        }
+
+        .summary-cards .current-period-section .summary-card.current-final-cost h4 {
+            color: var(--expense-color);
+        }
+
+        .summary-cards .current-period-section .summary-card.current-final-cost .value {
+            color: var(--expense-color);
+        }
+
+        .summary-cards .current-period-section .summary-card.current-final-cost h4 i {
+            color: var(--expense-color);
+        }
+
         .summary-card {
             background: white;
             border-radius: 15px;
@@ -171,6 +261,11 @@
         .summary-card.expenses { border-color: var(--expense-color); }
         .summary-card.sales { border-color: var(--refund-color); }
         .summary-card.balance { border-color: var(--balance-color); }
+        .summary-card.cost-per-meter-net { border-color: var(--expense-color); }
+        .summary-card.cost-per-meter-gross { border-color: var(--expense-color); }
+        .summary-card.final-cost { border-color: var(--total-color); }
+        .summary-card.current-final-cost { border-color: var(--expense-color); }
+        .summary-card.current-building-fund { border-color: var(--balance-color); }
 
         .summary-card h4 {
             font-size: 1rem;
@@ -199,6 +294,13 @@
         .summary-card.expenses .value { color: var(--expense-color); }
         .summary-card.sales .value { color: var(--refund-color); }
         .summary-card.balance .value { color: var(--balance-color); }
+        .summary-card.cost-per-meter-net .value { color: var(--expense-color); }
+        .summary-card.cost-per-meter-gross .value { color: var(--expense-color); }
+        .summary-card.final-cost .value { color: var(--total-color); }
+        .summary-card.current-final-cost .value { color: var(--expense-color); }
+        .summary-card.current-final-cost h4 { color: var(--expense-color); }
+        .summary-card.current-final-cost h4 i { color: var(--expense-color); }
+        .summary-card.current-building-fund .value { color: var(--balance-color); }
 
         .summary-card .label {
             font-size: 0.95rem;
@@ -253,14 +355,14 @@
             font-weight: 600;
             font-size: 0.9rem;
             color: var(--text-primary);
-            border-bottom: 2px solid var(--border-color);
+            border: 2px solid var(--border-color);
             white-space: nowrap;
         }
 
         td {
             padding: 12px 10px;
             text-align: center;
-            border-bottom: 1px solid var(--border-color);
+            border: 1px solid var(--border-color);
             font-size: 0.9rem;
         }
 
@@ -272,6 +374,27 @@
             background: var(--bg-primary);
         }
 
+        /* Current Period Row */
+        tbody tr.current-period {
+            background: linear-gradient(90deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-left: 4px solid var(--primary-color);
+            border-right: 4px solid var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            font-weight: 600;
+        }
+
+        tbody tr.current-period td {
+            background: transparent;
+        }
+
+        tbody tr.current-period td:first-child {
+            border-right: none;
+        }
+
+        tbody tr.current-period td:last-child {
+            border-left: none;
+        }
+
         /* Column Colors */
         .deposits-col { color: var(--deposit-color); font-weight: 600; }
         .withdrawals-col { color: var(--withdrawal-color); font-weight: 600; }
@@ -279,7 +402,7 @@
         .capital-col { color: var(--capital-color); font-weight: 600; }
         .expenses-col { color: var(--expense-color); font-weight: 600; }
         .sales-col { color: var(--refund-color); font-weight: 600; }
-        .balance-col { color: var(--balance-color); font-weight: 600; }
+        .balance-col { color: var(--balance-color); font-weight: 600; direction: ltr; }
 
         /* Loading */
         .loading-container {
@@ -330,6 +453,13 @@
         }
 
         /* Responsive */
+        @media (max-width: 1200px) {
+            .summary-cards {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 25px;
+            }
+        }
+
         @media (max-width: 992px) {
             .summary-cards {
                 grid-template-columns: repeat(2, 1fr);
@@ -340,6 +470,20 @@
         @media (max-width: 768px) {
             .page-header h1 {
                 font-size: 1.8rem;
+            }
+
+            .current-period-section {
+                grid-template-columns: 1fr !important;
+                gap: 20px !important;
+                padding: 20px !important;
+                margin: 15px 0 !important;
+            }
+
+            .current-period-badge {
+                top: -12px !important;
+                right: 20px !important;
+                padding: 6px 15px !important;
+                font-size: 0.85rem !important;
             }
 
             .summary-cards {
@@ -409,7 +553,7 @@
                     <i class="fas fa-calendar-alt"></i>
                     خلاصه دوره‌ای پروژه
                 </h1>
-                <p class="subtitle">نمایش جامع تمام فاکتورهای مالی در هر دوره</p>
+                <p class="subtitle">نمایش جامع تمام داده های مالی در هر دوره</p>
                 
                 <!-- Navigation -->
                 <div class="navigation-links">
@@ -455,25 +599,53 @@
                 <div class="value" id="totalProfits">...</div>
                 <div class="label">تومان</div>
             </div>
-            <div class="summary-card expenses">
-                <h4><i class="fas fa-file-invoice-dollar"></i> مجموع هزینه‌ها</h4>
-                <div class="value" id="totalExpenses">...</div>
-                <div class="label">تومان</div>
-            </div>
+            
             <div class="summary-card sales">
                 <h4><i class="fas fa-undo"></i> مجموع فروش/مرجوعی</h4>
                 <div class="value" id="totalSales">...</div>
                 <div class="label">تومان</div>
             </div>
-            <div class="summary-card balance">
-                <h4><i class="fas fa-building"></i> مانده صندوق نهایی</h4>
-                <div class="value" id="finalBalance">...</div>
+            <div class="summary-card expenses">
+                <h4><i class="fas fa-file-invoice-dollar"></i> مجموع هزینه‌ها</h4>
+                <div class="value" id="totalExpenses">...</div>
                 <div class="label">تومان</div>
+            </div>
+            <!-- کارت‌های ویژه دوره جاری -->
+            <div class="current-period-section">
+                <div class="current-period-badge">
+                    <i class="fas fa-star"></i>
+                     وضعیت فعلی پروژه
+                </div>
+                <div class="summary-card current-final-cost">
+                    <h4><i class="fas fa-calendar-check"></i> هزینه خالص فعلی</h4>
+                    <div class="value" id="currentFinalCost">...</div>
+                    <div class="label">تومان</div>
+                </div>
+                <div class="summary-card current-building-fund">
+                    <h4><i class="fas fa-building"></i> مانده صندوق فعلی</h4>
+                    <div class="value" id="currentBuildingFundBalance">...</div>
+                    <div class="label">تومان</div>
+                </div>
             </div>
             <div class="summary-card">
                 <h4><i class="fas fa-calendar-check"></i> تعداد ماه</h4>
                 <div class="value" id="totalPeriods" style="color: var(--info-color);">...</div>
                 <div class="label">ماه</div>
+            </div>
+            <div class="summary-card cost-per-meter-net">
+                <h4><i class="fas fa-ruler-combined"></i> هزینه هر متر خالص</h4>
+                <div class="value" id="costPerMeterNet">...</div>
+                <div class="label">تومان/متر مربع</div>
+            </div>
+            <div class="summary-card cost-per-meter-gross">
+                <h4><i class="fas fa-building"></i> هزینه هر متر ناخالص</h4>
+                <div class="value" id="costPerMeterGross">...</div>
+                <div class="label">تومان/متر مربع</div>
+            </div>
+            <div class="summary-card final-cost">
+                <h4><i class="fas fa-calculator"></i> هزینه تمام شده نهایی</h4>
+                <div class="value" id="finalCost">...</div>
+                <div class="label">تومان</div>
             </div>
         </div>
 
@@ -513,8 +685,7 @@
                                 <tr>
                                     <th rowspan="2">دوره</th>
                                     <th rowspan="2">سال</th>
-                                    <th rowspan="2">ماه</th>
-                                    <th colspan="7">فاکتورهای دوره</th>
+                                    <th colspan="8">داده های دوره</th>
                                     <th colspan="7" class="cumulative-column" style="display: none;">مقادیر تجمعی</th>
                                 </tr>
                                 <tr>
@@ -524,8 +695,19 @@
                                     <th>سرمایه خالص</th>
                                     <th>سود</th>
                                     <th>هزینه</th>
-                                    <th>فروش</th>
-                                    <th>مانده صندوق</th>
+                                    <th>فروش/مرجوعی</th>
+                                    <th>
+                                        مانده صندوق دوره‌ای
+                                        <button type="button" class="info-icon" data-info-title="مانده صندوق دوره‌ای" data-info-content="مانده صندوق فقط برای همان دوره (ماه) جاری: سرمایه خالص همان دوره منهای هزینه همان دوره به‌علاوه فروش/مرجوعی همان دوره. این مقدار تجمعی نیست و فقط اثر همان ماه را نشان می‌دهد.">
+                                            <i class="fas fa-info-circle"></i>
+                                        </button>
+                                    </th>
+                                    <th>
+                                        مانده صندوق تجمعی
+                                        <button type="button" class="info-icon" data-info-title="مانده صندوق" data-info-content="مانده صندوق تجمعی تا پایان همان دوره: سرمایه موجود تجمعی − هزینه‌های تجمعی + فروش تجمعی. این مقدار وضعیت انباشته صندوق تا آن ماه را نشان می‌دهد.">
+                                            <i class="fas fa-info-circle"></i>
+                                        </button>
+                                    </th>
                                     
                                     <!-- Cumulative Columns -->
                                     <th class="cumulative-column" style="display: none;">آورده تجمعی</th>
@@ -533,14 +715,35 @@
                                     <th class="cumulative-column" style="display: none;">سرمایه تجمعی</th>
                                     <th class="cumulative-column" style="display: none;">سود تجمعی</th>
                                     <th class="cumulative-column" style="display: none;">هزینه تجمعی</th>
-                                    <th class="cumulative-column" style="display: none;">فروش تجمعی</th>
-                                    <th class="cumulative-column" style="display: none;">مانده تجمعی</th>
+                                    <th class="cumulative-column" style="display: none;">فروش/مرجوعی تجمعی</th>
+                                    <th class="cumulative-column" style="display: none;">
+                                        مانده تجمعی
+                                        <button type="button" class="info-icon" data-info-title="مانده تجمعی" data-info-content="معادل مانده صندوق تجمعی است که در ستون داده‌های دوره نیز نمایش داده می‌شود، با این تفاوت که این ستون در بخش مقادیر تجمعی گروه‌بندی شده است.">
+                                            <i class="fas fa-info-circle"></i>
+                                        </button>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody id="tableBody">
                                 <!-- Data will be inserted here -->
                             </tbody>
                         </table>
+                    </div>
+                </div>
+
+                <!-- Info Modal -->
+                <div class="modal fade" id="infoModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="infoModalTitle">اطلاعات</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body" id="infoModalBody"></div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -615,24 +818,26 @@
                 const excelData = [];
                 
                 // هدر جدول
-                excelData.push([
+                    excelData.push([
                     'دوره',
                     'سال',
-                    'ماه',
                     'آورده (تومان)',
                     'برداشت (تومان)',
                     'سرمایه خالص (تومان)',
                     'سود (تومان)',
                     'هزینه (تومان)',
-                    'فروش (تومان)',
+                    'فروش/مرجوعی (تومان)',
+                        'مانده صندوق دوره‌ای (تومان)',
                     'مانده صندوق (تومان)',
                     'آورده تجمعی (تومان)',
                     'برداشت تجمعی (تومان)',
                     'سرمایه تجمعی (تومان)',
                     'سود تجمعی (تومان)',
                     'هزینه تجمعی (تومان)',
-                    'فروش تجمعی (تومان)',
-                    'مانده تجمعی (تومان)'
+                    'فروش/مرجوعی تجمعی (تومان)',
+                    'مانده تجمعی (تومان)',
+                    'هزینه هر متر خالص (تومان/متر مربع)',
+                    'هزینه هر متر ناخالص (تومان/متر مربع)'
                 ]);
 
                 // داده‌های دوره‌ها
@@ -640,13 +845,13 @@
                     excelData.push([
                         period.period_label,
                         period.year,
-                        period.month_name,
                         Math.round(period.deposits),
                         Math.round(Math.abs(period.withdrawals)),
                         Math.round(period.net_capital),
                         Math.round(period.profits),
                         Math.round(period.expenses),
                         Math.round(period.sales),
+                        Math.round(period.period_fund_balance),
                         Math.round(period.fund_balance),
                         Math.round(period.cumulative_deposits),
                         Math.round(Math.abs(period.cumulative_withdrawals)),
@@ -654,7 +859,9 @@
                         Math.round(period.cumulative_profits),
                         Math.round(period.cumulative_expenses),
                         Math.round(period.cumulative_sales),
-                        Math.round(period.cumulative_fund_balance)
+                        Math.round(period.cumulative_fund_balance),
+                        Math.round(result.totals.cost_per_meter_net),
+                        Math.round(result.totals.cost_per_meter_gross)
                     ]);
                 });
 
@@ -666,21 +873,23 @@
                 ws['!cols'] = [
                     { wch: 15 }, // دوره
                     { wch: 8 },  // سال
-                    { wch: 10 }, // ماه
                     { wch: 18 }, // آورده
                     { wch: 18 }, // برداشت
                     { wch: 20 }, // سرمایه خالص
                     { wch: 18 }, // سود
                     { wch: 18 }, // هزینه
-                    { wch: 18 }, // فروش
+                    { wch: 18 }, // فروش/مرجوعی
+                    { wch: 22 }, // مانده صندوق دوره‌ای
                     { wch: 20 }, // مانده صندوق
                     { wch: 20 }, // آورده تجمعی
                     { wch: 20 }, // برداشت تجمعی
                     { wch: 20 }, // سرمایه تجمعی
                     { wch: 18 }, // سود تجمعی
                     { wch: 18 }, // هزینه تجمعی
-                    { wch: 18 }, // فروش تجمعی
-                    { wch: 20 }  // مانده تجمعی
+                    { wch: 18 }, // فروش/مرجوعی تجمعی
+                    { wch: 20 }, // مانده تجمعی
+                    { wch: 25 }, // هزینه هر متر خالص
+                    { wch: 25 }  // هزینه هر متر ناخالص
                 ];
 
                 // اضافه کردن worksheet به workbook
@@ -711,6 +920,7 @@
                 
                 if (result.success) {
                     displaySummaryCards(result.totals);
+                    displayCurrentPeriodCards(result.current);
                     displayPeriodTable(result.data);
                     
                     // Hide loading, show table
@@ -727,6 +937,34 @@
             }
         }
 
+        // Display current period cards
+        function displayCurrentPeriodCards(current) {
+            const formatNumber = (num) => {
+                return new Intl.NumberFormat('en-US').format(Math.round(num));
+            };
+
+            // Display current period values if they exist
+            if (current && current.current_cumulative_totals) {
+                const currentData = current.current_cumulative_totals;
+                
+                if (currentData.final_cost !== undefined && currentData.final_cost !== null) {
+                    document.getElementById('currentFinalCost').textContent = formatNumber(currentData.final_cost);
+                } else {
+                    document.getElementById('currentFinalCost').textContent = '0';
+                }
+                
+                if (currentData.final_fund_balance !== undefined && currentData.final_fund_balance !== null) {
+                    document.getElementById('currentBuildingFundBalance').textContent = formatNumber(currentData.final_fund_balance);
+                } else {
+                    document.getElementById('currentBuildingFundBalance').textContent = '0';
+                }
+            } else {
+                // اگر هیچ داده‌ای نبود، صفر نمایش بده
+                document.getElementById('currentFinalCost').textContent = '0';
+                document.getElementById('currentBuildingFundBalance').textContent = '0';
+            }
+        }
+
         // Display summary cards
         function displaySummaryCards(totals) {
             document.getElementById('totalDeposits').textContent = formatNumber(totals.total_deposits);
@@ -735,8 +973,10 @@
             document.getElementById('totalProfits').textContent = formatNumber(totals.total_profits);
             document.getElementById('totalExpenses').textContent = formatNumber(totals.total_expenses);
             document.getElementById('totalSales').textContent = formatNumber(totals.total_sales);
-            document.getElementById('finalBalance').textContent = formatNumber(totals.final_fund_balance);
             document.getElementById('totalPeriods').textContent = totals.total_periods;
+            document.getElementById('costPerMeterNet').textContent = formatNumber(totals.cost_per_meter_net);
+            document.getElementById('costPerMeterGross').textContent = formatNumber(totals.cost_per_meter_gross);
+            document.getElementById('finalCost').textContent = formatNumber(totals.final_cost);
         }
 
         // Display period table
@@ -746,10 +986,15 @@
             
             data.forEach(period => {
                 const row = document.createElement('tr');
+                
+                // افزودن کلاس برای دوره جاری
+                if (period.is_current_period) {
+                    row.classList.add('current-period');
+                }
+                
                 row.innerHTML = `
                     <td><strong>${period.period_label}</strong></td>
                     <td>${period.year}</td>
-                    <td>${period.month_name}</td>
                     
                     <!-- Period Columns -->
                     <td class="deposits-col">${formatNumber(period.deposits)}</td>
@@ -758,6 +1003,7 @@
                     <td class="profits-col">${formatNumber(period.profits)}</td>
                     <td class="expenses-col">${formatNumber(period.expenses)}</td>
                     <td class="sales-col">${formatNumber(period.sales)}</td>
+                    <td class="balance-col">${formatNumber(period.period_fund_balance)}</td>
                     <td class="balance-col">${formatNumber(period.fund_balance)}</td>
                     
                     <!-- Cumulative Columns -->
@@ -775,6 +1021,26 @@
 
         // Load data on page load
         document.addEventListener('DOMContentLoaded', loadPeriodSummary);
+
+        // Setup info icon handlers
+        document.addEventListener('DOMContentLoaded', function() {
+            const infoButtons = document.querySelectorAll('.info-icon');
+            const modalEl = document.getElementById('infoModal');
+            const modalTitle = document.getElementById('infoModalTitle');
+            const modalBody = document.getElementById('infoModalBody');
+            const infoModal = modalEl ? new bootstrap.Modal(modalEl) : null;
+
+            infoButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (!infoModal) return;
+                    const title = this.getAttribute('data-info-title') || 'اطلاعات';
+                    const content = this.getAttribute('data-info-content') || '';
+                    modalTitle.textContent = title;
+                    modalBody.textContent = content;
+                    infoModal.show();
+                });
+            });
+        });
     </script>
 </body>
 </html>

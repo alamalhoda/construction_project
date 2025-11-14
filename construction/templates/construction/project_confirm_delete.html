@@ -33,7 +33,8 @@
                             {% endif %}
                         </p>
                         <p class="mb-1"><strong>تاریخ شروع:</strong> {{ object.start_date_shamsi|jformat:"%Y/%m/%d" }}</p>
-                        <p class="mb-0"><strong>تاریخ پایان:</strong> {{ object.end_date_shamsi|jformat:"%Y/%m/%d" }}</p>
+                        <p class="mb-1"><strong>تاریخ پایان:</strong> {{ object.end_date_shamsi|jformat:"%Y/%m/%d" }}</p>
+                        <p class="mb-0"><strong>درصد پیمان ساخت:</strong> {{ object.construction_contractor_percentage|floatformat:1 }}%</p>
                     </div>
                     
                     <form method="post" class="mt-4">

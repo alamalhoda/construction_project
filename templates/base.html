@@ -61,7 +61,7 @@
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown">
                             <i class="fas fa-cogs"></i> مدیریت
                         </a>
-                        <div class="dropdown-menu">
+                        <div class="dropdown-menu" style="direction: rtl;text-align: right;">
                             <a class="dropdown-item" href="{% url 'construction_Project_list' %}">
                                 <i class="fas fa-project-diagram"></i> پروژه‌ها
                             </a>
@@ -73,6 +73,9 @@
                             </a>
                             <a class="dropdown-item" href="{% url 'construction_Unit_list' %}">
                                 <i class="fas fa-building"></i> واحدها
+                            </a>                            
+                            <a class="dropdown-item" href="{% url 'construction_UnitSpecificExpense_list' %}">
+                                <i class="fas fa-file-invoice-dollar"></i> هزینه‌های اختصاصی واحد
                             </a>
                             <a class="dropdown-item" href="{% url 'construction_Period_list' %}">
                                 <i class="fas fa-calendar-alt"></i> دوره‌ها
@@ -129,16 +132,39 @@
     <script src="{% static 'vendor/persian-date/1.1.0/persian-date.min.js' %}"></script>
     <script src="{% static 'vendor/persian-datepicker/1.2.0/js/persian-datepicker.min.js' %}"></script>
     
+    <!-- Amount Formatter CSS -->
+    <link rel="stylesheet" href="{% static 'css/amount-formatter.css' %}">
+    
+    <!-- Amount Formatter JavaScript -->
+    <script src="{% static 'js/amount-formatter.js' %}"></script>
+    
     <!-- Initialize Persian Date Picker -->
     <script>
         $(document).ready(function() {
             // فعال‌سازی persian-datepicker برای فیلدهای تاریخ شمسی
             $('input[name*="shamsi"]').each(function() {
                 var fieldName = $(this).attr('name');
+                var $field = $(this);
                 
                 // تنظیم تاریخ امروز برای نمایش اولیه با اصلاح timezone
                 var today = new Date();
                 var todayForInit = new persianDate(today);
+                
+                // اگر فیلد خالی است و نام آن contract_date_shamsi است، مقدار پیش‌فرض نداشته باشد
+                var hasValue = $field.val() && $field.val().trim() !== '';
+                var isContractDate = fieldName === 'contract_date_shamsi';
+                
+                // تنظیم مقدار پیش‌فرض فقط برای فیلدهایی که contract_date_shamsi نیستند
+                if (!isContractDate) {
+                    // برای فیلدهای غیر از contract_date_shamsi
+                    $field.val(todayForInit.format('YYYY-MM-DD'));
+                } else if (isContractDate && hasValue) {
+                    // برای فیلد contract_date_shamsi که مقدار دارد، مقدار موجود را نگه دار
+                    // هیچ کاری نکن
+                } else {
+                    // برای فیلد contract_date_shamsi خالی، فیلد را خالی نگه دار
+                    $field.val('');
+                }
                 
                 $(this).pDatepicker({
                     format: 'YYYY-MM-DD',
@@ -181,7 +207,6 @@
                     viewMode: 'day',
                     minDate: false,
                     maxDate: false,
-                    defaultDate: todayForInit,
                     onSelect: function(unix) {
                         try {
                             // استفاده از persianDate برای تاریخ انتخابی
@@ -224,6 +249,12 @@
                 $(this).attr('dir', 'rtl');
                 $(this).attr('readonly', 'readonly');
                 $(this).attr('placeholder', 'انتخاب تاریخ شمسی...');
+            });
+            
+            // اضافه کردن عملکرد دکمه پاک کردن برای فیلد contract_date_shamsi
+            $('#clear_contract_date').on('click', function() {
+                $('#contract_date_shamsi').val('');
+                console.log('تاریخ قرارداد پاک شد');
             });
             
             // نمایش تاریخ امروز در کنسول برای بررسی

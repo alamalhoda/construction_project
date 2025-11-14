@@ -65,6 +65,7 @@ class InvestorAdmin(admin.ModelAdmin):
         "last_name",
         "phone",
         "email",
+        "description",
     ]
     filter_horizontal = [
         "units",
@@ -133,6 +134,7 @@ class ProjectAdmin(admin.ModelAdmin):
     ]
     search_fields = [
         "name",
+        "description",
     ]
     readonly_fields = [
         "created_at",
@@ -295,6 +297,39 @@ class SaleAdmin(admin.ModelAdmin):
     ]
 
 
+class UnitSpecificExpenseAdminForm(forms.ModelForm):
+
+    class Meta:
+        model = models.UnitSpecificExpense
+        fields = "__all__"
+
+
+class UnitSpecificExpenseAdmin(admin.ModelAdmin):
+    form = UnitSpecificExpenseAdminForm
+    list_display = [
+        "project",
+        "unit",
+        "title",
+        "date_shamsi",
+        "amount",
+        "created_at",
+    ]
+    list_filter = [
+        "project",
+        "unit",
+        "created_at",
+    ]
+    search_fields = [
+        "title",
+        "description",
+        "unit__name",
+    ]
+    readonly_fields = [
+        "created_at",
+        "updated_at",
+    ]
+
+
 admin.site.register(models.Expense, ExpenseAdmin)
 admin.site.register(models.Investor, InvestorAdmin)
 admin.site.register(models.InterestRate, InterestRateAdmin)
@@ -303,4 +338,5 @@ admin.site.register(models.Project, ProjectAdmin)
 admin.site.register(models.Sale, SaleAdmin)
 admin.site.register(models.Transaction, TransactionAdmin)
 admin.site.register(models.Unit, UnitAdmin)
+admin.site.register(models.UnitSpecificExpense, UnitSpecificExpenseAdmin)
 admin.site.register(models.UserProfile)

@@ -39,6 +39,7 @@
             --profit-color: #21ba45;            /* سبز - سود مشارکت */
             --capital-color: #667eea;           /* بنفش - سرمایه موجود */
             --expense-color: #dc3545;           /* قرمز تیره - هزینه‌ها */
+            --refund-color: #ffc107;            /* زرد - فروش/مرجوعی */
             --total-color: #6c757d;             /* خاکستری - مجموع */
         }
 
@@ -613,11 +614,11 @@
         }
 
         .stat-card.sales-card::before {
-            background: linear-gradient(90deg, #4caf50, #81c784) !important;
+            background: linear-gradient(90deg, var(--refund-color), #ffd700) !important;
         }
 
         .stat-card.final-cost-card::before {
-            background: linear-gradient(90deg, var(--total-color), #90a4ae) !important;
+            background: linear-gradient(90deg, var(--expense-color), #f48fb1) !important;
         }
 
         .stat-icon {
@@ -638,11 +639,11 @@
         }
 
         .stat-card.sales-card .stat-icon {
-            background: linear-gradient(135deg, #4caf50, #81c784) !important;
+            background: linear-gradient(135deg, var(--refund-color), #ffd700) !important;
         }
 
         .stat-card.final-cost-card .stat-icon {
-            background: linear-gradient(135deg, var(--total-color), #90a4ae) !important;
+            background: linear-gradient(135deg, var(--expense-color), #f48fb1) !important;
         }
 
         .stat-content {
@@ -709,11 +710,116 @@
         }
 
         .stat-card.sales-card .stat-value {
-            color: #4caf50 !important;
+            color: var(--refund-color) !important;
         }
 
         .stat-card.final-cost-card .stat-value {
-            color: var(--total-color) !important;
+            color: var(--expense-color) !important;
+        }
+
+        /* Current Final Cost Card */
+        .stat-card.current-final-cost-card .stat-icon {
+            background: linear-gradient(135deg, var(--expense-color), #c0392b) !important;
+        }
+
+        .stat-card.current-final-cost-card::before {
+            background: linear-gradient(90deg, var(--expense-color), #c0392b) !important;
+        }
+
+        .stat-card.current-final-cost-card .stat-value {
+            color: var(--expense-color) !important;
+        }
+
+        /* Building Fund Card */
+        .stat-card.building-fund-card .stat-icon {
+            background: linear-gradient(135deg, var(--balance-color), #adb5bd) !important;
+        }
+
+        .stat-card.building-fund-card::before {
+            background: linear-gradient(90deg, var(--balance-color), #adb5bd) !important;
+        }
+
+        .stat-card.building-fund-card .stat-value {
+            color: var(--balance-color) !important;
+        }
+
+        /* Current Building Fund Card */
+        .stat-card.current-building-fund-card .stat-icon {
+            background: linear-gradient(135deg, var(--balance-color), #adb5bd) !important;
+        }
+
+        .stat-card.current-building-fund-card::before {
+            background: linear-gradient(90deg, var(--balance-color), #adb5bd) !important;
+        }
+
+        .stat-card.current-building-fund-card .stat-value {
+            color: var(--balance-color) !important;
+        }
+
+        /* Special Current Period Section Styling */
+        .current-period-section {
+            position: relative;
+            margin: 20px 0;
+            padding: 25px;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, rgba(255, 193, 7, 0.05) 100%);
+            border-radius: 20px;
+            border: 3px solid var(--gold-color) !important;
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.3) !important;
+        }
+
+        .current-period-badge {
+            position: absolute;
+            top: -15px;
+            right: 30px;
+            background: linear-gradient(135deg, var(--gold-color) 0%, #ffc107 100%);
+            color: rgb(0, 0, 0);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .current-period-badge i {
+            font-size: 1rem;
+        }
+
+        /* Special styling for cards in current-period-section */
+        .current-period-section .stat-card {
+            border: 3px solid !important;
+            background: white !important;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        .current-period-section .stat-card.current-final-cost-card {
+            border-color: var(--expense-color) !important;
+            background: linear-gradient(135deg, rgba(220, 53, 69, 0.05) 0%, white 100%) !important;
+        }
+
+        .current-period-section .stat-card.current-building-fund-card {
+            border-color: var(--balance-color) !important;
+            background: linear-gradient(135deg, rgba(108, 117, 125, 0.03) 0%, white 100%) !important;
+        }
+
+        .current-period-section .stat-card.building-fund-card {
+            border-color: var(--balance-color) !important;
+            background: linear-gradient(135deg, rgba(108, 117, 125, 0.03) 0%, white 100%) !important;
+        }
+
+        .current-period-section .stat-card .stat-value {
+            font-size: 2rem !important;
+            font-weight: 700 !important;
+            color: rgb(0, 0, 0) !important;
+        }
+
+        .current-period-section .stat-card .stat-label {
+            font-size: 1rem !important;
+            font-weight: 600 !important;
+            color: rgb(0, 0, 0) !important;
         }
 
         .stat-card.units-card .stat-icon {
@@ -1122,7 +1228,7 @@
 
         <!-- Project Financial Summary Cards -->
         <div class="row mb-4" id="financialSummaryCards" style="display: none;">
-            <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
+            <div class="col-lg-3 col-md-4 col-sm-12 mb-3">
                 <div class="stat-card expense-card">
                     <div class="info-icon" data-tooltip="مجموع تمام هزینه‌های ثبت شده در پروژه شامل هزینه‌های ساخت، خرید مصالح، دستمزد کارگران و سایر هزینه‌های مرتبط">
                         <i class="fas fa-info"></i>
@@ -1136,7 +1242,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
+            <div class="col-lg-3 col-md-4 col-sm-12 mb-3">
                 <div class="stat-card sales-card">
                     
                     <div class="stat-icon">
@@ -1148,7 +1254,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-4 col-md-4 col-sm-12 mb-3">
+            <div class="col-lg-3 col-md-4 col-sm-12 mb-3">
                 <div class="stat-card final-cost-card">
                     <div class="info-icon" data-tooltip="هزینه خالص پروژه که از تفریق مجموع فروش از مجموع هزینه‌ها محاسبه می‌شود. این عدد نشان‌دهنده هزینه واقعی پروژه است">
                         <i class="fas fa-info"></i>
@@ -1163,7 +1269,7 @@
                 </div>
             </div>
         </div>
-
+        
         <!-- Project Statistics Cards -->
         <div class="row mb-4" id="projectStatsCards" style="display: none;">
             <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
@@ -1354,10 +1460,11 @@
             <div class="section-title">
                 <span>
                     <i class="fas fa-list"></i>
-                    لیست سودها(<a href="/construction/InterestRate/">لیست نرخ‌های سود</a>)
+                    لیست سودها(<a href="/construction/InterestRate/">ویرایش نرخ‌ سود</a>)
+                    (<a href="/construction/Project/">ویرایش ضریب اصلاحی</a>)
                 </span>
                 <br> <span style="color:black;font-size:1.2rem;"></span>
-
+ایش
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                     <button type="button" class="btn-add" data-bs-toggle="modal" data-bs-target="#addRateModal">
                         <i class="fas fa-plus"></i>
@@ -1704,6 +1811,10 @@
                 }
 
                 console.log('Cost Metrics from Server:', costMetrics);
+                console.log('Building Fund Balance:', costMetrics.building_fund_balance);
+                console.log('Total Capital:', costMetrics.total_capital);
+                console.log('Total Expenses:', costMetrics.total_expenses);
+                console.log('Total Sales:', costMetrics.total_sales);
 
                 // Display the data
                 displayFinancialSummary(

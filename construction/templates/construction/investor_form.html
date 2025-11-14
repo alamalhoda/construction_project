@@ -76,8 +76,16 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="contract_date_shamsi" class="form-label">تاریخ قرارداد (شمسی)</label>
-                                    <input class="form-control" id="contract_date_shamsi" type="text" name="contract_date_shamsi"
-                                           placeholder="YYYY-MM-DD" value="{{ object.contract_date_shamsi|default:'' }}">
+                                    <div class="input-group" style="direction: ltr;">
+                                        <input class="form-control" id="contract_date_shamsi" type="text" name="contract_date_shamsi"
+                                               placeholder="YYYY-MM-DD" value="{{ object.contract_date_shamsi|default:'' }}">
+                                        <div class="input-group-append">
+                                            <button type="button" class="btn btn-outline-secondary" id="clear_contract_date" title="پاک کردن تاریخ">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <small class="form-text text-muted">می‌توانید تاریخ را انتخاب کنید یا پاک کنید</small>
                                 </div>
                             </div>
                         </div>
@@ -89,7 +97,7 @@
                                     <select class="form-control" id="participation_type" name="participation_type" required>
                                         <option value="">انتخاب کنید...</option>
                                         <option value="owner" {% if object.participation_type == 'owner' %}selected{% endif %}>مالک</option>
-                                        <option value="investor" {% if object.participation_type == 'investor' %}selected{% endif %}>مشارکت کننده</option>
+                                        <option value="investor" {% if object.participation_type == 'investor' %}selected{% endif %}>سرمایه گذار</option>
                                     </select>
                                 </div>
                             </div>
@@ -102,6 +110,16 @@
                                         {% endfor %}
                                     </select>
                                     <small class="form-text text-muted">می‌توانید چندین واحد را انتخاب کنید (Ctrl+Click)</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="description" class="form-label">توضیحات</label>
+                                    <textarea class="form-control" id="description" name="description" rows="4" 
+                                              placeholder="توضیحات اضافی درباره/به این فرد...">{{ object.description|default:'' }}</textarea>
                                 </div>
                             </div>
                         </div>

@@ -58,6 +58,10 @@
             --balance-color-light: rgba(108, 117, 125, 0.1);
             --total-color: #6c757d;             /* خاکستری - مجموع */
             --total-color-light: rgba(108, 117, 125, 0.1);
+            --gold-color: #ffd700;              /* طلایی - شاخص نفع */
+            --gold-color-light: rgba(255, 215, 0, 0.1);
+            --loan-deposit-color: #5ca5e8;      /* آبی روشن - آورده وام (نزدیک به #2185d0 اما روشن‌تر) */
+            --loan-deposit-color-light: rgba(92, 165, 232, 0.1);
             
             /* Background Colors */
             --bg-primary: #f8f9fa;
@@ -110,6 +114,10 @@
             --balance-color-light: rgba(176, 190, 197, 0.2);
             --total-color: #b0bec5;             /* خاکستری روشن‌تر - مجموع */
             --total-color-light: rgba(176, 190, 197, 0.2);
+            --gold-color: #ffed4e;              /* طلایی روشن‌تر */
+            --gold-color-light: rgba(255, 237, 78, 0.2);
+            --loan-deposit-color: #7eb8f0;      /* آبی روشن‌تر برای حالت تاریک */
+            --loan-deposit-color-light: rgba(126, 184, 240, 0.15);
             
             /* Dark Background Colors */
             --bg-primary: #121212;
@@ -304,6 +312,92 @@
             padding: 20px;
         }
 
+        /* Current Period Section - Special styling */
+        .current-period-section {
+            grid-column: 1 / -1;
+            position: relative;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin: 20px 0;
+            padding: 25px;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, rgba(255, 193, 7, 0.05) 100%);
+            border-radius: 20px;
+            border: 2px dashed var(--gold-color);
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.15);
+        }
+
+        .current-period-badge {
+            position: absolute;
+            top: -15px;
+            right: 30px;
+            background: linear-gradient(135deg, var(--gold-color) 0%, #ffc107 100%);
+            color: rgb(0, 0, 0);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .current-period-badge i {
+            font-size: 1rem;
+        }
+
+        .stats-grid .current-period-section .stat-card {
+            border: 3px solid !important;
+            background: white !important;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
+            transform: none !important;
+        }
+
+        .stats-grid .current-period-section .stat-card:hover {
+            transform: translateY(-8px) !important;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        .stats-grid .current-period-section .current-final-cost-card {
+            border-color: var(--expense-color) !important;
+            background: linear-gradient(135deg, rgba(220, 53, 69, 0.05) 0%, white 100%) !important;
+        }
+
+        .stats-grid .current-period-section .current-building-fund-card {
+            border-color: var(--balance-color) !important;
+            background: linear-gradient(135deg, rgba(108, 117, 125, 0.03) 0%, white 100%) !important;
+        }
+
+        .stats-grid .current-period-section .stat-card h3 {
+            font-size: 2.8rem !important;
+            font-weight: 700 !important;
+            color: rgb(0, 0, 0) !important;
+        }
+
+        .stats-grid .current-period-section .stat-card i {
+            font-size: 3.5rem !important;
+        }
+
+        .stats-grid .current-period-section .stat-card p {
+            font-size: 1.2rem !important;
+            font-weight: 600 !important;
+            color: rgb(0, 0, 0) !important;
+        }
+
+        .stats-grid .current-period-section .current-final-cost-card i {
+            color: var(--expense-color) !important;
+        }
+
+        .stats-grid .current-period-section .current-final-cost-card h3 {
+            color: var(--expense-color) !important;
+        }
+
+        .stats-grid .current-period-section .current-final-cost-card p {
+            color: var(--expense-color) !important;
+        }
+
         .stat-card.interest-rate-card {
             /* grid-column: span 2; */
             background: linear-gradient(
@@ -441,26 +535,51 @@
             font-size: 1.1rem;
         }
 
-        .stat-card.building-fund-card {
-            grid-column: span 2;
-            background: linear-gradient(135deg, var(--balance-color) 0%, #495057 100%);
+        .stat-card.current-final-cost-card {
+            grid-column: span 1;
+            background: linear-gradient(135deg, var(--expense-color) 0%, #e74c3c 100%);
             color: white;
-            box-shadow: 0 12px 40px var(--balance-color-light);
+            box-shadow: 0 12px 40px var(--expense-color-light);
             margin: 10px;
         }
 
-        .stat-card.building-fund-card i {
-            color: white;
-            font-size: 3rem;
+        .stat-card.current-final-cost-card i {
+            color: rgb(0, 0, 0) !important;
+            font-size: 3rem !important;
         }
 
-        .stat-card.building-fund-card h3 {
+        .stat-card.current-final-cost-card h3 {
             color: white;
             font-size: 2.5rem;
             font-weight: bold;
         }
 
-        .stat-card.building-fund-card p {
+        .stat-card.current-final-cost-card p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+        }
+
+        .stat-card.current-building-fund-card {
+            grid-column: span 1;
+            background: linear-gradient(135deg, var(--balance-color) 0%, #adb5bd 100%);
+            color: white;
+            box-shadow: 0 12px 40px var(--balance-color-light);
+            margin: 10px;
+        }
+
+        .stat-card.current-building-fund-card i {
+
+            color: rgb(0, 0, 0) !important;
+            font-size: 3rem;
+        }
+
+        .stat-card.current-building-fund-card h3 {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+
+        .stat-card.current-building-fund-card p {
             color: rgba(255, 255, 255, 0.9);
             font-size: 1.1rem;
         }
@@ -784,53 +903,84 @@
         }
 
         /* رنگ‌بندی ستون‌های جدول خلاصه */
-        .summary-table th:nth-child(2), /* آورده */
+        .summary-table th:nth-child(2), /* آورده نقدی */
         .summary-table td:nth-child(2) {
             background-color: var(--deposit-color-light);
             border-left: 3px solid var(--deposit-color);
         }
 
-        .summary-table th:nth-child(3), /* برداشت */
+        .summary-table th:nth-child(3), /* آورده وام */
         .summary-table td:nth-child(3) {
+            background-color: var(--loan-deposit-color-light);
+            border-left: 3px solid var(--loan-deposit-color);
+        }
+
+        .summary-table th:nth-child(4), /* مجموع آورده */
+        .summary-table td:nth-child(4) {
+            background-color: var(--deposit-color-light);
+            border-left: 3px solid var(--deposit-color);
+            font-weight: bold;
+        }
+
+        .summary-table th:nth-child(5), /* برداشت */
+        .summary-table td:nth-child(5) {
             background-color: var(--withdrawal-color-light);
             border-left: 3px solid var(--withdrawal-color);
         }
 
-        .summary-table th:nth-child(4), /* سرمایه موجود */
-        .summary-table td:nth-child(4) {
+        .summary-table th:nth-child(6), /* سرمایه موجود */
+        .summary-table td:nth-child(6) {
             background-color: var(--capital-color-light);
             border-left: 3px solid var(--capital-color);
         }
 
-        .summary-table th:nth-child(5), /* سود مشارکت */
-        .summary-table td:nth-child(5) {
+        .summary-table th:nth-child(7), /* سود مشارکت */
+        .summary-table td:nth-child(7) {
             background-color: var(--profit-color-light);
             border-left: 3px solid var(--profit-color);
         }
 
-        .summary-table th:nth-child(6), /* مجموع */
-        .summary-table td:nth-child(6) {
+        .summary-table th:nth-child(8), /* مجموع */
+        .summary-table td:nth-child(8) {
             background-color: var(--total-color-light);
             border-left: 3px solid var(--total-color);
             font-weight: bold;
         }
 
-        .summary-table th:nth-child(7), /* نسبت سرمایه به سرمایه کل */
-        .summary-table td:nth-child(7) {
+        .summary-table th:nth-child(9), /* متراژ مالکیت */
+        .summary-table td:nth-child(9) {
+            background-color: var(--ownership-color-light);
+            border-left: 3px solid var(--ownership-color);
+        }
+
+        .summary-table th:nth-child(10), /* پرداخت نهایی */
+        .summary-table td:nth-child(10) {
+            background-color: var(--payment-color-light);
+            border-left: 3px solid var(--payment-color);
+        }
+
+        .summary-table th:nth-child(11), /* قیمت واگذاری/متر */
+        .summary-table td:nth-child(11) {
+            background-color: var(--price-color-light);
+            border-left: 3px solid var(--price-color);
+        }
+
+        .summary-table th:nth-child(12), /* شاخص نفع */
+        .summary-table td:nth-child(12) {
+            background-color: rgba(255, 152, 0, 0.1);
+            border-left: 3px solid #ff9800;
+        }
+
+        .summary-table th:nth-child(13), /* نسبت سرمایه به سرمایه کل */
+        .summary-table td:nth-child(13) {
             background-color: var(--capital-color-light);
             border-left: 3px solid var(--capital-color);
         }
 
-        .summary-table th:nth-child(8), /* نسبت سود به سود کل */
-        .summary-table td:nth-child(8) {
+        .summary-table th:nth-child(14), /* نسبت سود به سود کل */
+        .summary-table td:nth-child(14) {
             background-color: var(--profit-color-light);
             border-left: 3px solid var(--profit-color);
-        }
-
-        .summary-table th:nth-child(9), /* شاخص نفع */
-        .summary-table td:nth-child(9) {
-            background-color: rgba(255, 152, 0, 0.1);
-            border-left: 3px solid #ff9800;
         }
 
         /* رنگ‌بندی ردیف خلاصه */
@@ -847,6 +997,10 @@
         /* کلاس‌های هدر جدول */
         .summary-table .deposit-header {
             color: var(--deposit-color) !important;
+        }
+
+        .summary-table .loan-deposit-header {
+            color: white !important;
         }
 
         .summary-table .withdrawal-header {
@@ -875,6 +1029,54 @@
 
         .summary-table .price-header {
             color: var(--deposit-color) !important;
+        }
+
+        /* کلاس‌های سلول‌های محتوای جدول */
+        .summary-table .cell-capital-ratio {
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .summary-table .cell-profit-ratio {
+            color: var(--profit-color);
+            font-weight: bold;
+        }
+
+        .summary-table .cell-profit-index {
+            color: #ff9800;
+            font-weight: bold;
+        }
+
+        .summary-table .cell-ownership-area {
+            color: var(--capital-color);
+            font-weight: bold;
+        }
+
+        .summary-table .cell-payment-positive {
+            color: var(--profit-color);
+            font-weight: bold;
+            direction: ltr;
+        }
+
+        .summary-table .cell-payment-negative {
+            color: var(--withdrawal-color);
+            font-weight: bold;
+            direction: ltr;
+        }
+
+        .summary-table .cell-price {
+            color: var(--deposit-color);
+            font-weight: bold;
+        }
+
+        .summary-table .cell-total-percentage {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .summary-table .cell-muted {
+            color: var(--balance-color);
+            font-weight: bold;
         }
 
         /* استایل برای header جدول خلاصه */
@@ -1106,17 +1308,44 @@
                 font-size: 2rem;
             }
 
-            .stat-card.building-fund-card {
+            .stat-card.current-final-cost-card {
                 grid-column: span 1;
                 margin: 5px;
             }
 
-            .stat-card.building-fund-card i {
+            .stat-card.current-final-cost-card i {
                 font-size: 2.5rem;
             }
 
-            .stat-card.building-fund-card h3 {
+            .stat-card.current-final-cost-card h3 {
                 font-size: 2rem;
+            }
+
+            .stat-card.current-building-fund-card {
+                grid-column: span 1;
+                margin: 5px;
+            }
+
+            .stat-card.current-building-fund-card i {
+                font-size: 2.5rem;
+            }
+
+            .stat-card.current-building-fund-card h3 {
+                font-size: 2rem;
+            }
+
+            .current-period-section {
+                grid-template-columns: 1fr !important;
+                gap: 15px !important;
+                padding: 20px !important;
+                margin: 15px 0 !important;
+            }
+
+            .current-period-badge {
+                top: -12px !important;
+                right: 20px !important;
+                padding: 6px 15px !important;
+                font-size: 0.85rem !important;
             }
 
             .stat-card.duration-card {
@@ -1225,10 +1454,23 @@
                     <h3 id="totalSales">-</h3>
                     <p>کل مجموع فروش/مرجوعی (تومان)</p>
                 </div>
-                <div class="stat-card building-fund-card">
-                    <i class="fas fa-building"></i>
-                    <h3 id="buildingFundBalance">-</h3>
-                    <p>مانده صندوق ساختمان (تومان)</p>
+                
+                <!-- کارت‌های ویژه دوره جاری -->
+                <div class="current-period-section">
+                    <div class="current-period-badge">
+                        <i class="fas fa-star"></i>
+                        وضعیت فعلی پروژه
+                    </div>
+                    <div class="stat-card current-final-cost-card">
+                        <i class="fas fa-calendar-check"></i>
+                        <h3 id="currentFinalCost">-</h3>
+                        <p>هزینه خالص فعلی (تومان)</p>
+                    </div>
+                    <div class="stat-card current-building-fund-card">
+                        <i class="fas fa-building"></i>
+                        <h3 id="currentBuildingFundBalance">-</h3>
+                        <p>مانده صندوق فعلی (تومان)</p>
+                    </div>
                 </div>
                 
                 <!-- ردیف چهارم: آمار واحدها -->
@@ -1866,16 +2108,41 @@
                 }
             }
             
-            // نمایش مانده صندوق ساختمان از داده‌های سمت سرور
-            const buildingFundBalanceElement = document.getElementById('buildingFundBalance');
-            if (buildingFundBalanceElement) {
-                // استفاده از داده‌های cost_metrics از سمت سرور
-                if (comprehensiveAnalysis && comprehensiveAnalysis.cost_metrics) {
-                    const buildingFundBalance = comprehensiveAnalysis.cost_metrics.building_fund_balance;
-                    buildingFundBalanceElement.textContent = Math.round(buildingFundBalance).toLocaleString('en-US');
-                } else {
-                    buildingFundBalanceElement.textContent = '-';
-                }
+            // نمایش هزینه خالص فعلی و مانده صندوق فعلی از داده‌های سمت سرور
+            const currentFinalCostElement = document.getElementById('currentFinalCost');
+            if (currentFinalCostElement) {
+                // استفاده از API Period/period_summary/ برای دریافت داده‌های دوره جاری
+                fetch('/api/v1/Period/period_summary/')
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success && result.current && result.current.current_cumulative_totals) {
+                            const currentData = result.current.current_cumulative_totals;
+                            if (currentData.final_cost !== undefined && currentData.final_cost !== null) {
+                                currentFinalCostElement.textContent = Math.round(currentData.final_cost).toLocaleString('en-US');
+                            } else {
+                                currentFinalCostElement.textContent = '0';
+                            }
+                            
+                            const currentBuildingFundBalanceElement = document.getElementById('currentBuildingFundBalance');
+                            if (currentBuildingFundBalanceElement) {
+                                if (currentData.final_fund_balance !== undefined && currentData.final_fund_balance !== null) {
+                                    currentBuildingFundBalanceElement.textContent = Math.round(currentData.final_fund_balance).toLocaleString('en-US');
+                                } else {
+                                    currentBuildingFundBalanceElement.textContent = '0';
+                                }
+                            }
+                        } else {
+                            if (currentFinalCostElement) currentFinalCostElement.textContent = '0';
+                            const currentBuildingFundBalanceElement = document.getElementById('currentBuildingFundBalance');
+                            if (currentBuildingFundBalanceElement) currentBuildingFundBalanceElement.textContent = '0';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading current period data:', error);
+                        if (currentFinalCostElement) currentFinalCostElement.textContent = '-';
+                        const currentBuildingFundBalanceElement = document.getElementById('currentBuildingFundBalance');
+                        if (currentBuildingFundBalanceElement) currentBuildingFundBalanceElement.textContent = '-';
+                    });
             }
             
             console.log('✅ آمار از سمت سرور به‌روزرسانی شد:', {
@@ -1892,8 +2159,6 @@
                     comprehensiveAnalysis.cost_metrics.total_expenses.toLocaleString('en-US') + ' تومان' : 'نامشخص',
                 totalSales: comprehensiveAnalysis && comprehensiveAnalysis.cost_metrics ? 
                     comprehensiveAnalysis.cost_metrics.total_sales.toLocaleString('en-US') + ' تومان' : 'نامشخص',
-                buildingFundBalance: comprehensiveAnalysis && comprehensiveAnalysis.cost_metrics ? 
-                    comprehensiveAnalysis.cost_metrics.building_fund_balance.toLocaleString('en-US') + ' تومان' : 'نامشخص',
                 annualInterestRate: comprehensiveAnalysis && comprehensiveAnalysis.profit_percentages ? 
                     comprehensiveAnalysis.profit_percentages.annual_profit_percentage.toFixed(2) + '%' : 'نامشخص'
             });
@@ -1909,7 +2174,7 @@
             const totalInvestors = allInvestors.length;
             
             // 2. محاسبه سرمایه موجود (آورده - برداشت)
-            const principalDeposits = chartData.filter(row => row.entry_type === 'principal_deposit');
+            const principalDeposits = chartData.filter(row => ['principal_deposit','loan_deposit'].includes(row.entry_type));
             const principalWithdrawals = chartData.filter(row => row.entry_type === 'principal_withdrawal');
             
             const totalDeposits = principalDeposits.reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
@@ -2188,17 +2453,19 @@
                         <thead>
                             <tr>
                                 <th>نام مشارکت کننده</th>
-                                <th class="deposit-header"><i class="fas fa-plus-circle"></i> آورده</th>
-                                <th class="withdrawal-header"><i class="fas fa-minus-circle"></i> برداشت</th>
+                                <th class="deposit-header"><i class="fas fa-plus-circle"></i> آورده نقدی</th>
+                                <th class="loan-deposit-header" style="background-color: var(--loan-deposit-color); color: white;"><i class="fas fa-money-bill-wave"></i> آورده وام</th>
+                                <th class="deposit-header"><i class="fas fa-calculator"></i> مجموع آورده</th>
+                                <th class="withdrawal-header"><i class="fas fa-minus充足的-circle"></i> برداشت</th>
                                 <th class="capital-header"><i class="fas fa-wallet"></i> سرمایه موجود</th>
                                 <th class="profit-header"><i class="fas fa-chart-line"></i> سود مشارکت</th>
                                 <th class="total-header"><i class="fas fa-calculator"></i> مجموع (سرمایه+سود)</th>
-                                <th>نسبت سرمایه به سرمایه کل</th>
-                                <th>نسبت سود به سود کل</th>
-                                <th>شاخص نفع</th>
                                 <th class="ownership-header"><i class="fas fa-ruler-combined"></i> متراژ مالکیت (m²)</th>
                                 <th class="payment-header"><i class="fas fa-hand-holding-usd"></i> پرداخت نهایی</th>
                                 <th class="price-header"><i class="fas fa-tags"></i> قیمت واگذاری/متر</th>
+                                <th>شاخص نفع</th>
+                                <th>نسبت سرمایه به سرمایه کل</th>
+                                <th>نسبت سود به سود کل</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -2216,24 +2483,36 @@
                     const finalPayment = ownership.final_payment || 0;
                     const transferPricePerMeter = ownership.transfer_price_per_meter || 0;
                     
-                    // رنگ‌بندی پرداخت نهایی (سبز=دریافتی، قرمز=پرداختی)
-                    const paymentColor = finalPayment >= 0 ? '#21ba45' : '#db2828';
+                    // تعیین کلاس رنگ و علامت برای پرداخت نهایی
+                    const paymentClass = finalPayment >= 0 ? 'cell-payment-positive' : 'cell-payment-negative';
                     const paymentSign = finalPayment >= 0 ? '+' : '';
+                    
+                    // فرمت‌گذاری برای سه ستون: اگر صفر بود، "-" نمایش بده
+                    const finalPaymentDisplay = finalPayment === 0 ? '-' : `${paymentSign}${Math.round(finalPayment).toLocaleString('en-US')}`;
+                    const transferPriceDisplay = transferPricePerMeter === 0 ? '-' : Math.round(transferPricePerMeter).toLocaleString('en-US');
+                    const profitIndexDisplay = parseFloat(profitIndex) === 0 ? '-' : profitIndex;
+                    
+                    // آیکون نوع سرمایه‌گذار
+                    const typeIcon = investor.participation_type === 'owner' 
+                        ? '<i class="fas fa-building" style="color: #667eea; margin-left: 8px;" title="مالک"></i>' 
+                        : '<i class="fas fa-hand-holding-usd" style="color: #21ba45; margin-left: 8px;" title="سرمایه‌گذار"></i>';
                     
                     tableHTML += `
                         <tr>
-                            <td>${investor.name}</td>
-                            <td>${investor.total_deposits.toLocaleString('en-US')}</td>
+                            <td>${typeIcon} ${investor.name}</td>
+                            <td>${(investor.total_principal_deposit || 0).toLocaleString('en-US')}</td>
+                            <td>${(investor.total_loan_deposit || 0).toLocaleString('en-US')}</td>
+                            <td>${(investor.total_deposits || investor.total_principal || 0).toLocaleString('en-US')}</td>
                             <td>${investor.total_withdrawals.toLocaleString('en-US')}</td>
                             <td>${investor.net_principal.toLocaleString('en-US')}</td>
                             <td>${Math.round(investor.total_profit).toLocaleString('en-US')}</td>
                             <td>${Math.round(investor.grand_total).toLocaleString('en-US')}</td>
-                            <td style="color: #667eea; font-weight: bold;">${capitalRatio}</td>
-                            <td style="color: #21ba45; font-weight: bold;">${profitToTotalRatio}%</td>
-                            <td style="color: #ff9800; font-weight: bold;">${profitIndex}</td>
-                            <td style="color: #aa26ff; font-weight: bold;">${ownershipArea.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                            <td style="color: ${paymentColor}; font-weight: bold;">${paymentSign}${Math.round(finalPayment).toLocaleString('en-US')}</td>
-                            <td style="color: #2185d0; font-weight: bold;">${Math.round(transferPricePerMeter).toLocaleString('en-US')}</td>
+                            <td class="cell-ownership-area">${ownershipArea.toLocaleString('en-US', {minimumFractionDigits: 3, maximumFractionDigits: 3})}</td>
+                            <td class="${paymentClass}">${finalPaymentDisplay}</td>
+                            <td class="cell-price">${transferPriceDisplay}</td>
+                            <td class="cell-profit-index">${profitIndexDisplay}</td>
+                            <td class="cell-capital-ratio">${capitalRatio}</td>
+                            <td class="cell-profit-ratio">${profitToTotalRatio}%</td>
                         </tr>
                     `;
                 });
@@ -2249,24 +2528,26 @@
                     return sum + ((inv.ownership && inv.ownership.final_payment) || 0);
                 }, 0);
                 
-                // رنگ‌بندی مجموع پرداخت نهایی
-                const totalPaymentColor = totalFinalPayment >= 0 ? '#21ba45' : '#db2828';
+                // تعیین کلاس رنگ برای مجموع پرداخت نهایی
+                const totalPaymentClass = totalFinalPayment >= 0 ? 'cell-payment-positive' : 'cell-payment-negative';
                 const totalPaymentSign = totalFinalPayment >= 0 ? '+' : '';
                 
                 tableHTML += `
                     <tr class="summary-row">
                         <td><i class="fas fa-sum"></i> مجموع</td>
-                        <td>${summaryData.reduce((sum, inv) => sum + inv.total_deposits, 0).toLocaleString('en-US')}</td>
+                        <td>${summaryData.reduce((sum, inv) => sum + (inv.total_principal_deposit || 0), 0).toLocaleString('en-US')}</td>
+                        <td>${summaryData.reduce((sum, inv) => sum + (inv.total_loan_deposit || 0), 0).toLocaleString('en-US')}</td>
+                        <td>${summaryData.reduce((sum, inv) => sum + (inv.total_deposits || inv.total_principal || 0), 0).toLocaleString('en-US')}</td>
                         <td>${summaryData.reduce((sum, inv) => sum + inv.total_withdrawals, 0).toLocaleString('en-US')}</td>
                         <td>${summaryData.reduce((sum, inv) => sum + inv.net_principal, 0).toLocaleString('en-US')}</td>
                         <td>${Math.round(summaryData.reduce((sum, inv) => sum + inv.total_profit, 0)).toLocaleString('en-US')}</td>
                         <td>${Math.round(summaryData.reduce((sum, inv) => sum + inv.grand_total, 0)).toLocaleString('en-US')}</td>
-                        <td style="color: #28a745; font-weight: bold;">100.00%</td>
-                        <td style="color: #21ba45; font-weight: bold;">100.00%</td>
-                        <td style="color: #ff9800; font-weight: bold;"></td>
-                        <td style="color: #aa26ff; font-weight: bold;">${totalOwnershipArea.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                        <td style="color: ${totalPaymentColor}; font-weight: bold;">${totalPaymentSign}${Math.round(totalFinalPayment).toLocaleString('en-US')}</td>
-                        <td style="color: #6c757d; font-weight: bold;">-</td>
+                        <td class="cell-ownership-area">${totalOwnershipArea.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                        <td class="${totalPaymentClass}">${totalPaymentSign}${Math.round(totalFinalPayment).toLocaleString('en-US')}</td>
+                        <td class="cell-muted">-</td>
+                        <td class="cell-profit-index"></td>
+                        <td class="cell-total-percentage">100.00%</td>
+                        <td class="cell-profit-ratio">100.00%</td>
                     </tr>
                 `;
 
@@ -2323,17 +2604,19 @@
                 // تعریف هدرها
                 const headers = [
                     'نام مشارکت کننده',
-                    'آورده (تومان)',
+                    'آورده نقدی (تومان)',
+                    'آورده وام (تومان)',
+                    'مجموع آورده (تومان)',
                     'برداشت (تومان)', 
                     'سرمایه موجود (تومان)',
                     'سود مشارکت (تومان)',
                     'مجموع (سرمایه+سود) (تومان)',
-                    'نسبت سرمایه به سرمایه کل (%)',
-                    'نسبت سود به سود کل (%)',
-                    'شاخص نفع',
                     'متراژ مالکیت (m²)',
                     'پرداخت نهایی (تومان)',
-                    'قیمت واگذاری/متر (تومان)'
+                    'قیمت واگذاری/متر (تومان)',
+                    'شاخص نفع',
+                    'نسبت سرمایه به سرمایه کل (%)',
+                    'نسبت سود به سود کل (%)'
                 ];
 
                 // ایجاد داده‌های جدول
@@ -2351,19 +2634,26 @@
                     const finalPayment = ownership.final_payment || 0;
                     const transferPricePerMeter = ownership.transfer_price_per_meter || 0;
                     
+                    // فرمت‌گذاری برای سه ستون: اگر صفر بود، "-" نمایش بده
+                    const finalPaymentExcel = finalPayment === 0 ? '-' : Math.round(finalPayment);
+                    const transferPriceExcel = transferPricePerMeter === 0 ? '-' : Math.round(transferPricePerMeter);
+                    const profitIndexExcel = parseFloat(profitIndex) === 0 ? '-' : profitIndex;
+                    
                     excelData.push([
                         investor.name,
-                        investor.total_deposits,
+                        investor.total_principal_deposit || 0,
+                        investor.total_loan_deposit || 0,
+                        investor.total_deposits || investor.total_principal || 0,
                         investor.total_withdrawals,
                         investor.net_principal,
                         Math.round(investor.total_profit),
                         Math.round(investor.grand_total),
-                        capitalRatio,
-                        profitToTotalRatio,
-                        profitIndex,
                         ownershipArea.toFixed(2),
-                        Math.round(finalPayment),
-                        Math.round(transferPricePerMeter)
+                        finalPaymentExcel,
+                        transferPriceExcel,
+                        profitIndexExcel,
+                        capitalRatio,
+                        profitToTotalRatio
                     ]);
                 });
 
@@ -2380,17 +2670,19 @@
                 
                 excelData.push([
                     'مجموع',
-                    summaryData.reduce((sum, inv) => sum + inv.total_deposits, 0),
+                    summaryData.reduce((sum, inv) => sum + (inv.total_principal_deposit || 0), 0),
+                    summaryData.reduce((sum, inv) => sum + (inv.total_loan_deposit || 0), 0),
+                    summaryData.reduce((sum, inv) => sum + (inv.total_deposits || inv.total_principal || 0), 0),
                     summaryData.reduce((sum, inv) => sum + inv.total_withdrawals, 0),
                     summaryData.reduce((sum, inv) => sum + inv.net_principal, 0),
                     Math.round(summaryData.reduce((sum, inv) => sum + inv.total_profit, 0)),
                     Math.round(summaryData.reduce((sum, inv) => sum + inv.grand_total, 0)),
-                    '100.00',
-                    '100.00',
-                    '',
                     totalOwnershipAreaExcel.toFixed(2),
                     Math.round(totalFinalPaymentExcel),
-                    '-'
+                    '-',
+                    '',
+                    '100.00',
+                    '100.00'
                 ]);
 
                 // ایجاد worksheet
@@ -2399,23 +2691,26 @@
                 // تنظیم عرض ستون‌ها
                 const colWidths = [
                     { wch: 25 }, // نام مشارکت کننده
-                    { wch: 18 }, // آورده
+                    { wch: 18 }, // آورده نقدی
+                    { wch: 18 }, // آورده وام
+                    { wch: 18 }, // مجموع آورده
                     { wch: 18 }, // برداشت
                     { wch: 20 }, // سرمایه موجود
                     { wch: 20 }, // سود مشارکت
                     { wch: 22 }, // مجموع
-                    { wch: 25 }, // نسبت سرمایه
-                    { wch: 22 }, // نسبت سود
-                    { wch: 15 }, // شاخص نفع
                     { wch: 20 }, // متراژ مالکیت
                     { wch: 20 }, // پرداخت نهایی
-                    { wch: 22 }  // قیمت واگذاری/متر
+                    { wch: 22 }, // قیمت واگذاری/متر
+                    { wch: 15 }, // شاخص نفع
+                    { wch: 25 }, // نسبت سرمایه
+                    { wch: 22 }  // نسبت سود
                 ];
                 ws['!cols'] = colWidths;
 
                 // تعریف رنگ‌های استاندارد پروژه (فرمت RGB برای Excel Windows)
                 const colors = {
                     deposit: "2185D0",      // آبی - آورده
+                    loanDeposit: "5CA5E8",  // آبی روشن - آورده وام
                     withdrawal: "DB2828",   // قرمز - برداشت
                     capital: "667EEA",      // بنفش - سرمایه موجود
                     profit: "21BA45",       // سبز - سود مشارکت
@@ -2426,6 +2721,7 @@
                 // تعریف رنگ‌های روشن‌تر برای پس‌زمینه سلول‌ها
                 const lightColors = {
                     deposit: "E3F2FD",      // آبی روشن
+                    loanDeposit: "E8F4FC",  // آبی روشن‌تر برای آورده وام
                     withdrawal: "FFEBEE",   // قرمز روشن
                     capital: "F3E5F5",      // بنفش روشن
                     profit: "E8F5E8",       // سبز روشن
@@ -2436,14 +2732,19 @@
                 // تنظیم استایل‌ها برای هدرها با رنگ‌بندی
                 const headerStyles = [
                     { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "4472C4" } } }, // نام
-                    { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: colors.deposit } } }, // آورده
+                    { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: colors.deposit } } }, // آورده نقدی
+                    { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: colors.loanDeposit } } }, // آورده وام
+                    { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: colors.deposit } } }, // مجموع آورده
                     { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: colors.withdrawal } } }, // برداشت
                     { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: colors.capital } } }, // سرمایه موجود
                     { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: colors.profit } } }, // سود مشارکت
                     { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: colors.total } } }, // مجموع
+                    { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "8E24AA" } } }, // متراژ مالکیت
+                    { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "FF5722" } } }, // پرداخت نهایی
+                    { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "607D8B" } } }, // قیمت واگذاری/متر
+                    { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: colors.profitIndex } } }, // شاخص نفع
                     { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: colors.capital } } }, // نسبت سرمایه
-                    { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: colors.profit } } }, // نسبت سود
-                    { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: colors.profitIndex } } } // شاخص نفع
+                    { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: colors.profit } } } // نسبت سود
                 ];
 
                 // اعمال استایل به هدرها
@@ -2464,41 +2765,51 @@
                         if (!ws[cellAddress]) continue;
                         
                         // تنظیم فرمت اعداد برای ستون‌های عددی
-                        if (col >= 1 && col <= 5) { // ستون‌های 1-5 (آورده تا مجموع)
+                        if (col >= 1 && col <= 7) { // ستون‌های 1-7 (آورده نقدی تا مجموع)
                             ws[cellAddress].z = '#,##0'; // فرمت عدد با جداکننده هزارگان
-                        } else if (col >= 6 && col <= 7) { // ستون‌های 6-7 (نسبت‌ها)
+                        } else if (col === 8) { // ستون 8 (متراژ مالکیت)
                             ws[cellAddress].z = '#,##0.00'; // فرمت اعشاری با 2 رقم اعشار
-                        } else if (col === 8) { // ستون 8 (شاخص نفع)
-                            ws[cellAddress].z = '#,##0.00'; // فرمت اعشاری با 2 رقم اعشار
-                        } else if (col === 9) { // ستون 9 (متراژ مالکیت)
-                            ws[cellAddress].z = '#,##0.00'; // فرمت اعشاری با 2 رقم اعشار
-                        } else if (col === 10) { // ستون 10 (پرداخت نهایی)
+                        } else if (col === 9) { // ستون 9 (پرداخت نهایی)
                             ws[cellAddress].z = '#,##0'; // فرمت عدد با جداکننده هزارگان
-                        } else if (col === 11) { // ستون 11 (قیمت واگذاری/متر)
+                        } else if (col === 10) { // ستون 10 (قیمت واگذاری/متر)
                             ws[cellAddress].z = '#,##0'; // فرمت عدد با جداکننده هزارگان
+                        } else if (col === 11) { // ستون 11 (شاخص نفع)
+                            ws[cellAddress].z = '#,##0.00'; // فرمت اعشاری با 2 رقم اعشار
+                        } else if (col >= 12 && col <= 13) { // ستون‌های 12-13 (نسبت‌ها)
+                            ws[cellAddress].z = '#,##0.00'; // فرمت اعشاری با 2 رقم اعشار
                         }
                         
                         // تنظیم رنگ پس‌زمینه برای سلول‌های داده
                         let backgroundColor = "";
-                        if (col === 1) backgroundColor = lightColors.deposit; // آورده
-                        else if (col === 2) backgroundColor = lightColors.withdrawal; // برداشت
-                        else if (col === 3) backgroundColor = lightColors.capital; // سرمایه موجود
-                        else if (col === 4) backgroundColor = lightColors.profit; // سود مشارکت
-                        else if (col === 5) backgroundColor = lightColors.total; // مجموع
-                        else if (col === 6) backgroundColor = lightColors.capital; // نسبت سرمایه
-                        else if (col === 7) backgroundColor = lightColors.profit; // نسبت سود
-                        else if (col === 8) backgroundColor = lightColors.profitIndex; // شاخص نفع
+                        if (col === 1) backgroundColor = lightColors.deposit; // آورده نقدی
+                        else if (col === 2) backgroundColor = lightColors.loanDeposit; // آورده وام
+                        else if (col === 3) backgroundColor = lightColors.deposit; // مجموع آورده
+                        else if (col === 4) backgroundColor = lightColors.withdrawal; // برداشت
+                        else if (col === 5) backgroundColor = lightColors.capital; // سرمایه موجود
+                        else if (col === 6) backgroundColor = lightColors.profit; // سود مشارکت
+                        else if (col === 7) backgroundColor = lightColors.total; // مجموع
+                        else if (col === 8) backgroundColor = "F3E5F5"; // متراژ مالکیت
+                        else if (col === 9) backgroundColor = "FFEBEE"; // پرداخت نهایی
+                        else if (col === 10) backgroundColor = "ECEFF1"; // قیمت واگذاری/متر
+                        else if (col === 11) backgroundColor = lightColors.profitIndex; // شاخص نفع
+                        else if (col === 12) backgroundColor = lightColors.capital; // نسبت سرمایه
+                        else if (col === 13) backgroundColor = lightColors.profit; // نسبت سود
                         
                         // تنظیم رنگ متن برای خوانایی بهتر
                         let textColor = "";
-                        if (col >= 1 && col <= 8) {
+                        if (col >= 1 && col <= 13) {
                             textColor = colors[col === 1 ? 'deposit' : 
-                                            col === 2 ? 'withdrawal' : 
-                                            col === 3 ? 'capital' : 
-                                            col === 4 ? 'profit' : 
-                                            col === 5 ? 'total' : 
-                                            col === 6 ? 'capital' : 
-                                            col === 7 ? 'profit' : 'profitIndex'];
+                                            col === 2 ? 'loanDeposit' : 
+                                            col === 3 ? 'deposit' : 
+                                            col === 4 ? 'withdrawal' : 
+                                            col === 5 ? 'capital' : 
+                                            col === 6 ? 'profit' : 
+                                            col === 7 ? 'total' : 
+                                            col === 8 ? '8E24AA' : 
+                                            col === 9 ? 'FF5722' : 
+                                            col === 10 ? '607D8B' : 
+                                            col === 11 ? 'profitIndex' : 
+                                            col === 12 ? 'capital' : 'profit'];
                         }
                         
                         if (backgroundColor) {
@@ -2527,14 +2838,18 @@
                     if (ws[cellAddress]) {
                         ws[cellAddress].s = summaryStyle;
                         // تنظیم فرمت اعداد برای ردیف مجموع
-                        if (col >= 1 && col <= 5) {
+                        if (col >= 1 && col <= 7) {
                             ws[cellAddress].z = '#,##0';
-                        } else if (col >= 6 && col <= 7) {
+                        } else if (col === 8) { // متراژ مالکیت
                             ws[cellAddress].z = '#,##0.00';
-                        } else if (col === 9) { // متراژ مالکیت
-                            ws[cellAddress].z = '#,##0.00';
-                        } else if (col === 10) { // پرداخت نهایی
+                        } else if (col === 9) { // پرداخت نهایی
                             ws[cellAddress].z = '#,##0';
+                        } else if (col === 10) { // قیمت واگذاری/متر
+                            ws[cellAddress].z = '#,##0';
+                        } else if (col === 11) { // شاخص نفع
+                            ws[cellAddress].z = '#,##0.00';
+                        } else if (col >= 12 && col <= 13) { // نسبت‌ها
+                            ws[cellAddress].z = '#,##0.00';
                         }
                     }
                 }
@@ -2702,7 +3017,7 @@
         function createProjectPrincipalTransactionChart() {
             // فیلتر تراکنش‌های آورده و برداشت
             const transactions = chartData.filter(row => 
-                row.entry_type === 'principal_deposit' || row.entry_type === 'principal_withdrawal'
+                ['principal_deposit','loan_deposit','principal_withdrawal'].includes(row.entry_type)
             );
 
             // مرتب‌سازی بر اساس تاریخ

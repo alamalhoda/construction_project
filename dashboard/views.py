@@ -275,4 +275,46 @@ def user_dashboard(request):
     except FileNotFoundError:
         return HttpResponse('‏‍فایل داشبورد کاربری یافت نشد', status=404)
 
+@login_required
+def detailed_calculations(request):
+    """نمایش صفحه محاسبات دقیق"""
+    from construction.calculations import (
+        ProjectCalculations, 
+        ProfitCalculations, 
+        InvestorCalculations, 
+        TransactionCalculations,
+        ComprehensiveCalculations
+    )
+    
+    try:
+        # دریافت تحلیل جامع پروژه
+        comprehensive_analysis = ComprehensiveCalculations.get_comprehensive_project_analysis()
+        
+        # دریافت آمار تمام سرمایه‌گذاران
+        investors_summary = InvestorCalculations.get_all_investors_summary()
+        
+        # آماده‌سازی context
+        context = {
+            'comprehensive_analysis': comprehensive_analysis,
+            'investors_summary': investors_summary,
+            'user': request.user,
+            'user_full_name': f"{request.user.first_name} {request.user.last_name}".strip() or request.user.username,
+        }
+        
+        # خواندن فایل HTML از پوشه view
+        file_path = os.path.join(settings.BASE_DIR, 'dashboard', 'view', 'detailed_calculations.html')
+        try:
+            with open(file_path, 'r', encoding='utf-8') as file:
+                content = file.read()
+            
+            # جایگزینی template variables
+            content = content.replace('{{ user_full_name }}', context['user_full_name'])
+            
+            return HttpResponse(content)
+        except FileNotFoundError:
+            return HttpResponse('فایل محاسبات دقیق یافت نشد', status=404)
+            
+    except Exception as e:
+        return HttpResponse(f'خطا در محاسبات: {str(e)}', status=500)
+
 
