@@ -1574,17 +1574,25 @@ class TransactionViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'])
     def recalculate_profits(self, request):
-        """محاسبه مجدد سودها با نرخ سود فعال فعلی"""
+        """محاسبه مجدد سودها با نرخ سود فعال فعلی برای پروژه فعال"""
         try:
-            # دریافت نرخ سود فعال فعلی
-            current_rate = models.InterestRate.get_current_rate()  # نرخ سود فعال فعلی
+            # دریافت پروژه جاری از session
+            from construction.project_manager import ProjectManager
+            active_project = ProjectManager.get_current_project(request)  # پروژه جاری
+            if not active_project:
+                return Response({
+                    'error': 'هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید.'
+                }, status=400)
+            
+            # دریافت نرخ سود فعال فعلی برای پروژه فعال
+            current_rate = models.InterestRate.get_current_rate(project=active_project)  # نرخ سود فعال فعلی
             if not current_rate:
                 return Response({
                     'error': 'هیچ نرخ سود فعالی یافت نشد. لطفاً ابتدا نرخ سود را تنظیم کنید.'
                 }, status=400)
             
-            # اجرای عملیات محاسبه مجدد
-            result = models.Transaction.recalculate_all_profits_with_new_rate(current_rate)  # محاسبه مجدد سودها با نرخ فعلی
+            # اجرای عملیات محاسبه مجدد برای پروژه فعال
+            result = models.Transaction.recalculate_all_profits_with_new_rate(current_rate, project=active_project)  # محاسبه مجدد سودها با نرخ فعلی
             
             return Response({
                 'success': True,
@@ -1672,8 +1680,16 @@ class InterestRateViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def current(self, request):
-        """دریافت نرخ سود فعال فعلی"""
-        current_rate = models.InterestRate.get_current_rate()  # نرخ سود فعال فعلی
+        """دریافت نرخ سود فعال فعلی برای پروژه فعال"""
+        # دریافت پروژه جاری از session
+        from construction.project_manager import ProjectManager
+        active_project = ProjectManager.get_current_project(request)  # پروژه جاری
+        if not active_project:
+            return Response({
+                'error': 'هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید.'
+            }, status=400)
+        
+        current_rate = models.InterestRate.get_current_rate(project=active_project)  # نرخ سود فعال فعلی
         if current_rate:
             serializer = self.get_serializer(current_rate)  # سریالایزر نرخ سود
             return Response(serializer.data)
