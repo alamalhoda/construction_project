@@ -36,7 +36,7 @@ def get_corrected_transaction_type(current_type, amount):
         elif current_type == 'profit_accrual':
             return 'principal_withdrawal'
     else:  # مقادیر مثبت
-        if current_type == 'principal_deposit':
+        if current_type in ['principal_deposit', 'loan_deposit']:
             return 'profit_accrual'
         elif current_type == 'profit_accrual':
             return 'principal_deposit'

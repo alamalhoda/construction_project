@@ -33,6 +33,14 @@ class Project(models.Model):
         verbose_name="ضریب اصلاحی",
         help_text="ضریب اصلاحی برای محاسبات پروژه"
     )
+    construction_contractor_percentage = models.DecimalField(
+        max_digits=6,
+        decimal_places=3,
+        default=0.100,
+        verbose_name="درصد پیمان ساخت",
+        help_text="درصد پیمان ساخت از مجموع سایر هزینه‌ها (به صورت اعشاری، مثلاً 0.100 برای 10%)"
+    )
+    description = models.TextField(blank=True, null=True, verbose_name="توضیحات", help_text="توضیحات اضافی درباره پروژه")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="تاریخ به‌روزرسانی")
 
@@ -97,6 +105,33 @@ class Project(models.Model):
     
 
 
+ 
+class UnitManager(models.Manager):
+    """مرجع واحد برای آمار واحدها (بدون تغییر رفتار مصرف‌کننده‌ها)."""
+    def project_stats(self, project: Project = None):
+        from django.db.models import Sum, Count
+        qs = self.get_queryset()
+        if project is not None:
+            qs = qs.filter(project=project)
+        stats = qs.aggregate(
+            total_units=Count('id'),
+            total_area=Sum('area'),
+            total_price=Sum('total_price')
+        )
+        return {
+            'total_units': stats['total_units'] or 0,
+            'total_area': float(stats['total_area'] or 0),
+            'total_price': float(stats['total_price'] or 0),
+        }
+
+    def project_total_area(self, project: Project = None):
+        from django.db.models import Sum
+        qs = self.get_queryset()
+        if project is not None:
+            qs = qs.filter(project=project)
+        return float(qs.aggregate(total=Sum('area'))['total'] or 0)
+
+
 class Unit(models.Model):
     """
     مدل واحد مسکونی
@@ -104,10 +139,13 @@ class Unit(models.Model):
     """
     project = models.ForeignKey(Project, on_delete=models.CASCADE, verbose_name="پروژه")
     name = models.CharField(max_length=200, verbose_name="نام واحد")
-    area = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="متراژ")
+    area = models.DecimalField(max_digits=12, decimal_places=4, verbose_name="متراژ")
     price_per_meter = models.DecimalField(max_digits=15, decimal_places=2, verbose_name="قیمت هر متر")
     total_price = models.DecimalField(max_digits=15, decimal_places=2, verbose_name="قیمت نهایی")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
+
+    # Manager سفارشی آمار واحدها
+    objects = UnitManager()
 
     class Meta:
         verbose_name = "واحد"
@@ -121,6 +159,7 @@ class Unit(models.Model):
     
     def get_update_url(self):
         return reverse('construction_Unit_update', kwargs={'pk': self.pk})
+
     
 
 
@@ -152,6 +191,7 @@ class Investor(models.Model):
     )
     units = models.ManyToManyField(Unit, blank=True, verbose_name="واحدها")
     contract_date_shamsi = jmodels.jDateField(null=True, blank=True, verbose_name="تاریخ قرارداد (شمسی)")
+    description = models.TextField(blank=True, null=True, verbose_name="توضیحات", help_text="توضیحات اضافی درباره این سرمایه‌گذار")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
 
     class Meta:
@@ -198,6 +238,14 @@ class Period(models.Model):
     
     def get_update_url(self):
         return reverse('construction_Period_update', kwargs={'pk': self.pk})
+    
+    def is_current(self):
+        """بررسی اینکه آیا این دوره، دوره جاری است"""
+        import jdatetime
+        today_jalali = jdatetime.datetime.now()
+        current_year = today_jalali.year
+        current_month = today_jalali.month
+        return self.year == current_year and self.month_number == current_month
     
 
 
@@ -302,6 +350,117 @@ class InterestRate(models.Model):
         from django.urls import reverse
         return reverse('construction_InterestRate_update', kwargs={'pk': self.pk})
 
+class TransactionManager(models.Manager):
+    """
+    مرجع واحد برای تجمیع تراکنش‌ها در سرتاسر سیستم.
+    قوانین ثابت:
+    - deposits = principal_deposit + loan_deposit
+    - withdrawals = principal_withdrawal (منفی)
+    - profits = profit_accrual
+    - net_capital = deposits + withdrawals
+    """
+
+    def get_queryset(self):
+        return super().get_queryset()
+
+    def project_totals(self, project: Project = None):
+        from django.db.models import Sum, Q
+        qs = self.get_queryset()
+        if project is not None:
+            qs = qs.filter(project=project)
+        deposits = qs.aggregate(total=Sum('amount', filter=Q(transaction_type__in=['principal_deposit', 'loan_deposit'])))['total'] or 0
+        withdrawals = qs.aggregate(total=Sum('amount', filter=Q(transaction_type='principal_withdrawal')))['total'] or 0
+        profits = qs.aggregate(total=Sum('amount', filter=Q(transaction_type='profit_accrual')))['total'] or 0
+        deposits = float(deposits)
+        withdrawals = float(withdrawals)
+        profits = float(profits)
+        net_capital = deposits + withdrawals
+        return {
+            'deposits': deposits,
+            'withdrawals': withdrawals,
+            'profits': profits,
+            'net_capital': net_capital,
+        }
+
+    def period_totals(self, project: Project, period: 'Period'):
+        from django.db.models import Sum, Q
+        qs = self.get_queryset().filter(project=project, period=period)
+        deposits = qs.aggregate(total=Sum('amount', filter=Q(transaction_type__in=['principal_deposit', 'loan_deposit'])))['total'] or 0
+        withdrawals = qs.aggregate(total=Sum('amount', filter=Q(transaction_type='principal_withdrawal')))['total'] or 0
+        profits = qs.aggregate(total=Sum('amount', filter=Q(transaction_type='profit_accrual')))['total'] or 0
+        deposits = float(deposits)
+        withdrawals = float(withdrawals)
+        profits = float(profits)
+        net_capital = deposits + withdrawals
+        return {
+            'deposits': deposits,
+            'withdrawals': withdrawals,
+            'profits': profits,
+            'net_capital': net_capital,
+        }
+
+    def cumulative_until(self, project: Project, upto_period: 'Period'):
+        from django.db.models import Sum, Q
+        qs = self.get_queryset().filter(project=project).filter(
+            Q(period__year__lt=upto_period.year) |
+            Q(period__year=upto_period.year, period__month_number__lte=upto_period.month_number)
+        )
+        deposits = qs.aggregate(total=Sum('amount', filter=Q(transaction_type__in=['principal_deposit', 'loan_deposit'])))['total'] or 0
+        withdrawals = qs.aggregate(total=Sum('amount', filter=Q(transaction_type='principal_withdrawal')))['total'] or 0
+        profits = qs.aggregate(total=Sum('amount', filter=Q(transaction_type='profit_accrual')))['total'] or 0
+        deposits = float(deposits)
+        withdrawals = float(withdrawals)
+        profits = float(profits)
+        net_capital = deposits + withdrawals
+        return {
+            'deposits': deposits,
+            'withdrawals': withdrawals,
+            'profits': profits,
+            'net_capital': net_capital,
+        }
+
+    def totals(self, project: Project = None, filters: dict = None):
+        """
+        مرجع واحدِ انعطاف‌پذیر برای تجمیع تراکنش‌ها با فیلترهای اختیاری.
+        خروجی شامل تفکیک principal_deposit و loan_deposit نیز هست تا استاندارد deposits حفظ شود.
+        """
+        from django.db.models import Sum, Q
+        qs = self.get_queryset()
+        if project is not None:
+            qs = qs.filter(project=project)
+        if filters:
+            if 'investor_id' in filters and filters['investor_id'] is not None:
+                qs = qs.filter(investor_id=filters['investor_id'])
+            if 'date_from' in filters and filters['date_from']:
+                qs = qs.filter(date_gregorian__gte=filters['date_from'])
+            if 'date_to' in filters and filters['date_to']:
+                qs = qs.filter(date_gregorian__lte=filters['date_to'])
+            if 'transaction_type' in filters and filters['transaction_type']:
+                qs = qs.filter(transaction_type=filters['transaction_type'])
+
+        principal_deposit = qs.aggregate(total=Sum('amount', filter=Q(transaction_type='principal_deposit')))['total'] or 0
+        loan_deposit = qs.aggregate(total=Sum('amount', filter=Q(transaction_type='loan_deposit')))['total'] or 0
+        withdrawals = qs.aggregate(total=Sum('amount', filter=Q(transaction_type='principal_withdrawal')))['total'] or 0
+        profits = qs.aggregate(total=Sum('amount', filter=Q(transaction_type='profit_accrual')))['total'] or 0
+
+        principal_deposit = float(principal_deposit)
+        loan_deposit = float(loan_deposit)
+        withdrawals = float(withdrawals)
+        profits = float(profits)
+        deposits = principal_deposit + loan_deposit
+        net_capital = deposits + withdrawals  # withdrawals منفی است
+
+        return {
+            'principal_deposit': principal_deposit,
+            'loan_deposit': loan_deposit,
+            'deposits': deposits,
+            'withdrawals': withdrawals,
+            'profits': profits,
+            'net_capital': net_capital,
+            'total_transactions': qs.count(),
+        }
+
+
 class Transaction(models.Model):
     """
     مدل تراکنش مالی
@@ -309,6 +468,7 @@ class Transaction(models.Model):
     """
     TRANSACTION_TYPES = [
         ('principal_deposit', 'آورده'),
+        ('loan_deposit', 'آورده وام'),
         ('principal_withdrawal', 'خروج از سرمایه'),
         ('profit_accrual', 'سود'),
     ]
@@ -343,6 +503,9 @@ class Transaction(models.Model):
         help_text="برای تراکنش‌های سود: تراکنش آورده یا خروج از سرمایه مربوطه"
     )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
+    
+    # Manager سفارشی
+    objects = TransactionManager()
 
     class Meta:
         verbose_name = "تراکنش"
@@ -406,7 +569,7 @@ class Transaction(models.Model):
         برای آورده: سود مثبت
         برای خروج از سرمایه: سود منفی
         """
-        if self.transaction_type not in ['principal_deposit', 'principal_withdrawal']:
+        if self.transaction_type not in ['principal_deposit', 'loan_deposit', 'principal_withdrawal']:
             return Decimal('0')
         
         if not interest_rate:
@@ -436,7 +599,7 @@ class Transaction(models.Model):
         
         # دریافت همه تراکنش‌های سرمایه (آورده و خروج)
         capital_transactions = cls.objects.filter(
-            transaction_type__in=['principal_deposit', 'principal_withdrawal'],
+            transaction_type__in=['principal_deposit', 'loan_deposit', 'principal_withdrawal'],
             day_remaining__gt=0
         )
         
@@ -533,6 +696,96 @@ class Transaction(models.Model):
             'total_affected': deleted_count + len(new_profit_transactions)
         }
 
+
+ 
+
+
+# الصاق Manager سفارشی به مدل Transaction
+# حذف add_to_class؛ Manager سفارشی در کلاس تنظیم شد
+
+# Managers برای Expense و Sale (قبل از تعریف مدل‌ها برای جلوگیری از ارجاع نامشخص)
+class ExpenseManager(models.Manager):
+    """مرجع واحد برای تجمیع هزینه‌ها (بدون تغییر رفتار مصرف‌کننده‌ها)."""
+    def project_totals(self, project: Project = None):
+        from django.db.models import Sum
+        qs = self.get_queryset()
+        if project is not None:
+            qs = qs.filter(project=project)
+        total_expenses = qs.aggregate(total=Sum('amount'))['total'] or 0
+        return float(total_expenses)
+
+    def period_totals(self, project: Project, period: Period):
+        from django.db.models import Sum
+        qs = self.get_queryset().filter(project=project, period=period)
+        total = qs.aggregate(total=Sum('amount'))['total'] or 0
+        return float(total)
+
+    def cumulative_until(self, project: Project, upto_period: Period):
+        from django.db.models import Sum, Q
+        qs = self.get_queryset().filter(project=project).filter(
+            Q(period__year__lt=upto_period.year) |
+            Q(period__year=upto_period.year, period__month_number__lte=upto_period.month_number)
+        )
+        total = qs.aggregate(total=Sum('amount'))['total'] or 0
+        return float(total)
+
+    def totals(self, project: Project = None, filters: dict = None):
+        from django.db.models import Sum
+        qs = self.get_queryset()
+        if project is not None:
+            qs = qs.filter(project=project)
+        if filters:
+            if 'period_id' in filters and filters['period_id']:
+                qs = qs.filter(period_id=filters['period_id'])
+            if 'expense_type' in filters and filters['expense_type']:
+                qs = qs.filter(expense_type=filters['expense_type'])
+        total = qs.aggregate(total=Sum('amount'))['total'] or 0
+        return {
+            'total_expenses': float(total),
+            'count': qs.count(),
+        }
+
+
+class SaleManager(models.Manager):
+    """مرجع واحد برای تجمیع فروش/مرجوعی‌ها (بدون تغییر رفتار مصرف‌کننده‌ها)."""
+    def project_totals(self, project: Project = None):
+        from django.db.models import Sum
+        qs = self.get_queryset()
+        if project is not None:
+            qs = qs.filter(project=project)
+        total_sales = qs.aggregate(total=Sum('amount'))['total'] or 0
+        return float(total_sales)
+
+    def period_totals(self, project: Project, period: Period):
+        from django.db.models import Sum
+        qs = self.get_queryset().filter(project=project, period=period)
+        total = qs.aggregate(total=Sum('amount'))['total'] or 0
+        return float(total)
+
+    def cumulative_until(self, project: Project, upto_period: Period):
+        from django.db.models import Sum, Q
+        qs = self.get_queryset().filter(project=project).filter(
+            Q(period__year__lt=upto_period.year) |
+            Q(period__year=upto_period.year, period__month_number__lte=upto_period.month_number)
+        )
+        total = qs.aggregate(total=Sum('amount'))['total'] or 0
+        return float(total)
+
+    def totals(self, project: Project = None, filters: dict = None):
+        from django.db.models import Sum
+        qs = self.get_queryset()
+        if project is not None:
+            qs = qs.filter(project=project)
+        if filters:
+            if 'period_id' in filters and filters['period_id']:
+                qs = qs.filter(period_id=filters['period_id'])
+        total = qs.aggregate(total=Sum('amount'))['total'] or 0
+        return {
+            'total_sales': float(total),
+            'count': qs.count(),
+        }
+
+
 class Expense(models.Model):
     """
     مدل هزینه‌های پروژه
@@ -554,6 +807,9 @@ class Expense(models.Model):
     description = models.TextField(blank=True, verbose_name="توضیحات")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
 
+    # Manager سفارشی برای تجمیع هزینه‌ها
+    objects = ExpenseManager()
+
     class Meta:
         verbose_name = "هزینه"
         verbose_name_plural = "هزینه‌ها"
@@ -574,17 +830,17 @@ class Expense(models.Model):
         if self.expense_type != 'construction_contractor':
             return Decimal('0')
         
-        # دریافت همه هزینه‌های همان دوره به جز construction_contractor
+        # دریافت همه هزینه‌های همان دوره به جز construction_contractor و other
         other_expenses = Expense.objects.filter(
             period=self.period,
             project=self.project
-        ).exclude(expense_type='construction_contractor')
+        ).exclude(expense_type__in=['construction_contractor', 'other'])
         
         # محاسبه مجموع سایر هزینه‌ها
         total_other_expenses = sum(expense.amount for expense in other_expenses)
         
-        # محاسبه 10% مجموع
-        construction_contractor_amount = total_other_expenses * Decimal('0.1')
+        # محاسبه درصد پیمان ساخت از مجموع سایر هزینه‌ها
+        construction_contractor_amount = total_other_expenses * Decimal(str(self.project.construction_contractor_percentage))
         
         return construction_contractor_amount.quantize(Decimal('0.01'))
     
@@ -611,7 +867,7 @@ class Expense(models.Model):
                 project=project,
                 expense_type='construction_contractor',
                 amount=new_amount,
-                description='محاسبه خودکار: 10% مجموع سایر هزینه‌های دوره'
+                description=f'محاسبه خودکار: {project.construction_contractor_percentage * 100:.1f}% مجموع سایر هزینه‌های دوره'
             )
             return new_amount
         
@@ -645,6 +901,9 @@ class Sale(models.Model):
     amount = models.DecimalField(max_digits=20, decimal_places=2, verbose_name="مبلغ")
     description = models.TextField(blank=True, verbose_name="توضیحات")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
+
+    # Manager سفارشی برای تجمیع فروش/مرجوعی‌ها
+    objects = SaleManager()
     
     class Meta:
         verbose_name = "فروش/مرجوعی"
@@ -658,6 +917,53 @@ class Sale(models.Model):
     
     def get_absolute_url(self):
         return reverse('construction_Sale_detail', kwargs={'pk': self.pk})
+
+class UnitSpecificExpense(models.Model):
+    """
+    مدل هزینه‌های اختصاصی هر واحد
+    هزینه‌هایی که مالک واحد برای واحد خودش انجام می‌دهد
+    """
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, verbose_name="پروژه")
+    unit = models.ForeignKey(Unit, on_delete=models.CASCADE, verbose_name="واحد")
+    title = models.CharField(max_length=200, verbose_name="عنوان")
+    date_shamsi = jmodels.jDateField(verbose_name="تاریخ (شمسی)")
+    date_gregorian = models.DateField(verbose_name="تاریخ (میلادی)")
+    amount = models.DecimalField(max_digits=20, decimal_places=2, verbose_name="مبلغ")
+    description = models.TextField(blank=True, null=True, verbose_name="توضیحات")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="تاریخ به‌روزرسانی")
+
+    class Meta:
+        verbose_name = "هزینه اختصاصی واحد"
+        verbose_name_plural = "هزینه‌های اختصاصی واحد"
+        ordering = ['-date_shamsi', '-created_at']
+
+    def __str__(self):
+        return f"{self.unit.name} - {self.title} - {self.amount}"
+    
+    def get_absolute_url(self):
+        return reverse('construction_UnitSpecificExpense_detail', kwargs={'pk': self.pk})
+    
+    def get_update_url(self):
+        return reverse('construction_UnitSpecificExpense_update', kwargs={'pk': self.pk})
+    
+    def save(self, *args, **kwargs):
+        # تبدیل تاریخ شمسی به میلادی
+        if self.date_shamsi and not self.date_gregorian:
+            import jdatetime
+            try:
+                # تبدیل تاریخ شمسی به میلادی
+                jdate = jdatetime.date(
+                    self.date_shamsi.year,
+                    self.date_shamsi.month,
+                    self.date_shamsi.day
+                )
+                self.date_gregorian = jdate.togregorian()
+            except Exception as e:
+                # در صورت خطا، تاریخ میلادی را تنظیم نکن
+                pass
+        
+        super().save(*args, **kwargs)
 
 class UserProfile(models.Model):
     """

@@ -30,6 +30,26 @@
             --gold-color: #ffd700;
             --gold-color-light: rgba(255, 215, 0, 0.1);
             
+            /* Project Standard Colors - Financial Categories */
+            --deposit-color: #2185d0;           /* آبی - آورده */
+            --deposit-color-light: rgba(33, 133, 208, 0.1);
+            --withdrawal-color: #db2828;        /* قرمز - برداشت */
+            --withdrawal-color-light: rgba(219, 40, 40, 0.1);
+            --profit-color: #21ba45;            /* سبز - سود مشارکت */
+            --profit-color-light: rgba(33, 186, 69, 0.1);
+            --capital-color: #aa26ff;           /* بنفش - سرمایه موجود */
+            --capital-color-light: rgba(170, 38, 255, 0.1);
+            --expense-color: #dc3545;           /* قرمز تیره - هزینه‌ها */
+            --expense-color-light: rgba(220, 53, 69, 0.1);
+            --refund-color: #ffc107;            /* زرد - مرجوعی */
+            --refund-color-light: rgba(255, 193, 7, 0.1);
+            --balance-color: #6c757d;           /* خاکستری - مانده */
+            --balance-color-light: rgba(108, 117, 125, 0.1);
+            --total-color: #6c757d;             /* خاکستری - مجموع */
+            --total-color-light: rgba(108, 117, 125, 0.1);
+            --loan-deposit-color: #5ca5e8;      /* آبی روشن - آورده وام (نزدیک به #2185d0 اما روشن‌تر) */
+            --loan-deposit-color-light: rgba(92, 165, 232, 0.1);
+            
             /* Background Colors */
             --bg-primary: #f8f9fa;
             --bg-secondary: #ffffff;
@@ -65,6 +85,26 @@
             --info-color: #17a2b8;
             --gold-color: #ffd700;
             --gold-color-light: rgba(255, 215, 0, 0.15);
+            
+            /* Project Standard Colors - Financial Categories (Dark Theme) */
+            --deposit-color: #4fc3f7;           /* آبی روشن‌تر - آورده */
+            --deposit-color-light: rgba(79, 195, 247, 0.2);
+            --withdrawal-color: #f48fb1;        /* قرمز روشن‌تر - برداشت */
+            --withdrawal-color-light: rgba(244, 143, 177, 0.2);
+            --profit-color: #81c784;            /* سبز روشن‌تر - سود مشارکت */
+            --profit-color-light: rgba(129, 199, 132, 0.2);
+            --capital-color: #c77dff;           /* بنفش روشن‌تر - سرمایه موجود */
+            --capital-color-light: rgba(199, 125, 255, 0.2);
+            --expense-color: #f48fb1;           /* قرمز روشن‌تر - هزینه‌ها */
+            --expense-color-light: rgba(244, 143, 177, 0.2);
+            --refund-color: #ffeb3b;            /* زرد روشن‌تر - مرجوعی */
+            --refund-color-light: rgba(255, 235, 59, 0.2);
+            --balance-color: #b0bec5;           /* خاکستری روشن‌تر - مانده */
+            --balance-color-light: rgba(176, 190, 197, 0.2);
+            --total-color: #b0bec5;             /* خاکستری روشن‌تر - مجموع */
+            --total-color-light: rgba(176, 190, 197, 0.2);
+            --loan-deposit-color: #7eb8f0;      /* آبی روشن‌تر برای حالت تاریک */
+            --loan-deposit-color-light: rgba(126, 184, 240, 0.15);
             
             /* Dark Background Colors */
             --bg-primary: #121212;
@@ -338,6 +378,37 @@
             font-size: 2rem;
             color: #333;
             font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .investor-type-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            background: var(--primary-color);
+            color: white;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .investor-type-badge i {
+            font-size: 0.85rem;
+        }
+
+        .investor-type-badge.owner {
+            background: #667eea;
+            color: white;
+        }
+
+        .investor-type-badge.investor {
+            background: #21ba45;
+            color: white;
         }
 
         .investor-status {
@@ -610,6 +681,10 @@
             color: #17a2b8;
         }
 
+        /* Variant switching: پیش‌فرض پنهان، با کلاس is-active نمایش داده می‌شود */
+        .unit-section [data-variant] { display: none; }
+        .unit-section [data-variant].is-active { display: grid; }
+
         /* Stats Grid Enhancement */
         .stats-grid {
             display: grid;
@@ -683,8 +758,187 @@
             box-shadow: 0 12px 35px var(--gold-color-light);
         }
 
+        /* کارت آورده (Deposit Card) */
+        .stat-card.deposit-card {
+            border: 2px solid var(--deposit-color);
+            background: linear-gradient(135deg, var(--deposit-color-light), rgba(33, 133, 208, 0.05));
+        }
+
+        .stat-card.deposit-card h4 {
+            color: var(--deposit-color);
+            font-weight: 700;
+        }
+
+        /* کارت آورده وام (Loan Deposit Card) */
+        .stat-card.loan-deposit-card {
+            border: 2px solid var(--loan-deposit-color);
+            background: linear-gradient(135deg, var(--loan-deposit-color-light), rgba(92, 165, 232, 0.05));
+        }
+
+        .stat-card.loan-deposit-card h4 {
+            color: var(--loan-deposit-color);
+            font-weight: 700;
+        }
+
+        /* کارت برداشت (Withdrawal Card) */
+        .stat-card.withdrawal-card {
+            border: 2px solid var(--withdrawal-color);
+            background: linear-gradient(135deg, var(--withdrawal-color-light), rgba(219, 40, 40, 0.05));
+        }
+
+        .stat-card.withdrawal-card h4 {
+            color: var(--withdrawal-color);
+            font-weight: 700;
+        }
+
+        /* کارت سرمایه موجود (Capital Card) */
+        .stat-card.capital-card {
+            border: 2px solid var(--capital-color);
+            background: linear-gradient(135deg, var(--capital-color-light), rgba(170, 38, 255, 0.05));
+        }
+
+        .stat-card.capital-card h4 {
+            color: var(--capital-color);
+            font-weight: 700;
+        }
+
+        /* کارت سود (Profit Card) */
+        .stat-card.profit-card {
+            border: 2px solid var(--profit-color);
+            background: linear-gradient(135deg, var(--profit-color-light), rgba(33, 186, 69, 0.05));
+        }
+
+        .stat-card.profit-card h4 {
+            color: var(--profit-color);
+            font-weight: 700;
+        }
+
+        /* کارت مانده (Balance Card) */
+        .stat-card.balance-card {
+            border: 2px solid var(--balance-color);
+            background: linear-gradient(135deg, var(--balance-color-light), rgba(108, 117, 125, 0.05));
+        }
+
+        .stat-card.balance-card h4 {
+            color: var(--balance-color);
+            font-weight: 700;
+        }
+
+        /* Current Period Section - Special styling */
+        .current-period-section {
+            grid-column: 1 / -1;
+            position: relative;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin: 20px 0;
+            padding: 25px;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, rgba(255, 193, 7, 0.05) 100%);
+            border-radius: 20px;
+            border: 2px dashed var(--gold-color);
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.15);
+        }
+
+        .current-period-badge {
+            position: absolute;
+            top: -15px;
+            right: 30px;
+            background: linear-gradient(135deg, var(--gold-color) 0%, #ffc107 100%);
+            color: rgb(0, 0, 0);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .current-period-badge i {
+            font-size: 1rem;
+        }
+
+        .stats-section .current-period-section .stat-card {
+            border: 3px solid !important;
+            background: var(--bg-card) !important;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
+            transform: none !important;
+        }
+
+        .stats-section .current-period-section .stat-card:hover {
+            transform: translateY(-8px) !important;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        .stats-section .current-period-section .current-final-cost-card {
+            border-color: var(--expense-color) !important;
+            background: linear-gradient(135deg, rgba(220, 53, 69, 0.05) 0%, var(--bg-card) 100%) !important;
+        }
+
+        .stats-section .current-period-section .current-building-fund-card {
+            border-color: var(--balance-color) !important;
+            background: linear-gradient(135deg, rgba(108, 117, 125, 0.03) 0%, var(--bg-card) 100%) !important;
+        }
+
+        .stats-section .current-period-section .stat-card h4 {
+            font-size: 2.3rem !important;
+            font-weight: 700 !important;
+            color: rgb(0, 0, 0) !important;
+        }
+
+        .stats-section .current-period-section .stat-card i {
+            color: rgb(0, 0, 0) !important;
+            font-size: 3rem !important;
+        }
+
+        .stats-section .current-period-section .stat-card p {
+            font-size: 1.1rem !important;
+            font-weight: 600 !important;
+            color: rgb(0, 0, 0) !important;
+        }
+
+        .stats-section .current-period-section .current-final-cost-card i {
+            color: var(--expense-color) !important;
+        }
+
+        .stats-section .current-period-section .current-final-cost-card h4 {
+            color: var(--expense-color) !important;
+        }
+
+        .stats-section .current-period-section .current-final-cost-card p {
+            color: var(--expense-color) !important;
+        }
+
+        .current-period-section .current-final-cost-card i {
+            color: var(--expense-color) !important;
+        }
+
+        .current-period-section .current-final-cost-card h4 {
+            color: var(--expense-color) !important;
+        }
+
+        .current-period-section .current-final-cost-card p {
+            color: var(--expense-color) !important;
+        }
+
         /* Responsive Breakpoints */
         @media (max-width: 768px) {
+            .current-period-section {
+                grid-template-columns: 1fr !important;
+                gap: 15px !important;
+                padding: 20px !important;
+                margin: 15px 0 !important;
+            }
+
+            .current-period-badge {
+                top: -12px !important;
+                right: 20px !important;
+                padding: 6px 15px !important;
+                font-size: 0.85rem !important;
+            }
+
             .charts-grid {
                 gap: 20px;
             }
@@ -842,13 +1096,15 @@
         <div id="investorInfo" class="investor-info">
 
             <div class="investor-header">
-                <div class="investor-name" id="investorName">نام مشارکت کننده</div>
+                <div class="investor-name">
+                    <span id="investorName">نام مشارکت کننده</span>
+                    <span id="investorType" class="investor-type-badge"></span>
+                </div>
                 <div class="investor-actions">
                     <a href="#" class="pdf-report-btn" id="pdfReportBtn" style="display: none;">
                         <i class="fas fa-file-pdf"></i>
                         گزارش PDF
                     </a>
-                    <div class="investor-status" id="investorStatus">وضعیت</div>
                 </div>
             </div>
 
@@ -859,19 +1115,27 @@
                     اطلاعات مالی
                 </h3>
                 <div class="stats-grid">
-                    <div class="stat-card" style="border: 2px solid #007bff; background: linear-gradient(135deg, rgba(0, 123, 255, 0.1), rgba(0, 86, 179, 0.1));">
-                        <h4 id="totalPrincipal">-</h4>
-                        <p>کل آورده (تومان)</p>
+                    <div class="stat-card deposit-card">
+                        <h4 id="totalPrincipalDeposit">-</h4>
+                        <p>آورده نقدی (تومان)</p>
                     </div>
-                    <div class="stat-card" style="border: 2px solid #dc3545; background: linear-gradient(135deg, rgba(220, 53, 69, 0.1), rgba(200, 35, 51, 0.1));">
+                    <div class="stat-card loan-deposit-card">
+                        <h4 id="totalLoanDeposit">-</h4>
+                        <p>آورده وام (تومان)</p>
+                    </div>
+                    <div class="stat-card deposit-card" style="border: 3px solid var(--deposit-color); background: linear-gradient(135deg, var(--deposit-color-light), rgba(33, 133, 208, 0.15));">
+                        <h4 id="totalPrincipal">-</h4>
+                        <p>مجموع آورده (تومان)</p>
+                    </div>
+                    <div class="stat-card withdrawal-card">
                         <h4 id="totalWithdrawal">-</h4>
                         <p>کل برداشت (تومان)</p>
                     </div>
-                    <div class="stat-card" style="border: 2px solid #aa26ff; background: linear-gradient(135deg, rgba(170, 38, 255, 0.1), rgba(170, 38, 255, 0.05));">
+                    <div class="stat-card capital-card">
                         <h4 id="netPrincipal">-</h4>
                         <p>سرمایه موجود (تومان)</p>
                     </div>
-                    <div class="stat-card" style="border: 2px solid #28a745; background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(25, 135, 84, 0.1));">
+                    <div class="stat-card profit-card">
                         <h4 id="totalProfit">-</h4>
                         <p>کل سود (تومان)</p>
                     </div>
@@ -895,10 +1159,50 @@
                         <h4 id="profitIndex">-</h4>
                         <p>شاخص نفع (نسبت سود به سودکل/ نسبت سرمایه به سرمایه کل )</p>
                     </div>
-                    <div class="stat-card" style="border: 2px solid #6c757d; background: linear-gradient(135deg, rgba(108, 117, 125, 0.1), rgba(73, 80, 87, 0.1));">
+                    <div class="stat-card balance-card">
                         <h4 id="contractDate">-</h4>
                         <p>تاریخ قرارداد</p>
                     </div>
+                </div>
+            </div>
+
+            <!-- بخش توضیحات پروژه -->
+            <div class="stats-section" id="projectDescriptionSection" style="display: none;">
+                <h3 class="section-title">
+                    <i class="fas fa-building"></i>
+                    توضیحات پروژه
+                </h3>
+                <div style="background: var(--bg-card); padding: 20px; border-radius: 10px; border: 1px solid var(--border-color);">
+                    <p id="projectDescription" style="color: var(--text-primary); line-height: 1.8; margin: 0; white-space: pre-wrap;"></p>
+                </div>
+            </div>
+
+            <!-- بخش توضیحات سرمایه‌گذار -->
+            <div class="stats-section" id="descriptionSection" style="display: none;">
+                <h3 class="section-title">
+                    <i class="fas fa-info-circle"></i>
+                    توضیحات مشارکت کننده
+                </h3>
+                <div style="background: var(--bg-card); padding: 20px; border-radius: 10px; border: 1px solid var(--border-color);">
+                    <p id="investorDescription" style="color: var(--text-primary); line-height: 1.8; margin: 0; white-space: pre-wrap;"></p>
+                </div>
+            </div>
+
+            <!-- کارت‌های ویژه دوره جاری -->
+            <div class="current-period-section">
+                <div class="current-period-badge">
+                    <i class="fas fa-star"></i>
+                 وضعیت فعلی پروژه
+                </div>
+                <div class="stat-card current-final-cost-card">
+                    <i class="fas fa-calendar-check"></i>
+                    <h4 id="currentFinalCost">-</h4>
+                    <p>هزینه خالص فعلی (تومان)</p>
+                </div>
+                <div class="stat-card current-building-fund-card">
+                    <i class="fas fa-building"></i>
+                    <h4 id="currentBuildingFundBalance">-</h4>
+                    <p>مانده صندوق فعلی (تومان)</p>
                 </div>
             </div>
 
@@ -908,7 +1212,9 @@
                     <i class="fas fa-building"></i>
                     اطلاعات واحد انتخاب شده
                 </h3>
-                <div class="stats-grid">
+
+                <!-- حالت مالک -->
+                <div class="stats-grid" data-variant="owner">
                     <div class="stat-card" style="border: 2px solid #17a2b8; background: linear-gradient(135deg, rgba(23, 162, 184, 0.1), rgba(20, 143, 163, 0.1));">
                         <h4 id="unitName">-</h4>
                         <p>نام واحد</p>
@@ -921,9 +1227,13 @@
                         <h4 id="totalUnitsPrice">-</h4>
                         <p>قیمت واحد انتخاب شده (تومان)</p>
                     </div>
+                    <div class="stat-card" style="border: 2px solid #6f42c1; background: linear-gradient(135deg, rgba(111, 66, 193, 0.1), rgba(102, 16, 242, 0.1));">
+                        <h4 id="averagePricePerMeter">-</h4>
+                        <p>میانگین وزنی قیمت هر متر (تومان/متر مربع)</p>
+                    </div>
                     <div class="stat-card" style="border: 2px solid #ff8c00; background: linear-gradient(135deg, rgba(255, 140, 0, 0.1), rgba(255, 165, 0, 0.1));">
                         <h4 id="ownershipArea">-</h4>
-                        <p>مالکیت (متر مربع)</p>
+                        <p>مالکیت فعلی(متر مربع)</p>
                     </div>
                     <div class="stat-card" style="border: 2px solid #20c997; background: linear-gradient(135deg, rgba(32, 201, 151, 0.1), rgba(16, 172, 132, 0.1));">
                         <h4 id="finalPayment">-</h4>
@@ -931,7 +1241,27 @@
                     </div>
                     <div class="stat-card" style="border: 2px solid #e83e8c; background: linear-gradient(135deg, rgba(232, 62, 140, 0.1), rgba(219, 30, 118, 0.1));">
                         <h4 id="transferPricePerMeter">-</h4>
-                        <p>قیمت واگذار شده (تومان/متر مربع)</p>
+                        <p>قیمت واگذار شده به مشارکت کننده(تومان/متر مربع)</p>
+                    </div>
+                    <div class="stat-card" style="border: 2px solid var(--expense-color); background: linear-gradient(135deg, var(--expense-color-light), rgba(220, 53, 69, 0.05));">
+                        <h4 id="currentUnitCost">-</h4>
+                        <p>هزینه فعلی واحد (تومان)</p>
+                    </div>
+                    <div class="stat-card" style="border: 2px solid var(--expense-color); background: linear-gradient(135deg, var(--expense-color-light), rgba(220, 53, 69, 0.05));">
+                        <h4 id="unitSpecificExpenseTotal">-</h4>
+                        <p>هزینه اختصاصی واحد (تومان)</p>
+                    </div>
+                </div>
+
+                <!-- حالت سرمایه‌گذار: فقط نمایش مالکیت محاسبه‌شده -->
+                <div class="stats-grid" data-variant="investor" hidden>
+                    <div class="stat-card" style="border: 2px solid #ff8c00; background: linear-gradient(135deg, rgba(255, 140, 0, 0.1), rgba(255, 165, 0, 0.1));">
+                        <h4 id="ownershipAreaInvestor">-</h4>
+                        <p>مالکیت محاسبه شده (متر مربع)</p>
+                    </div>
+                    <div class="stat-card" style="border: 2px solid var(--balance-color); background: linear-gradient(135deg, var(--balance-color-light), rgba(108, 117, 125, 0.05));">
+                        <h4 id="valuePerMeterInvestor">-</h4>
+                        <p></p>میانگین وزنی قیمت هر متر ساختمان(تومان/متر مربع)</p>
                     </div>
                 </div>
             </div>
@@ -947,16 +1277,6 @@
                             <i class="fas fa-download"></i>
                             دانلود تصویر
                         </button>
-                    </div>
-                    <div class="chart-legend">
-                        <div class="legend-item">
-                            <div class="legend-color" style="background: rgba(170, 38, 255, 1);"></div>
-                            <span>سرمایه موجود</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="legend-color" style="background: rgba(220, 53, 69, 1);"></div>
-                            <span>هزینه واحد</span>
-                        </div>
                     </div>
                     <div class="chart-wrapper">
                         <canvas id="investorTrendChart"></canvas>
@@ -1045,11 +1365,9 @@
 
         let selectedInvestor = null;
         let charts = {}; // نگهداری نمودارها
-        let globalStatistics = null; // آمار کلی از API
         
         // کش داده‌ها برای جلوگیری از فراخوانی تکراری API
         let cachedInvestorData = {}; // کش اطلاعات مشارکت‌کنندگان
-        let cachedPeriodData = null; // کش داده‌های دوره‌ای
 
         // متغیر برای تبدیل مبالغ (1 میلیون) - برای نمودارها
         const BASE_AMOUNT = 1000000;
@@ -1083,7 +1401,7 @@
             }
         }
         
-        // تابع دریافت نام پروژه از API
+        // تابع دریافت نام پروژه و توضیحات از API
         async function fetchProjectName() {
             try {
                 const response = await fetch('/api/v1/Project/');
@@ -1093,6 +1411,16 @@
                     if (projects.length > 0) {
                         projectName = projects[0].name || '';
                         console.log('نام پروژه دریافت شد:', projectName);
+                        
+                        // نمایش توضیحات پروژه
+                        const projectDescriptionEl = document.getElementById('projectDescription');
+                        const projectDescriptionSection = document.getElementById('projectDescriptionSection');
+                        if (projectDescriptionEl && projectDescriptionSection && projects[0].description && projects[0].description.trim()) {
+                            projectDescriptionEl.textContent = projects[0].description;
+                            projectDescriptionSection.style.display = 'block';
+                        } else if (projectDescriptionSection) {
+                            projectDescriptionSection.style.display = 'none';
+                        }
                     }
                 } else {
                     console.warn('خطا در دریافت اطلاعات پروژه:', response.status);
@@ -1380,103 +1708,13 @@
                 });
         }
 
-        // سیستم مقایسه محاسبات - ذخیره محاسبات قدیمی برای مقایسه
-        let backupCalculations = {
-            totalPrincipal: 0,
-            totalWithdrawal: 0,
-            totalProfit: 0,
-            netPrincipal: 0,
-            totalBalance: 0,
-            capitalRatio: '0.00%',
-            profitRatioToTotal: '0.00%',
-            totalRatioToGrandTotal: '0.00%',
-            profitIndex: '0.00'
-        };
-
-        // تابع مقایسه محاسبات قدیمی و جدید
-        function compareCalculations(oldCalc, newCalc, investorName) {
-            // مقایسه محاسبات (لاگ‌ها حذف شده برای بهبود عملکرد)
-            
-            const comparisons = [
-                { name: 'آورده کل', old: oldCalc.totalPrincipal, new: newCalc.totalPrincipal },
-                { name: 'برداشت کل', old: oldCalc.totalWithdrawal, new: newCalc.totalWithdrawal },
-                { name: 'سود کل', old: oldCalc.totalProfit, new: newCalc.totalProfit },
-                { name: 'سرمایه خالص', old: oldCalc.netPrincipal, new: newCalc.netPrincipal },
-                { name: 'موجودی کل', old: oldCalc.totalBalance, new: newCalc.totalBalance },
-                { name: 'نسبت سرمایه', old: oldCalc.capitalRatio, new: newCalc.capitalRatio },
-                { name: 'نسبت سود به کل', old: oldCalc.profitRatioToTotal, new: newCalc.profitRatioToTotal },
-                { name: 'نسبت کل به کل', old: oldCalc.totalRatioToGrandTotal, new: newCalc.totalRatioToGrandTotal },
-                { name: 'شاخص نفع', old: oldCalc.profitIndex, new: newCalc.profitIndex }
-            ];
-            
-            let differences = [];
-            comparisons.forEach(comp => {
-                const oldVal = parseFloat(comp.old) || 0;
-                const newVal = parseFloat(comp.new) || 0;
-                const diff = Math.abs(oldVal - newVal);
-                const percentDiff = oldVal !== 0 ? (diff / Math.abs(oldVal)) * 100 : 0;
-                
-                if (diff > 0.01 || percentDiff > 0.1) { // تفاوت بیش از 0.01 یا 0.1%
-                    differences.push({
-                        name: comp.name,
-                        old: comp.old,
-                        new: comp.new,
-                        diff: diff.toFixed(2),
-                        percentDiff: percentDiff.toFixed(2)
-                    });
-                }
-            });
-            
-            if (differences.length > 0) {
-                // نمایش هشدار بصری
-                showComparisonAlert(differences, investorName);
-            }
-        }
-
-        // نمایش هشدار مقایسه
-        function showComparisonAlert(differences, investorName) {
-            const alertDiv = document.createElement('div');
-            alertDiv.className = 'comparison-alert';
-            alertDiv.innerHTML = `
-                <div class="alert-content">
-                    <h4>⚠️ تفاوت در محاسبات ${investorName}</h4>
-                    <ul>
-                        ${differences.map(d => `<li><strong>${d.name}:</strong> ${d.old} → ${d.new} (تفاوت: ${d.diff}, ${d.percentDiff}%)</li>`).join('')}
-                    </ul>
-                    <button onclick="this.parentElement.parentElement.remove()">بستن</button>
-                </div>
-            `;
-            
-            alertDiv.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: #fff3cd;
-                border: 1px solid #ffeaa7;
-                border-radius: 8px;
-                padding: 15px;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-                z-index: 10000;
-                max-width: 400px;
-                font-family: 'Vazir', 'Tahoma', 'Arial', sans-serif;
-            `;
-            
-            document.body.appendChild(alertDiv);
-            
-            // حذف خودکار بعد از 10 ثانیه
-            setTimeout(() => {
-                if (alertDiv.parentNode) {
-                    alertDiv.remove();
-                }
-            }, 10000);
-        }
 
         // تابع جدید: دریافت محاسبات از سرور
         async function updateInvestorStatsFromServer(investorId, investorName) {
             try {
                 console.log(`📡 دریافت آمار مشارکت کننده ${investorId} از سرور...`);
                 
-                // دریافت آمار تفصیلی مشارکت کننده از API
+                // دریافت آمار تفصیلی مشارکت کننده از API (شامل محاسبات جداگانه آورده و آورده وام)
                 const investorStats = await window.financialService.getInvestorStatistics(investorId);
                 
                 // دریافت نسبت‌های مشارکت کننده از API
@@ -1507,7 +1745,9 @@
                     
                     // تبدیل داده‌های سرور به فرمت قابل مقایسه (استفاده از amounts_toman)
                     const serverCalculations = {
-                        totalPrincipal: investorStats.amounts_toman?.total_principal || 0,
+                        totalPrincipalDeposit: investorStats.amounts_toman?.total_principal_deposit || 0,  // فقط آورده عادی
+                        totalLoanDeposit: investorStats.amounts_toman?.total_loan_deposit || 0,  // فقط آورده وام
+                        totalPrincipal: investorStats.amounts_toman?.total_principal || 0,  // مجموع آورده + آورده وام
                         totalWithdrawal: Math.abs(investorStats.amounts_toman?.total_withdrawal || 0),
                         totalProfit: investorStats.amounts_toman?.total_profit || 0,
                         netPrincipal: investorStats.amounts_toman?.net_principal || 0,
@@ -1520,11 +1760,12 @@
                         ownershipPercentage: investorOwnership?.ownership_percentage || 0,
                         finalPayment: investorOwnership?.final_payment || 0,
                         transferPricePerMeter: investorOwnership?.transfer_price_per_meter || 0,
-                        totalUnitsPrice: investorOwnership?.total_units_price || 0
+                        totalUnitsPrice: investorOwnership?.total_units_price || 0,
+                        averagePricePerMeter: investorOwnership?.average_price_per_meter || 0,
+                        value_per_meter: investorOwnership?.value_per_meter || 0,
+                        currentUnitCost: investorOwnership?.current_unit_cost || 0
                     };
 
-                    // مقایسه محاسبات قدیمی و جدید
-                    compareCalculations(backupCalculations, serverCalculations, investorName);
 
                     // به‌روزرسانی UI با مقادیر سرور
                     updateUIWithServerData(serverCalculations);
@@ -1545,6 +1786,8 @@
         function updateUIWithServerData(serverCalculations) {
             // به‌روزرسانی المان‌های HTML با مقادیر سرور
             const elements = [
+                { id: 'totalPrincipalDeposit', value: serverCalculations.totalPrincipalDeposit },
+                { id: 'totalLoanDeposit', value: serverCalculations.totalLoanDeposit },
                 { id: 'totalPrincipal', value: serverCalculations.totalPrincipal },
                 { id: 'totalWithdrawal', value: serverCalculations.totalWithdrawal },
                 { id: 'netPrincipal', value: serverCalculations.netPrincipal },
@@ -1555,9 +1798,13 @@
                 { id: 'totalRatioToGrandTotal', value: serverCalculations.totalRatioToGrandTotal },
                 { id: 'profitIndex', value: serverCalculations.profitIndex },
                 { id: 'ownershipArea', value: serverCalculations.ownershipArea },
+                { id: 'ownershipAreaInvestor', value: serverCalculations.ownershipArea },
+                { id: 'valuePerMeterInvestor', value: serverCalculations.value_per_meter },
                 { id: 'finalPayment', value: serverCalculations.finalPayment },
                 { id: 'transferPricePerMeter', value: serverCalculations.transferPricePerMeter },
-                { id: 'totalUnitsPrice', value: serverCalculations.totalUnitsPrice }
+                { id: 'totalUnitsPrice', value: serverCalculations.totalUnitsPrice },
+                { id: 'averagePricePerMeter', value: serverCalculations.averagePricePerMeter },
+                { id: 'currentUnitCost', value: serverCalculations.currentUnitCost }
             ];
 
             elements.forEach(element => {
@@ -1565,17 +1812,30 @@
                 if (domElement) {
                     if (element.id.includes('Ratio') || element.id.includes('Index')) {
                         // برای نسبت‌ها و شاخص‌ها، مقدار را مستقیماً نمایش دهیم
-                        domElement.textContent = element.value;
-                    } else if (element.id === 'ownershipArea') {
-                        // برای مالکیت (متر مربع)، فرمت اعشار با 2 رقم
+                        if (element.id === 'profitIndex') {
+                            // شاخص نفع را تا ۲ رقم اعشار فرمت کن
+                            const profitIndexValue = parseFloat(element.value);
+                            // اگر شاخص نفع صفر است (برای سرمایه‌گذاران)، "-" نمایش بده
+                            const formatted = profitIndexValue === 0 ? '-' : profitIndexValue.toFixed(2);
+                            domElement.textContent = formatted;
+                        } else {
+                            domElement.textContent = element.value;
+                        }
+                    } else if (element.id.includes('ownershipArea')) {
+                        // برای مالکیت (متر مربع)، فرمت اعشار با 3 رقم
                         const formatted = parseFloat(element.value).toLocaleString('en-US', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
+                            minimumFractionDigits: 3,
+                            maximumFractionDigits: 3
                         });
                         domElement.textContent = formatted;
-                    } else if (element.id === 'transferPricePerMeter') {
-                        // برای قیمت واگذار شده، فرمت عددی با جداکننده
-                        domElement.textContent = formatNumberWithCommas(element.value);
+                    } else if (element.id === 'transferPricePerMeter' || element.id === 'averagePricePerMeter' || element.id === 'valuePerMeterInvestor') {
+                        // برای قیمت واگذار شده و میانگین وزنی قیمت هر متر، فرمت عددی با جداکننده
+                        const v = parseFloat(element.value);
+                        domElement.textContent = (isNaN(v) || v <= 0) ? '-' : formatNumberWithCommas(v);
+                    } else if (element.id === 'currentUnitCost') {
+                        // برای هزینه فعلی واحد، فرمت عددی با جداکننده
+                        const v = parseFloat(element.value);
+                        domElement.textContent = (isNaN(v) || v <= 0) ? '-' : formatNumberWithCommas(v);
                     } else if (element.id === 'finalPayment') {
                         // برای پرداخت نهایی، نمایش با علامت مثبت/منفی
                         const value = parseFloat(element.value);
@@ -1596,7 +1856,52 @@
 
             // اضافه کردن نشانگر "از سرور" برای نمایش منبع داده
             addServerDataIndicator();
+
+            // بارگذاری داده‌های دوره فعلی (هزینه خالص فعلی و مانده صندوق فعلی)
+            loadCurrentPeriodData();
         }
+
+        // تابع بارگذاری داده‌های دوره فعلی
+        async function loadCurrentPeriodData() {
+            try {
+                const response = await fetch('/api/v1/Period/period_summary/');
+                if (!response.ok) {
+                    console.warn('خطا در دریافت داده‌های دوره فعلی:', response.status);
+                    return;
+                }
+                
+                const result = await response.json();
+                
+                if (result.success && result.current && result.current.current_cumulative_totals) {
+                    const currentData = result.current.current_cumulative_totals;
+                    
+                    const formatNumber = (num) => {
+                        return new Intl.NumberFormat('en-US').format(Math.round(num || 0));
+                    };
+                    
+                    const currentFinalCostElement = document.getElementById('currentFinalCost');
+                    if (currentFinalCostElement) {
+                        currentFinalCostElement.textContent = formatNumber(currentData.final_cost);
+                    }
+                    
+                    const currentBuildingFundBalanceElement = document.getElementById('currentBuildingFundBalance');
+                    if (currentBuildingFundBalanceElement) {
+                        currentBuildingFundBalanceElement.textContent = formatNumber(currentData.final_fund_balance);
+                    }
+                    
+                    console.log('✅ داده‌های دوره فعلی بارگذاری شدند');
+                } else {
+                    console.warn('⚠️ داده‌های دوره فعلی یافت نشد');
+                    document.getElementById('currentFinalCost').textContent = '0';
+                    document.getElementById('currentBuildingFundBalance').textContent = '0';
+                }
+            } catch (error) {
+                console.error('❌ خطا در بارگذاری داده‌های دوره فعلی:', error);
+                document.getElementById('currentFinalCost').textContent = '-';
+                document.getElementById('currentBuildingFundBalance').textContent = '-';
+            }
+        }
+
 
         // تابع اضافه کردن نشانگر داده‌های سرور
         function addServerDataIndicator() {
@@ -1675,8 +1980,49 @@
                 document.getElementById('unitArea').textContent = '0';
             }
             
-            // انجام محاسبات مالی
-            await performFinancialCalculations(investorId, investorTransactions);
+            // دریافت محاسبات از سرور
+            await updateInvestorStatsFromServer(investorId, investorId);
+            
+            // دریافت هزینه‌های اختصاصی واحد
+            await loadUnitSpecificExpenses(investorId);
+        }
+        
+        // تابع بارگذاری هزینه‌های اختصاصی واحد
+        async function loadUnitSpecificExpenses(investorId) {
+            try {
+                // دریافت اطلاعات سرمایه‌گذار برای دسترسی به واحدها
+                const investorResponse = await fetch(`/api/v1/Investor/${investorId}/`);
+                if (!investorResponse.ok) {
+                    console.warn('خطا در دریافت اطلاعات سرمایه‌گذار برای هزینه‌های اختصاصی واحد');
+                    document.getElementById('unitSpecificExpenseTotal').textContent = '0';
+                    return;
+                }
+                
+                const investorData = await investorResponse.json();
+                
+                if (!investorData.units || investorData.units.length === 0) {
+                    document.getElementById('unitSpecificExpenseTotal').textContent = '0';
+                    return;
+                }
+                
+                // دریافت هزینه‌های اختصاصی برای همه واحدهای سرمایه‌گذار
+                let totalExpense = 0;
+                for (const unit of investorData.units) {
+                    const expenseResponse = await fetch(`/api/v1/UnitSpecificExpense/?unit=${unit.id}`);
+                    if (expenseResponse.ok) {
+                        const expensesData = await expenseResponse.json();
+                        const expenses = Array.isArray(expensesData) ? expensesData : (expensesData.results || []);
+                        const unitTotal = expenses.reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0);
+                        totalExpense += unitTotal;
+                    }
+                }
+                
+                // نمایش مجموع هزینه‌های اختصاصی
+                document.getElementById('unitSpecificExpenseTotal').textContent = formatNumberWithCommas(totalExpense);
+            } catch (error) {
+                console.error('خطا در بارگذاری هزینه‌های اختصاصی واحد:', error);
+                document.getElementById('unitSpecificExpenseTotal').textContent = '0';
+            }
         }
         
         // تابع کمکی برای به‌روزرسانی UI با اطلاعات مشارکت‌کننده
@@ -1684,6 +2030,22 @@
             // به‌روزرسانی نام و تاریخ قرارداد
             const investorName = `${investorData.first_name} ${investorData.last_name}`;
             document.getElementById('investorName').textContent = investorName;
+            
+            // به‌روزرسانی نوع سرمایه‌گذار
+            const investorTypeEl = document.getElementById('investorType');
+            if (investorTypeEl && investorData.participation_type) {
+                const typeLabels = {
+                    'owner': '<i class="fas fa-building"></i> مالک',
+                    'investor': '<i class="fas fa-hand-holding-usd"></i> سرمایه‌گذار'
+                };
+                investorTypeEl.innerHTML = typeLabels[investorData.participation_type] || investorData.participation_type;
+                investorTypeEl.className = 'investor-type-badge ' + investorData.participation_type;
+            }
+
+            // تنظیم نمایش بخش اطلاعات واحد بر اساس نوع سرمایه‌گذار (سوئیچ پایدار با data-variant)
+            const variant = investorData.participation_type === 'investor' ? 'investor' : 'owner';
+            showVariant(variant);
+            
             const contractDateEl = document.getElementById('contractDate');
             if (contractDateEl) {
                 contractDateEl.textContent = investorData.contract_date_shamsi || '-';
@@ -1704,117 +2066,37 @@
                 document.getElementById('unitArea').textContent = '0';
                 console.warn('⚠️ هیچ واحدی برای مشارکت کننده یافت نشد');
             }
-        }
-
-        // ادامه تابع updateInvestorInfoWithData - محاسبات مالی
-        async function performFinancialCalculations(investorId, investorTransactions) {
-            // محاسبه اطلاعات مالی - روش قدیمی (برای مقایسه)
-            const principalData = getTransactionsByType(investorTransactions, 'principal_deposit');
-            const withdrawalData = getTransactionsByType(investorTransactions, 'principal_withdrawal');
-            const profitData = getTransactionsByType(investorTransactions, 'profit_accrual');
-
-            const totalPrincipal = principalData.reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
-            const totalWithdrawal = withdrawalData.reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
-            const totalProfit = profitData.reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
             
-            const netPrincipal = totalPrincipal + totalWithdrawal; // withdrawal معمولاً منفی است
-            const totalBalance = netPrincipal + totalProfit;
-
-            // ذخیره محاسبات قدیمی برای مقایسه (حالا که داده‌ها در تومان هستند، تقسیم بر 10 نمی‌کنیم)
-            backupCalculations = {
-                totalPrincipal: totalPrincipal,
-                totalWithdrawal: Math.abs(totalWithdrawal),
-                totalProfit: totalProfit,
-                netPrincipal: netPrincipal,
-                totalBalance: totalBalance,
-                capitalRatio: '0.00%',
-                profitRatioToTotal: '0.00%',
-                totalRatioToGrandTotal: '0.00%',
-                profitIndex: '0.00'
-            };
-            // محاسبه نسبت سود به آورده - موقتاً کامنت شده
-            // const profitRatio = netPrincipal > 0 ? ((totalProfit / netPrincipal) * 100).toFixed(2) : '0.00';
-            
-            // محاسبه نسبت سرمایه فرد به سرمایه کل (از API آمار کلی)
-            let capitalRatio = '0.00%';
-            if (globalStatistics && globalStatistics.net_principal > 0) {
-                const ratio = (netPrincipal / globalStatistics.net_principal) * 100;
-                capitalRatio = ratio.toFixed(2) + '%';
-            }
-            
-            // محاسبه نسبت سود فرد به سود کل (از API آمار کلی)
-            let profitRatioToTotal = '0.00%';
-            if (globalStatistics && globalStatistics.total_profits > 0) {
-                const ratio = (totalProfit / globalStatistics.total_profits) * 100;
-                profitRatioToTotal = ratio.toFixed(2) + '%';
-            }
-            
-            // محاسبه نسبت (سرمایه+سود) فرد به (سرمایه+سود) کل (از API آمار کلی)
-            let totalRatioToGrandTotal = '0.00%';
-            if (globalStatistics && globalStatistics.grand_total > 0) {
-                const ratio = (totalBalance / globalStatistics.grand_total) * 100;
-                totalRatioToGrandTotal = ratio.toFixed(2) + '%';
-            }
-            
-            // محاسبه شاخص نفع = (نسبت سود به سود کل) ÷ (نسبت سرمایه به سرمایه کل)
-            let profitIndex = '0.00';
-            if (globalStatistics && globalStatistics.net_principal > 0 && globalStatistics.total_profits > 0 && netPrincipal > 0) {
-                const capitalRatioDecimal = netPrincipal / globalStatistics.net_principal;
-                const profitRatioDecimal = totalProfit / globalStatistics.total_profits;
-                
-                if (capitalRatioDecimal > 0) {
-                    const index = profitRatioDecimal / capitalRatioDecimal;
-                    profitIndex = index.toFixed(2);
-                }
-            }
-
-            // به‌روزرسانی backupCalculations با مقادیر کامل
-            backupCalculations.capitalRatio = capitalRatio;
-            backupCalculations.profitRatioToTotal = profitRatioToTotal;
-            backupCalculations.totalRatioToGrandTotal = totalRatioToGrandTotal;
-            backupCalculations.profitIndex = profitIndex;
-
-            // حالا محاسبات جدید از سرور را دریافت می‌کنیم
-            console.log('🔄 دریافت محاسبات جدید از سرور...');
-            updateInvestorStatsFromServer(investorId, investorName);
-
-            // نمایش اطلاعات (دقیقاً همان مقادیر دیتابیس)
-            document.getElementById('totalPrincipal').textContent = formatNumberWithCommas(totalPrincipal);
-            document.getElementById('totalWithdrawal').textContent = formatNumberWithCommas(Math.abs(totalWithdrawal));
-            document.getElementById('netPrincipal').textContent = formatNumberWithCommas(netPrincipal);
-            document.getElementById('totalProfit').textContent = formatNumberWithCommas(totalProfit);
-            document.getElementById('totalBalance').textContent = formatNumberWithCommas(totalBalance);
-            // نمایش نسبت سود به آورده - موقتاً کامنت شده
-            // document.getElementById('profitRatio').textContent = profitRatio + '%';
-            document.getElementById('capitalRatio').textContent = capitalRatio;
-            document.getElementById('profitRatioToTotal').textContent = profitRatioToTotal;
-            document.getElementById('totalRatioToGrandTotal').textContent = totalRatioToGrandTotal;
-            document.getElementById('profitIndex').textContent = profitIndex;
-
-            // تعیین وضعیت
-            const statusElement = document.getElementById('investorStatus');
-            if (statusElement) {
-                if (netPrincipal > 0) {
-                    statusElement.textContent = 'فعال';
-                    statusElement.className = 'investor-status status-active';
+            // نمایش توضیحات
+            const descriptionEl = document.getElementById('investorDescription');
+            const descriptionSection = document.getElementById('descriptionSection');
+            if (descriptionEl && descriptionSection) {
+                if (investorData.description && investorData.description.trim()) {
+                    descriptionEl.textContent = investorData.description;
+                    descriptionSection.style.display = 'block';
                 } else {
-                    statusElement.textContent = 'غیرفعال';
-                    statusElement.className = 'investor-status status-inactive';
+                    descriptionSection.style.display = 'none';
                 }
             }
-            
-            console.log('اطلاعات مشارکت کننده به‌روزرسانی شد:', {
-                totalPrincipal: totalPrincipal / BASE_AMOUNT,
-                totalWithdrawal: totalWithdrawal / BASE_AMOUNT,
-                netPrincipal: netPrincipal / BASE_AMOUNT,
-                capitalRatio: capitalRatio,
-                profitRatioToTotal: profitRatioToTotal,
-                totalRatioToGrandTotal: totalRatioToGrandTotal,
-                totalProfit: totalProfit / BASE_AMOUNT,
-                totalBalance: totalBalance / BASE_AMOUNT
-                // profitRatio: profitRatio  // موقتاً کامنت شده
-            });
         }
+
+        // سوئیچ پایدار بین حالت‌ها: owner | investor
+        function showVariant(variant) {
+            const unitSection = document.querySelector('.unit-section');
+            if (!unitSection) return;
+            const variantBlocks = unitSection.querySelectorAll('[data-variant]');
+            variantBlocks.forEach(el => {
+                const isMatch = el.getAttribute('data-variant') === variant;
+                el.classList.toggle('is-active', isMatch);
+            });
+            const sectionTitle = unitSection.querySelector('.section-title');
+            if (sectionTitle) {
+                sectionTitle.innerHTML = variant === 'investor'
+                    ? '<i class="fas fa-calculator"></i> مالکیت محاسبه شده'
+                    : '<i class="fas fa-building"></i> اطلاعات واحد انتخاب شده';
+            }
+        }
+
 
         // پاک کردن نمودارهای قبلی
         function destroyCharts() {
@@ -1838,48 +2120,13 @@
             document.getElementById('investorInfo').classList.remove('show');
         }
 
-        // به‌روزرسانی اطلاعات کلی مشارکت کننده
-        function updateInvestorInfo(investorId) {
-            const investorData = chartData.filter(row => row.investor_name === investorId);
-            const principalData = investorData.filter(row => row.entry_type === 'principal_deposit');
-            const withdrawalData = investorData.filter(row => row.entry_type === 'principal_withdrawal');
-            const profitData = investorData.filter(row => row.entry_type === 'profit_accrual');
-
-            const totalPrincipal = principalData.reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
-            const totalWithdrawal = withdrawalData.reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
-            const totalProfit = profitData.reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
-            
-            const netPrincipal = totalPrincipal + totalWithdrawal; // withdrawal معمولاً منفی است
-            const totalBalance = netPrincipal + totalProfit;
-            // محاسبه نسبت سود به آورده - موقتاً کامنت شده
-            // const profitRatio = netPrincipal > 0 ? ((totalProfit / netPrincipal) * 100).toFixed(2) : '0.00';
-
-            document.getElementById('investorName').textContent = investorId;
-            document.getElementById('totalPrincipal').textContent = formatNumberWithCommas(totalPrincipal);
-            document.getElementById('totalWithdrawal').textContent = formatNumberWithCommas(Math.abs(totalWithdrawal));
-            document.getElementById('netPrincipal').textContent = formatNumberWithCommas(netPrincipal);
-            document.getElementById('totalProfit').textContent = formatNumberWithCommas(totalProfit);
-            document.getElementById('totalBalance').textContent = formatNumberWithCommas(totalBalance);
-            // نمایش نسبت سود به آورده - موقتاً کامنت شده
-            // document.getElementById('profitRatio').textContent = profitRatio + '%';
-
-            // تعیین وضعیت
-            const statusElement = document.getElementById('investorStatus');
-            if (netPrincipal > 0) {
-                statusElement.textContent = 'فعال';
-                statusElement.className = 'investor-status status-active';
-            } else {
-                statusElement.textContent = 'غیرفعال';
-                statusElement.className = 'investor-status status-inactive';
-            }
-        }
 
 
 
         // نمودار توزیع فعالیت‌ها
         function createActivityDistributionChart(investorTransactions) {
             // داده‌های فیلتر شده از سرور استفاده می‌کنیم
-            const principalData = investorTransactions.filter(row => row.entry_type === 'principal_deposit');
+            const principalData = investorTransactions.filter(row => ['principal_deposit','loan_deposit'].includes(row.entry_type));
             const withdrawalData = investorTransactions.filter(row => row.entry_type === 'principal_withdrawal');
             const profitData = investorTransactions.filter(row => row.entry_type === 'profit_accrual');
 
@@ -1933,7 +2180,7 @@
         function createPrincipalTransactionChart(investorTransactions) {
             // فیلتر کردن تراکنش‌های آورده و برداشت
             const principalTransactions = investorTransactions.filter(row => 
-                row.entry_type === 'principal_deposit' || row.entry_type === 'principal_withdrawal'
+                ['principal_deposit','loan_deposit','principal_withdrawal'].includes(row.entry_type)
             );
             
             // مرتب کردن بر اساس تاریخ
@@ -1958,7 +2205,7 @@
                 
                 labels.push(date);
                 
-                if (transaction.entry_type === 'principal_deposit') {
+                if (['principal_deposit','loan_deposit'].includes(transaction.entry_type)) {
                     depositAmounts.push(amount / BASE_AMOUNT);
                     withdrawalAmounts.push(0);
                     cumulative += amount;
@@ -1979,7 +2226,7 @@
                     datasets: [
                         {
                             type: 'bar',
-                            label: 'آورده',
+                            label: 'آورده(میلیون تومان)',
                             data: depositAmounts,
                             backgroundColor: 'rgba(33, 133, 208, 0.8)', // آبی - آورده
                             borderColor: 'rgba(33, 133, 208, 1)',
@@ -1988,7 +2235,7 @@
                         },
                         {
                             type: 'bar', 
-                            label: 'برداشت',
+                            label: 'برداشت (میلیون تومان)',
                             data: withdrawalAmounts,
                             backgroundColor: 'rgba(219, 40, 40, 0.8)', // قرمز - برداشت
                             borderColor: 'rgba(219, 40, 40, 1)',
@@ -1997,7 +2244,7 @@
                         },
                         {
                             type: 'line',
-                            label: 'سرمایه موجود',
+                            label: 'سرمایه موجود(میلیون تومان)',
                             data: cumulativeAmounts,
                             borderColor: 'rgba(170, 38, 255, 1)', // بنفش - سرمایه موجود
                             backgroundColor: 'rgba(170, 38, 255, 0.2)',
@@ -2060,7 +2307,7 @@
         function createMonthlyPrincipalChart(investorTransactions) {
             // فیلتر کردن فقط تراکنش‌های آورده و برداشت
             const principalTransactions = investorTransactions.filter(row => 
-                row.entry_type === 'principal_deposit' || row.entry_type === 'principal_withdrawal'
+                ['principal_deposit','loan_deposit','principal_withdrawal'].includes(row.entry_type)
             );
             
             const monthlyData = {};
@@ -2072,7 +2319,7 @@
                     }
                     
                     const amount = parseFloat(row.amount || 0);
-                    if (row.entry_type === 'principal_deposit') {
+                    if (['principal_deposit','loan_deposit'].includes(row.entry_type)) {
                         monthlyData[month].principal += amount;
                     } else { // principal_withdrawal
                         monthlyData[month].withdrawal += amount;
@@ -2262,158 +2509,37 @@
             });
         }
 
-        // بارگذاری داده‌های ترند مشارکت کننده - استفاده از همان منطق نمودار ماهانه
+        // بارگذاری داده‌های ترند مشارکت کننده از سرور
         async function loadInvestorTrendData(investorId, investorTransactions) {
             try {
                 console.log('🔍 بارگذاری داده‌های ترند برای مشارکت کننده:', investorId);
-                console.log('🔍 تعداد تراکنش‌ها:', investorTransactions.length);
                 
-                if (!investorTransactions || investorTransactions.length === 0) {
-                    console.warn('⚠️ هیچ تراکنشی یافت نشد');
+                // دریافت داده‌های نمودار ترند از سرور
+                const response = await fetch(`/api/v1/Investor/${investorId}/investor_cumulative_capital_and_unit_cost_chart/`);
+                if (!response.ok) {
+                    console.warn('⚠️ خطا در دریافت داده‌های نمودار ترند:', response.status);
                     return;
                 }
                 
-                // استفاده از همان منطق نمودار ماهانه برای سرمایه موجود
-                const monthlyData = {};
-                const BASE_AMOUNT = 1000000; // میلیون تومان
-
-                // پردازش تراکنش‌ها به صورت ماهانه (همان منطق نمودار ماهانه)
-                investorTransactions.forEach(row => {
-                    
-                    if (row.date_shamsi) {
-                        const month = row.date_shamsi.substring(0, 7); // YYYY-MM
-                        
-                        if (!monthlyData[month]) {
-                            monthlyData[month] = {
-                                principal: 0,
-                                withdrawal: 0,
-                                profit: 0
-                            };
-                        }
-                        
-                        const amount = parseFloat(row.amount || 0);
-                        
-                        switch (row.entry_type) {
-                            case 'principal_deposit':
-                                monthlyData[month].principal += amount;
-                                break;
-                            case 'principal_withdrawal':
-                                monthlyData[month].withdrawal += amount;
-                                break;
-                            case 'profit_accrual':
-                                monthlyData[month].profit += amount;
-                                break;
-                        }
-                    } else {
-                        console.warn('⚠️ date_shamsi موجود نیست:', row);
-                    }
-                });
-
-                // دریافت تمام دوره‌ها از API یا کش (مبنا دوره است، نه تراکنش‌ها)
-                let periodsData;
-                if (cachedPeriodData) {
-                    console.log('✅ استفاده از کش برای داده‌های دوره‌ای');
-                    periodsData = cachedPeriodData;
-                } else {
-                    console.log('🔍 دریافت داده‌های دوره‌ای از API');
-                    const periodsResponse = await fetch(`/api/v1/Period/chart_data/`);
-                    periodsData = await periodsResponse.json();
-                    // ذخیره در کش
-                    cachedPeriodData = periodsData;
-                }
+                const trendData = await response.json();
                 
-                if (!periodsData.success) {
-                    console.warn('⚠️ API دوره‌ها موفق نبود');
+                if (trendData.error) {
+                    console.error('⚠️ خطا در محاسبه داده‌های نمودار ترند:', trendData.error);
                     return;
                 }
                 
-                // تبدیل دوره‌ها به فرمت ماهانه (شمسی)
-                const allMonths = periodsData.data.map(period => `${period.year}-${String(period.month_number).padStart(2, '0')}`).sort();
+                console.log('✅ داده‌های نمودار ترند از سرور دریافت شد');
                 
-                console.log('🔍 تمام دوره‌ها:', allMonths);
-                
-                // محاسبه سرمایه موجود تجمعی برای تمام دوره‌ها
-                const cumulativePrincipalTotals = [];
-                let cumulativeSum = 0;
-                
-                allMonths.forEach(month => {
-                    // اگر تراکنش در این ماه وجود دارد، از آن استفاده کن
-                    if (monthlyData[month]) {
-                        const monthlyNet = monthlyData[month].principal + monthlyData[month].withdrawal;
-                        cumulativeSum += monthlyNet;
-                    }
-                    // اگر تراکنش وجود ندارد، همان مقدار قبلی را نگه دار
-                    cumulativePrincipalTotals.push(cumulativeSum / BASE_AMOUNT);
-                });
-
-                // محاسبه هزینه واحد برای تمام دوره‌ها (با پاس دادن periodsData)
-                const unitCostData = await calculateUnitCostForMonths(allMonths, investorId, periodsData);
+                // استفاده از داده‌های سرور
+                const allMonths = trendData.periods;
+                const cumulativePrincipalTotals = trendData.cumulative_capital;
+                const unitCostData = trendData.unit_cost;
                 
                 // ایجاد نمودار با داده‌های محاسبه شده
                 createInvestorTrendChart(allMonths, cumulativePrincipalTotals, unitCostData);
                 
             } catch (error) {
-                console.error('خطا در بارگذاری داده‌های ترند:', error);
-            }
-        }
-
-        // محاسبه هزینه واحد برای ماه‌های مختلف
-        async function calculateUnitCostForMonths(months, investorId, periodsData) {
-            try {
-                if (!periodsData || !periodsData.success) {
-                    return new Array(months.length).fill(0);
-                }
-                
-                // دریافت اطلاعات مشارکت کننده از کش یا API
-                let investorData;
-                if (cachedInvestorData[investorId]) {
-                    investorData = cachedInvestorData[investorId];
-                } else {
-                    const investorResponse = await fetch(`/api/v1/Investor/${investorId}/`);
-                    investorData = await investorResponse.json();
-                    cachedInvestorData[investorId] = investorData;
-                }
-                
-                // دریافت کل متراژ مفید پروژه از API آمار
-                const projectStatsResponse = await fetch(`/api/v1/Project/statistics/`);
-                const projectStatsData = await projectStatsResponse.json();
-                
-                // محاسبه متراژ واحد مشارکت کننده (از اطلاعات مشارکت کننده)
-                const investorUnitArea = investorData.units ? 
-                    investorData.units.reduce((sum, unit) => sum + (parseFloat(unit.area) || 0), 0) : 0;
-                
-                // کل متراژ مفید از آمار پروژه
-                const totalNetArea = projectStatsData.units_statistics?.total_area || 1;
-                
-                const unitCostData = [];
-                
-                for (const month of months) {
-                    // ماه در فرمت شمسی است: 1402-05
-                    const [shamsiYear, shamsiMonth] = month.split('-');
-                    
-                    // پیدا کردن دوره مربوط به این ماه شمسی (مقایسه عددی)
-                    const periodData = periodsData.data.find(p => 
-                        parseInt(p.year) === parseInt(shamsiYear) && 
-                        parseInt(p.month_number) === parseInt(shamsiMonth)
-                    );
-                    
-                    if (periodData) {
-                        // محاسبه هزینه واحد مشارکت کننده
-                        // فرمول: (هزینه خالص تجمعی ÷ کل متراژ مفید) × متراژ واحد مشارکت کننده
-                        const cumulativeNetCost = periodData.cumulative_expenses - periodData.cumulative_sales;
-                        const unitCostPerMeter = (cumulativeNetCost / totalNetArea) * investorUnitArea;
-                        const unitCostInMillions = unitCostPerMeter / 1000000; // تبدیل به میلیون تومان
-                        
-                        unitCostData.push(unitCostInMillions);
-                    } else {
-                        unitCostData.push(0);
-                    }
-                }
-                
-                return unitCostData;
-            } catch (error) {
-                console.error('خطا در محاسبه هزینه واحد:', error);
-                return new Array(months.length).fill(0);
+                console.error('❌ خطا در بارگذاری داده‌های ترند:', error);
             }
         }
 
@@ -2440,6 +2566,9 @@
             
             // مخفی کردن loading چون دیگر داده‌ای بارگذاری نمی‌کنیم
             document.getElementById('loading').style.display = 'none';
+
+            // نمایش پیش‌فرض حالت مالک تا زمانی که نوع سرمایه‌گذار مشخص شود
+            showVariant('owner');
         });
     </script>
 </body>

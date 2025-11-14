@@ -47,6 +47,9 @@
 - ✅ مجموع سودها (Total Profits)
 - ✅ سرمایه موجود (Net Capital)
 
+> یادداشت SSOT: از Manager سفارشی `Transaction.objects` برای تمام محاسبات تراکنش‌ها استفاده می‌شود:
+> `project_totals`، `period_totals`، `cumulative_until` و متد جدید `totals(project=None, filters=None)` برای سناریوهای فیلترپذیر (سرمایه‌گذار/بازه زمانی/نوع).
+
 #### 🏗️ **محاسبات ساخت و ساز (5 محاسبه)**
 - ✅ تعداد واحدها (Total Units)
 - ✅ متراژ کل (Total Area)
@@ -142,6 +145,8 @@ net_capital = deposits + withdrawals
 ### 3. **بررسی کد سرویس**
 - فایل `construction/calculations.py` شامل تمام کلاس‌های محاسباتی
 - هر کلاس دارای متدهای مختلف
+
+> تغییر اخیر: در `ProjectCalculations` و `TransactionCalculations` تمام `aggregate`های محلی حذف و با فراخوانی‌های `Transaction.objects.project_totals(...)` و `Transaction.objects.totals(...)` جایگزین شده‌اند تا قانون SSOT رعایت شود.
 
 ### 4. **بررسی JavaScript Service**
 - فایل `static/js/financial-calculations.js` شامل تمام توابع

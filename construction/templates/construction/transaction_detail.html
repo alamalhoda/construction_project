@@ -50,7 +50,7 @@
                             <div class="info-item mb-3">
                                 <label class="info-label">مبلغ:</label>
                                 <span class="info-value">
-                                    <strong class="{% if object.transaction_type == 'principal_deposit' %}text-success{% elif object.transaction_type == 'principal_withdrawal' %}text-danger{% else %}text-warning{% endif %}">
+                                    <strong class="number-format {% if object.transaction_type == 'principal_deposit' %}text-success{% elif object.transaction_type == 'principal_withdrawal' %}text-danger{% else %}text-warning{% endif %}">
                                         {{ object.amount|floatformat:0 }} ریال
                                     </strong>
                                 </span>
@@ -75,13 +75,13 @@
                         <div class="col-md-6">
                             <div class="info-item mb-3">
                                 <label class="info-label">روزهای باقی‌مانده:</label>
-                                <span class="info-value">{{ object.day_remaining }} روز</span>
+                                <span class="info-value number-format">{{ object.day_remaining }} روز</span>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="info-item mb-3">
                                 <label class="info-label">روز از شروع:</label>
-                                <span class="info-value">{{ object.day_from_start }} روز</span>
+                                <span class="info-value number-format">{{ object.day_from_start }} روز</span>
                             </div>
                         </div>
                     </div>
@@ -140,5 +140,21 @@
     color: #212529;
 }
 </style>
+
+<script>
+// فرمت اعداد انگلیسی با جداکننده هزارگان
+document.addEventListener('DOMContentLoaded', function() {
+    const numberCells = document.querySelectorAll('.number-format');
+    numberCells.forEach(cell => {
+        const text = cell.textContent;
+        const numberMatch = text.match(/(\d+(?:\.\d+)?)/);
+        if (numberMatch) {
+            const number = parseFloat(numberMatch[1]);
+            const formattedNumber = new Intl.NumberFormat('en-US').format(Math.round(number));
+            cell.textContent = text.replace(numberMatch[1], formattedNumber);
+        }
+    });
+});
+</script>
 
 {% endblock %}
