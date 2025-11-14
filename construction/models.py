@@ -918,6 +918,53 @@ class Sale(models.Model):
     def get_absolute_url(self):
         return reverse('construction_Sale_detail', kwargs={'pk': self.pk})
 
+class UnitSpecificExpense(models.Model):
+    """
+    مدل هزینه‌های اختصاصی هر واحد
+    هزینه‌هایی که مالک واحد برای واحد خودش انجام می‌دهد
+    """
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, verbose_name="پروژه")
+    unit = models.ForeignKey(Unit, on_delete=models.CASCADE, verbose_name="واحد")
+    title = models.CharField(max_length=200, verbose_name="عنوان")
+    date_shamsi = jmodels.jDateField(verbose_name="تاریخ (شمسی)")
+    date_gregorian = models.DateField(verbose_name="تاریخ (میلادی)")
+    amount = models.DecimalField(max_digits=20, decimal_places=2, verbose_name="مبلغ")
+    description = models.TextField(blank=True, null=True, verbose_name="توضیحات")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="تاریخ به‌روزرسانی")
+
+    class Meta:
+        verbose_name = "هزینه اختصاصی واحد"
+        verbose_name_plural = "هزینه‌های اختصاصی واحد"
+        ordering = ['-date_shamsi', '-created_at']
+
+    def __str__(self):
+        return f"{self.unit.name} - {self.title} - {self.amount}"
+    
+    def get_absolute_url(self):
+        return reverse('construction_UnitSpecificExpense_detail', kwargs={'pk': self.pk})
+    
+    def get_update_url(self):
+        return reverse('construction_UnitSpecificExpense_update', kwargs={'pk': self.pk})
+    
+    def save(self, *args, **kwargs):
+        # تبدیل تاریخ شمسی به میلادی
+        if self.date_shamsi and not self.date_gregorian:
+            import jdatetime
+            try:
+                # تبدیل تاریخ شمسی به میلادی
+                jdate = jdatetime.date(
+                    self.date_shamsi.year,
+                    self.date_shamsi.month,
+                    self.date_shamsi.day
+                )
+                self.date_gregorian = jdate.togregorian()
+            except Exception as e:
+                # در صورت خطا، تاریخ میلادی را تنظیم نکن
+                pass
+        
+        super().save(*args, **kwargs)
+
 class UserProfile(models.Model):
     """
     مدل پروفایل کاربر برای مدیریت نقش‌ها و دسترسی‌ها

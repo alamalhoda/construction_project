@@ -465,3 +465,76 @@ class SaleForm(forms.ModelForm):
             sale.save()
         
         return sale
+
+class UnitSpecificExpenseForm(forms.ModelForm):
+    date_shamsi = CustomJDateField(
+        label="تاریخ (شمسی)",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'انتخاب تاریخ شمسی...'
+        })
+    )
+    
+    class Meta:
+        model = models.UnitSpecificExpense
+        fields = [
+            "unit",
+            "title",
+            "date_shamsi",
+            "amount",
+            "description",
+        ]
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # تنظیم استایل‌ها برای فیلدها
+        self.fields['unit'].widget.attrs.update({'class': 'form-control'})
+        self.fields['title'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'عنوان هزینه را وارد کنید...'
+        })
+        self.fields['amount'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'مبلغ را وارد کنید...',
+            'oninput': 'formatNumber(this)',
+            'onblur': 'validateNumber(this)'
+        })
+        self.fields['description'].widget.attrs.update({
+            'class': 'form-control',
+            'rows': 3,
+            'placeholder': 'توضیحات هزینه...'
+        })
+        
+        # فیلتر کردن واحدها بر اساس پروژه فعال
+        active_project = models.Project.get_active_project()
+        if active_project:
+            self.fields['unit'].queryset = models.Unit.objects.filter(project=active_project)
+    
+    def save(self, commit=True):
+        """ذخیره هزینه اختصاصی واحد با تنظیم خودکار پروژه فعال"""
+        expense = super().save(commit=False)
+        
+        # تنظیم پروژه فعال
+        active_project = models.Project.get_active_project()
+        if not active_project:
+            raise forms.ValidationError("هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید.")
+        
+        expense.project = active_project
+        
+        # تبدیل تاریخ شمسی به میلادی
+        if expense.date_shamsi and not expense.date_gregorian:
+            import jdatetime
+            try:
+                jdate = jdatetime.date(
+                    expense.date_shamsi.year,
+                    expense.date_shamsi.month,
+                    expense.date_shamsi.day
+                )
+                expense.date_gregorian = jdate.togregorian()
+            except Exception as e:
+                pass
+        
+        if commit:
+            expense.save()
+        
+        return expense

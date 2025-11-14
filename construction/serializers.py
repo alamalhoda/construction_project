@@ -476,3 +476,141 @@ class InterestRateSerializer(serializers.ModelSerializer):
             return str(obj.effective_date)
         return None
 
+class UnitSpecificExpenseSerializer(serializers.ModelSerializer):
+    # فیلدهای محاسبه شده - فقط برای خواندن
+    date_gregorian = serializers.DateField(read_only=True)
+    created_at = serializers.DateTimeField(read_only=True)
+    updated_at = serializers.DateTimeField(read_only=True)
+    
+    # فیلد date_shamsi برای نمایش (تبدیل میلادی به شمسی)
+    date_shamsi = serializers.SerializerMethodField()
+    
+    # فیلد date_shamsi_input برای دریافت از frontend
+    date_shamsi_input = serializers.CharField(write_only=True, required=False)
+    
+    # فیلدهای foreign key برای نوشتن
+    unit_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
+    project_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
+    
+    # فیلدهای alternative برای frontend (write_only)
+    unit = serializers.IntegerField(write_only=True, required=False, allow_null=True)
+    project = serializers.IntegerField(write_only=True, required=False, allow_null=True)
+    
+    # فیلدهای nested برای خواندن (read_only)
+    unit_data = UnitSerializer(source='unit', read_only=True)
+    project_data = ProjectSerializer(source='project', read_only=True)
+
+    class Meta:
+        model = models.UnitSpecificExpense
+        fields = [
+            'id',
+            'project',
+            'project_id',
+            'project_data',
+            'unit',
+            'unit_id',
+            'unit_data',
+            'title',
+            'date_shamsi',
+            'date_shamsi_input',
+            'date_gregorian',
+            'amount',
+            'description',
+            'created_at',
+            'updated_at',
+        ]
+
+    def get_date_shamsi(self, obj):
+        """تبدیل تاریخ میلادی به شمسی برای نمایش"""
+        if obj.date_shamsi:
+            return str(obj.date_shamsi)
+        elif obj.date_gregorian:
+            import jdatetime
+            try:
+                gdate = obj.date_gregorian
+                jdate = jdatetime.date.fromgregorian(date=gdate)
+                return str(jdate)
+            except:
+                return None
+        return None
+
+    def create(self, validated_data):
+        # تبدیل تاریخ شمسی به میلادی
+        date_shamsi_input = validated_data.pop('date_shamsi_input', None)
+        if date_shamsi_input:
+            import jdatetime
+            try:
+                # پارس کردن تاریخ شمسی (فرمت: YYYY-MM-DD)
+                parts = date_shamsi_input.split('-')
+                if len(parts) == 3:
+                    year, month, day = int(parts[0]), int(parts[1]), int(parts[2])
+                    jdate = jdatetime.date(year, month, day)
+                    validated_data['date_shamsi'] = jdate
+                    validated_data['date_gregorian'] = jdate.togregorian()
+            except Exception as e:
+                raise serializers.ValidationError({
+                    'date_shamsi_input': f'فرمت تاریخ نامعتبر است: {str(e)}'
+                })
+        
+        # مدیریت unit_id و unit
+        unit_id = validated_data.pop('unit_id', None) or validated_data.pop('unit', None)
+        if unit_id:
+            try:
+                validated_data['unit'] = models.Unit.objects.get(pk=unit_id)
+            except models.Unit.DoesNotExist:
+                raise serializers.ValidationError({'unit': 'واحد یافت نشد'})
+        
+        # مدیریت project_id و project - اگر ارسال نشده، از پروژه فعال استفاده کن
+        project_id = validated_data.pop('project_id', None) or validated_data.pop('project', None)
+        if project_id:
+            try:
+                validated_data['project'] = models.Project.objects.get(pk=project_id)
+            except models.Project.DoesNotExist:
+                raise serializers.ValidationError({'project': 'پروژه یافت نشد'})
+        else:
+            # استفاده از پروژه فعال
+            active_project = models.Project.get_active_project()
+            if not active_project:
+                raise serializers.ValidationError({
+                    'project': 'هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید.'
+                })
+            validated_data['project'] = active_project
+        
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        # تبدیل تاریخ شمسی به میلادی اگر ارائه شده باشد
+        date_shamsi_input = validated_data.pop('date_shamsi_input', None)
+        if date_shamsi_input:
+            import jdatetime
+            try:
+                # پارس کردن تاریخ شمسی (فرمت: YYYY-MM-DD)
+                parts = date_shamsi_input.split('-')
+                if len(parts) == 3:
+                    year, month, day = int(parts[0]), int(parts[1]), int(parts[2])
+                    jdate = jdatetime.date(year, month, day)
+                    validated_data['date_shamsi'] = jdate
+                    validated_data['date_gregorian'] = jdate.togregorian()
+            except Exception as e:
+                raise serializers.ValidationError({
+                    'date_shamsi_input': f'فرمت تاریخ نامعتبر است: {str(e)}'
+                })
+        
+        # مدیریت unit_id و unit
+        unit_id = validated_data.pop('unit_id', None) or validated_data.pop('unit', None)
+        if unit_id:
+            try:
+                validated_data['unit'] = models.Unit.objects.get(pk=unit_id)
+            except models.Unit.DoesNotExist:
+                raise serializers.ValidationError({'unit': 'واحد یافت نشد'})
+        
+        # مدیریت project_id و project
+        project_id = validated_data.pop('project_id', None) or validated_data.pop('project', None)
+        if project_id:
+            try:
+                validated_data['project'] = models.Project.objects.get(pk=project_id)
+            except models.Project.DoesNotExist:
+                raise serializers.ValidationError({'project': 'پروژه یافت نشد'})
+        
+        return super().update(instance, validated_data)
+

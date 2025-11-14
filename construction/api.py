@@ -1530,3 +1530,11 @@ class UnitViewSet(viewsets.ModelViewSet):
             'total_price': float(stats['total_price'] or 0),
             'project_breakdown': project_stats
         })
+
+class UnitSpecificExpenseViewSet(viewsets.ModelViewSet):
+    """ViewSet for the UnitSpecificExpense class"""
+
+    queryset = models.UnitSpecificExpense.objects.all()
+    serializer_class = serializers.UnitSpecificExpenseSerializer
+    permission_classes = [APISecurityPermission]
+    filterset_fields = ['unit', 'project']
