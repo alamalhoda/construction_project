@@ -319,6 +319,7 @@
     <div class="print-header">
         <h1>خلاصه دوره‌ای پروژه (تومان)</h1>
         <div class="info">
+            <!-- Project Name will be loaded by JavaScript -->
             <span id="projectNameDisplay" style="display: none;">پروژه: <strong id="projectName"></strong></span>
             <span>تاریخ: <strong id="printDate"></strong></span>
             <span>تعداد ماه ها: <strong id="periodCount">...</strong></span>
@@ -335,9 +336,26 @@
         // تنظیم تاریخ
         document.getElementById('printDate').textContent = new Date().toLocaleDateString('fa-IR');
 
-        // دریافت نام پروژه
+        // دریافت نام پروژه جاری
         async function fetchProjectName() {
             try {
+                // ابتدا سعی می‌کنیم پروژه جاری را از API بگیریم
+                try {
+                    const currentResponse = await fetch('/api/v1/Project/current/');
+                    if (currentResponse.ok) {
+                        const currentProject = await currentResponse.json();
+                        if (currentProject && currentProject.name) {
+                            document.getElementById('projectName').textContent = currentProject.name;
+                            document.getElementById('projectNameDisplay').style.display = 'inline';
+                            console.log('نام پروژه جاری دریافت شد:', currentProject.name);
+                            return;
+                        }
+                    }
+                } catch (err) {
+                    console.warn('خطا در دریافت پروژه جاری:', err);
+                }
+                
+                // اگر پروژه جاری پیدا نشد، از لیست پروژه‌ها استفاده می‌کنیم
                 const response = await fetch('/api/v1/Project/');
                 if (response.ok) {
                     const projectsData = await response.json();

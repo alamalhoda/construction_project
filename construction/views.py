@@ -10,6 +10,7 @@ from django.views.decorators.http import require_http_methods
 
 from . import models
 from . import forms
+from .mixins import ProjectFilterMixin, ProjectFormMixin
 
 def api_login_view(request):
     """صفحه لاگین API"""
@@ -17,26 +18,26 @@ def api_login_view(request):
 
 
 @method_decorator(login_required, name='dispatch')
-class ExpenseListView(generic.ListView):
+class ExpenseListView(ProjectFilterMixin, generic.ListView):
     model = models.Expense
     form_class = forms.ExpenseForm
     ordering = ['period__id', 'created_at']
 
 
 @method_decorator(login_required, name='dispatch')
-class ExpenseCreateView(generic.CreateView):
+class ExpenseCreateView(ProjectFormMixin, generic.CreateView):
     model = models.Expense
     form_class = forms.ExpenseForm
 
 
 @method_decorator(login_required, name='dispatch')
-class ExpenseDetailView(generic.DetailView):
+class ExpenseDetailView(ProjectFilterMixin, generic.DetailView):
     model = models.Expense
     form_class = forms.ExpenseForm
 
 
 @method_decorator(login_required, name='dispatch')
-class ExpenseUpdateView(generic.UpdateView):
+class ExpenseUpdateView(ProjectFormMixin, generic.UpdateView):
     model = models.Expense
     form_class = forms.ExpenseForm
     pk_url_kwarg = "pk"
@@ -50,26 +51,26 @@ class ExpenseDeleteView(generic.DeleteView):
 
 # Sale Views
 @method_decorator(login_required, name='dispatch')
-class SaleListView(generic.ListView):
+class SaleListView(ProjectFilterMixin, generic.ListView):
     model = models.Sale
     form_class = forms.SaleForm
     ordering = ['period__id', 'created_at']
 
 
 @method_decorator(login_required, name='dispatch')
-class SaleCreateView(generic.CreateView):
+class SaleCreateView(ProjectFormMixin, generic.CreateView):
     model = models.Sale
     form_class = forms.SaleForm
 
 
 @method_decorator(login_required, name='dispatch')
-class SaleDetailView(generic.DetailView):
+class SaleDetailView(ProjectFilterMixin, generic.DetailView):
     model = models.Sale
     form_class = forms.SaleForm
 
 
 @method_decorator(login_required, name='dispatch')
-class SaleUpdateView(generic.UpdateView):
+class SaleUpdateView(ProjectFormMixin, generic.UpdateView):
     model = models.Sale
     form_class = forms.SaleForm
     pk_url_kwarg = "pk"
@@ -82,25 +83,25 @@ class SaleDeleteView(generic.DeleteView):
 
 
 @method_decorator(login_required, name='dispatch')
-class InvestorListView(generic.ListView):
+class InvestorListView(ProjectFilterMixin, generic.ListView):
     model = models.Investor
     form_class = forms.InvestorForm
 
 
 @method_decorator(login_required, name='dispatch')
-class InvestorCreateView(generic.CreateView):
+class InvestorCreateView(ProjectFormMixin, generic.CreateView):
     model = models.Investor
     form_class = forms.InvestorForm
 
 
 @method_decorator(login_required, name='dispatch')
-class InvestorDetailView(generic.DetailView):
+class InvestorDetailView(ProjectFilterMixin, generic.DetailView):
     model = models.Investor
     form_class = forms.InvestorForm
 
 
 @method_decorator(login_required, name='dispatch')
-class InvestorUpdateView(generic.UpdateView):
+class InvestorUpdateView(ProjectFormMixin, generic.UpdateView):
     model = models.Investor
     form_class = forms.InvestorForm
     pk_url_kwarg = "pk"
@@ -113,25 +114,25 @@ class InvestorDeleteView(generic.DeleteView):
 
 
 @method_decorator(login_required, name='dispatch')
-class PeriodListView(generic.ListView):
+class PeriodListView(ProjectFilterMixin, generic.ListView):
     model = models.Period
     form_class = forms.PeriodForm
 
 
 @method_decorator(login_required, name='dispatch')
-class PeriodCreateView(generic.CreateView):
+class PeriodCreateView(ProjectFormMixin, generic.CreateView):
     model = models.Period
     form_class = forms.PeriodForm
 
 
 @method_decorator(login_required, name='dispatch')
-class PeriodDetailView(generic.DetailView):
+class PeriodDetailView(ProjectFilterMixin, generic.DetailView):
     model = models.Period
     form_class = forms.PeriodForm
 
 
 @method_decorator(login_required, name='dispatch')
-class PeriodUpdateView(generic.UpdateView):
+class PeriodUpdateView(ProjectFormMixin, generic.UpdateView):
     model = models.Period
     form_class = forms.PeriodForm
     pk_url_kwarg = "pk"
@@ -175,20 +176,21 @@ class ProjectDeleteView(generic.DeleteView):
 
 
 @method_decorator(login_required, name='dispatch')
-class TransactionListView(generic.ListView):
+class TransactionListView(ProjectFilterMixin, generic.ListView):
     model = models.Transaction
     form_class = forms.TransactionForm
 
 
 @method_decorator(login_required, name='dispatch')
-class TransactionCreateView(generic.CreateView):
+class TransactionCreateView(ProjectFormMixin, generic.CreateView):
     model = models.Transaction
     form_class = forms.TransactionForm
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # اضافه کردن اطلاعات پروژه فعال به context
-        active_project = models.Project.get_active_project()
+        from .project_manager import ProjectManager
+        active_project = ProjectManager.get_current_project(self.request)
         context['active_project'] = active_project
         if not active_project:
             context['error_message'] = "هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید."
@@ -196,13 +198,13 @@ class TransactionCreateView(generic.CreateView):
 
 
 @method_decorator(login_required, name='dispatch')
-class TransactionDetailView(generic.DetailView):
+class TransactionDetailView(ProjectFilterMixin, generic.DetailView):
     model = models.Transaction
     form_class = forms.TransactionForm
 
 
 @method_decorator(login_required, name='dispatch')
-class TransactionUpdateView(generic.UpdateView):
+class TransactionUpdateView(ProjectFormMixin, generic.UpdateView):
     model = models.Transaction
     form_class = forms.TransactionForm
     pk_url_kwarg = "pk"
@@ -210,7 +212,8 @@ class TransactionUpdateView(generic.UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # اضافه کردن اطلاعات پروژه فعال به context
-        active_project = models.Project.get_active_project()
+        from .project_manager import ProjectManager
+        active_project = ProjectManager.get_current_project(self.request)
         context['active_project'] = active_project
         if not active_project:
             context['error_message'] = "هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید."
@@ -224,20 +227,21 @@ class TransactionDeleteView(generic.DeleteView):
 
 
 @method_decorator(login_required, name='dispatch')
-class UnitListView(generic.ListView):
+class UnitListView(ProjectFilterMixin, generic.ListView):
     model = models.Unit
     form_class = forms.UnitForm
 
 
 @method_decorator(login_required, name='dispatch')
-class UnitCreateView(generic.CreateView):
+class UnitCreateView(ProjectFormMixin, generic.CreateView):
     model = models.Unit
     form_class = forms.UnitForm
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # اضافه کردن اطلاعات پروژه فعال به context
-        active_project = models.Project.get_active_project()
+        from .project_manager import ProjectManager
+        active_project = ProjectManager.get_current_project(self.request)
         context['active_project'] = active_project
         if not active_project:
             context['error_message'] = "هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید."
@@ -245,13 +249,13 @@ class UnitCreateView(generic.CreateView):
 
 
 @method_decorator(login_required, name='dispatch')
-class UnitDetailView(generic.DetailView):
+class UnitDetailView(ProjectFilterMixin, generic.DetailView):
     model = models.Unit
     form_class = forms.UnitForm
 
 
 @method_decorator(login_required, name='dispatch')
-class UnitUpdateView(generic.UpdateView):
+class UnitUpdateView(ProjectFormMixin, generic.UpdateView):
     model = models.Unit
     form_class = forms.UnitForm
     pk_url_kwarg = "pk"
@@ -355,26 +359,26 @@ def set_active_project_api(request):
 
 # InterestRate Views
 @method_decorator(login_required, name='dispatch')
-class InterestRateListView(generic.ListView):
+class InterestRateListView(ProjectFilterMixin, generic.ListView):
     model = models.InterestRate
     form_class = forms.InterestRateForm
     ordering = ['-effective_date']
 
 
 @method_decorator(login_required, name='dispatch')
-class InterestRateCreateView(generic.CreateView):
+class InterestRateCreateView(ProjectFormMixin, generic.CreateView):
     model = models.InterestRate
     form_class = forms.InterestRateForm
 
 
 @method_decorator(login_required, name='dispatch')
-class InterestRateDetailView(generic.DetailView):
+class InterestRateDetailView(ProjectFilterMixin, generic.DetailView):
     model = models.InterestRate
     form_class = forms.InterestRateForm
 
 
 @method_decorator(login_required, name='dispatch')
-class InterestRateUpdateView(generic.UpdateView):
+class InterestRateUpdateView(ProjectFormMixin, generic.UpdateView):
     model = models.InterestRate
     form_class = forms.InterestRateForm
     pk_url_kwarg = "pk"
@@ -387,14 +391,14 @@ class InterestRateDeleteView(generic.DeleteView):
 
 
 @method_decorator(login_required, name='dispatch')
-class UnitSpecificExpenseListView(generic.ListView):
+class UnitSpecificExpenseListView(ProjectFilterMixin, generic.ListView):
     model = models.UnitSpecificExpense
     form_class = forms.UnitSpecificExpenseForm
     ordering = ['-date_shamsi', '-created_at']
 
 
 @method_decorator(login_required, name='dispatch')
-class UnitSpecificExpenseCreateView(generic.CreateView):
+class UnitSpecificExpenseCreateView(ProjectFormMixin, generic.CreateView):
     model = models.UnitSpecificExpense
     form_class = forms.UnitSpecificExpenseForm
     
@@ -408,13 +412,13 @@ class UnitSpecificExpenseCreateView(generic.CreateView):
 
 
 @method_decorator(login_required, name='dispatch')
-class UnitSpecificExpenseDetailView(generic.DetailView):
+class UnitSpecificExpenseDetailView(ProjectFilterMixin, generic.DetailView):
     model = models.UnitSpecificExpense
     form_class = forms.UnitSpecificExpenseForm
 
 
 @method_decorator(login_required, name='dispatch')
-class UnitSpecificExpenseUpdateView(generic.UpdateView):
+class UnitSpecificExpenseUpdateView(ProjectFormMixin, generic.UpdateView):
     model = models.UnitSpecificExpense
     form_class = forms.UnitSpecificExpenseForm
     pk_url_kwarg = "pk"

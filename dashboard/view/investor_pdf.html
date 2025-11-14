@@ -808,6 +808,7 @@
         <!-- Report Header -->
         <div class="report-header">
             <h1><i class="fas fa-file-invoice-dollar"></i> گزارش مالی مشارکت کننده</h1>
+
             <div class="date" id="projectNameDisplay" style="display: none; margin-bottom: 5px; color: var(--primary-color); font-weight: bold;">
                 پروژه: <span id="projectName"></span>
             </div>
@@ -1284,6 +1285,34 @@
         // Fetch project name and description
         async function fetchProjectName() {
             try {
+                // ابتدا سعی می‌کنیم پروژه جاری را از API بگیریم
+                try {
+                    const currentResponse = await fetch('/api/v1/Project/current/');
+                    if (currentResponse.ok) {
+                        const currentProject = await currentResponse.json();
+                        if (currentProject && currentProject.name) {
+                            projectName = currentProject.name;
+                            document.getElementById('projectName').textContent = projectName;
+                            document.getElementById('projectNameDisplay').style.display = 'block';
+                            console.log('✅ نام پروژه جاری دریافت شد:', projectName);
+                            
+                            // نمایش توضیحات پروژه
+                            const projectDescriptionEl = document.getElementById('projectDescription');
+                            const projectDescriptionSection = document.getElementById('projectDescriptionSection');
+                            if (projectDescriptionEl && projectDescriptionSection && currentProject.description && currentProject.description.trim()) {
+                                projectDescriptionEl.textContent = currentProject.description;
+                                projectDescriptionSection.style.display = 'block';
+                            } else if (projectDescriptionSection) {
+                                projectDescriptionSection.style.display = 'none';
+                            }
+                            return;
+                        }
+                    }
+                } catch (err) {
+                    console.warn('خطا در دریافت پروژه جاری:', err);
+                }
+                
+                // اگر پروژه جاری پیدا نشد، از لیست پروژه‌ها استفاده می‌کنیم (fallback)
                 const response = await fetch('/api/v1/Project/');
                 if (response.ok) {
                     const projectsData = await response.json();
@@ -1292,7 +1321,7 @@
                         projectName = projects[0].name;
                         document.getElementById('projectName').textContent = projectName;
                         document.getElementById('projectNameDisplay').style.display = 'block';
-                        console.log('نام پروژه دریافت شد:', projectName);
+                        console.log('⚠️ نام پروژه از لیست پروژه‌ها دریافت شد:', projectName);
                         
                         // نمایش توضیحات پروژه
                         const projectDescriptionEl = document.getElementById('projectDescription');

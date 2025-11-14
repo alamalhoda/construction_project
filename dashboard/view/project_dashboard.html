@@ -17,6 +17,9 @@
     <!-- Financial Calculations Service -->
     <script src="/static/js/financial-calculations.js"></script>
     
+    <!-- Project Switcher CSS -->
+    <link rel="stylesheet" href="/static/css/project-switcher.css">
+    
     <style>
         /* CSS Variables for Theme System */
         :root {
@@ -250,6 +253,32 @@
 
         .unified-header .nav-link i {
             font-size: 1.1rem;
+        }
+        
+        /* Project Switcher در unified-header */
+        .unified-header .project-switcher-container {
+            position: absolute;
+            top: 20px;
+            /* left: 20px; */
+            z-index: 10;
+        }
+        
+        .unified-header .project-switcher .current-project-display {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .unified-header .project-switcher .current-project-display:hover {
+            background: rgba(255, 255, 255, 0.35);
+        }
+        
+        /* Badge پروژه فعلی در عنوان */
+        .current-project-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 400;
         }
 
         /* Theme Toggle Button */
@@ -1387,10 +1416,18 @@
     <div class="main-container">
         <div class="container">
         <div class="unified-header">
+            <!-- Project Switcher در گوشه بالا-چپ -->
+            <div class="project-switcher-container">
+                <!-- Project Switcher will be rendered here by JavaScript -->
+                <div id="projectSwitcherContainer"></div>
+            </div>
+            
             <div class="unified-header-content">
                 <h1>
                     <i class="fas fa-chart-line"></i>
                     خلاصه مالی 
+                    <!-- Project Badge will be rendered here by JavaScript -->
+                    <span id="currentProjectBadge" style="display: none; font-size: 0.6em; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; margin-right: 15px; display: inline-flex; align-items: center; gap: 8px;"></span>
                 </h1>
                 <p class="subtitle">نمایش جامع وضعیت مالی </p>
                 <div class="navigation-links">
@@ -1416,6 +1453,15 @@
                     </a>
                 </div>
             </div>
+        </div>
+        
+        <!-- هشدار برای پروژه فعال نبودن (will be shown/hidden by JavaScript) -->
+        <div id="noProjectWarning" style="display: none; margin: 20px; padding: 20px; border-radius: 10px; background: #fff3cd; border: 2px solid #ffc107; color: #856404;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>هشدار:</strong> هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید.
+            <a href="/construction/Project/" class="btn btn-primary btn-sm" style="margin-right: 10px;">
+                <i class="fas fa-project-diagram"></i> مدیریت پروژه‌ها
+            </a>
         </div>
 
         <div id="loading" class="loading">
@@ -1703,9 +1749,13 @@
                 }
                 
                 // بارگذاری موازی همه داده‌ها (روش fallback با endpoint های بهینه)
-                const [transactionStatsResponse, investorsSummaryResponse, projectsResponse, interestRateResponse, expensesResponse, timelineResponse, statisticsResponse, projectStatsResponse] = await Promise.all([
+                const [transactionStatsResponse, investorsSummaryResponse, currentProjectResponse, projectsResponse, interestRateResponse, expensesResponse, timelineResponse, statisticsResponse, projectStatsResponse] = await Promise.all([
                     fetch('/api/v1/Transaction/statistics/'),
                     fetch('/api/v1/Investor/all_investors_summary/'),
+                    fetch('/api/v1/Project/current/').catch(err => {
+                        console.warn('خطا در دسترسی به API پروژه جاری:', err);
+                        return { ok: false, status: 404 }; // fallback response
+                    }),
                     fetch('/api/v1/Project/').catch(err => {
                         console.warn('خطا در دسترسی به API پروژه‌ها:', err);
                         return { ok: false, status: 403 }; // fallback response
@@ -1750,20 +1800,42 @@
                 // ذخیره آمار تراکنش‌ها در متغیر سراسری
                 globalStatistics = transactionStats;
                 
-                // اگر پروژه API دسترسی داشت، آن را بارگذاری کن
-                if (projectsResponse.ok) {
-                    const projectsData = await projectsResponse.json();
-                    allProjects = Array.isArray(projectsData) ? projectsData : (projectsData.results || []);
-                    console.log('پروژه‌ها بارگذاری شدند:', allProjects.length);
-                    
-                    // استخراج نام پروژه
-                    if (allProjects.length > 0) {
-                        projectName = allProjects[0].name || '';
-                        console.log('نام پروژه:', projectName);
-                    }
+                // دریافت پروژه جاری از API
+                let currentProject = null;
+                if (currentProjectResponse.ok) {
+                    currentProject = await currentProjectResponse.json();
+                    console.log('✅ پروژه جاری دریافت شد:', currentProject.name);
+                    // تنظیم پروژه جاری به عنوان پروژه اصلی
+                    allProjects = [currentProject];
+                    projectName = currentProject.name || '';
                 } else {
-                    console.warn('API پروژه‌ها دسترسی ندارد، از تراکنش‌ها تاریخ استفاده می‌شود');
-                    allProjects = [];
+                    // اگر API پروژه جاری کار نکرد، از لیست پروژه‌ها استفاده کن
+                    if (projectsResponse.ok) {
+                        const projectsData = await projectsResponse.json();
+                        const projectsList = Array.isArray(projectsData) ? projectsData : (projectsData.results || []);
+                        console.log('پروژه‌ها بارگذاری شدند:', projectsList.length);
+                        
+                        // استفاده از پروژه جاری از localStorage یا اولین پروژه
+                        const storedProjectId = localStorage.getItem('current_project_id');
+                        if (storedProjectId) {
+                            currentProject = projectsList.find(p => p.id === parseInt(storedProjectId));
+                        }
+                        
+                        if (!currentProject && projectsList.length > 0) {
+                            currentProject = projectsList[0];
+                        }
+                        
+                        if (currentProject) {
+                            allProjects = [currentProject];
+                            projectName = currentProject.name || '';
+                            console.log('✅ پروژه جاری از لیست پروژه‌ها انتخاب شد:', projectName);
+                        } else {
+                            allProjects = [];
+                        }
+                    } else {
+                        console.warn('API پروژه‌ها دسترسی ندارد');
+                        allProjects = [];
+                    }
                 }
                 
                 // اگر نرخ سود API دسترسی داشت، آن را بارگذاری کن
@@ -1838,13 +1910,6 @@
                 const comprehensiveTransactionStats = comprehensiveAnalysis.transaction_statistics;
                 const currentInterestRate = comprehensiveAnalysis.current_interest_rate;
                 
-                // تنظیم متغیرهای سراسری
-                globalStatistics = {
-                    net_principal: projectStats.transaction_statistics.net_principal,
-                    total_profits: projectStats.transaction_statistics.total_profits,
-                    grand_total: projectStats.transaction_statistics.grand_total
-                };
-                
                 // بارگذاری خلاصه آمار تراکنش‌ها، سرمایه‌گذاران، داده‌های نمودار دوره‌ای و آمار پروژه
                 const [transactionStatsResponse, investorsSummaryResponse, periodSummaryResponse, periodChartResponse, projectStatsResponse] = await Promise.all([
                     fetch('/api/v1/Transaction/statistics/'),
@@ -1857,13 +1922,26 @@
                     })
                 ]);
                 
-                // بارگذاری آمار تراکنش‌ها
+                // بارگذاری آمار تراکنش‌ها - استفاده از API که از پروژه جاری استفاده می‌کند
                 let transactionStats = null;
                 if (transactionStatsResponse.ok) {
                     transactionStats = await transactionStatsResponse.json();
                     console.log('📊 transactionStats:', transactionStats);
+                    
+                    // تنظیم متغیرهای سراسری از transactionStats (که از پروژه جاری است)
+                    globalStatistics = {
+                        net_principal: transactionStats.net_principal,
+                        total_profits: transactionStats.total_profits,
+                        grand_total: transactionStats.grand_total
+                    };
                 } else {
                     console.warn('⚠️ خطا در بارگذاری آمار تراکنش‌ها');
+                    // Fallback به داده‌های comprehensiveAnalysis
+                    globalStatistics = {
+                        net_principal: projectStats.transaction_statistics?.net_principal || 0,
+                        total_profits: projectStats.transaction_statistics?.total_profits || 0,
+                        grand_total: projectStats.transaction_statistics?.grand_total || 0
+                    };
                 }
                 
                 // بارگذاری خلاصه سرمایه‌گذاران
@@ -1983,13 +2061,14 @@
             const totalProfit = globalStatistics.total_profits;
             const grandTotal = globalStatistics.grand_total;
             
-            // دریافت اطلاعات پروژه
+            // دریافت اطلاعات پروژه جاری
             let projectStartDate = '-';
             let projectEndDate = '-';
             let projectDuration = 0;
             
-            if (allProjects.length > 0) {
-                const mainProject = allProjects[0];
+            // استفاده از پروژه جاری (که در allProjects[0] ذخیره شده است)
+            if (allProjects.length > 0 && allProjects[0]) {
+                const mainProject = allProjects[0]; // پروژه جاری
                 projectStartDate = mainProject.start_date_shamsi || mainProject.start_date || '-';
                 projectEndDate = mainProject.end_date_shamsi || mainProject.end_date || '-';
                 
@@ -2041,8 +2120,9 @@
             let daysRemaining = 0;
             let daysFromStart = 0;
             
-            if (allProjects.length > 0) {
-                const mainProject = allProjects[0];
+            // استفاده از پروژه جاری (که در allProjects[0] ذخیره شده است)
+            if (allProjects.length > 0 && allProjects[0]) {
+                const mainProject = allProjects[0]; // پروژه جاری
                 const today = new Date();
                 
                 // محاسبه روزهای مانده تا پایان پروژه
@@ -2195,9 +2275,10 @@
             let projectEndDate = '-';
             let projectDuration = 0;
             
-            if (allProjects.length > 0) {
-                // اگر چند پروژه داریم، اولی را انتخاب می‌کنیم
-                const mainProject = allProjects[0];
+            // استفاده از پروژه جاری (که در allProjects[0] ذخیره شده است)
+            if (allProjects.length > 0 && allProjects[0]) {
+                // استفاده از پروژه جاری
+                const mainProject = allProjects[0]; // پروژه جاری
                 projectStartDate = mainProject.start_date_shamsi || mainProject.start_date || '-';
                 projectEndDate = mainProject.end_date_shamsi || mainProject.end_date || '-';
                 
@@ -3506,5 +3587,8 @@
         // Theme toggle event listener
         document.getElementById('themeToggle').addEventListener('click', toggleTheme);
     </script>
+    
+    <!-- Project Switcher JavaScript -->
+    <script src="/static/js/project-switcher.js"></script>
 </body>
 </html>

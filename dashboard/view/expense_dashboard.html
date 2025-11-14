@@ -11,6 +11,9 @@
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
+    <!-- Project Switcher CSS -->
+    <link rel="stylesheet" href="/static/css/project-switcher.css">
+    
     <style>
         :root {
             --primary-color: #667eea;
@@ -130,6 +133,32 @@
 
         .unified-header .nav-link i {
             font-size: 1.1rem;
+        }
+        
+        /* Project Switcher در unified-header */
+        .unified-header .project-switcher-container {
+            position: absolute;
+            top: 20px;
+            /* left: 20px; */
+            z-index: 10;
+        }
+        
+        .unified-header .project-switcher .current-project-display {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .unified-header .project-switcher .current-project-display:hover {
+            background: rgba(255, 255, 255, 0.35);
+        }
+        
+        /* Badge پروژه فعلی در عنوان */
+        .current-project-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 400;
         }
 
         .main-container {
@@ -911,10 +940,18 @@
             <div class="dashboard-container">
             <!-- Unified Header Section -->
             <div class="unified-header">
+                <!-- Project Switcher در گوشه بالا-چپ -->
+                <div class="project-switcher-container">
+                    <!-- Project Switcher will be rendered here by JavaScript -->
+                    <div id="projectSwitcherContainer"></div>
+                </div>
+                
                 <div class="unified-header-content">
                     <h1>
                         <i class="fas fa-chart-pie"></i>
                         لیست هزینه ها
+                        <!-- Project Badge will be rendered here by JavaScript -->
+                        <span id="currentProjectBadge" style="display: none; font-size: 0.6em; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; margin-right: 15px; display: inline-flex; align-items: center; gap: 8px;"></span>
                     </h1>
                     <p class="subtitle">مدیریت و نظارت بر هزینه‌های پروژه</p>
                     <!-- <div id="projectName" class="project-name-display" style="margin-top: 10px; font-size: 16px; color: var(--primary-color); font-weight: 500;">
@@ -944,6 +981,15 @@
                     </div>
                 </div>
             </div>
+        
+        <!-- هشدار برای پروژه فعال نبودن (will be shown/hidden by JavaScript) -->
+        <div id="noProjectWarning" style="display: none; margin: 20px; padding: 20px; border-radius: 10px; background: #fff3cd; border: 2px solid #ffc107; color: #856404;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>هشدار:</strong> هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید.
+            <a href="/construction/Project/" class="btn btn-primary btn-sm" style="margin-right: 10px;">
+                <i class="fas fa-project-diagram"></i> مدیریت پروژه‌ها
+            </a>
+        </div>
 
         <!-- محتوای اصلی -->
         <div class="main-content slide-up">
@@ -1679,5 +1725,8 @@
             loadDashboardData();
         });
     </script>
+    
+    <!-- Project Switcher JavaScript -->
+    <script src="/static/js/project-switcher.js"></script>
 </body>
 </html>

@@ -156,15 +156,21 @@ class ProjectCalculations(FinancialCalculationService):
         محاسبه متریک‌های هزینه
         
         Args:
-            project_id: شناسه پروژه
+            project_id: شناسه پروژه (اگر None باشد از پروژه فعال استفاده می‌شود)
             
         Returns:
             Dict: متریک‌های هزینه
         """
-        project = models.Project.objects.get(id=project_id) if project_id else FinancialCalculationService.get_active_project()
-        
-        if not project:
-            return {'error': 'هیچ پروژه فعالی یافت نشد'}
+        # اگر project_id مشخص نشده، از پروژه فعال استفاده کن
+        if project_id:
+            try:
+                project = models.Project.objects.get(id=project_id)
+            except models.Project.DoesNotExist:
+                return {'error': f'پروژه با شناسه {project_id} یافت نشد'}
+        else:
+            project = FinancialCalculationService.get_active_project()
+            if not project:
+                return {'error': 'هیچ پروژه فعالی یافت نشد'}
         
         # آمار هزینه‌ها و فروش‌ها
         expense_stats = models.Expense.objects.filter(project=project).aggregate(
@@ -350,15 +356,22 @@ class ProfitCalculations(FinancialCalculationService):
         محاسبه درصدهای سود (کل، سالانه، ماهانه، روزانه)
         
         Args:
-            project_id: شناسه پروژه
+            project_id: شناسه پروژه (اگر None باشد از پروژه فعال استفاده می‌شود)
             
         Returns:
             Dict: درصدهای سود
         """
-        project = models.Project.objects.get(id=project_id) if project_id else FinancialCalculationService.get_active_project()
-        
-        if not project:
-            return {'error': 'هیچ پروژه فعالی یافت نشد'}
+        # اگر project_id مشخص نشده، از پروژه فعال استفاده کن
+        if project_id:
+            try:
+                project = models.Project.objects.get(id=project_id)
+            except models.Project.DoesNotExist:
+                return {'error': f'پروژه با شناسه {project_id} یافت نشد'}
+        else:
+            project = FinancialCalculationService.get_active_project()
+            if not project:
+                return {'error': 'هیچ پروژه فعالی یافت نشد'}
+            project_id = project.id  # استفاده از شناسه پروژه فعال
         
         # محاسبه متریک‌های هزینه
         cost_metrics = ProjectCalculations.calculate_cost_metrics(project_id)
@@ -701,13 +714,17 @@ class InvestorCalculations(FinancialCalculationService):
                 - نسبت‌ها (capital_ratio, profit_ratio, profit_index)
                 - اطلاعات مالکیت (متراژ، واحدها، قیمت‌ها)
         """
-        project = models.Project.objects.get(id=project_id) if project_id else FinancialCalculationService.get_active_project()
-        
-        if not project:
+        # اگر project_id None باشد، خطا برگردان (باید از API endpoint تنظیم شود)
+        if not project_id:
             return []
         
-        # دریافت همه سرمایه‌گذاران
-        investors = models.Investor.objects.all()
+        try:
+            project = models.Project.objects.get(id=project_id)
+        except models.Project.DoesNotExist:
+            return []
+        
+        # دریافت سرمایه‌گذاران پروژه جاری (فیلتر بر اساس پروژه)
+        investors = models.Investor.objects.filter(project=project)
         summary = []
         
         print(f"🔍 تعداد کل سرمایه‌گذاران: {investors.count()}")
@@ -943,15 +960,19 @@ class ComprehensiveCalculations(FinancialCalculationService):
         دریافت تحلیل جامع پروژه
         
         Args:
-            project_id: شناسه پروژه
+            project_id: شناسه پروژه (الزامی است)
             
         Returns:
             Dict: تحلیل جامع پروژه
         """
-        project = models.Project.objects.get(id=project_id) if project_id else FinancialCalculationService.get_active_project()
+        # project_id باید از API endpoint تنظیم شود (از پروژه جاری از session)
+        if not project_id:
+            return {'error': 'شناسه پروژه الزامی است'}
         
-        if not project:
-            return {'error': 'هیچ پروژه فعالی یافت نشد'}
+        try:
+            project = models.Project.objects.get(id=project_id)
+        except models.Project.DoesNotExist:
+            return {'error': 'پروژه یافت نشد'}
         
         # جمع‌آوری تمام آمار
         project_stats = ProjectCalculations.calculate_project_statistics(project_id)  # آمار کلی پروژه
