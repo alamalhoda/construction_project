@@ -397,7 +397,8 @@ class InvestorViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
             results = []  # لیست نتایج
 
             for inv in investors:
-                totals = models.Transaction.objects.totals(project=None, filters={'investor_id': inv.id})  # محاسبه مجموع تراکنش‌های سرمایه‌گذار
+                # استفاده از پروژه جاری برای فیلتر تراکنش‌ها
+                totals = models.Transaction.objects.totals(project=current_project, filters={'investor_id': inv.id})  # محاسبه مجموع تراکنش‌های سرمایه‌گذار
                 deposits = float(totals.get('deposits', 0) or 0)  # مجموع آورده‌ها
                 withdrawals = float(totals.get('withdrawals', 0) or 0)  # مجموع برداشت‌ها (منفی)
                 profits = float(totals.get('profits', 0) or 0)  # مجموع سود
@@ -431,14 +432,17 @@ class InvestorViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
             # فیلتر بر اساس پروژه جاری
             from construction.project_manager import ProjectManager
             current_project = ProjectManager.get_current_project(request)
-            if current_project:
-                investors = models.Investor.objects.filter(project=current_project)  # لیست سرمایه‌گذاران پروژه جاری
-            else:
-                investors = models.Investor.objects.all()  # اگر پروژه جاری نبود، همه را برگردان
+            if not current_project:
+                return Response({
+                    'error': 'هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید.'
+                }, status=400)
+            
+            investors = models.Investor.objects.filter(project=current_project)  # لیست سرمایه‌گذاران پروژه جاری
             results = []  # لیست نتایج
 
             for inv in investors:
-                totals = models.Transaction.objects.totals(project=None, filters={'investor_id': inv.id})  # محاسبه مجموع تراکنش‌های سرمایه‌گذار
+                # استفاده از پروژه جاری برای فیلتر تراکنش‌ها
+                totals = models.Transaction.objects.totals(project=current_project, filters={'investor_id': inv.id})  # محاسبه مجموع تراکنش‌های سرمایه‌گذار
                 deposits = float(totals.get('deposits', 0) or 0)  # مجموع آورده‌ها
                 withdrawals = float(totals.get('withdrawals', 0) or 0)  # مجموع برداشت‌ها (منفی است)
                 profits = float(totals.get('profits', 0) or 0)  # مجموع سود
@@ -1076,7 +1080,10 @@ class ProjectViewSet(viewsets.ModelViewSet):
         
         try:
             project = models.Project.objects.get(id=project_id)
+            
+            # تنظیم پروژه در session
             ProjectManager.set_current_project(request, project_id)
+            
             return Response({
                 'success': True,
                 'project': {
@@ -1304,10 +1311,11 @@ class ProjectViewSet(viewsets.ModelViewSet):
     #     from django.http import HttpResponse
     #     
     #     try:
-    #         # دریافت پروژه فعال
-    #         project = models.Project.get_active_project()
+    #         # دریافت پروژه جاری از session
+    #         from construction.project_manager import ProjectManager
+    #         project = ProjectManager.get_current_project(request)
     #         if not project:
-    #             return Response({'error': 'هیچ پروژه فعالی یافت نشد'}, status=400)
+    #             return Response({'error': 'هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید.'}, status=400)
     #         
     #         # تولید فایل Excel
     #         excel_service = ExcelExportService(project)
@@ -1363,10 +1371,11 @@ class ProjectViewSet(viewsets.ModelViewSet):
     #     from django.http import HttpResponse
     #     
     #     try:
-    #         # دریافت پروژه فعال
-    #         project = models.Project.get_active_project()
+    #         # دریافت پروژه جاری از session
+    #         from construction.project_manager import ProjectManager
+    #         project = ProjectManager.get_current_project(request)
     #         if not project:
-    #             return Response({'error': 'هیچ پروژه فعالی یافت نشد'}, status=400)
+    #             return Response({'error': 'هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید.'}, status=400)
     #         
     #         # تولید فایل Excel با فرمول
     #         excel_service = ExcelDynamicExportService(project)

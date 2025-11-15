@@ -139,14 +139,7 @@ class ProjectForm(forms.ModelForm):
             'placeholder': 'انتخاب تاریخ شمسی...'
         })
     )
-    is_active = forms.BooleanField(
-        label="پروژه فعال",
-        required=False,
-        help_text="آیا این پروژه در حال حاضر فعال است؟ (فقط یک پروژه می‌تواند فعال باشد)",
-        widget=forms.CheckboxInput(attrs={
-            'class': 'form-check-input'
-        })
-    )
+    # is_active field removed - using session-based project selection instead
     total_infrastructure = forms.DecimalField(
         label="زیر بنای کل",
         max_digits=15,

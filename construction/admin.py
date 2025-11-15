@@ -119,7 +119,6 @@ class ProjectAdmin(admin.ModelAdmin):
     form = ProjectAdminForm
     list_display = [
         "name",
-        "is_active",
         "start_date_shamsi",
         "end_date_shamsi",
         "total_infrastructure",
@@ -128,7 +127,6 @@ class ProjectAdmin(admin.ModelAdmin):
         "updated_at",
     ]
     list_filter = [
-        "is_active",
         "created_at",
         "updated_at",
     ]
@@ -140,21 +138,6 @@ class ProjectAdmin(admin.ModelAdmin):
         "created_at",
         "updated_at",
     ]
-    actions = ['set_as_active_project']
-    
-    def set_as_active_project(self, request, queryset):
-        """تنظیم پروژه انتخاب شده به عنوان پروژه فعال"""
-        if queryset.count() != 1:
-            self.message_user(request, "لطفاً فقط یک پروژه را انتخاب کنید.", level='ERROR')
-            return
-        
-        project = queryset.first()
-        project.is_active = True
-        project.save()
-        
-        self.message_user(request, f"پروژه '{project.name}' به عنوان پروژه فعال تنظیم شد.")
-    
-    set_as_active_project.short_description = "تنظیم به عنوان پروژه فعال"
 
 
 class TransactionAdminForm(forms.ModelForm):

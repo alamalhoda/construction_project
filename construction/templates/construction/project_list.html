@@ -50,11 +50,7 @@
                                                 </a>
                                             </td>
                                             <td>
-                                                {% if project.is_active %}
-                                                    <span class="badge badge-success">فعال</span>
-                                                {% else %}
-                                                    <span class="badge badge-secondary">غیرفعال</span>
-                                                {% endif %}
+                                                <span class="badge badge-info">پروژه</span>
                                             </td>
                                             <td>{{ project.start_date_shamsi|jformat:"%Y/%m/%d" }}</td>
                                             <td>{{ project.end_date_shamsi|jformat:"%Y/%m/%d" }}</td>

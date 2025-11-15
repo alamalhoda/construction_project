@@ -1582,7 +1582,10 @@ class ExcelExportService:
         Args:
             project: پروژه مورد نظر (اگر None باشد، پروژه فعال استفاده می‌شود)
         """
-        self.project = project or models.Project.get_active_project()
+        # توجه: project باید به صورت صریح ارسال شود
+        if not project:
+            raise ValueError("پارامتر project الزامی است. لطفاً پروژه مورد نظر را مشخص کنید.")
+        self.project = project
         self.workbook = Workbook()
     
     def generate_excel(self):

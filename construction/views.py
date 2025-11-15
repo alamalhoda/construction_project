@@ -267,16 +267,18 @@ class UnitDeleteView(generic.DeleteView):
     success_url = reverse_lazy("construction_Unit_list")
 
 
-# View های مربوط به پروژه فعال
+# View های مربوط به پروژه جاری
 @login_required
 def active_project_view(request):
-    """نمایش پروژه فعال"""
-    active_project = models.Project.get_active_project()
+    """نمایش پروژه جاری"""
+    from .project_manager import ProjectManager
+    current_project = ProjectManager.get_current_project(request)
     all_projects = models.Project.objects.all().order_by('-created_at')
     context = {
-        'active_project': active_project,
+        'active_project': current_project,  # برای سازگاری با template
+        'current_project': current_project,
         'all_projects': all_projects,
-        'title': 'پروژه فعال'
+        'title': 'پروژه جاری'
     }
     return render(request, 'construction/active_project.html', context)
 
@@ -284,7 +286,8 @@ def active_project_view(request):
 @login_required
 @require_http_methods(["POST"])
 def set_active_project_view(request):
-    """تنظیم پروژه فعال"""
+    """تنظیم پروژه جاری"""
+    from .project_manager import ProjectManager
     project_id = request.POST.get('project_id')
     
     if not project_id:
@@ -292,42 +295,43 @@ def set_active_project_view(request):
         return redirect('construction_active_project')
     
     try:
-        project = models.Project.set_active_project(project_id)
-        if project:
-            messages.success(request, f'پروژه "{project.name}" به عنوان پروژه فعال تنظیم شد')
-        else:
-            messages.error(request, 'پروژه یافت نشد')
+        project = models.Project.objects.get(id=project_id)
+        ProjectManager.set_current_project(request, project_id)
+        messages.success(request, f'پروژه "{project.name}" به عنوان پروژه جاری تنظیم شد')
+    except models.Project.DoesNotExist:
+        messages.error(request, 'پروژه یافت نشد')
     except Exception as e:
-        messages.error(request, f'خطا در تنظیم پروژه فعال: {str(e)}')
+        messages.error(request, f'خطا در تنظیم پروژه جاری: {str(e)}')
     
     return redirect('construction_active_project')
 
 
 @login_required
 def active_project_api(request):
-    """API برای دریافت پروژه فعال"""
-    active_project = models.Project.get_active_project()
-    if active_project:
+    """API برای دریافت پروژه جاری"""
+    from .project_manager import ProjectManager
+    current_project = ProjectManager.get_current_project(request)
+    if current_project:
         data = {
-            'id': active_project.id,
-            'name': active_project.name,
-            'is_active': active_project.is_active,
-            'start_date_shamsi': active_project.start_date_shamsi,
-            'end_date_shamsi': active_project.end_date_shamsi,
-            'start_date_gregorian': active_project.start_date_gregorian,
-            'end_date_gregorian': active_project.end_date_gregorian,
-            'created_at': active_project.created_at,
-            'updated_at': active_project.updated_at,
+            'id': current_project.id,
+            'name': current_project.name,
+            'start_date_shamsi': current_project.start_date_shamsi,
+            'end_date_shamsi': current_project.end_date_shamsi,
+            'start_date_gregorian': current_project.start_date_gregorian,
+            'end_date_gregorian': current_project.end_date_gregorian,
+            'created_at': current_project.created_at,
+            'updated_at': current_project.updated_at,
         }
         return JsonResponse(data)
     else:
-        return JsonResponse({'error': 'هیچ پروژه فعالی یافت نشد'}, status=404)
+        return JsonResponse({'error': 'هیچ پروژه جاری یافت نشد'}, status=404)
 
 
 @login_required
 @require_http_methods(["POST"])
 def set_active_project_api(request):
-    """API برای تنظیم پروژه فعال"""
+    """API برای تنظیم پروژه جاری"""
+    from .project_manager import ProjectManager
     import json
     
     try:
@@ -337,24 +341,23 @@ def set_active_project_api(request):
         if not project_id:
             return JsonResponse({'error': 'شناسه پروژه الزامی است'}, status=400)
         
-        project = models.Project.set_active_project(project_id)
-        if project:
-            return JsonResponse({
-                'success': True,
-                'message': f'پروژه "{project.name}" به عنوان پروژه فعال تنظیم شد',
-                'project': {
-                    'id': project.id,
-                    'name': project.name,
-                    'is_active': project.is_active,
-                }
-            })
-        else:
-            return JsonResponse({'error': 'پروژه یافت نشد'}, status=404)
+        project = models.Project.objects.get(id=project_id)
+        ProjectManager.set_current_project(request, project_id)
+        return JsonResponse({
+            'success': True,
+            'message': f'پروژه "{project.name}" به عنوان پروژه جاری تنظیم شد',
+            'project': {
+                'id': project.id,
+                'name': project.name,
+            }
+        })
             
+    except models.Project.DoesNotExist:
+        return JsonResponse({'error': 'پروژه یافت نشد'}, status=404)
     except json.JSONDecodeError:
         return JsonResponse({'error': 'داده‌های JSON نامعتبر است'}, status=400)
     except Exception as e:
-        return JsonResponse({'error': f'خطا در تنظیم پروژه فعال: {str(e)}'}, status=500)
+        return JsonResponse({'error': f'خطا در تنظیم پروژه جاری: {str(e)}'}, status=500)
 
 
 # InterestRate Views
