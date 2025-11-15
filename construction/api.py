@@ -1023,7 +1023,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
                 'end_date_shamsi': str(active_project.end_date_shamsi),  # تاریخ پایان (شمسی)
                 'start_date_gregorian': str(active_project.start_date_gregorian),  # تاریخ شروع (میلادی)
                 'end_date_gregorian': str(active_project.end_date_gregorian),  # تاریخ پایان (میلادی)
-                'is_active': active_project.is_active  # وضعیت فعال بودن پروژه
+                # فیلد is_active حذف شد - مدل Project این فیلد را ندارد
             }
 
             return Response({

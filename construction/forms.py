@@ -233,7 +233,6 @@ class ProjectForm(forms.ModelForm):
             "name",
             "start_date_shamsi",
             "end_date_shamsi",
-            "is_active",
             "total_infrastructure",
             "correction_factor",
             "construction_contractor_percentage",
