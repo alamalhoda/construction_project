@@ -122,7 +122,7 @@ class ProjectCalculations(FinancialCalculationService):
                 'end_date_shamsi': str(project.end_date_shamsi),  # تاریخ پایان (شمسی)
                 'start_date_gregorian': str(project.start_date_gregorian),  # تاریخ شروع (میلادی)
                 'end_date_gregorian': str(project.end_date_gregorian),  # تاریخ پایان (میلادی)
-                'is_active': project.is_active  # وضعیت فعال بودن پروژه
+                # فیلد is_active حذف شد - مدل Project این فیلد را ندارد
             },
             'units_statistics': units_stats,  # آمار واحدها
             'transaction_statistics': {
