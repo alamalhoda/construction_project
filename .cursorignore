@@ -1,4 +1,94 @@
 # SpecStory derived-cursor-rules.mdc backup files
 /ai_rules_backups/*
-# SpecStory derived-cursor-rules.mdc backup files
 .specstory/ai_rules_backups/*
+
+# Python cache and compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments (باعث مشکل در SpecStory می‌شود - هزاران فایل)
+env/
+venv/
+ENV/
+.venv/
+env.bak/
+venv.bak/
+
+# Django static files (تولید شده - نیازی به اسکن نیست)
+staticfiles/
+collectstatic/
+
+# Database files (فایل‌های بزرگ)
+*.sqlite3
+*.db
+*.sql
+database/*.sqlite3
+database/*.db
+database/*.sql
+
+# Backup files (فایل‌های بزرگ و غیرضروری)
+backups/
+*.backup
+*.bak
+*.old
+
+# Log files
+*.log
+logs/
+
+# Temporary files
+temp_data/
+tmp/
+temp/
+*.tmp
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-*
+
+# Node modules (اگر وجود داشته باشد)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Coverage reports
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.hypothesis/
+
+# Large binary files
+*.dylib
+*.dll
+*.exe
+*.bin
+
+# Media files (اگر وجود داشته باشد)
+media/
+uploads/
+
+# SpecStory history files (فایل‌های تاریخچه - نیازی به اسکن ندارند)
+.specstory/history/
+.specstory/ai_rules_backups/
