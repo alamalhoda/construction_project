@@ -18,11 +18,6 @@ class FinancialCalculationService:
     """سرویس محاسبات مالی پروژه"""
     
     @staticmethod
-    def get_active_project() -> Optional[models.Project]:
-        """دریافت پروژه فعال"""
-        return models.Project.get_active_project()
-    
-    @staticmethod
     def format_number(number: float, decimal_places: int = 2) -> str:
         """فرمت اعداد با جداکننده هزارگان"""
         return f"{number:,.{decimal_places}f}"
@@ -57,15 +52,18 @@ class ProjectCalculations(FinancialCalculationService):
         محاسبه آمار کامل پروژه
         
         Args:
-            project_id: شناسه پروژه (اختیاری، اگر None باشد از پروژه فعال استفاده می‌شود)
+            project_id: شناسه پروژه (الزامی - باید از API endpoint با request ارسال شود)
             
         Returns:
             Dict: آمار کامل پروژه
         """
-        project = models.Project.objects.get(id=project_id) if project_id else FinancialCalculationService.get_active_project()
+        if not project_id:
+            return {'error': 'شناسه پروژه الزامی است. لطفاً project_id را ارسال کنید.'}
         
-        if not project:
-            return {'error': 'هیچ پروژه فعالی یافت نشد'}
+        try:
+            project = models.Project.objects.get(id=project_id)
+        except models.Project.DoesNotExist:
+            return {'error': f'پروژه با شناسه {project_id} یافت نشد'}
         
         # آمار واحدها (مرجع واحد)
         units_stats = models.Unit.objects.project_stats(project)
@@ -168,9 +166,7 @@ class ProjectCalculations(FinancialCalculationService):
             except models.Project.DoesNotExist:
                 return {'error': f'پروژه با شناسه {project_id} یافت نشد'}
         else:
-            project = FinancialCalculationService.get_active_project()
-            if not project:
-                return {'error': 'هیچ پروژه فعالی یافت نشد'}
+            return {'error': 'شناسه پروژه الزامی است. لطفاً project_id را ارسال کنید.'}
         
         # آمار هزینه‌ها و فروش‌ها
         expense_stats = models.Expense.objects.filter(project=project).aggregate(
@@ -249,10 +245,13 @@ class ProjectCalculations(FinancialCalculationService):
         Returns:
             Dict: متریک‌های هزینه فعلی شامل net_cost_per_meter_current
         """
-        project = models.Project.objects.get(id=project_id) if project_id else FinancialCalculationService.get_active_project()
+        if not project_id:
+            return {'error': 'شناسه پروژه الزامی است. لطفاً project_id را ارسال کنید.'}
         
-        if not project:
-            return {'error': 'هیچ پروژه فعالی یافت نشد'}
+        try:
+            project = models.Project.objects.get(id=project_id)
+        except models.Project.DoesNotExist:
+            return {'error': f'پروژه با شناسه {project_id} یافت نشد'}
         
         # یافتن دوره جاری
         current_period = None
@@ -323,9 +322,12 @@ class ProfitCalculations(FinancialCalculationService):
         Returns:
             float: دوره متوسط ساخت (روز)
         """
-        project = models.Project.objects.get(id=project_id) if project_id else FinancialCalculationService.get_active_project()
+        if not project_id:
+            return 0.0
         
-        if not project:
+        try:
+            project = models.Project.objects.get(id=project_id)
+        except models.Project.DoesNotExist:
             return 0.0
         
         # دریافت هزینه‌ها با اطلاعات دوره
@@ -368,10 +370,7 @@ class ProfitCalculations(FinancialCalculationService):
             except models.Project.DoesNotExist:
                 return {'error': f'پروژه با شناسه {project_id} یافت نشد'}
         else:
-            project = FinancialCalculationService.get_active_project()
-            if not project:
-                return {'error': 'هیچ پروژه فعالی یافت نشد'}
-            project_id = project.id  # استفاده از شناسه پروژه فعال
+            return {'error': 'شناسه پروژه الزامی است. لطفاً project_id را ارسال کنید.'}
         
         # محاسبه متریک‌های هزینه
         cost_metrics = ProjectCalculations.calculate_cost_metrics(project_id)
@@ -419,10 +418,13 @@ class InvestorCalculations(FinancialCalculationService):
         Returns:
             Dict: آمار سرمایه‌گذار
         """
-        project = models.Project.objects.get(id=project_id) if project_id else FinancialCalculationService.get_active_project()
+        if not project_id:
+            return {'error': 'شناسه پروژه الزامی است. لطفاً project_id را ارسال کنید.'}
         
-        if not project:
-            return {'error': 'هیچ پروژه فعالی یافت نشد'}
+        try:
+            project = models.Project.objects.get(id=project_id)
+        except models.Project.DoesNotExist:
+            return {'error': f'پروژه با شناسه {project_id} یافت نشد'}
         
         # دریافت سرمایه‌گذار
         try:
@@ -481,10 +483,13 @@ class InvestorCalculations(FinancialCalculationService):
         Returns:
             Dict: نسبت‌های سرمایه‌گذار
         """
-        project = models.Project.objects.get(id=project_id) if project_id else FinancialCalculationService.get_active_project()
+        if not project_id:
+            return {'error': 'شناسه پروژه الزامی است. لطفاً project_id را ارسال کنید.'}
         
-        if not project:
-            return {'error': 'هیچ پروژه فعالی یافت نشد'}
+        try:
+            project = models.Project.objects.get(id=project_id)
+        except models.Project.DoesNotExist:
+            return {'error': f'پروژه با شناسه {project_id} یافت نشد'}
         
         # آمار سرمایه‌گذار
         investor_stats = InvestorCalculations.calculate_investor_statistics(investor_id, project_id)
@@ -550,10 +555,13 @@ class InvestorCalculations(FinancialCalculationService):
         Returns:
             Dict: اطلاعات مالکیت سرمایه‌گذار
         """
-        project = models.Project.objects.get(id=project_id) if project_id else FinancialCalculationService.get_active_project()
+        if not project_id:
+            return {'error': 'شناسه پروژه الزامی است. لطفاً project_id را ارسال کنید.'}
         
-        if not project:
-            return {'error': 'هیچ پروژه فعالی یافت نشد'}
+        try:
+            project = models.Project.objects.get(id=project_id)
+        except models.Project.DoesNotExist:
+            return {'error': f'پروژه با شناسه {project_id} یافت نشد'}
         
         # دریافت سرمایه‌گذار
         try:
@@ -810,10 +818,13 @@ class InvestorCalculations(FinancialCalculationService):
                 - cumulative_capital: سرمایه موجود تجمعی به میلیون تومان
                 - unit_cost: هزینه واحد به میلیون تومان
         """
-        project = models.Project.objects.get(id=project_id) if project_id else FinancialCalculationService.get_active_project()
+        if not project_id:
+            return {'error': 'شناسه پروژه الزامی است. لطفاً project_id را ارسال کنید.'}
         
-        if not project:
-            return {'error': 'هیچ پروژه فعالی یافت نشد'}
+        try:
+            project = models.Project.objects.get(id=project_id)
+        except models.Project.DoesNotExist:
+            return {'error': f'پروژه با شناسه {project_id} یافت نشد'}
         
         # دریافت سرمایه‌گذار
         try:
@@ -925,10 +936,13 @@ class TransactionCalculations(FinancialCalculationService):
         Returns:
             Dict: آمار تراکنش‌ها
         """
-        project = models.Project.objects.get(id=project_id) if project_id else FinancialCalculationService.get_active_project()
+        if not project_id:
+            return {'error': 'شناسه پروژه الزامی است. لطفاً project_id را ارسال کنید.'}
         
-        if not project:
-            return {'error': 'هیچ پروژه فعالی یافت نشد'}
+        try:
+            project = models.Project.objects.get(id=project_id)
+        except models.Project.DoesNotExist:
+            return {'error': f'پروژه با شناسه {project_id} یافت نشد'}
         
         # محاسبه آمار از مرجع واحد
         totals = models.Transaction.objects.totals(project, filters or {})  # محاسبه مجموع تراکنش‌ها
@@ -983,7 +997,8 @@ class ComprehensiveCalculations(FinancialCalculationService):
         investors_summary = []  # خلاصه اطلاعات سرمایه‌گذاران
         
         # دریافت نرخ سود فعلی
-        current_rate = models.InterestRate.get_current_rate()  # دریافت نرخ سود فعلی
+        # توجه: get_current_rate نیاز به project دارد
+        current_rate = models.InterestRate.get_current_rate(project=project) if project else None  # دریافت نرخ سود فعلی
         current_interest_rate = float(current_rate.rate * 100) if current_rate else 0  # نرخ سود فعلی (درصد)
         
         return {

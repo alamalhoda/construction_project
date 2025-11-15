@@ -258,15 +258,20 @@ async function loadPeriodSummary() {
 from construction import models
 from django.db.models import Sum
 
-def get_period_summary():
-    active_project = models.Project.get_active_project()
+def get_period_summary(request):
+    # دریافت پروژه جاری از session
+    from construction.project_manager import ProjectManager
+    current_project = ProjectManager.get_current_project(request)
+    if not current_project:
+        return []  # یا raise error
+    
     periods = models.Period.objects.filter(
-        project=active_project
+        project=current_project
     ).order_by('year', 'month_number')
     
     for period in periods:
         transactions = models.Transaction.objects.filter(
-            project=active_project,
+            project=current_project,
             period=period
         )
         

@@ -104,7 +104,7 @@ def project_context(request):
     context = {
         'current_project': None,
         'user_projects': [],
-        'active_project': Project.get_active_project(),
+        # active_project removed - using current_project from session instead
     }
     
     if request.user.is_authenticated:
@@ -639,8 +639,9 @@ class ProjectManager:
             project = Project.objects.filter(id=project_id).first()
             if project:
                 return project
-        # اگر در session نبود، از پروژه فعال استفاده کن
-        return Project.get_active_project()
+        # اگر در session نبود، None برگردان
+        # کاربر باید ابتدا یک پروژه را انتخاب کند
+        return None
     
     @staticmethod
     def set_current_project(request, project_id):

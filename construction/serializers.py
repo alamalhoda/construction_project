@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from . import models
+from .project_manager import ProjectManager
 
 
 class PeriodSerializer(serializers.ModelSerializer):
@@ -22,12 +23,16 @@ class PeriodSerializer(serializers.ModelSerializer):
         ]
     
     def create(self, validated_data):
-        # اگر project ارسال نشده، از پروژه فعال استفاده کن
+        # اگر project ارسال نشده، از پروژه جاری session استفاده کن
         if 'project' not in validated_data or validated_data.get('project') is None:
-            active_project = models.Project.get_active_project()
-            if not active_project:
-                raise serializers.ValidationError({"project": "هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید."})
-            validated_data['project'] = active_project
+            request = self.context.get('request')
+            if not request:
+                raise serializers.ValidationError({"project": "فیلد project الزامی است."})
+            
+            current_project = ProjectManager.get_current_project(request)
+            if not current_project:
+                raise serializers.ValidationError({"project": "هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید."})
+            validated_data['project'] = current_project
         
         return super().create(validated_data)
 
@@ -56,12 +61,16 @@ class ExpenseSerializer(serializers.ModelSerializer):
         return 0
     
     def create(self, validated_data):
-        # اگر project ارسال نشده، از پروژه فعال استفاده کن
+        # اگر project ارسال نشده، از پروژه جاری session استفاده کن
         if 'project' not in validated_data or validated_data.get('project') is None:
-            active_project = models.Project.get_active_project()
-            if not active_project:
-                raise serializers.ValidationError({"project": "هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید."})
-            validated_data['project'] = active_project
+            request = self.context.get('request')
+            if not request:
+                raise serializers.ValidationError({"project": "فیلد project الزامی است."})
+            
+            current_project = ProjectManager.get_current_project(request)
+            if not current_project:
+                raise serializers.ValidationError({"project": "هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید."})
+            validated_data['project'] = current_project
         
         return super().create(validated_data)
 
@@ -90,12 +99,16 @@ class InvestorSerializer(serializers.ModelSerializer):
         return UnitSerializer(obj.units.all(), many=True).data
     
     def create(self, validated_data):
-        # اگر project ارسال نشده، از پروژه فعال استفاده کن
+        # اگر project ارسال نشده، از پروژه جاری session استفاده کن
         if 'project' not in validated_data or validated_data.get('project') is None:
-            active_project = models.Project.get_active_project()
-            if not active_project:
-                raise serializers.ValidationError({"project": "هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید."})
-            validated_data['project'] = active_project
+            request = self.context.get('request')
+            if not request:
+                raise serializers.ValidationError({"project": "فیلد project الزامی است."})
+            
+            current_project = ProjectManager.get_current_project(request)
+            if not current_project:
+                raise serializers.ValidationError({"project": "هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید."})
+            validated_data['project'] = current_project
         
         return super().create(validated_data)
 
@@ -114,12 +127,16 @@ class UnitSerializer(serializers.ModelSerializer):
         ]
     
     def create(self, validated_data):
-        # اگر project ارسال نشده، از پروژه فعال استفاده کن
+        # اگر project ارسال نشده، از پروژه جاری session استفاده کن
         if 'project' not in validated_data or validated_data.get('project') is None:
-            active_project = models.Project.get_active_project()
-            if not active_project:
-                raise serializers.ValidationError({"project": "هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید."})
-            validated_data['project'] = active_project
+            request = self.context.get('request')
+            if not request:
+                raise serializers.ValidationError({"project": "فیلد project الزامی است."})
+            
+            current_project = ProjectManager.get_current_project(request)
+            if not current_project:
+                raise serializers.ValidationError({"project": "هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید."})
+            validated_data['project'] = current_project
         
         return super().create(validated_data)
 
@@ -135,7 +152,6 @@ class ProjectSerializer(serializers.ModelSerializer):
             "end_date_shamsi",
             "start_date_gregorian",
             "end_date_gregorian",
-            "is_active",
             "total_infrastructure",
             "correction_factor",
             "construction_contractor_percentage",
@@ -164,12 +180,16 @@ class SaleSerializer(serializers.ModelSerializer):
         ]
     
     def create(self, validated_data):
-        # اگر project ارسال نشده، از پروژه فعال استفاده کن
+        # اگر project ارسال نشده، از پروژه جاری session استفاده کن
         if 'project' not in validated_data or validated_data.get('project') is None:
-            active_project = models.Project.get_active_project()
-            if not active_project:
-                raise serializers.ValidationError({"project": "هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید."})
-            validated_data['project'] = active_project
+            request = self.context.get('request')
+            if not request:
+                raise serializers.ValidationError({"project": "فیلد project الزامی است."})
+            
+            current_project = ProjectManager.get_current_project(request)
+            if not current_project:
+                raise serializers.ValidationError({"project": "هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید."})
+            validated_data['project'] = current_project
         
         return super().create(validated_data)
 
@@ -286,11 +306,15 @@ class TransactionSerializer(serializers.ModelSerializer):
         elif 'investor' in validated_data:
             validated_data['investor_id'] = validated_data.pop('investor')
         
-        # تنظیم پروژه فعال خودکار
-        active_project = models.Project.get_active_project()
-        if not active_project:
-            raise serializers.ValidationError("هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید.")
-        validated_data['project_id'] = active_project.id
+        # تنظیم پروژه جاری از session
+        request = self.context.get('request')
+        if not request:
+            raise serializers.ValidationError("فیلد project الزامی است.")
+        
+        current_project = ProjectManager.get_current_project(request)
+        if not current_project:
+            raise serializers.ValidationError("هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید.")
+        validated_data['project_id'] = current_project.id
         
         # اگر period_id وجود دارد، از آن استفاده کن
         if 'period_id' in validated_data:
@@ -346,12 +370,16 @@ class TransactionSerializer(serializers.ModelSerializer):
         elif 'investor' in validated_data:
             validated_data['investor_id'] = validated_data.pop('investor')
         
-        # تنظیم پروژه فعال خودکار (فقط اگر پروژه تغییر کرده باشد)
+        # تنظیم پروژه جاری از session (فقط اگر پروژه تغییر کرده باشد)
         if 'project_id' in validated_data or 'project' in validated_data:
-            active_project = models.Project.get_active_project()
-            if not active_project:
-                raise serializers.ValidationError("هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید.")
-            validated_data['project_id'] = active_project.id
+            request = self.context.get('request')
+            if not request:
+                raise serializers.ValidationError("فیلد project الزامی است.")
+            
+            current_project = ProjectManager.get_current_project(request)
+            if not current_project:
+                raise serializers.ValidationError("هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید.")
+            validated_data['project_id'] = current_project.id
         
         # اگر period_id وجود دارد، از آن استفاده کن
         if 'period_id' in validated_data:
@@ -414,18 +442,26 @@ class InterestRateSerializer(serializers.ModelSerializer):
         project = validated_data.pop('project', None)
         
         if project is None:
-            # استفاده از get_active_project() که مستقیماً instance برمی‌گرداند
-            project = models.Project.get_active_project()
+            # استفاده از پروژه جاری از session
+            request = self.context.get('request')
+            if not request:
+                raise serializers.ValidationError({"project": "فیلد project الزامی است."})
+            
+            project = ProjectManager.get_current_project(request)
             if not project:
-                raise serializers.ValidationError({"project": "هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید."})
+                raise serializers.ValidationError({"project": "هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید."})
         elif not isinstance(project, models.Project):
             # اگر project یک instance نیست، آن را تبدیل کن
             try:
                 project = models.Project.objects.get(id=int(project))
             except (models.Project.DoesNotExist, ValueError, TypeError):
-                # در صورت خطا، از پروژه فعال استفاده کن
-                project = models.Project.get_active_project()
-                if not project:
+                # در صورت خطا، از پروژه جاری session استفاده کن
+                request = self.context.get('request')
+                if request:
+                    project = ProjectManager.get_current_project(request)
+                    if not project:
+                        raise serializers.ValidationError({"project": "پروژه معتبر نیست"})
+                else:
                     raise serializers.ValidationError({"project": "پروژه معتبر نیست"})
         
         # تبدیل تاریخ شمسی به میلادی
@@ -570,13 +606,17 @@ class UnitSpecificExpenseSerializer(serializers.ModelSerializer):
             except models.Project.DoesNotExist:
                 raise serializers.ValidationError({'project': 'پروژه یافت نشد'})
         else:
-            # استفاده از پروژه فعال
-            active_project = models.Project.get_active_project()
-            if not active_project:
+            # استفاده از پروژه جاری از session
+            request = self.context.get('request')
+            if not request:
+                raise serializers.ValidationError({'project': 'فیلد project الزامی است.'})
+            
+            current_project = ProjectManager.get_current_project(request)
+            if not current_project:
                 raise serializers.ValidationError({
-                    'project': 'هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید.'
+                    'project': 'هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید.'
                 })
-            validated_data['project'] = active_project
+            validated_data['project'] = current_project
         
         return super().create(validated_data)
 

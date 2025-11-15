@@ -11,7 +11,7 @@ class ProjectManager:
     @staticmethod
     def get_current_project(request):
         """
-        دریافت پروژه جاری از session یا پروژه فعال
+        دریافت پروژه جاری از session
         
         Args:
             request: درخواست HTTP
@@ -25,8 +25,9 @@ class ProjectManager:
             if project:
                 return project
         
-        # اگر در session نبود، از پروژه فعال استفاده کن
-        return Project.get_active_project()
+        # اگر در session نبود، None برگردان
+        # کاربر باید ابتدا یک پروژه را انتخاب کند
+        return None
     
     @staticmethod
     def set_current_project(request, project_id):

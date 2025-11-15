@@ -7,7 +7,8 @@ class Command(BaseCommand):
     help = "Verify SSOT managers for Expense and Sale against legacy aggregates on REAL database"
 
     def handle(self, *args, **options):
-        project = models.Project.get_active_project() or models.Project.objects.first()
+        # استفاده از اولین پروژه برای تست (چون get_active_project حذف شده است)
+        project = models.Project.objects.first()
         if not project:
             self.stdout.write(self.style.WARNING("No project found."))
             return
