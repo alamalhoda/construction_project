@@ -10,6 +10,7 @@ from django.views.decorators.http import require_http_methods
 
 from . import models
 from . import forms
+from .mixins import ProjectFilterMixin, ProjectFormMixin
 
 def api_login_view(request):
     """صفحه لاگین API"""
@@ -17,26 +18,26 @@ def api_login_view(request):
 
 
 @method_decorator(login_required, name='dispatch')
-class ExpenseListView(generic.ListView):
+class ExpenseListView(ProjectFilterMixin, generic.ListView):
     model = models.Expense
     form_class = forms.ExpenseForm
     ordering = ['period__id', 'created_at']
 
 
 @method_decorator(login_required, name='dispatch')
-class ExpenseCreateView(generic.CreateView):
+class ExpenseCreateView(ProjectFormMixin, generic.CreateView):
     model = models.Expense
     form_class = forms.ExpenseForm
 
 
 @method_decorator(login_required, name='dispatch')
-class ExpenseDetailView(generic.DetailView):
+class ExpenseDetailView(ProjectFilterMixin, generic.DetailView):
     model = models.Expense
     form_class = forms.ExpenseForm
 
 
 @method_decorator(login_required, name='dispatch')
-class ExpenseUpdateView(generic.UpdateView):
+class ExpenseUpdateView(ProjectFormMixin, generic.UpdateView):
     model = models.Expense
     form_class = forms.ExpenseForm
     pk_url_kwarg = "pk"
@@ -50,26 +51,26 @@ class ExpenseDeleteView(generic.DeleteView):
 
 # Sale Views
 @method_decorator(login_required, name='dispatch')
-class SaleListView(generic.ListView):
+class SaleListView(ProjectFilterMixin, generic.ListView):
     model = models.Sale
     form_class = forms.SaleForm
     ordering = ['period__id', 'created_at']
 
 
 @method_decorator(login_required, name='dispatch')
-class SaleCreateView(generic.CreateView):
+class SaleCreateView(ProjectFormMixin, generic.CreateView):
     model = models.Sale
     form_class = forms.SaleForm
 
 
 @method_decorator(login_required, name='dispatch')
-class SaleDetailView(generic.DetailView):
+class SaleDetailView(ProjectFilterMixin, generic.DetailView):
     model = models.Sale
     form_class = forms.SaleForm
 
 
 @method_decorator(login_required, name='dispatch')
-class SaleUpdateView(generic.UpdateView):
+class SaleUpdateView(ProjectFormMixin, generic.UpdateView):
     model = models.Sale
     form_class = forms.SaleForm
     pk_url_kwarg = "pk"
@@ -82,25 +83,25 @@ class SaleDeleteView(generic.DeleteView):
 
 
 @method_decorator(login_required, name='dispatch')
-class InvestorListView(generic.ListView):
+class InvestorListView(ProjectFilterMixin, generic.ListView):
     model = models.Investor
     form_class = forms.InvestorForm
 
 
 @method_decorator(login_required, name='dispatch')
-class InvestorCreateView(generic.CreateView):
+class InvestorCreateView(ProjectFormMixin, generic.CreateView):
     model = models.Investor
     form_class = forms.InvestorForm
 
 
 @method_decorator(login_required, name='dispatch')
-class InvestorDetailView(generic.DetailView):
+class InvestorDetailView(ProjectFilterMixin, generic.DetailView):
     model = models.Investor
     form_class = forms.InvestorForm
 
 
 @method_decorator(login_required, name='dispatch')
-class InvestorUpdateView(generic.UpdateView):
+class InvestorUpdateView(ProjectFormMixin, generic.UpdateView):
     model = models.Investor
     form_class = forms.InvestorForm
     pk_url_kwarg = "pk"
@@ -113,25 +114,25 @@ class InvestorDeleteView(generic.DeleteView):
 
 
 @method_decorator(login_required, name='dispatch')
-class PeriodListView(generic.ListView):
+class PeriodListView(ProjectFilterMixin, generic.ListView):
     model = models.Period
     form_class = forms.PeriodForm
 
 
 @method_decorator(login_required, name='dispatch')
-class PeriodCreateView(generic.CreateView):
+class PeriodCreateView(ProjectFormMixin, generic.CreateView):
     model = models.Period
     form_class = forms.PeriodForm
 
 
 @method_decorator(login_required, name='dispatch')
-class PeriodDetailView(generic.DetailView):
+class PeriodDetailView(ProjectFilterMixin, generic.DetailView):
     model = models.Period
     form_class = forms.PeriodForm
 
 
 @method_decorator(login_required, name='dispatch')
-class PeriodUpdateView(generic.UpdateView):
+class PeriodUpdateView(ProjectFormMixin, generic.UpdateView):
     model = models.Period
     form_class = forms.PeriodForm
     pk_url_kwarg = "pk"
@@ -175,20 +176,21 @@ class ProjectDeleteView(generic.DeleteView):
 
 
 @method_decorator(login_required, name='dispatch')
-class TransactionListView(generic.ListView):
+class TransactionListView(ProjectFilterMixin, generic.ListView):
     model = models.Transaction
     form_class = forms.TransactionForm
 
 
 @method_decorator(login_required, name='dispatch')
-class TransactionCreateView(generic.CreateView):
+class TransactionCreateView(ProjectFormMixin, generic.CreateView):
     model = models.Transaction
     form_class = forms.TransactionForm
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # اضافه کردن اطلاعات پروژه فعال به context
-        active_project = models.Project.get_active_project()
+        from .project_manager import ProjectManager
+        active_project = ProjectManager.get_current_project(self.request)
         context['active_project'] = active_project
         if not active_project:
             context['error_message'] = "هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید."
@@ -196,13 +198,13 @@ class TransactionCreateView(generic.CreateView):
 
 
 @method_decorator(login_required, name='dispatch')
-class TransactionDetailView(generic.DetailView):
+class TransactionDetailView(ProjectFilterMixin, generic.DetailView):
     model = models.Transaction
     form_class = forms.TransactionForm
 
 
 @method_decorator(login_required, name='dispatch')
-class TransactionUpdateView(generic.UpdateView):
+class TransactionUpdateView(ProjectFormMixin, generic.UpdateView):
     model = models.Transaction
     form_class = forms.TransactionForm
     pk_url_kwarg = "pk"
@@ -210,7 +212,8 @@ class TransactionUpdateView(generic.UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # اضافه کردن اطلاعات پروژه فعال به context
-        active_project = models.Project.get_active_project()
+        from .project_manager import ProjectManager
+        active_project = ProjectManager.get_current_project(self.request)
         context['active_project'] = active_project
         if not active_project:
             context['error_message'] = "هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید."
@@ -224,20 +227,21 @@ class TransactionDeleteView(generic.DeleteView):
 
 
 @method_decorator(login_required, name='dispatch')
-class UnitListView(generic.ListView):
+class UnitListView(ProjectFilterMixin, generic.ListView):
     model = models.Unit
     form_class = forms.UnitForm
 
 
 @method_decorator(login_required, name='dispatch')
-class UnitCreateView(generic.CreateView):
+class UnitCreateView(ProjectFormMixin, generic.CreateView):
     model = models.Unit
     form_class = forms.UnitForm
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # اضافه کردن اطلاعات پروژه فعال به context
-        active_project = models.Project.get_active_project()
+        from .project_manager import ProjectManager
+        active_project = ProjectManager.get_current_project(self.request)
         context['active_project'] = active_project
         if not active_project:
             context['error_message'] = "هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید."
@@ -245,13 +249,13 @@ class UnitCreateView(generic.CreateView):
 
 
 @method_decorator(login_required, name='dispatch')
-class UnitDetailView(generic.DetailView):
+class UnitDetailView(ProjectFilterMixin, generic.DetailView):
     model = models.Unit
     form_class = forms.UnitForm
 
 
 @method_decorator(login_required, name='dispatch')
-class UnitUpdateView(generic.UpdateView):
+class UnitUpdateView(ProjectFormMixin, generic.UpdateView):
     model = models.Unit
     form_class = forms.UnitForm
     pk_url_kwarg = "pk"
@@ -263,16 +267,18 @@ class UnitDeleteView(generic.DeleteView):
     success_url = reverse_lazy("construction_Unit_list")
 
 
-# View های مربوط به پروژه فعال
+# View های مربوط به پروژه جاری
 @login_required
 def active_project_view(request):
-    """نمایش پروژه فعال"""
-    active_project = models.Project.get_active_project()
+    """نمایش پروژه جاری"""
+    from .project_manager import ProjectManager
+    current_project = ProjectManager.get_current_project(request)
     all_projects = models.Project.objects.all().order_by('-created_at')
     context = {
-        'active_project': active_project,
+        'active_project': current_project,  # برای سازگاری با template
+        'current_project': current_project,
         'all_projects': all_projects,
-        'title': 'پروژه فعال'
+        'title': 'پروژه جاری'
     }
     return render(request, 'construction/active_project.html', context)
 
@@ -280,7 +286,8 @@ def active_project_view(request):
 @login_required
 @require_http_methods(["POST"])
 def set_active_project_view(request):
-    """تنظیم پروژه فعال"""
+    """تنظیم پروژه جاری"""
+    from .project_manager import ProjectManager
     project_id = request.POST.get('project_id')
     
     if not project_id:
@@ -288,42 +295,43 @@ def set_active_project_view(request):
         return redirect('construction_active_project')
     
     try:
-        project = models.Project.set_active_project(project_id)
-        if project:
-            messages.success(request, f'پروژه "{project.name}" به عنوان پروژه فعال تنظیم شد')
-        else:
-            messages.error(request, 'پروژه یافت نشد')
+        project = models.Project.objects.get(id=project_id)
+        ProjectManager.set_current_project(request, project_id)
+        messages.success(request, f'پروژه "{project.name}" به عنوان پروژه جاری تنظیم شد')
+    except models.Project.DoesNotExist:
+        messages.error(request, 'پروژه یافت نشد')
     except Exception as e:
-        messages.error(request, f'خطا در تنظیم پروژه فعال: {str(e)}')
+        messages.error(request, f'خطا در تنظیم پروژه جاری: {str(e)}')
     
     return redirect('construction_active_project')
 
 
 @login_required
 def active_project_api(request):
-    """API برای دریافت پروژه فعال"""
-    active_project = models.Project.get_active_project()
-    if active_project:
+    """API برای دریافت پروژه جاری"""
+    from .project_manager import ProjectManager
+    current_project = ProjectManager.get_current_project(request)
+    if current_project:
         data = {
-            'id': active_project.id,
-            'name': active_project.name,
-            'is_active': active_project.is_active,
-            'start_date_shamsi': active_project.start_date_shamsi,
-            'end_date_shamsi': active_project.end_date_shamsi,
-            'start_date_gregorian': active_project.start_date_gregorian,
-            'end_date_gregorian': active_project.end_date_gregorian,
-            'created_at': active_project.created_at,
-            'updated_at': active_project.updated_at,
+            'id': current_project.id,
+            'name': current_project.name,
+            'start_date_shamsi': current_project.start_date_shamsi,
+            'end_date_shamsi': current_project.end_date_shamsi,
+            'start_date_gregorian': current_project.start_date_gregorian,
+            'end_date_gregorian': current_project.end_date_gregorian,
+            'created_at': current_project.created_at,
+            'updated_at': current_project.updated_at,
         }
         return JsonResponse(data)
     else:
-        return JsonResponse({'error': 'هیچ پروژه فعالی یافت نشد'}, status=404)
+        return JsonResponse({'error': 'هیچ پروژه جاری یافت نشد'}, status=404)
 
 
 @login_required
 @require_http_methods(["POST"])
 def set_active_project_api(request):
-    """API برای تنظیم پروژه فعال"""
+    """API برای تنظیم پروژه جاری"""
+    from .project_manager import ProjectManager
     import json
     
     try:
@@ -333,48 +341,47 @@ def set_active_project_api(request):
         if not project_id:
             return JsonResponse({'error': 'شناسه پروژه الزامی است'}, status=400)
         
-        project = models.Project.set_active_project(project_id)
-        if project:
-            return JsonResponse({
-                'success': True,
-                'message': f'پروژه "{project.name}" به عنوان پروژه فعال تنظیم شد',
-                'project': {
-                    'id': project.id,
-                    'name': project.name,
-                    'is_active': project.is_active,
-                }
-            })
-        else:
-            return JsonResponse({'error': 'پروژه یافت نشد'}, status=404)
+        project = models.Project.objects.get(id=project_id)
+        ProjectManager.set_current_project(request, project_id)
+        return JsonResponse({
+            'success': True,
+            'message': f'پروژه "{project.name}" به عنوان پروژه جاری تنظیم شد',
+            'project': {
+                'id': project.id,
+                'name': project.name,
+            }
+        })
             
+    except models.Project.DoesNotExist:
+        return JsonResponse({'error': 'پروژه یافت نشد'}, status=404)
     except json.JSONDecodeError:
         return JsonResponse({'error': 'داده‌های JSON نامعتبر است'}, status=400)
     except Exception as e:
-        return JsonResponse({'error': f'خطا در تنظیم پروژه فعال: {str(e)}'}, status=500)
+        return JsonResponse({'error': f'خطا در تنظیم پروژه جاری: {str(e)}'}, status=500)
 
 
 # InterestRate Views
 @method_decorator(login_required, name='dispatch')
-class InterestRateListView(generic.ListView):
+class InterestRateListView(ProjectFilterMixin, generic.ListView):
     model = models.InterestRate
     form_class = forms.InterestRateForm
     ordering = ['-effective_date']
 
 
 @method_decorator(login_required, name='dispatch')
-class InterestRateCreateView(generic.CreateView):
+class InterestRateCreateView(ProjectFormMixin, generic.CreateView):
     model = models.InterestRate
     form_class = forms.InterestRateForm
 
 
 @method_decorator(login_required, name='dispatch')
-class InterestRateDetailView(generic.DetailView):
+class InterestRateDetailView(ProjectFilterMixin, generic.DetailView):
     model = models.InterestRate
     form_class = forms.InterestRateForm
 
 
 @method_decorator(login_required, name='dispatch')
-class InterestRateUpdateView(generic.UpdateView):
+class InterestRateUpdateView(ProjectFormMixin, generic.UpdateView):
     model = models.InterestRate
     form_class = forms.InterestRateForm
     pk_url_kwarg = "pk"
@@ -387,14 +394,14 @@ class InterestRateDeleteView(generic.DeleteView):
 
 
 @method_decorator(login_required, name='dispatch')
-class UnitSpecificExpenseListView(generic.ListView):
+class UnitSpecificExpenseListView(ProjectFilterMixin, generic.ListView):
     model = models.UnitSpecificExpense
     form_class = forms.UnitSpecificExpenseForm
     ordering = ['-date_shamsi', '-created_at']
 
 
 @method_decorator(login_required, name='dispatch')
-class UnitSpecificExpenseCreateView(generic.CreateView):
+class UnitSpecificExpenseCreateView(ProjectFormMixin, generic.CreateView):
     model = models.UnitSpecificExpense
     form_class = forms.UnitSpecificExpenseForm
     
@@ -408,13 +415,13 @@ class UnitSpecificExpenseCreateView(generic.CreateView):
 
 
 @method_decorator(login_required, name='dispatch')
-class UnitSpecificExpenseDetailView(generic.DetailView):
+class UnitSpecificExpenseDetailView(ProjectFilterMixin, generic.DetailView):
     model = models.UnitSpecificExpense
     form_class = forms.UnitSpecificExpenseForm
 
 
 @method_decorator(login_required, name='dispatch')
-class UnitSpecificExpenseUpdateView(generic.UpdateView):
+class UnitSpecificExpenseUpdateView(ProjectFormMixin, generic.UpdateView):
     model = models.UnitSpecificExpense
     form_class = forms.UnitSpecificExpenseForm
     pk_url_kwarg = "pk"

@@ -145,11 +145,8 @@ class Command(BaseCommand):
             except Project.DoesNotExist:
                 raise CommandError(f'❌ پروژه با ID {project_id} یافت نشد')
         else:
-            project = Project.get_active_project()
-            if not project:
-                raise CommandError('❌ هیچ پروژه فعالی یافت نشد')
-            self.stdout.write('✅ از پروژه فعال استفاده می‌شود')
-            return project
+            # اگر project_id مشخص نشده، خطا بده
+            raise CommandError('❌ شناسه پروژه الزامی است. لطفاً --project-id را مشخص کنید.')
 
     def _get_output_path(self, output, project, is_dynamic=False):
         """تعیین مسیر فایل خروجی"""

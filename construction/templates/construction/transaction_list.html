@@ -5,6 +5,17 @@
 {% block content %}
 
 <div class="container-fluid">
+    {% if current_project %}
+    <div class="alert alert-info" style="margin-bottom: 20px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); border: 2px solid rgba(102, 126, 234, 0.3); border-radius: 10px; padding: 15px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <i class="fas {{ current_project.icon|default:'fa-building' }}" style="color: {{ current_project.color|default:'#667eea' }}; font-size: 1.5rem;"></i>
+            <div>
+                <strong>پروژه فعلی:</strong> {{ current_project.name }}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
     <div class="row">
         <div class="col-12">
             <div class="card">

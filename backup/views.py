@@ -15,6 +15,9 @@ import shutil
 from pathlib import Path
 from datetime import datetime, timedelta
 
+# مسیر ریشه پروژه
+project_root = Path(settings.BASE_DIR)
+
 from .models import BackupRecord, BackupSettings
 from .utils import (
     create_backup_directory,
@@ -275,17 +278,44 @@ def manage_cron_api(request):
 def create_backup_api(request):
     """API برای ایجاد بک‌آپ دستی"""
     try:
+        # دریافت project_id از درخواست
+        project_id = request.POST.get('project_id')
+        if not project_id:
+            return JsonResponse({
+                'success': False,
+                'message': 'لطفاً یک پروژه انتخاب کنید'
+            })
+        
+        try:
+            project_id = int(project_id)
+        except (ValueError, TypeError):
+            return JsonResponse({
+                'success': False,
+                'message': 'شناسه پروژه نامعتبر است'
+            })
+        
+        # بررسی وجود پروژه
+        from construction.models import Project
+        try:
+            project = Project.objects.get(pk=project_id)
+        except Project.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'پروژه انتخاب شده یافت نشد'
+            })
+        
         # ایجاد رکورد بک‌آپ
         backup_record = BackupRecord.objects.create(
-            name=f"backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            name=f"backup_{project.name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
             backup_type='manual',
             status='running'
         )
         
-        # اجرای بک‌آپ
+        # اجرای بک‌آپ با project_id
         result = subprocess.run([
             sys.executable, 
-            str(Path(__file__).parent.parent / 'scripts' / 'create_backup.py')
+            str(Path(__file__).parent.parent / 'scripts' / 'create_backup.py'),
+            str(project_id)
         ], capture_output=True, text=True, cwd=str(Path(__file__).parent.parent))
         
         if result.returncode == 0:
@@ -294,8 +324,8 @@ def create_backup_api(request):
             backup_record.completed_at = timezone.now()
             backup_record.success_message = result.stdout
             
-            # آمار دیتابیس
-            stats = get_database_stats()
+            # آمار دیتابیس (فیلتر شده بر اساس پروژه)
+            stats = get_database_stats(project_id)
             backup_record.projects_count = stats['projects']
             backup_record.investors_count = stats['investors']
             backup_record.periods_count = stats['periods']
