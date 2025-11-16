@@ -97,18 +97,44 @@
                                     <small class="form-text text-muted">{{ form.correction_factor.help_text }}</small>
                                 </div>
                             </div>
-                           
+                        </div>
                         
-                        
-                        <div class="form-group">
-                            <div class="form-check">
-                                {{ form.is_active }}
-                                <label class="form-check-label" for="{{ form.is_active.id_for_label }}" style="padding-right: 20px;">
-                                    {{ form.is_active.label }}
-                                </label>
-                                <small class="form-text text-muted">فقط یک پروژه می‌تواند فعال باشد</small>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.color.id_for_label }}" class="form-label">رنگ پروژه</label>
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <input type="color" name="color" id="{{ form.color.id_for_label }}" 
+                                               value="{{ form.color.value|default:'#667eea' }}" 
+                                               class="form-control" 
+                                               style="width: 80px; height: 40px; cursor: pointer; padding: 2px;">
+                                        <input type="text" name="color_text" id="color_text" 
+                                               class="form-control" 
+                                               placeholder="#667eea"
+                                               value="{{ form.color.value|default:'#667eea' }}"
+                                               style="flex: 1; direction: ltr;"
+                                               onchange="document.getElementById('{{ form.color.id_for_label }}').value = this.value;">
+                                    </div>
+                                    <small class="form-text text-muted">{{ form.color.help_text }}</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.icon.id_for_label }}" class="form-label">آیکون پروژه</label>
+                                    <select name="icon" id="{{ form.icon.id_for_label }}" class="form-control" 
+                                            onchange="updateIconPreview(this.value)">
+                                        {% for value, label in form.icon.field.choices %}
+                                        <option value="{{ value }}" {% if form.icon.value == value %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <div id="icon-preview" class="mt-2" style="text-align: center; padding: 10px; background: #f8f9fa; border-radius: 5px;">
+                                        <i class="fas {{ form.icon.value|default:'fa-building' }}" style="font-size: 2rem; color: {{ form.color.value|default:'#667eea' }};"></i>
+                                    </div>
+                                    <small class="form-text text-muted">{{ form.icon.help_text }}</small>
+                                </div>
                             </div>
                         </div>
+                        
                     </div>
                         <div class="form-group">
                             <label for="{{ form.description.id_for_label }}" class="form-label">توضیحات</label>
@@ -132,4 +158,44 @@
     </div>
 </div>
 
+{% endblock %}
+
+{% block extrascripts %}
+<script>
+    // همگام‌سازی color picker با text input
+    document.getElementById('{{ form.color.id_for_label }}').addEventListener('change', function() {
+        document.getElementById('color_text').value = this.value;
+        updateIconPreviewColor();
+    });
+    
+    document.getElementById('color_text').addEventListener('change', function() {
+        var colorInput = document.getElementById('{{ form.color.id_for_label }}');
+        if (/^#[0-9A-F]{6}$/i.test(this.value)) {
+            colorInput.value = this.value;
+            updateIconPreviewColor();
+        }
+    });
+    
+    // تابع به‌روزرسانی پیش‌نمایش آیکون
+    function updateIconPreview(iconClass) {
+        var preview = document.getElementById('icon-preview');
+        var icon = preview.querySelector('i');
+        icon.className = 'fas ' + iconClass;
+        updateIconPreviewColor();
+    }
+    
+    // تابع به‌روزرسانی رنگ آیکون
+    function updateIconPreviewColor() {
+        var preview = document.getElementById('icon-preview');
+        var icon = preview.querySelector('i');
+        var colorValue = document.getElementById('{{ form.color.id_for_label }}').value || '#667eea';
+        icon.style.color = colorValue;
+    }
+    
+    // به‌روزرسانی رنگ هنگام تغییر color picker
+    document.getElementById('{{ form.color.id_for_label }}').addEventListener('input', function() {
+        document.getElementById('color_text').value = this.value;
+        updateIconPreviewColor();
+    });
+</script>
 {% endblock %}

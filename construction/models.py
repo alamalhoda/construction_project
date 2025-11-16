@@ -14,11 +14,6 @@ class Project(models.Model):
     end_date_shamsi = jmodels.jDateField(verbose_name="تاریخ پایان (شمسی)")
     start_date_gregorian = models.DateField(verbose_name="تاریخ شروع (میلادی)")
     end_date_gregorian = models.DateField(verbose_name="تاریخ پایان (میلادی)")
-    is_active = models.BooleanField(
-        default=False, 
-        verbose_name="پروژه فعال",
-        help_text="آیا این پروژه در حال حاضر فعال است؟ (فقط یک پروژه می‌تواند فعال باشد)"
-    )
     total_infrastructure = models.DecimalField(
         max_digits=15,
         decimal_places=2,
@@ -41,6 +36,18 @@ class Project(models.Model):
         help_text="درصد پیمان ساخت از مجموع سایر هزینه‌ها (به صورت اعشاری، مثلاً 0.100 برای 10%)"
     )
     description = models.TextField(blank=True, null=True, verbose_name="توضیحات", help_text="توضیحات اضافی درباره پروژه")
+    color = models.CharField(
+        max_length=7,
+        default='#667eea',
+        verbose_name="رنگ پروژه",
+        help_text="رنگ نمایش پروژه (فرمت HEX)"
+    )
+    icon = models.CharField(
+        max_length=50,
+        default='fa-building',
+        verbose_name="آیکون پروژه",
+        help_text="نام کلاس آیکون Font Awesome (مثال: fa-building)"
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="تاریخ به‌روزرسانی")
 
@@ -58,50 +65,7 @@ class Project(models.Model):
         return reverse('construction_Project_update', kwargs={'pk': self.pk})
     
     def save(self, *args, **kwargs):
-        # اگر این پروژه فعال شود، همه پروژه‌های دیگر را غیرفعال کن
-        if self.is_active:
-            Project.objects.filter(is_active=True).exclude(pk=self.pk).update(is_active=False)
-        
         super().save(*args, **kwargs)
-    
-    @classmethod
-    def get_active_project(cls):
-        """دریافت پروژه فعال (فقط یک پروژه می‌تواند فعال باشد)"""
-        try:
-            return cls.objects.filter(is_active=True).first()
-        except cls.DoesNotExist:
-            return None
-    
-    @classmethod
-    def set_active_project(cls, project_id):
-        """تنظیم پروژه فعال (همه پروژه‌های دیگر غیرفعال می‌شوند)"""
-        # غیرفعال کردن همه پروژه‌ها
-        cls.objects.filter(is_active=True).update(is_active=False)
-        
-        # فعال کردن پروژه انتخاب شده
-        try:
-            project = cls.objects.get(pk=project_id)
-            project.is_active = True
-            project.save()
-            return project
-        except cls.DoesNotExist:
-            return None
-    
-    @classmethod
-    def get_default_project(cls):
-        """دریافت پروژه پیش‌فرض (پروژه فعال یا اولین پروژه)"""
-        # ابتدا پروژه فعال را جستجو کن
-        active_project = cls.objects.filter(is_active=True).first()
-        if active_project:
-            return active_project.id
-        
-        # اگر پروژه فعالی نبود، اولین پروژه را برگردان
-        first_project = cls.objects.first()
-        if first_project:
-            return first_project.id
-        
-        # اگر هیچ پروژه‌ای نبود، None برگردان (برای migration)
-        return None
     
 
 
@@ -315,10 +279,10 @@ class InterestRate(models.Model):
         super().save(*args, **kwargs)
 
     @classmethod
-    def get_current_rate(cls, project=None):
+    def get_current_rate(cls, project):
         """دریافت نرخ سود فعلی برای پروژه"""
         if not project:
-            project = Project.get_active_project()
+            raise ValueError("پارامتر project الزامی است")
         
         try:
             return cls.objects.filter(is_active=True, project=project).first()
@@ -326,10 +290,10 @@ class InterestRate(models.Model):
             return None
 
     @classmethod
-    def get_rate_for_date(cls, date, project=None):
+    def get_rate_for_date(cls, date, project):
         """دریافت نرخ سود برای تاریخ و پروژه مشخص"""
         if not project:
-            project = Project.get_active_project()
+            raise ValueError("پارامتر project الزامی است")
         
         try:
             return cls.objects.filter(
@@ -568,12 +532,16 @@ class Transaction(models.Model):
         
         برای آورده: سود مثبت
         برای خروج از سرمایه: سود منفی
+        
+        Args:
+            interest_rate: نرخ سود (اگر None باشد، از نرخ فعال پروژه این تراکنش استفاده می‌شود)
         """
         if self.transaction_type not in ['principal_deposit', 'loan_deposit', 'principal_withdrawal']:
             return Decimal('0')
         
         if not interest_rate:
-            interest_rate = InterestRate.get_current_rate()
+            # استفاده از نرخ سود فعال پروژه این تراکنش
+            interest_rate = InterestRate.get_current_rate(project=self.project)
         
         if not interest_rate:
             return Decimal('0')
@@ -587,18 +555,26 @@ class Transaction(models.Model):
         return profit.quantize(Decimal('0.01'))  # گرد کردن به 2 رقم اعشار
 
     @classmethod
-    def calculate_all_profits(cls, interest_rate=None):
+    def calculate_all_profits(cls, project, interest_rate=None):
         """
         محاسبه سود برای همه آورده‌ها
+        
+        Args:
+            project: پروژه (الزامی)
+            interest_rate: نرخ سود (در صورت None، از نرخ فعال پروژه استفاده می‌شود)
         """
+        if not project:
+            raise ValueError("پارامتر project الزامی است")
+        
         if not interest_rate:
-            interest_rate = InterestRate.get_current_rate()
+            interest_rate = InterestRate.get_current_rate(project=project)
         
         if not interest_rate:
             return []
         
-        # دریافت همه تراکنش‌های سرمایه (آورده و خروج)
+        # دریافت همه تراکنش‌های سرمایه (آورده و خروج) برای پروژه مشخص
         capital_transactions = cls.objects.filter(
+            project=project,
             transaction_type__in=['principal_deposit', 'loan_deposit', 'principal_withdrawal'],
             day_remaining__gt=0
         )
@@ -630,18 +606,26 @@ class Transaction(models.Model):
         return profit_transactions
 
     @classmethod
-    def recalculate_profits_with_new_rate(cls, new_interest_rate):
+    def recalculate_profits_with_new_rate(cls, new_interest_rate, project):
         """
         محاسبه مجدد سودها با نرخ جدید
+        
+        Args:
+            new_interest_rate: نرخ سود جدید (InterestRate instance)
+            project: پروژه (الزامی)
         """
-        # حذف سودهای قبلی که توسط سیستم تولید شده‌اند
+        if not project:
+            raise ValueError("پارامتر project الزامی است")
+        
+        # حذف سودهای قبلی که توسط سیستم تولید شده‌اند برای پروژه
         cls.objects.filter(
+            project=project,
             transaction_type='profit_accrual',
             is_system_generated=True
         ).delete()
         
-        # محاسبه سودهای جدید
-        new_profit_transactions = cls.calculate_all_profits(new_interest_rate)
+        # محاسبه سودهای جدید برای پروژه
+        new_profit_transactions = cls.calculate_all_profits(project=project, interest_rate=new_interest_rate)
         
         # ذخیره سودهای جدید
         for profit_transaction in new_profit_transactions:
@@ -650,22 +634,30 @@ class Transaction(models.Model):
         return len(new_profit_transactions)
     
     @classmethod
-    def delete_all_profit_transactions(cls):
+    def delete_all_profit_transactions(cls, project):
         """
-        حذف همه رکوردهای سود (اعم از سیستم‌ی و دستی)
+        حذف همه رکوردهای سود (اعم از سیستم‌ی و دستی) برای پروژه مشخص
+        
+        Args:
+            project: پروژه (الزامی)
         """
+        if not project:
+            raise ValueError("پارامتر project الزامی است")
+        
         deleted_count = cls.objects.filter(
+            project=project,
             transaction_type='profit_accrual'
         ).count()
         
         cls.objects.filter(
+            project=project,
             transaction_type='profit_accrual'
         ).delete()
         
         return deleted_count
     
     @classmethod
-    def recalculate_all_profits_with_new_rate(cls, new_interest_rate):
+    def recalculate_all_profits_with_new_rate(cls, new_interest_rate, project):
         """
         سناریوی کامل: حذف همه سودهای قبلی و محاسبه مجدد با نرخ جدید
         
@@ -675,16 +667,20 @@ class Transaction(models.Model):
         3. سودهای جدید را ذخیره می‌کند
         
         Args:
-            new_interest_rate (Decimal): نرخ سود جدید
+            new_interest_rate: نرخ سود جدید (InterestRate instance)
+            project: پروژه (الزامی)
             
         Returns:
             dict: شامل تعداد رکوردهای حذف شده و تعداد رکوردهای جدید
         """
-        # مرحله 1: حذف همه رکوردهای سود قبلی
-        deleted_count = cls.delete_all_profit_transactions()
+        if not project:
+            raise ValueError("پارامتر project الزامی است")
         
-        # مرحله 2: محاسبه سودهای جدید با نرخ جدید
-        new_profit_transactions = cls.calculate_all_profits(new_interest_rate)
+        # مرحله 1: حذف همه رکوردهای سود قبلی برای پروژه
+        deleted_count = cls.delete_all_profit_transactions(project=project)
+        
+        # مرحله 2: محاسبه سودهای جدید با نرخ جدید برای پروژه
+        new_profit_transactions = cls.calculate_all_profits(project=project, interest_rate=new_interest_rate)
         
         # مرحله 3: ذخیره سودهای جدید
         for profit_transaction in new_profit_transactions:

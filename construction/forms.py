@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from decimal import Decimal, InvalidOperation
 import jdatetime
 from . import models
+from .project_manager import ProjectManager
 
 
 class CustomJDateField(jDateField):
@@ -72,20 +73,24 @@ class InvestorForm(forms.ModelForm):
         ]
         # project فیلد را حذف کردیم تا خودکار از پروژه فعال استفاده شود
     
-    def save(self, commit=True):
-        instance = super().save(commit=False)
-        # اگر project تنظیم نشده، از پروژه فعال استفاده کن
-        if not instance.project_id:
-            active_project = models.Project.get_active_project()
-            if active_project:
-                instance.project = active_project  # object را مستقیماً assign می‌کنیم
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # request بعداً در set_request تنظیم می‌شود
+        self._request = None
+    
+    def set_request(self, request):
+        """تنظیم request برای فیلتر کردن queryset واحدها"""
+        self._request = request
+        # فیلتر کردن واحدها بر اساس پروژه جاری
+        if request:
+            current_project = ProjectManager.get_current_project(request)
+            if current_project:
+                self.fields['units'].queryset = models.Unit.objects.filter(project=current_project)
             else:
-                raise forms.ValidationError("هیچ پروژه فعالی وجود ندارد. لطفاً ابتدا یک پروژه را فعال کنید.")
-        
-        if commit:
-            instance.save()
-            self.save_m2m()
-        return instance
+                # اگر پروژه جاری وجود نداشت، queryset خالی برگردان
+                self.fields['units'].queryset = models.Unit.objects.none()
+    
+    # متد save() حذف شده - ProjectFormMixin به صورت خودکار project را تنظیم می‌کند
 
 
 class PeriodForm(forms.ModelForm):
@@ -134,14 +139,7 @@ class ProjectForm(forms.ModelForm):
             'placeholder': 'انتخاب تاریخ شمسی...'
         })
     )
-    is_active = forms.BooleanField(
-        label="پروژه فعال",
-        required=False,
-        help_text="آیا این پروژه در حال حاضر فعال است؟ (فقط یک پروژه می‌تواند فعال باشد)",
-        widget=forms.CheckboxInput(attrs={
-            'class': 'form-check-input'
-        })
-    )
+    # is_active field removed - using session-based project selection instead
     total_infrastructure = forms.DecimalField(
         label="زیر بنای کل",
         max_digits=15,
@@ -184,17 +182,63 @@ class ProjectForm(forms.ModelForm):
         })
     )
     
+    color = forms.CharField(
+        label="رنگ پروژه",
+        required=False,
+        initial='#667eea',
+        help_text="رنگ نمایش پروژه (فرمت HEX)",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'type': 'color',
+            'style': 'width: 100px; height: 40px; cursor: pointer;'
+        })
+    )
+    
+    icon = forms.ChoiceField(
+        label="آیکون پروژه",
+        required=False,
+        initial='fa-building',
+        help_text="انتخاب آیکون Font Awesome برای پروژه",
+        choices=[
+            ('fa-building', 'ساختمان'),
+            ('fa-home', 'خانه'),
+            ('fa-city', 'شهر'),
+            ('fa-landmark', 'بنا'),
+            ('fa-store', 'مغازه'),
+            ('fa-warehouse', 'انبار'),
+            ('fa-industry', 'صنعت'),
+            ('fa-hospital', 'بیمارستان'),
+            ('fa-school', 'مدرسه'),
+            ('fa-hotel', 'هتل'),
+            ('fa-university', 'دانشگاه'),
+            ('fa-church', 'کلیسا'),
+            ('fa-mosque', 'مسجد'),
+            ('fa-monument', 'بنای یادبود'),
+            ('fa-tower-broadcast', 'برج'),
+            ('fa-bridge', 'پل'),
+            ('fa-warehouse-full', 'انبار بزرگ'),
+            ('fa-construction', 'ساخت و ساز'),
+            ('fa-hard-hat', 'کلاه ایمنی'),
+            ('fa-tools', 'ابزار'),
+        ],
+        widget=forms.Select(attrs={
+            'class': 'form-control',
+            'id': 'id_icon',
+        })
+    )
+    
     class Meta:
         model = models.Project
         fields = [
             "name",
             "start_date_shamsi",
             "end_date_shamsi",
-            "is_active",
             "total_infrastructure",
             "correction_factor",
             "construction_contractor_percentage",
             "description",
+            "color",
+            "icon",
         ]
     
     def save(self, commit=True):
@@ -240,21 +284,7 @@ class TransactionForm(forms.ModelForm):
         if 'project' in self.fields:
             del self.fields['project']
     
-    def save(self, commit=True):
-        """ذخیره تراکنش با تنظیم خودکار پروژه فعال"""
-        transaction = super().save(commit=False)
-        
-        # تنظیم پروژه فعال
-        active_project = models.Project.get_active_project()
-        if not active_project:
-            raise forms.ValidationError("هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید.")
-        
-        transaction.project = active_project
-        
-        if commit:
-            transaction.save()
-        
-        return transaction
+    # متد save() حذف شده - ProjectFormMixin به صورت خودکار project را تنظیم می‌کند
 
 
 class UnitForm(forms.ModelForm):
@@ -367,21 +397,7 @@ class UnitForm(forms.ModelForm):
             return total_price_decimal
         return total_price
 
-    def save(self, commit=True):
-        """ذخیره واحد با تنظیم خودکار پروژه فعال"""
-        unit = super().save(commit=False)
-        
-        # تنظیم پروژه فعال
-        active_project = models.Project.get_active_project()
-        if not active_project:
-            raise forms.ValidationError("هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید.")
-        
-        unit.project = active_project
-        
-        if commit:
-            unit.save()
-        
-        return unit
+    # متد save() حذف شده - ProjectFormMixin به صورت خودکار project را تنظیم می‌کند
 
 
 class InterestRateForm(forms.ModelForm):
@@ -412,19 +428,7 @@ class InterestRateForm(forms.ModelForm):
         ]
         # project فیلد را حذف کردیم تا خودکار از پروژه فعال استفاده شود
     
-    def save(self, commit=True):
-        instance = super().save(commit=False)
-        # اگر project تنظیم نشده، از پروژه فعال استفاده کن
-        if not instance.project_id:
-            active_project = models.Project.get_active_project()
-            if active_project:
-                instance.project = active_project  # object را مستقیماً assign می‌کنیم
-            else:
-                raise forms.ValidationError("هیچ پروژه فعالی وجود ندارد. لطفاً ابتدا یک پروژه را فعال کنید.")
-        
-        if commit:
-            instance.save()
-        return instance
+    # متد save() حذف شده - ProjectFormMixin به صورت خودکار project را تنظیم می‌کند
 
 
 class SaleForm(forms.ModelForm):
@@ -450,21 +454,7 @@ class SaleForm(forms.ModelForm):
             'placeholder': 'توضیحات فروش/مرجوعی...'
         })
     
-    def save(self, commit=True):
-        """ذخیره فروش با تنظیم خودکار پروژه فعال"""
-        sale = super().save(commit=False)
-        
-        # تنظیم پروژه فعال
-        active_project = models.Project.get_active_project()
-        if not active_project:
-            raise forms.ValidationError("هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید.")
-        
-        sale.project = active_project
-        
-        if commit:
-            sale.save()
-        
-        return sale
+    # متد save() حذف شده - ProjectFormMixin به صورت خودکار project را تنظیم می‌کند
 
 class UnitSpecificExpenseForm(forms.ModelForm):
     date_shamsi = CustomJDateField(
@@ -504,22 +494,21 @@ class UnitSpecificExpenseForm(forms.ModelForm):
             'rows': 3,
             'placeholder': 'توضیحات هزینه...'
         })
-        
-        # فیلتر کردن واحدها بر اساس پروژه فعال
-        active_project = models.Project.get_active_project()
-        if active_project:
-            self.fields['unit'].queryset = models.Unit.objects.filter(project=active_project)
+        # request بعداً در set_request تنظیم می‌شود
+        self._request = None
+    
+    def set_request(self, request):
+        """تنظیم request برای فیلتر کردن queryset"""
+        self._request = request
+        # فیلتر کردن واحدها بر اساس پروژه جاری
+        if request:
+            current_project = ProjectManager.get_current_project(request)
+            if current_project:
+                self.fields['unit'].queryset = models.Unit.objects.filter(project=current_project)
     
     def save(self, commit=True):
-        """ذخیره هزینه اختصاصی واحد با تنظیم خودکار پروژه فعال"""
+        """ذخیره هزینه اختصاصی واحد با تبدیل خودکار تاریخ شمسی به میلادی"""
         expense = super().save(commit=False)
-        
-        # تنظیم پروژه فعال
-        active_project = models.Project.get_active_project()
-        if not active_project:
-            raise forms.ValidationError("هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید.")
-        
-        expense.project = active_project
         
         # تبدیل تاریخ شمسی به میلادی
         if expense.date_shamsi and not expense.date_gregorian:
@@ -533,6 +522,8 @@ class UnitSpecificExpenseForm(forms.ModelForm):
                 expense.date_gregorian = jdate.togregorian()
             except Exception as e:
                 pass
+        
+        # نکته: ProjectFormMixin به صورت خودکار project را تنظیم می‌کند
         
         if commit:
             expense.save()

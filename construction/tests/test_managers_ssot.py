@@ -5,7 +5,8 @@ from construction import models
 
 class SSOTManagersTests(TestCase):
     def test_expense_manager_matches_aggregates(self):
-        project = models.Project.get_active_project() or models.Project.objects.first()
+        # استفاده از اولین پروژه برای تست (چون get_active_project حذف شده است)
+        project = models.Project.objects.first()
 
         mgr_total = models.Expense.objects.project_totals(project)
         qs = models.Expense.objects.all()
@@ -18,7 +19,8 @@ class SSOTManagersTests(TestCase):
         self.assertEqual(totals['total_expenses'], agg_total)
 
     def test_sale_manager_matches_aggregates(self):
-        project = models.Project.get_active_project() or models.Project.objects.first()
+        # استفاده از اولین پروژه برای تست (چون get_active_project حذف شده است)
+        project = models.Project.objects.first()
 
         mgr_total = models.Sale.objects.project_totals(project)
         qs = models.Sale.objects.all()
@@ -31,7 +33,8 @@ class SSOTManagersTests(TestCase):
         self.assertEqual(totals['total_sales'], agg_total)
 
     def test_unit_manager_matches_aggregates(self):
-        project = models.Project.get_active_project() or models.Project.objects.first()
+        # استفاده از اولین پروژه برای تست (چون get_active_project حذف شده است)
+        project = models.Project.objects.first()
         stats = models.Unit.objects.project_stats(project)
         qs = models.Unit.objects.all()
         if project:
@@ -41,7 +44,8 @@ class SSOTManagersTests(TestCase):
         self.assertEqual(stats['total_price'], float(agg['total_price'] or 0))
 
     def test_expense_period_and_cumulative_match(self):
-        project = models.Project.get_active_project() or models.Project.objects.first()
+        # استفاده از اولین پروژه برای تست (چون get_active_project حذف شده است)
+        project = models.Project.objects.first()
         period = models.Period.objects.filter(project=project).order_by('year', 'month_number').first()
         if not period:
             self.skipTest('No period found for project')
@@ -62,7 +66,8 @@ class SSOTManagersTests(TestCase):
         self.assertEqual(mgr_cum, agg_cum)
 
     def test_sale_period_and_cumulative_match(self):
-        project = models.Project.get_active_project() or models.Project.objects.first()
+        # استفاده از اولین پروژه برای تست (چون get_active_project حذف شده است)
+        project = models.Project.objects.first()
         period = models.Period.objects.filter(project=project).order_by('year', 'month_number').first()
         if not period:
             self.skipTest('No period found for project')

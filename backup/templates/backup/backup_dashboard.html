@@ -264,6 +264,50 @@
             color: var(--primary-color);
         }
 
+        .project-selector {
+            background: var(--bg-secondary);
+            border: 2px solid var(--primary-color);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .project-selector h3 {
+            margin: 0 0 15px 0;
+            color: var(--text-primary);
+            font-size: 1.3rem;
+        }
+
+        .project-selector select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: 'Vazir', 'Tahoma', 'Arial', sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        .project-selector select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .project-selector .project-info {
+            margin-top: 10px;
+            padding: 10px;
+            background: var(--bg-primary);
+            border-radius: 5px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .project-selector .project-info strong {
+            color: var(--text-primary);
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 20px;
@@ -357,12 +401,26 @@
             </div>
         </div>
 
+        <!-- انتخابگر پروژه -->
+        <div class="project-selector">
+            <h3>📁 انتخاب پروژه</h3>
+            <select id="projectSelect" onchange="onProjectChange()">
+                <option value="">در حال بارگذاری پروژه‌ها...</option>
+            </select>
+            <div id="projectInfo" class="project-info" style="display: none;">
+                <strong>پروژه انتخاب شده:</strong> <span id="selectedProjectName">-</span>
+            </div>
+        </div>
+
         <!-- عملیات بک‌آپ -->
         <div class="action-section">
             <h2>⚡ عملیات سریع</h2>
             <p>ایجاد بک‌آپ جدید و مدیریت بک‌آپ‌های موجود</p>
+            <p style="color: var(--warning-color); font-size: 0.9rem; margin-bottom: 15px;">
+                ⚠️ توجه: بک‌آپ فقط از داده‌های پروژه انتخاب شده تهیه می‌شود.
+            </p>
             
-            <button class="btn btn-success" id="createBackupBtn" onclick="createBackup()">
+            <button class="btn btn-success" id="createBackupBtn" onclick="createBackup()" disabled>
                 🔄 ایجاد بک‌آپ جدید
             </button>
             
@@ -454,7 +512,82 @@
     </div>
 
     <script>
+        let selectedProjectId = null;
+        let selectedProjectName = '';
+
+        // بارگذاری پروژه‌ها هنگام لود صفحه
+        async function loadProjects() {
+            const select = document.getElementById('projectSelect');
+            
+            try {
+                // دریافت پروژه فعلی
+                const currentResponse = await fetch('/api/v1/Project/current/');
+                let currentProjectId = null;
+                
+                if (currentResponse.ok) {
+                    const currentData = await currentResponse.json();
+                    if (currentData && currentData.id) {
+                        currentProjectId = currentData.id;
+                    }
+                }
+                
+                // دریافت لیست پروژه‌ها
+                const response = await fetch('/api/v1/Project/');
+                if (response.ok) {
+                    const projects = await response.json();
+                    
+                    select.innerHTML = '<option value="">لطفاً یک پروژه انتخاب کنید...</option>';
+                    
+                    projects.forEach(project => {
+                        const option = document.createElement('option');
+                        option.value = project.id;
+                        option.textContent = project.name;
+                        if (project.id === currentProjectId) {
+                            option.selected = true;
+                            selectedProjectId = project.id;
+                            selectedProjectName = project.name;
+                        }
+                        select.appendChild(option);
+                    });
+                    
+                    if (selectedProjectId) {
+                        onProjectChange();
+                    }
+                } else {
+                    select.innerHTML = '<option value="">خطا در بارگذاری پروژه‌ها</option>';
+                }
+            } catch (error) {
+                console.error('خطا در بارگذاری پروژه‌ها:', error);
+                select.innerHTML = '<option value="">خطا در بارگذاری پروژه‌ها</option>';
+            }
+        }
+
+        // تغییر پروژه
+        function onProjectChange() {
+            const select = document.getElementById('projectSelect');
+            const projectInfo = document.getElementById('projectInfo');
+            const projectNameSpan = document.getElementById('selectedProjectName');
+            const createBtn = document.getElementById('createBackupBtn');
+            
+            selectedProjectId = select.value;
+            
+            if (selectedProjectId) {
+                selectedProjectName = select.options[select.selectedIndex].text;
+                projectNameSpan.textContent = selectedProjectName;
+                projectInfo.style.display = 'block';
+                createBtn.disabled = false;
+            } else {
+                projectInfo.style.display = 'none';
+                createBtn.disabled = true;
+            }
+        }
+
         async function createBackup() {
+            if (!selectedProjectId) {
+                alert('لطفاً ابتدا یک پروژه انتخاب کنید.');
+                return;
+            }
+            
             const btn = document.getElementById('createBackupBtn');
             const loading = document.getElementById('loadingDiv');
             const successAlert = document.getElementById('successAlert');
@@ -469,12 +602,16 @@
             loading.classList.add('show');
             
             try {
+                const formData = new URLSearchParams();
+                formData.append('project_id', selectedProjectId);
+                
                 const response = await fetch('{% url "backup:create_api" %}', {
                     method: 'POST',
                     headers: {
                         'X-CSRFToken': getCookie('csrftoken'),
                         'Content-Type': 'application/x-www-form-urlencoded',
                     },
+                    body: formData.toString(),
                 });
                 
                 const data = await response.json();
@@ -514,6 +651,11 @@
             }
             return cookieValue;
         }
+
+        // بارگذاری پروژه‌ها هنگام لود صفحه
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProjects();
+        });
     </script>
 </body>
 </html>
