@@ -33,7 +33,7 @@ django.setup()
 
 from django.core.management import call_command
 from django.core import serializers
-from construction.models import Project, Investor, Period, Transaction, Unit, InterestRate, Expense, Sale, UserProfile
+from construction.models import Project, Investor, Period, Transaction, Unit, InterestRate, Expense, Sale, UserProfile, PettyCashTransaction
 
 # دریافت project_id از آرگومان خط فرمان
 project_id = None
@@ -103,6 +103,7 @@ def get_database_stats(project_id=None):
         'interest_rates': InterestRate.objects.filter(**project_related_filter).count() if project_id else InterestRate.objects.count(),
         'expenses': Expense.objects.filter(**project_related_filter).count() if project_id else Expense.objects.count(),
         'sales': Sale.objects.filter(**project_related_filter).count() if project_id else Sale.objects.count(),
+        'petty_cash_transactions': PettyCashTransaction.objects.filter(**project_related_filter).count() if project_id else PettyCashTransaction.objects.count(),
         'user_profiles': UserProfile.objects.count(),  # user profiles معمولاً به پروژه مربوط نیستند
         
         # مدل‌های Django داخلی - همیشه همه
@@ -170,6 +171,7 @@ def create_complete_fixture(backup_path, project_id=None):
                 ('construction', 'InterestRate'),
                 ('construction', 'Expense'),
                 ('construction', 'Sale'),
+                ('construction', 'PettyCashTransaction'),
             ]
             
             for app_name, model_name in related_models_config:
@@ -386,6 +388,7 @@ def create_individual_fixtures(backup_path, project_id=None):
         ('construction.interestrate', 'interest_rates.json', 'نرخ‌های سود'),
         ('construction.expense', 'expenses.json', 'هزینه‌ها'),
         ('construction.sale', 'sales.json', 'فروش/مرجوعی‌ها'),
+        ('construction.pettycashtransaction', 'petty_cash_transactions.json', 'تراکنش‌های تنخواه'),
     ]
     
     # مدل‌های دیگر
@@ -570,10 +573,11 @@ def create_stats_file(backup_path, timestamp, stats, project_id=None):
             'periods.json',
             'transactions.json',
             'units.json',
-            'interest_rates.json',
-            'expenses.json',
-            'sales.json',
-            'user_profiles.json',
+        'interest_rates.json',
+        'expenses.json',
+        'sales.json',
+        'petty_cash_transactions.json',
+        'user_profiles.json',
             'users.json',
             'groups.json',
             'permissions.json',
@@ -616,6 +620,7 @@ def create_stats_file(backup_path, timestamp, stats, project_id=None):
         f.write(f"    نرخ‌های سود: {stats['interest_rates']}\n")
         f.write(f"    هزینه‌ها: {stats['expenses']}\n")
         f.write(f"    فروش/مرجوعی‌ها: {stats['sales']}\n")
+        f.write(f"    تراکنش‌های تنخواه: {stats['petty_cash_transactions']}\n")
         f.write(f"    پروفایل‌های کاربران: {stats['user_profiles']}\n")
         f.write("  مدل‌های Django:\n")
         f.write(f"    کاربران: {stats['users']}\n")
@@ -686,7 +691,7 @@ def main():
     # گزارش نهایی
     print("\n" + "=" * 60)
     
-    if complete_success and individual_count == 17:  # 18 - 1 (security_events)
+    if complete_success and individual_count == 18:  # 19 - 1 (security_events)
         print("🎉 پشتیبان‌گیری با موفقیت کامل شد!")
         print(f"📁 مسیر: {backup_path}")
         print(f"📦 فایل‌های ایجاد شده: {len(os.listdir(backup_path))}")
@@ -702,7 +707,7 @@ def main():
     else:
         print("⚠️  پشتیبان‌گیری با مشکل مواجه شد!")
         print(f"Fixture کامل: {'✅' if complete_success else '❌'}")
-        print(f"Fixtures جداگانه: {individual_count}/17")
+        print(f"Fixtures جداگانه: {individual_count}/18")
     
     print("\n🔄 برای بازیابی:")
     print(f"python scripts/restore_backup.py")
