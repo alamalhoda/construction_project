@@ -71,9 +71,7 @@ class ExpenseViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
             # دریافت تمام دوره‌ها از مرداد 1402 تا مرداد 1405
             periods = models.Period.objects.filter(
-                project=active_project,
-                year__gte=1402,
-                year__lte=1405
+                project=active_project
             ).order_by('year', 'month_number')  # لیست دوره‌ها از سال 1402 تا 1405
 
             # دریافت تمام هزینه‌ها برای پروژه فعال
