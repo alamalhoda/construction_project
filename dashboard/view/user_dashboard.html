@@ -272,6 +272,63 @@
         text-align: left;
         direction: ltr;
     }
+    
+    /* استایل مخصوص بخش حسابداری تنخواه */
+    .petty-cash-section {
+        grid-column: 1 / -1;
+        margin-top: 4px;
+        padding-top: 4px;
+        position: relative;
+    }
+    
+    .petty-cash-section-border {
+        position: absolute;
+        top: 0;
+        right: 0;
+        left: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #ff9800 0%, #ff5722 100%);
+        border-radius: 3px;
+    }
+    
+    .section-header.petty-cash-header {
+        grid-column: 1 / -1;
+        background: white;
+        border: 2px solid rgba(255, 152, 0, 0.3);
+        margin-bottom: 25px;
+    }
+    
+    .section-header.petty-cash-header h2 {
+        color: #ff6f00;
+        text-shadow: 0 2px 4px rgba(255, 152, 0, 0.2);
+    }
+    
+    .dashboard-card.petty-cash-card {
+        border-left: 4px solid #ff9800;
+        position: relative;
+    }
+    
+    .dashboard-card.petty-cash-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 4px;
+        height: 100%;
+        border-radius: 0 20px 20px 0;
+    }
+    
+    .dashboard-card.petty-cash-card .card-icon {
+        color: #ff9800;
+    }
+    
+    .dashboard-card.petty-cash-card .card-btn {
+        background: linear-gradient(135deg, #ff9800 0%, #ff5722 100%);
+    }
+    
+    .dashboard-card.petty-cash-card .card-btn:hover {
+        box-shadow: 0 8px 25px rgba(255, 152, 0, 0.4);
+    }
 
     @media (max-width: 768px) {
         .dashboard-container {
@@ -466,6 +523,70 @@
                 </a>
             </div>
             
+            <!-- بخش حسابداری تنخواه -->
+            <div class="petty-cash-section">
+                <div class="petty-cash-section-border"></div>
+                <div class="section-header petty-cash-header">
+                    <h2>💰 حسابداری تنخواه</h2>
+                    <p>مدیریت و گزارش‌گیری از تراکنش‌های تنخواه پروژه</p>
+                </div>
+            </div>
+            
+            <div class="dashboard-card petty-cash-card">
+                <span class="card-icon">💼</span>
+                <h3 class="card-title">داشبورد تنخواه</h3>
+                <p class="card-description">
+                    مشاهده خلاصه و آمار کلی تراکنش‌های تنخواه
+                </p>
+                <a href="/dashboard/petty-cash/" class="card-btn">
+                    داشبورد تنخواه
+                </a>
+            </div>
+            
+            <div class="dashboard-card petty-cash-card">
+                <span class="card-icon">📊</span>
+                <h3 class="card-title">گزارش مانده تنخواه</h3>
+                <p class="card-description">
+                    مشاهده مانده فعلی تنخواه به تفکیک نوع هزینه
+                </p>
+                <a href="/dashboard/petty-cash/balance/" class="card-btn">
+                    گزارش مانده
+                </a>
+            </div>
+            
+            <div class="dashboard-card petty-cash-card">
+                <span class="card-icon">📅</span>
+                <h3 class="card-title">گزارش دوره‌ای تنخواه</h3>
+                <p class="card-description">
+                    گزارش تراکنش‌های تنخواه در بازه زمانی مشخص
+                </p>
+                <a href="/dashboard/petty-cash/period/" class="card-btn">
+                    گزارش دوره‌ای
+                </a>
+            </div>
+            
+            <div class="dashboard-card petty-cash-card">
+                <span class="card-icon">📋</span>
+                <h3 class="card-title">گزارش تفصیلی تنخواه</h3>
+                <p class="card-description">
+                    مشاهده جزئیات کامل تمام تراکنش‌های تنخواه
+                </p>
+                <a href="/dashboard/petty-cash/detail/" class="card-btn">
+                    گزارش تفصیلی
+                </a>
+            </div>
+            
+            <div class="dashboard-card petty-cash-card">
+                <span class="card-icon">💳</span>
+                <h3 class="card-title">مدیریت تراکنش‌های تنخواه</h3>
+                <p class="card-description">
+                    ثبت، ویرایش و حذف تراکنش‌های تنخواه
+                </p>
+                <a href="/construction/PettyCashTransaction/" class="card-btn">
+                    مدیریت تراکنش‌ها
+                </a>
+            </div>
+            
         {% else %}
             <!-- کارت‌های کاربر نهایی -->
             <!-- کارت‌های کاربر نهایی برای مدیر فنی -->
@@ -580,16 +701,7 @@
                 </a>
             </div>
 
-            <div class="dashboard-card">
-                <span class="card-icon"><i class="fas fa-calculator"></i></span>
-                <h3 class="card-title">حسابداری</h3>
-                <p class="card-description">
-                    مدیریت حسابداری
-                </p>
-                <a href="#" class="card-btn" style="opacity: 0.5; cursor: not-allowed; pointer-events: none;" title="به زودی...">
-                    حسابداری (به زودی)
-                </a>
-            </div>
+            
             
             <div class="dashboard-card">
                 <span class="card-icon"><i class="fas fa-chart-line"></i></span>
@@ -599,6 +711,70 @@
                 </p>
                 <a href="/dashboard/detailed-calculations/" class="card-btn">
                     مشاهده محاسبات
+                </a>
+            </div>
+            
+            <!-- بخش حسابداری تنخواه -->
+            <div class="petty-cash-section">
+                <div class="petty-cash-section-border"></div>
+                <div class="section-header petty-cash-header">
+                    <h2>💰 حسابداری تنخواه</h2>
+                    <p>مدیریت و گزارش‌گیری از تراکنش‌های تنخواه پروژه</p>
+                </div>
+            </div>
+            
+            <div class="dashboard-card petty-cash-card">
+                <span class="card-icon">💼</span>
+                <h3 class="card-title">داشبورد تنخواه</h3>
+                <p class="card-description">
+                    مشاهده خلاصه و آمار کلی تراکنش‌های تنخواه
+                </p>
+                <a href="/dashboard/petty-cash/" class="card-btn">
+                    داشبورد تنخواه
+                </a>
+            </div>
+            
+            <div class="dashboard-card petty-cash-card">
+                <span class="card-icon">📊</span>
+                <h3 class="card-title">گزارش مانده تنخواه</h3>
+                <p class="card-description">
+                    مشاهده مانده فعلی تنخواه به تفکیک نوع هزینه
+                </p>
+                <a href="/dashboard/petty-cash/balance/" class="card-btn">
+                    گزارش مانده
+                </a>
+            </div>
+            
+            <div class="dashboard-card petty-cash-card">
+                <span class="card-icon">📅</span>
+                <h3 class="card-title">گزارش دوره‌ای تنخواه</h3>
+                <p class="card-description">
+                    گزارش تراکنش‌های تنخواه در بازه زمانی مشخص
+                </p>
+                <a href="/dashboard/petty-cash/period/" class="card-btn">
+                    گزارش دوره‌ای
+                </a>
+            </div>
+            
+            <div class="dashboard-card petty-cash-card">
+                <span class="card-icon">📋</span>
+                <h3 class="card-title">گزارش تفصیلی تنخواه</h3>
+                <p class="card-description">
+                    مشاهده جزئیات کامل تمام تراکنش‌های تنخواه
+                </p>
+                <a href="/dashboard/petty-cash/detail/" class="card-btn">
+                    گزارش تفصیلی
+                </a>
+            </div>
+            
+            <div class="dashboard-card petty-cash-card">
+                <span class="card-icon">💳</span>
+                <h3 class="card-title">مدیریت تراکنش‌های تنخواه</h3>
+                <p class="card-description">
+                    ثبت، ویرایش و حذف تراکنش‌های تنخواه
+                </p>
+                <a href="/construction/PettyCashTransaction/" class="card-btn">
+                    مدیریت تراکنش‌ها
                 </a>
             </div>
         {% endif %}
