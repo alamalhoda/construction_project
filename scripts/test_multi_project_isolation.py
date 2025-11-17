@@ -17,7 +17,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'construction_project.settings')
 django.setup()
 
 from django.contrib.auth.models import User
-from construction.models import Project, Investor, Expense, Transaction, Unit, Period, Sale
+from construction.models import Project, Investor, Expense, Transaction, Unit, Period, Sale, PettyCashTransaction
 from construction.project_manager import ProjectManager
 from django.test import RequestFactory
 from django.contrib.sessions.middleware import SessionMiddleware
@@ -99,6 +99,7 @@ def create_test_data():
     Unit.objects.filter(project__in=[project1, project2]).delete()
     Sale.objects.filter(project__in=[project1, project2]).delete()
     Period.objects.filter(project__in=[project1, project2]).delete()
+    PettyCashTransaction.objects.filter(project__in=[project1, project2]).delete()
     
     # ایجاد سرمایه‌گذار برای پروژه 1
     investor1 = Investor.objects.create(
@@ -751,7 +752,97 @@ def create_test_data():
     sales_project1 = [sale1_1, sale1_2, sale1_3]
     sales_project2 = [sale2_1, sale2_2, sale2_3, sale2_4]
     
-    return user, project1, project2, investor1, investor2, expense1, expense2, period1, period2, transactions_project1, transactions_project2, units_project1, units_project2, sales_project1, sales_project2, investors_project2
+    # ایجاد تراکنش‌های تنخواه برای پروژه 2
+    print("\n📊 ایجاد تراکنش‌های تنخواه برای پروژه 2...")
+    
+    # حذف تراکنش‌های تنخواه قبلی پروژه 2 (اگر وجود دارند)
+    PettyCashTransaction.objects.filter(project=project2).delete()
+    
+    # انواع عوامل اجرایی (به جز construction_contractor و other)
+    expense_types = [
+        ('project_manager', 'مدیر پروژه'),
+        ('facilities_manager', 'سرپرست کارگاه'),
+        ('procurement', 'کارپرداز'),
+        ('warehouse', 'انباردار'),
+    ]
+    
+    petty_cash_transactions_project2 = []
+    
+    # برای هر عامل اجرایی، تراکنش‌های مختلف ایجاد می‌کنیم
+    for expense_type_code, expense_type_name in expense_types:
+        print(f"\n📊 ایجاد تراکنش‌های تنخواه برای {expense_type_name}...")
+        
+        # مبالغ پایه برای هر عامل اجرایی
+        base_amounts = {
+            'project_manager': 10000000,      # 10 میلیون
+            'facilities_manager': 8000000,    # 8 میلیون
+            'procurement': 6000000,           # 6 میلیون
+            'warehouse': 4000000,             # 4 میلیون
+        }
+        
+        base_amount = base_amounts[expense_type_code]
+        
+        # استفاده از دوره‌های موجود (فروردین 1405 تا تیر 1406)
+        target_periods_for_petty_cash = []
+        for period in periods_project2:
+            if (period.year == 1405) or (period.year == 1406 and period.month_number <= 4):
+                target_periods_for_petty_cash.append(period)
+        
+        # ایجاد تراکنش‌های دریافت تنخواه (در حدود 60% از دوره‌ها)
+        receipt_count = 0
+        for period_idx, period in enumerate(target_periods_for_petty_cash):
+            if period_idx % 2 == 0:  # در هر دوره دوم
+                period_day = 5 + (period_idx % 20)
+                tr_date_shamsi = jdatetime.date(period.year, period.month_number, period_day)
+                tr_gregorian = tr_date_shamsi.togregorian()
+                
+                # تنوع در مبالغ
+                amount = int(base_amount * (1 + (period_idx % 3) * 0.1))
+                
+                transaction = PettyCashTransaction.objects.create(
+                    project=project2,
+                    expense_type=expense_type_code,
+                    transaction_type='receipt',
+                    amount=amount,
+                    date_shamsi=tr_date_shamsi,
+                    date_gregorian=tr_gregorian,
+                    description=f'دریافت تنخواه - {expense_type_name} - {period.label}',
+                    receipt_number=f'REC-{expense_type_code[:3].upper()}-{period.year}-{period.month_number:02d}-{period_idx:03d}'
+                )
+                petty_cash_transactions_project2.append(transaction)
+                receipt_count += 1
+                print(f"  ✅ تراکنش (دریافت) ایجاد شد: {amount:,} تومان - {period.label}")
+        
+        # ایجاد تراکنش‌های عودت تنخواه (در حدود 30% از دوره‌ها)
+        return_count = 0
+        for period_idx, period in enumerate(target_periods_for_petty_cash):
+            if period_idx % 4 == 1:  # در هر دوره چهارم
+                period_day = 15 + (period_idx % 15)
+                tr_date_shamsi = jdatetime.date(period.year, period.month_number, period_day)
+                tr_gregorian = tr_date_shamsi.togregorian()
+                
+                # عودت معمولاً کمتر از دریافت است
+                amount = int(base_amount * 0.3 * (1 + (period_idx % 2) * 0.1))
+                
+                transaction = PettyCashTransaction.objects.create(
+                    project=project2,
+                    expense_type=expense_type_code,
+                    transaction_type='return',
+                    amount=amount,
+                    date_shamsi=tr_date_shamsi,
+                    date_gregorian=tr_gregorian,
+                    description=f'عودت تنخواه - {expense_type_name} - {period.label}',
+                    receipt_number=f'RET-{expense_type_code[:3].upper()}-{period.year}-{period.month_number:02d}-{period_idx:03d}'
+                )
+                petty_cash_transactions_project2.append(transaction)
+                return_count += 1
+                print(f"  ✅ تراکنش (عودت) ایجاد شد: {amount:,} تومان - {period.label}")
+        
+        print(f"✅ مجموع {receipt_count} دریافت و {return_count} عودت برای {expense_type_name} ایجاد شد")
+    
+    print(f"\n✅ مجموع {len(petty_cash_transactions_project2)} تراکنش تنخواه برای پروژه 2 ایجاد شد")
+    
+    return user, project1, project2, investor1, investor2, expense1, expense2, period1, period2, transactions_project1, transactions_project2, units_project1, units_project2, sales_project1, sales_project2, investors_project2, petty_cash_transactions_project2, periods_project2
 
 
 def create_request(user, project_id=None):
@@ -778,7 +869,7 @@ def test_project_isolation():
     print("="*80)
     
     # ایجاد داده‌های تست
-    user, project1, project2, investor1, investor2, expense1, expense2, period1, period2, transactions_project1, transactions_project2, units_project1, units_project2, sales_project1, sales_project2, investors_project2 = create_test_data()
+    user, project1, project2, investor1, investor2, expense1, expense2, period1, period2, transactions_project1, transactions_project2, units_project1, units_project2, sales_project1, sales_project2, investors_project2, petty_cash_transactions_project2, periods_project2 = create_test_data()
     
     # تست 1: بررسی جداسازی داده‌ها در دیتابیس
     print("\n" + "-"*80)
@@ -1279,6 +1370,216 @@ def test_project_isolation():
     
     print("\n✅ تست 4: PASSED - تغییر پروژه به درستی کار می‌کند")
     
+    # تست 5: بررسی محاسبات تنخواه
+    print("\n" + "-"*80)
+    print("📊 تست 5: بررسی محاسبات تنخواه")
+    print("-"*80)
+    
+    # بررسی تراکنش‌های تنخواه در دیتابیس
+    petty_cash_project1 = PettyCashTransaction.objects.filter(project=project1)
+    petty_cash_project2 = PettyCashTransaction.objects.filter(project=project2)
+    
+    print(f"\n✅ تراکنش‌های تنخواه پروژه 1: {petty_cash_project1.count()} مورد")
+    print(f"✅ تراکنش‌های تنخواه پروژه 2: {petty_cash_project2.count()} مورد")
+    
+    # بررسی عدم تداخل
+    assert petty_cash_project1.count() == 0, "❌ پروژه 1 نباید تراکنش تنخواه داشته باشد"
+    assert petty_cash_project2.count() == len(petty_cash_transactions_project2), f"❌ پروژه 2 باید {len(petty_cash_transactions_project2)} تراکنش تنخواه داشته باشد"
+    
+    # بررسی اینکه همه تراکنش‌های تنخواه متعلق به پروژه 2 هستند
+    for tr in petty_cash_project2:
+        assert tr.project.id == project2.id, f"❌ تراکنش تنخواه {tr.id} باید متعلق به پروژه 2 باشد"
+    
+    # تست متدهای Manager
+    print("\n📊 تست متدهای Manager...")
+    
+    expense_types = ['project_manager', 'facilities_manager', 'procurement', 'warehouse']
+    
+    for expense_type in expense_types:
+        print(f"\n📊 بررسی محاسبات برای {expense_type}...")
+        
+        # محاسبه دستی برای مقایسه
+        receipts = PettyCashTransaction.objects.filter(
+            project=project2,
+            expense_type=expense_type,
+            transaction_type='receipt'
+        )
+        returns = PettyCashTransaction.objects.filter(
+            project=project2,
+            expense_type=expense_type,
+            transaction_type='return'
+        )
+        expenses = Expense.objects.filter(
+            project=project2,
+            expense_type=expense_type
+        )
+        
+        manual_total_receipts = sum(float(tr.amount) for tr in receipts)
+        manual_total_returns = sum(float(tr.amount) for tr in returns)
+        manual_total_expenses = sum(float(exp.amount) for exp in expenses)
+        manual_balance = manual_total_receipts - manual_total_expenses - manual_total_returns
+        
+        # استفاده از متدهای Manager
+        manager_total_receipts = PettyCashTransaction.objects.get_total_receipts(project2, expense_type)
+        manager_total_returns = PettyCashTransaction.objects.get_total_returns(project2, expense_type)
+        manager_total_expenses = PettyCashTransaction.objects.get_total_expenses(project2, expense_type)
+        manager_balance = PettyCashTransaction.objects.get_balance(project2, expense_type)
+        
+        print(f"  📊 دریافت‌ها:")
+        print(f"     - دستی: {manual_total_receipts:,.0f} تومان")
+        print(f"     - Manager: {manager_total_receipts:,.0f} تومان")
+        assert abs(manual_total_receipts - manager_total_receipts) < 0.01, \
+            f"❌ مجموع دریافت‌ها برای {expense_type} باید یکسان باشد"
+        
+        print(f"  📊 عودت‌ها:")
+        print(f"     - دستی: {manual_total_returns:,.0f} تومان")
+        print(f"     - Manager: {manager_total_returns:,.0f} تومان")
+        assert abs(manual_total_returns - manager_total_returns) < 0.01, \
+            f"❌ مجموع عودت‌ها برای {expense_type} باید یکسان باشد"
+        
+        print(f"  📊 هزینه‌ها:")
+        print(f"     - دستی: {manual_total_expenses:,.0f} تومان")
+        print(f"     - Manager: {manager_total_expenses:,.0f} تومان")
+        assert abs(manual_total_expenses - manager_total_expenses) < 0.01, \
+            f"❌ مجموع هزینه‌ها برای {expense_type} باید یکسان باشد"
+        
+        print(f"  📊 وضعیت مالی:")
+        print(f"     - دستی: {manual_balance:,.0f} تومان")
+        print(f"     - Manager: {manager_balance:,.0f} تومان")
+        assert abs(manual_balance - manager_balance) < 0.01, \
+            f"❌ وضعیت مالی برای {expense_type} باید یکسان باشد"
+        
+        print(f"  ✅ محاسبات برای {expense_type} صحیح است")
+    
+    # تست get_all_balances
+    print("\n📊 تست get_all_balances...")
+    all_balances = PettyCashTransaction.objects.get_all_balances(project2)
+    
+    assert len(all_balances) > 0, "❌ get_all_balances باید داده برگرداند"
+    
+    # بررسی اینکه فقط عوامل اجرایی مربوط به تنخواه در لیست هستند
+    valid_expense_types = ['project_manager', 'facilities_manager', 'procurement', 'warehouse']
+    for expense_type in valid_expense_types:
+        assert expense_type in all_balances, f"❌ {expense_type} باید در all_balances باشد"
+        balance_info = all_balances[expense_type]
+        assert 'label' in balance_info, f"❌ balance_info برای {expense_type} باید label داشته باشد"
+        assert 'balance' in balance_info, f"❌ balance_info برای {expense_type} باید balance داشته باشد"
+        assert 'total_receipts' in balance_info, f"❌ balance_info برای {expense_type} باید total_receipts داشته باشد"
+        assert 'total_returns' in balance_info, f"❌ balance_info برای {expense_type} باید total_returns داشته باشد"
+        assert 'total_expenses' in balance_info, f"❌ balance_info برای {expense_type} باید total_expenses داشته باشد"
+        
+        # بررسی صحت محاسبات
+        expected_balance = balance_info['total_receipts'] - balance_info['total_expenses'] - balance_info['total_returns']
+        assert abs(balance_info['balance'] - expected_balance) < 0.01, \
+            f"❌ balance برای {expense_type} باید برابر با total_receipts - total_expenses - total_returns باشد"
+    
+    print(f"  ✅ get_all_balances برای {len(all_balances)} عامل اجرایی صحیح است")
+    
+    # تست get_balance_by_period
+    print("\n📊 تست get_balance_by_period...")
+    
+    # استفاده از اولین دوره برای تست
+    test_period = periods_project2[0] if periods_project2 else period2
+    test_expense_type = 'project_manager'
+    
+    period_balance = PettyCashTransaction.objects.get_balance_by_period(project2, test_expense_type, test_period)
+    
+    # محاسبه دستی برای مقایسه
+    receipts_before = PettyCashTransaction.objects.filter(
+        project=project2,
+        expense_type=test_expense_type,
+        transaction_type='receipt',
+        date_gregorian__lte=test_period.end_date_gregorian
+    )
+    returns_before = PettyCashTransaction.objects.filter(
+        project=project2,
+        expense_type=test_expense_type,
+        transaction_type='return',
+        date_gregorian__lte=test_period.end_date_gregorian
+    )
+    expenses_before = Expense.objects.filter(
+        project=project2,
+        expense_type=test_expense_type,
+        period__year__lte=test_period.year,
+        period__month_number__lte=test_period.month_number
+    )
+    
+    manual_period_balance = (
+        sum(float(tr.amount) for tr in receipts_before) -
+        sum(float(exp.amount) for exp in expenses_before) -
+        sum(float(tr.amount) for tr in returns_before)
+    )
+    
+    assert abs(period_balance - manual_period_balance) < 0.01, \
+        f"❌ وضعیت مالی دوره‌ای برای {test_expense_type} باید صحیح باشد"
+    
+    print(f"  ✅ get_balance_by_period برای {test_expense_type} در دوره {test_period.label} صحیح است")
+    
+    # تست get_period_balance_trend
+    print("\n📊 تست get_period_balance_trend...")
+    
+    trend_data = PettyCashTransaction.objects.get_period_balance_trend(
+        project2, test_expense_type, None, None
+    )
+    
+    assert len(trend_data) > 0, "❌ trend_data باید داده برگرداند"
+    
+    # بررسی ساختار داده‌های trend
+    for item in trend_data:
+        assert 'period_id' in item, "❌ trend item باید period_id داشته باشد"
+        assert 'period_label' in item, "❌ trend item باید period_label داشته باشد"
+        assert 'balance' in item, "❌ trend item باید balance داشته باشد"
+        assert 'year' in item, "❌ trend item باید year داشته باشد"
+        assert 'month_number' in item, "❌ trend item باید month_number داشته باشد"
+    
+    print(f"  ✅ get_period_balance_trend برای {test_expense_type} {len(trend_data)} دوره برگرداند")
+    
+    # تست API endpoints
+    print("\n📊 تست API endpoints...")
+    
+    from construction.api import PettyCashTransactionViewSet
+    
+    # تست با پروژه 2
+    request2 = create_request(user, project2.id)
+    petty_cash_viewset = PettyCashTransactionViewSet()
+    petty_cash_viewset.request = request2
+    queryset = petty_cash_viewset.get_queryset()
+    transactions_from_api = list(queryset)
+    
+    print(f"✅ تراکنش‌های تنخواه از API (پروژه 2): {len(transactions_from_api)} مورد")
+    
+    # بررسی اینکه همه تراکنش‌ها متعلق به پروژه 2 هستند
+    for tr in transactions_from_api:
+        assert tr.project.id == project2.id, f"❌ تراکنش تنخواه {tr.id} باید متعلق به پروژه 2 باشد"
+    
+    assert len(transactions_from_api) == len(petty_cash_transactions_project2), \
+        f"❌ API باید {len(petty_cash_transactions_project2)} تراکنش برگرداند"
+    
+    # تست endpoint balances
+    print("\n📊 تست endpoint balances...")
+    balances_action = petty_cash_viewset.balances(request2)
+    assert balances_action.status_code == 200, "❌ endpoint balances باید 200 برگرداند"
+    
+    # تست endpoint balance_detail
+    print("\n📊 تست endpoint balance_detail...")
+    from rest_framework.test import APIRequestFactory
+    from django.http import QueryDict
+    
+    # استفاده از APIRequestFactory برای ایجاد request با query_params
+    api_factory = APIRequestFactory()
+    api_request = api_factory.get('/api/v1/PettyCashTransaction/balance_detail/?expense_type=project_manager')
+    api_request.user = user
+    api_request.session = request2.session
+    
+    # اضافه کردن query_params به request
+    from rest_framework.request import Request
+    drf_request = Request(api_request)
+    
+    balance_detail_action = petty_cash_viewset.balance_detail(drf_request)
+    assert balance_detail_action.status_code == 200, f"❌ endpoint balance_detail باید 200 برگرداند (دریافت شده: {balance_detail_action.status_code})"
+    
+    print("\n✅ تست 5: PASSED - محاسبات تنخواه به درستی کار می‌کند")
+    
     # خلاصه نتایج
     print("\n" + "="*80)
     print("✅ خلاصه نتایج تست‌ها")
@@ -1289,6 +1590,7 @@ def test_project_isolation():
     print("   2. ✅ ProjectManager.get_current_project به درستی کار می‌کند")
     print("   3. ✅ ViewSetها به درستی فیلتر می‌کنند")
     print("   4. ✅ تغییر پروژه به درستی کار می‌کند")
+    print("   5. ✅ محاسبات تنخواه به درستی کار می‌کند")
     print("\n🎉 ساختار چند پروژه‌ای به درستی فعال شده است!")
     print("="*80 + "\n")
 
