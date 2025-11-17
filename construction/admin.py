@@ -313,6 +313,41 @@ class UnitSpecificExpenseAdmin(admin.ModelAdmin):
     ]
 
 
+class PettyCashTransactionAdminForm(forms.ModelForm):
+    class Meta:
+        model = models.PettyCashTransaction
+        fields = "__all__"
+
+class PettyCashTransactionAdmin(admin.ModelAdmin):
+    form = PettyCashTransactionAdminForm
+    list_display = [
+        "project",
+        "expense_type",
+        "transaction_type",
+        "amount",
+        "date_shamsi",
+        "receipt_number",
+        "created_at",
+    ]
+    list_filter = [
+        "expense_type",
+        "transaction_type",
+        "project",
+        "date_gregorian",
+    ]
+    search_fields = [
+        "description",
+        "receipt_number",
+        "project__name",
+    ]
+    readonly_fields = [
+        "created_at",
+        "updated_at",
+        "date_gregorian",
+    ]
+    date_hierarchy = "date_gregorian"
+
+
 admin.site.register(models.Expense, ExpenseAdmin)
 admin.site.register(models.Investor, InvestorAdmin)
 admin.site.register(models.InterestRate, InterestRateAdmin)
@@ -322,4 +357,5 @@ admin.site.register(models.Sale, SaleAdmin)
 admin.site.register(models.Transaction, TransactionAdmin)
 admin.site.register(models.Unit, UnitAdmin)
 admin.site.register(models.UnitSpecificExpense, UnitSpecificExpenseAdmin)
+admin.site.register(models.PettyCashTransaction, PettyCashTransactionAdmin)
 admin.site.register(models.UserProfile)

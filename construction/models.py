@@ -1048,3 +1048,254 @@ class UserProfile(models.Model):
                 'dashboard',
                 'profile'
             ]
+
+
+class PettyCashTransactionManager(models.Manager):
+    """مرجع واحد برای محاسبه موجودی و آمار تنخواه"""
+  
+    def get_balance(self, project: Project, expense_type: str):
+        """
+        محاسبه وضعیت مالی عامل اجرایی
+        وضعیت = مجموع دریافت‌ها - مجموع هزینه‌ها - مجموع عودت‌ها
+      
+        مقدار مثبت: عامل اجرایی بدهکار (باید به صندوق برگرداند)
+        مقدار منفی: عامل اجرایی بستانکار (طلبکار) - صندوق باید به او بدهد
+        """
+        from django.db.models import Sum, Q
+        from decimal import Decimal
+      
+        # مجموع دریافت‌ها
+        total_receipts = self.get_queryset().filter(
+            project=project,
+            expense_type=expense_type,
+            transaction_type='receipt'
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+      
+        # مجموع عودت‌ها
+        total_returns = self.get_queryset().filter(
+            project=project,
+            expense_type=expense_type,
+            transaction_type='return'
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+      
+        # مجموع هزینه‌ها از Expense
+        total_expenses = Expense.objects.filter(
+            project=project,
+            expense_type=expense_type
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+      
+        # محاسبه وضعیت مالی
+        balance = total_receipts - total_expenses - total_returns
+      
+        return float(balance)
+  
+    def get_total_receipts(self, project: Project, expense_type: str):
+        """مجموع تنخواه‌های دریافتی"""
+        from django.db.models import Sum
+      
+        total = self.get_queryset().filter(
+            project=project,
+            expense_type=expense_type,
+            transaction_type='receipt'
+        ).aggregate(total=Sum('amount'))['total'] or 0
+      
+        return float(total)
+  
+    def get_total_returns(self, project: Project, expense_type: str):
+        """مجموع عودت‌های تنخواه"""
+        from django.db.models import Sum
+      
+        total = self.get_queryset().filter(
+            project=project,
+            expense_type=expense_type,
+            transaction_type='return'
+        ).aggregate(total=Sum('amount'))['total'] or 0
+      
+        return float(total)
+  
+    def get_total_expenses(self, project: Project, expense_type: str):
+        """مجموع هزینه‌های ثبت شده (از Expense)"""
+        from django.db.models import Sum
+      
+        total = Expense.objects.filter(
+            project=project,
+            expense_type=expense_type
+        ).aggregate(total=Sum('amount'))['total'] or 0
+      
+        return float(total)
+  
+    def get_balance_by_period(self, project: Project, expense_type: str, period: Period):
+        """
+        وضعیت مالی عامل اجرایی تا پایان یک دوره خاص
+        """
+        from django.db.models import Sum, Q
+        from decimal import Decimal
+      
+        # دریافت‌های قبل از پایان دوره
+        total_receipts = self.get_queryset().filter(
+            project=project,
+            expense_type=expense_type,
+            transaction_type='receipt',
+            date_gregorian__lte=period.end_date_gregorian
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+      
+        # عودت‌های قبل از پایان دوره
+        total_returns = self.get_queryset().filter(
+            project=project,
+            expense_type=expense_type,
+            transaction_type='return',
+            date_gregorian__lte=period.end_date_gregorian
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+      
+        # هزینه‌های دوره‌های قبل و شامل این دوره
+        total_expenses = Expense.objects.filter(
+            project=project,
+            expense_type=expense_type,
+            period__year__lte=period.year,
+            period__month_number__lte=period.month_number
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+      
+        balance = total_receipts - total_expenses - total_returns
+        return float(balance)
+  
+    def get_all_balances(self, project: Project):
+        """وضعیت مالی همه عوامل اجرایی"""
+        balances = {}
+        for expense_type, label in Expense.EXPENSE_TYPES:
+            # فیلتر کردن construction_contractor و other
+            if expense_type not in ['construction_contractor', 'other']:
+                balances[expense_type] = {
+                    'label': label,
+                    'balance': self.get_balance(project, expense_type),
+                    'total_receipts': self.get_total_receipts(project, expense_type),
+                    'total_expenses': self.get_total_expenses(project, expense_type),
+                    'total_returns': self.get_total_returns(project, expense_type),
+                }
+        return balances
+  
+    def get_period_balance_trend(self, project: Project, expense_type: str, start_period: Period = None, end_period: Period = None):
+        """
+        ترند زمانی وضعیت مالی عامل اجرایی
+        """
+        from django.db.models import Sum, Q
+        from decimal import Decimal
+      
+        periods = Period.objects.filter(project=project).order_by('year', 'month_number')
+      
+        if start_period:
+            periods = periods.filter(
+                Q(year__gt=start_period.year) |
+                Q(year=start_period.year, month_number__gte=start_period.month_number)
+            )
+      
+        if end_period:
+            periods = periods.filter(
+                Q(year__lt=end_period.year) |
+                Q(year=end_period.year, month_number__lte=end_period.month_number)
+            )
+      
+        trend_data = []
+        for period in periods:
+            balance = self.get_balance_by_period(project, expense_type, period)
+            trend_data.append({
+                'period_id': period.id,
+                'period_label': period.label,
+                'year': period.year,
+                'month_number': period.month_number,
+                'balance': balance,
+            })
+      
+        return trend_data
+
+
+class PettyCashTransaction(models.Model):
+    """
+    تراکنش‌های تنخواه عوامل اجرایی
+    Single Source of Truth برای همه اطلاعات تنخواه
+    """
+    TRANSACTION_TYPES = [
+        ('receipt', 'دریافت تنخواه'),      # از صندوق به عامل اجرایی
+        ('return', 'عودت تنخواه'),         # از عامل اجرایی به صندوق
+        # توجه: هزینه‌ها در Expense ثبت می‌شوند، نه اینجا
+    ]
+  
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, verbose_name="پروژه")
+    expense_type = models.CharField(
+        max_length=30, 
+        choices=Expense.EXPENSE_TYPES,
+        verbose_name="عامل اجرایی",
+        help_text="نوع هزینه که به عنوان عامل اجرایی استفاده می‌شود"
+    )
+    transaction_type = models.CharField(
+        max_length=20, 
+        choices=TRANSACTION_TYPES,
+        verbose_name="نوع تراکنش"
+    )
+    amount = models.DecimalField(
+        max_digits=20, 
+        decimal_places=2,
+        verbose_name="مبلغ",
+        help_text="همیشه مثبت ذخیره می‌شود"
+    )
+    description = models.TextField(
+        blank=True,
+        verbose_name="توضیحات"
+    )
+    receipt_number = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name="شماره فیش/رسید"
+    )
+    date_shamsi = jmodels.jDateField(verbose_name="تاریخ شمسی")
+    date_gregorian = models.DateField(verbose_name="تاریخ میلادی")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+  
+    # Manager سفارشی
+    objects = PettyCashTransactionManager()
+  
+    class Meta:
+        verbose_name = "تراکنش تنخواه"
+        verbose_name_plural = "تراکنش‌های تنخواه"
+        ordering = ['-date_gregorian', '-created_at']
+        indexes = [
+            models.Index(fields=['project', 'expense_type', 'date_gregorian']),
+        ]
+  
+    def __str__(self):
+        type_display = 'دریافت' if self.transaction_type == 'receipt' else 'عودت'
+        return f"{self.get_expense_type_display()} - {type_display} - {self.amount}"
+  
+    def save(self, *args, **kwargs):
+        # تبدیل تاریخ شمسی به میلادی
+        if self.date_shamsi and not self.date_gregorian:
+            from jdatetime import datetime as jdatetime
+            if isinstance(self.date_shamsi, str):
+                jdate = jdatetime.strptime(str(self.date_shamsi), '%Y-%m-%d')
+                self.date_gregorian = jdate.togregorian().date()
+                self.date_shamsi = jdate.date()
+            elif hasattr(self.date_shamsi, 'year'):
+                self.date_gregorian = self.date_shamsi.togregorian()
+      
+        # اطمینان از مثبت بودن مبلغ
+        if self.amount < 0:
+            self.amount = abs(self.amount)
+      
+        super().save(*args, **kwargs)
+  
+    def get_signed_amount(self):
+        """
+        برگرداندن مبلغ با علامت صحیح
+        دریافت: مثبت (+)
+        عودت: منفی (-)
+        """
+        if self.transaction_type == 'receipt':
+            return self.amount
+        else:  # return
+            return -self.amount
+    
+    def get_absolute_url(self):
+        return reverse('construction_PettyCashTransaction_detail', kwargs={'pk': self.pk})
+    
+    def get_update_url(self):
+        return reverse('construction_PettyCashTransaction_update', kwargs={'pk': self.pk})

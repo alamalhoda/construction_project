@@ -656,3 +656,80 @@ class UnitSpecificExpenseSerializer(serializers.ModelSerializer):
         
         return super().update(instance, validated_data)
 
+
+class PettyCashTransactionSerializer(serializers.ModelSerializer):
+    expense_type_label = serializers.CharField(source='get_expense_type_display', read_only=True)
+    transaction_type_label = serializers.CharField(source='get_transaction_type_display', read_only=True)
+    signed_amount = serializers.SerializerMethodField()
+    date_shamsi = serializers.SerializerMethodField()
+    date_shamsi_input = serializers.CharField(write_only=True, required=False)
+  
+    class Meta:
+        model = models.PettyCashTransaction
+        fields = [
+            'id',
+            'project',
+            'expense_type',
+            'expense_type_label',
+            'transaction_type',
+            'transaction_type_label',
+            'amount',
+            'signed_amount',
+            'description',
+            'receipt_number',
+            'date_shamsi',
+            'date_shamsi_input',
+            'date_gregorian',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['created_at', 'updated_at', 'date_gregorian']
+  
+    def get_signed_amount(self, obj):
+        """مبلغ با علامت"""
+        return float(obj.get_signed_amount())
+    
+    def get_date_shamsi(self, obj):
+        """تبدیل تاریخ میلادی به شمسی برای نمایش"""
+        if obj.date_shamsi:
+            return str(obj.date_shamsi)
+        elif obj.date_gregorian:
+            from jdatetime import datetime as jdatetime
+            jdate = jdatetime.fromgregorian(date=obj.date_gregorian)
+            return jdate.strftime('%Y-%m-%d')
+        return None
+    
+    def create(self, validated_data):
+        # تبدیل تاریخ شمسی به میلادی
+        from jdatetime import datetime as jdatetime
+        
+        date_shamsi_input = validated_data.pop('date_shamsi_input', None)
+        if date_shamsi_input:
+            jdate = jdatetime.strptime(str(date_shamsi_input), '%Y-%m-%d')
+            validated_data['date_gregorian'] = jdate.togregorian().date()
+            validated_data['date_shamsi'] = jdate.date()
+        
+        # تنظیم پروژه جاری از session
+        request = self.context.get('request')
+        if not request:
+            raise serializers.ValidationError({"project": "فیلد project الزامی است."})
+        
+        current_project = ProjectManager.get_current_project(request)
+        if not current_project:
+            raise serializers.ValidationError({"project": "هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید."})
+        validated_data['project'] = current_project
+        
+        return super().create(validated_data)
+    
+    def update(self, instance, validated_data):
+        # تبدیل تاریخ شمسی به میلادی
+        from jdatetime import datetime as jdatetime
+        
+        date_shamsi_input = validated_data.pop('date_shamsi_input', None)
+        if date_shamsi_input:
+            jdate = jdatetime.strptime(str(date_shamsi_input), '%Y-%m-%d')
+            validated_data['date_gregorian'] = jdate.togregorian().date()
+            validated_data['date_shamsi'] = jdate.date()
+        
+        return super().update(instance, validated_data)
+

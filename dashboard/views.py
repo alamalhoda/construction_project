@@ -318,3 +318,51 @@ def detailed_calculations(request):
         return HttpResponse(f'خطا در محاسبات: {str(e)}', status=500)
 
 
+@login_required
+def petty_cash_dashboard(request):
+    """صفحه مدیریت تراکنش‌های تنخواه"""
+    file_path = os.path.join(settings.BASE_DIR, 'dashboard', 'view', 'petty_cash_dashboard.html')
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            content = file.read()
+        return HttpResponse(content)
+    except FileNotFoundError:
+        return HttpResponse('فایل مدیریت تنخواه یافت نشد', status=404)
+
+
+@login_required
+def petty_cash_balance_report(request):
+    """صفحه گزارش وضعیت مالی"""
+    file_path = os.path.join(settings.BASE_DIR, 'dashboard', 'view', 'petty_cash_balance_report.html')
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            content = file.read()
+        return HttpResponse(content)
+    except FileNotFoundError:
+        return HttpResponse('فایل گزارش وضعیت مالی یافت نشد', status=404)
+
+
+@login_required
+def petty_cash_period_report(request):
+    """صفحه گزارش دوره‌ای"""
+    file_path = os.path.join(settings.BASE_DIR, 'dashboard', 'view', 'petty_cash_period_report.html')
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            content = file.read()
+        return HttpResponse(content)
+    except FileNotFoundError:
+        return HttpResponse('فایل گزارش دوره‌ای یافت نشد', status=404)
+
+
+@login_required
+def petty_cash_detail_report(request):
+    """صفحه گزارش تفصیلی"""
+    file_path = os.path.join(settings.BASE_DIR, 'dashboard', 'view', 'petty_cash_detail_report.html')
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            content = file.read()
+        return HttpResponse(content)
+    except FileNotFoundError:
+        return HttpResponse('فایل گزارش تفصیلی یافت نشد', status=404)
+
+

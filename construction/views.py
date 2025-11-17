@@ -431,3 +431,41 @@ class UnitSpecificExpenseUpdateView(ProjectFormMixin, generic.UpdateView):
 class UnitSpecificExpenseDeleteView(generic.DeleteView):
     model = models.UnitSpecificExpense
     success_url = reverse_lazy("construction_UnitSpecificExpense_list")
+
+
+@method_decorator(login_required, name='dispatch')
+class PettyCashTransactionListView(ProjectFilterMixin, generic.ListView):
+    model = models.PettyCashTransaction
+    template_name = 'construction/petty_cash_transaction_list.html'
+    context_object_name = 'transactions'
+    ordering = ['-date_gregorian', '-created_at']
+
+
+@method_decorator(login_required, name='dispatch')
+class PettyCashTransactionCreateView(ProjectFormMixin, generic.CreateView):
+    model = models.PettyCashTransaction
+    form_class = forms.PettyCashTransactionForm
+    template_name = 'construction/petty_cash_transaction_form.html'
+
+
+@method_decorator(login_required, name='dispatch')
+class PettyCashTransactionUpdateView(ProjectFormMixin, generic.UpdateView):
+    model = models.PettyCashTransaction
+    form_class = forms.PettyCashTransactionForm
+    template_name = 'construction/petty_cash_transaction_form.html'
+    pk_url_kwarg = "pk"
+
+
+@method_decorator(login_required, name='dispatch')
+class PettyCashTransactionDetailView(ProjectFilterMixin, generic.DetailView):
+    model = models.PettyCashTransaction
+    template_name = 'construction/petty_cash_transaction_detail.html'
+    pk_url_kwarg = "pk"
+
+
+@method_decorator(login_required, name='dispatch')
+class PettyCashTransactionDeleteView(ProjectFilterMixin, generic.DeleteView):
+    model = models.PettyCashTransaction
+    template_name = 'construction/petty_cash_transaction_confirm_delete.html'
+    pk_url_kwarg = "pk"
+    success_url = reverse_lazy("construction_PettyCashTransaction_list")

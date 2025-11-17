@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>گزارش دوره‌ای تنخواه</title>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Vazir Font CSS -->
+    <link rel="stylesheet" href="/static/fonts/vazir.css">
+    
+    <!-- Project Switcher CSS -->
+    <link rel="stylesheet" href="/static/css/project-switcher.css">
+    
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --deposit-color: #2185d0;
+            --withdrawal-color: #db2828;
+            --profit-color: #21ba45;
+            --balance-color: #6c757d;
+            --bg-primary: #f8f9fa;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --text-primary: #2c3e50;
+            --border-color: #e9ecef;
+            --shadow-md: 0 8px 25px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 15px 35px rgba(0, 0, 0, 0.12);
+        }
+
+        body {
+            font-family: 'Vazir','Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            min-height: 100vh;
+            padding: 20px;
+            direction: rtl;
+            color: var(--text-primary);
+        }
+
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: var(--bg-card);
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .unified-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            border-radius: 20px 20px 0 0;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .unified-header-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+
+        .unified-header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            font-weight: 300;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .unified-header .nav-link {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 25px;
+            text-decoration: none;
+            margin: 5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .content-section {
+            padding: 30px;
+        }
+
+        .controls-section {
+            background: var(--bg-primary);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .period-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        select {
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+
+        .chart-container {
+            background: var(--bg-secondary);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 30px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="unified-header">
+            <div class="project-switcher-container">
+                <div id="projectSwitcherContainer"></div>
+            </div>
+            <div class="unified-header-content">
+                <h1><i class="fas fa-calendar-alt"></i> گزارش دوره‌ای تنخواه</h1>
+                <p style="margin-top: 20px;">
+                    <a href="/dashboard/petty-cash/" class="nav-link">
+                        <i class="fas fa-wallet"></i> مدیریت تراکنش‌ها
+                    </a>
+                    <a href="/dashboard/petty-cash/balance/" class="nav-link">
+                        <i class="fas fa-chart-pie"></i> گزارش وضعیت مالی
+                    </a>
+                    <a href="/dashboard/petty-cash/detail/" class="nav-link">
+                        <i class="fas fa-list"></i> گزارش تفصیلی
+                    </a>
+                </p>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <div class="controls-section">
+                <div class="period-selector">
+                    <div>
+                        <label>عامل اجرایی:</label>
+                        <select id="expenseTypeSelect" class="form-control">
+                            <option value="">همه عوامل اجرایی</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>دوره شروع:</label>
+                        <select id="startPeriodSelect" class="form-control">
+                            <option value="">انتخاب دوره</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>دوره پایان:</label>
+                        <select id="endPeriodSelect" class="form-control">
+                            <option value="">انتخاب دوره</option>
+                        </select>
+                    </div>
+                </div>
+                <button onclick="loadTrendData()" class="btn btn-primary" style="padding: 12px 25px; background: var(--primary-color); color: white; border: none; border-radius: 10px; cursor: pointer;">
+                    <i class="fas fa-search"></i> نمایش گزارش
+                </button>
+            </div>
+
+            <div id="loading" class="loading">
+                <i class="fas fa-spinner fa-spin fa-3x"></i>
+                <p>در حال بارگذاری...</p>
+            </div>
+
+            <div id="content" style="display: none;">
+                <div class="chart-container">
+                    <h3><i class="fas fa-chart-line"></i> نمودار ترند زمانی</h3>
+                    <canvas id="trendChart"></canvas>
+                </div>
+
+                <div style="background: var(--bg-secondary); padding: 25px; border-radius: 15px; box-shadow: var(--shadow-md);">
+                    <h3><i class="fas fa-table"></i> جدول داده‌های دوره‌ای</h3>
+                    <div id="trendTable"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api/v1/';
+        let trendChart = null;
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function formatNumber(num) {
+            return new Intl.NumberFormat('en-US').format(Math.round(num));
+        }
+
+        async function loadInitialData() {
+            try {
+                // Load periods
+                const periodsResponse = await fetch(`${API_BASE}Period/`, {
+                    headers: {'X-CSRFToken': getCookie('csrftoken') || ''}
+                });
+                const periodsData = await periodsResponse.json();
+                const periods = periodsData.results || periodsData;
+
+                const startSelect = document.getElementById('startPeriodSelect');
+                const endSelect = document.getElementById('endPeriodSelect');
+                
+                periods.forEach(period => {
+                    const option1 = document.createElement('option');
+                    option1.value = period.id;
+                    option1.textContent = period.label || `${period.year}/${period.month_number}`;
+                    startSelect.appendChild(option1);
+
+                    const option2 = document.createElement('option');
+                    option2.value = period.id;
+                    option2.textContent = period.label || `${period.year}/${period.month_number}`;
+                    endSelect.appendChild(option2);
+                });
+
+                // Load expense types
+                const expenseTypes = [
+                    ['project_manager', 'مدیر پروژه'],
+                    ['facilities_manager', 'سرپرست کارگاه'],
+                    ['procurement', 'کارپرداز'],
+                    ['warehouse', 'انباردار']
+                ];
+
+                const expenseTypeSelect = document.getElementById('expenseTypeSelect');
+                expenseTypes.forEach(([value, label]) => {
+                    const option = document.createElement('option');
+                    option.value = value;
+                    option.textContent = label;
+                    expenseTypeSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading initial data:', error);
+            }
+        }
+
+        async function loadTrendData() {
+            try {
+                const expenseType = document.getElementById('expenseTypeSelect').value;
+                if (!expenseType) {
+                    alert('لطفاً عامل اجرایی را انتخاب کنید');
+                    return;
+                }
+
+                document.getElementById('loading').style.display = 'block';
+                document.getElementById('content').style.display = 'none';
+
+                const startPeriodId = document.getElementById('startPeriodSelect').value;
+                const endPeriodId = document.getElementById('endPeriodSelect').value;
+
+                let url = `${API_BASE}PettyCashTransaction/balance_trend/?expense_type=${expenseType}`;
+                if (startPeriodId) url += `&start_period_id=${startPeriodId}`;
+                if (endPeriodId) url += `&end_period_id=${endPeriodId}`;
+
+                const response = await fetch(url, {
+                    headers: {'X-CSRFToken': getCookie('csrftoken') || ''}
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    displayTrendData(result.data);
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('content').style.display = 'block';
+                } else {
+                    throw new Error(result.error || 'خطا در دریافت داده‌ها');
+                }
+            } catch (error) {
+                console.error('Error loading trend data:', error);
+                document.getElementById('loading').innerHTML = 
+                    `<i class="fas fa-exclamation-triangle fa-3x"></i><p>خطا: ${error.message}</p>`;
+            }
+        }
+
+        function displayTrendData(data) {
+            const labels = data.map(item => item.period_label);
+            const balances = data.map(item => item.balance);
+
+            // Create chart
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            if (trendChart) {
+                trendChart.destroy();
+            }
+
+            trendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'وضعیت مالی (تومان)',
+                        data: balances,
+                        borderColor: 'var(--primary-color)',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.parsed.y;
+                                    return formatNumber(Math.abs(value)) + ' تومان';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: {
+                                callback: function(value) {
+                                    return formatNumber(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Create table
+            let tableHTML = '<table style="width: 100%; border-collapse: collapse; margin-top: 20px;">';
+            tableHTML += '<thead><tr><th>دوره</th><th>وضعیت مالی (تومان)</th></tr></thead><tbody>';
+            data.forEach(item => {
+                const balance = item.balance;
+                const color = balance > 0 ? 'var(--withdrawal-color)' : balance < 0 ? 'var(--profit-color)' : 'var(--balance-color)';
+                tableHTML += `<tr>
+                    <td>${item.period_label}</td>
+                    <td style="color: ${color}; font-weight: bold;">${formatNumber(balance)}</td>
+                </tr>`;
+            });
+            tableHTML += '</tbody></table>';
+            document.getElementById('trendTable').innerHTML = tableHTML;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadInitialData();
+        });
+    </script>
+    
+    <script src="/static/js/project-switcher.js"></script>
+</body>
+</html>
+

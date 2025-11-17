@@ -529,3 +529,33 @@ class UnitSpecificExpenseForm(forms.ModelForm):
             expense.save()
         
         return expense
+
+
+class PettyCashTransactionForm(forms.ModelForm):
+    date_shamsi = CustomJDateField(
+        label="تاریخ شمسی",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'انتخاب تاریخ شمسی...'
+        })
+    )
+    
+    class Meta:
+        model = models.PettyCashTransaction
+        fields = [
+            "expense_type",
+            "transaction_type",
+            "amount",
+            "description",
+            "receipt_number",
+            "date_shamsi",
+        ]
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # فیلتر کردن expense_type بر اساس EXPENSE_TYPES (به جز construction_contractor و other)
+        self.fields['expense_type'].choices = [
+            (choice[0], choice[1]) 
+            for choice in models.Expense.EXPENSE_TYPES 
+            if choice[0] not in ['construction_contractor', 'other']
+        ]

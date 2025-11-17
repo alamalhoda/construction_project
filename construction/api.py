@@ -1754,3 +1754,200 @@ class UnitSpecificExpenseViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
     serializer_class = serializers.UnitSpecificExpenseSerializer
     permission_classes = [APISecurityPermission]
     filterset_fields = ['unit', 'project']
+
+
+class PettyCashTransactionViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
+    """ViewSet برای مدیریت تراکنش‌های تنخواه"""
+  
+    queryset = models.PettyCashTransaction.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = serializers.PettyCashTransactionSerializer
+  
+    @action(detail=False, methods=['get'])
+    def balances(self, request):
+        """دریافت وضعیت مالی همه عوامل اجرایی"""
+        try:
+            from construction.project_manager import ProjectManager
+            active_project = ProjectManager.get_current_project(request)
+            if not active_project:
+                return Response({'error': 'هیچ پروژه فعالی یافت نشد'}, status=400)
+          
+            balances = models.PettyCashTransaction.objects.get_all_balances(active_project)
+            return Response({'success': True, 'data': balances})
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
+  
+    @action(detail=False, methods=['get'])
+    def balance_detail(self, request):
+        """دریافت وضعیت مالی یک عامل اجرایی خاص"""
+        try:
+            expense_type = request.query_params.get('expense_type')
+            if not expense_type:
+                return Response({'error': 'expense_type الزامی است'}, status=400)
+          
+            from construction.project_manager import ProjectManager
+            active_project = ProjectManager.get_current_project(request)
+            if not active_project:
+                return Response({'error': 'هیچ پروژه فعالی یافت نشد'}, status=400)
+          
+            balance = models.PettyCashTransaction.objects.get_balance(active_project, expense_type)
+            total_receipts = models.PettyCashTransaction.objects.get_total_receipts(active_project, expense_type)
+            total_expenses = models.PettyCashTransaction.objects.get_total_expenses(active_project, expense_type)
+            total_returns = models.PettyCashTransaction.objects.get_total_returns(active_project, expense_type)
+          
+            return Response({
+                'success': True,
+                'data': {
+                    'expense_type': expense_type,
+                    'expense_type_label': dict(models.Expense.EXPENSE_TYPES)[expense_type],
+                    'balance': balance,
+                    'total_receipts': total_receipts,
+                    'total_expenses': total_expenses,
+                    'total_returns': total_returns,
+                    'is_creditor': balance < 0,  # بستانکار (طلبکار)
+                    'is_debtor': balance > 0,    # بدهکار
+                }
+            })
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
+  
+    @action(detail=False, methods=['get'])
+    def period_balance(self, request):
+        """دریافت وضعیت مالی عامل اجرایی در یک دوره"""
+        try:
+            expense_type = request.query_params.get('expense_type')
+            period_id = request.query_params.get('period_id')
+          
+            if not all([expense_type, period_id]):
+                return Response({'error': 'expense_type و period_id الزامی است'}, status=400)
+          
+            from construction.project_manager import ProjectManager
+            active_project = ProjectManager.get_current_project(request)
+            if not active_project:
+                return Response({'error': 'هیچ پروژه فعالی یافت نشد'}, status=400)
+          
+            period = models.Period.objects.get(id=period_id, project=active_project)
+            balance = models.PettyCashTransaction.objects.get_balance_by_period(active_project, expense_type, period)
+          
+            return Response({
+                'success': True,
+                'data': {
+                    'period_id': period.id,
+                    'period_label': period.label,
+                    'balance': balance,
+                }
+            })
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
+  
+    @action(detail=False, methods=['get'])
+    def balance_trend(self, request):
+        """ترند زمانی وضعیت مالی عامل اجرایی"""
+        try:
+            expense_type = request.query_params.get('expense_type')
+            if not expense_type:
+                return Response({'error': 'expense_type الزامی است'}, status=400)
+          
+            from construction.project_manager import ProjectManager
+            active_project = ProjectManager.get_current_project(request)
+            if not active_project:
+                return Response({'error': 'هیچ پروژه فعالی یافت نشد'}, status=400)
+          
+            start_period_id = request.query_params.get('start_period_id')
+            end_period_id = request.query_params.get('end_period_id')
+          
+            start_period = None
+            end_period = None
+          
+            if start_period_id:
+                start_period = models.Period.objects.get(id=start_period_id, project=active_project)
+            if end_period_id:
+                end_period = models.Period.objects.get(id=end_period_id, project=active_project)
+          
+            trend = models.PettyCashTransaction.objects.get_period_balance_trend(
+                active_project, expense_type, start_period, end_period
+            )
+          
+            return Response({'success': True, 'data': trend})
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
+    
+    @action(detail=False, methods=['get'])
+    def detailed_report(self, request):
+        """گزارش تفصیلی تراکنش‌های تنخواه با فیلتر و جستجو"""
+        try:
+            from construction.project_manager import ProjectManager
+            active_project = ProjectManager.get_current_project(request)
+            if not active_project:
+                return Response({'error': 'هیچ پروژه فعالی یافت نشد'}, status=400)
+            
+            # دریافت پارامترهای فیلتر
+            expense_type = request.query_params.get('expense_type')
+            transaction_type = request.query_params.get('transaction_type')
+            start_date = request.query_params.get('start_date')
+            end_date = request.query_params.get('end_date')
+            min_amount = request.query_params.get('min_amount')
+            max_amount = request.query_params.get('max_amount')
+            search = request.query_params.get('search')
+            ordering = request.query_params.get('ordering', '-date_gregorian')
+            
+            # QuerySet اولیه
+            queryset = models.PettyCashTransaction.objects.filter(project=active_project)
+            
+            # فیلترها
+            if expense_type:
+                queryset = queryset.filter(expense_type=expense_type)
+            
+            if transaction_type:
+                queryset = queryset.filter(transaction_type=transaction_type)
+            
+            if start_date:
+                queryset = queryset.filter(date_gregorian__gte=start_date)
+            
+            if end_date:
+                queryset = queryset.filter(date_gregorian__lte=end_date)
+            
+            if min_amount:
+                queryset = queryset.filter(amount__gte=min_amount)
+            
+            if max_amount:
+                queryset = queryset.filter(amount__lte=max_amount)
+            
+            # جستجو
+            if search:
+                queryset = queryset.filter(
+                    Q(description__icontains=search) |
+                    Q(receipt_number__icontains=search)
+                )
+            
+            # مرتب‌سازی
+            queryset = queryset.order_by(ordering)
+            
+            # Serialize
+            serializer = serializers.PettyCashTransactionSerializer(queryset, many=True)
+            
+            # محاسبه مجموع‌ها
+            total_receipts = queryset.filter(transaction_type='receipt').aggregate(
+                total=Sum('amount')
+            )['total'] or 0
+            
+            total_returns = queryset.filter(transaction_type='return').aggregate(
+                total=Sum('amount')
+            )['total'] or 0
+            
+            net_amount = float(total_receipts) - float(total_returns)
+            
+            return Response({
+                'success': True,
+                'data': {
+                    'transactions': serializer.data,
+                    'summary': {
+                        'total_receipts': float(total_receipts),
+                        'total_returns': float(total_returns),
+                        'net_amount': net_amount,
+                        'count': queryset.count()
+                    }
+                }
+            })
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)

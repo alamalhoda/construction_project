@@ -18,6 +18,7 @@ router.register("Sale", api.SaleViewSet)
 router.register("Transaction", api.TransactionViewSet)
 router.register("Unit", api.UnitViewSet)
 router.register("UnitSpecificExpense", api.UnitSpecificExpenseViewSet)
+router.register("PettyCashTransaction", api.PettyCashTransactionViewSet)
 router.register("comprehensive", api.ComprehensiveAnalysisViewSet, basename="comprehensive")
 
 
@@ -82,6 +83,11 @@ urlpatterns = (
     path("construction/UnitSpecificExpense/detail/<int:pk>/", views.UnitSpecificExpenseDetailView.as_view(), name="construction_UnitSpecificExpense_detail"),
     path("construction/UnitSpecificExpense/update/<int:pk>/", views.UnitSpecificExpenseUpdateView.as_view(), name="construction_UnitSpecificExpense_update"),
     path("construction/UnitSpecificExpense/delete/<int:pk>/", views.UnitSpecificExpenseDeleteView.as_view(), name="construction_UnitSpecificExpense_delete"),
+    path("construction/PettyCashTransaction/", views.PettyCashTransactionListView.as_view(), name="construction_PettyCashTransaction_list"),
+    path("construction/PettyCashTransaction/create/", views.PettyCashTransactionCreateView.as_view(), name="construction_PettyCashTransaction_create"),
+    path("construction/PettyCashTransaction/detail/<int:pk>/", views.PettyCashTransactionDetailView.as_view(), name="construction_PettyCashTransaction_detail"),
+    path("construction/PettyCashTransaction/update/<int:pk>/", views.PettyCashTransactionUpdateView.as_view(), name="construction_PettyCashTransaction_update"),
+    path("construction/PettyCashTransaction/delete/<int:pk>/", views.PettyCashTransactionDeleteView.as_view(), name="construction_PettyCashTransaction_delete"),
 
     # User Authentication URLs - moved to root level in main urls.py
     # path("login/", user_views.user_login_view, name="user_login"),

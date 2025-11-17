@@ -17,6 +17,12 @@ urlpatterns = [
     path('detailed-calculations/', views.detailed_calculations, name='detailed_calculations'),
     path('data/<str:filename>', views.serve_csv_file, name='serve_csv_file'),
     
+    # Petty Cash Pages
+    path('petty-cash/', views.petty_cash_dashboard, name='petty_cash_dashboard'),
+    path('petty-cash/balance/', views.petty_cash_balance_report, name='petty_cash_balance_report'),
+    path('petty-cash/period/', views.petty_cash_period_report, name='petty_cash_period_report'),
+    path('petty-cash/detail/', views.petty_cash_detail_report, name='petty_cash_detail_report'),
+    
     # Test pages
     path('test-home/', views.test_home_page, name='test_home_page'),
     path('test-transaction-manager/', views.test_transaction_manager, name='test_transaction_manager'),

@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>گزارش تفصیلی تنخواه</title>
+
+    <!-- Tabulator CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/css/tabulator_semanticui.min.css" rel="stylesheet">
+    
+    <!-- Semantic UI CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Vazir Font CSS -->
+    <link rel="stylesheet" href="/static/fonts/vazir.css">
+    
+    <!-- Project Switcher CSS -->
+    <link rel="stylesheet" href="/static/css/project-switcher.css">
+    
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --deposit-color: #2185d0;
+            --withdrawal-color: #db2828;
+            --bg-primary: #f8f9fa;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --text-primary: #2c3e50;
+            --border-color: #e9ecef;
+            --shadow-md: 0 8px 25px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 15px 35px rgba(0, 0, 0, 0.12);
+        }
+
+        body {
+            font-family: 'Vazir','Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            min-height: 100vh;
+            padding: 20px;
+            direction: rtl;
+            color: var(--text-primary);
+        }
+
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: var(--bg-card);
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .unified-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            border-radius: 20px 20px 0 0;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .unified-header-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+
+        .unified-header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            font-weight: 300;
+        }
+
+        .unified-header .nav-link {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 25px;
+            text-decoration: none;
+            margin: 5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .content-section {
+            padding: 30px;
+        }
+
+        .filters-section {
+            background: var(--bg-primary);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .summary-section {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .summary-item {
+            display: inline-block;
+            margin: 10px 20px;
+            padding: 15px 25px;
+            background: var(--bg-primary);
+            border-radius: 10px;
+        }
+
+        .table-container {
+            background: var(--bg-secondary);
+            border-radius: 15px;
+            box-shadow: var(--shadow-md);
+            overflow-x: auto;
+            padding: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="unified-header">
+            <div class="project-switcher-container">
+                <div id="projectSwitcherContainer"></div>
+            </div>
+            <div class="unified-header-content">
+                <h1><i class="fas fa-list"></i> گزارش تفصیلی تنخواه</h1>
+                <p style="margin-top: 20px;">
+                    <a href="/dashboard/petty-cash/" class="nav-link">
+                        <i class="fas fa-wallet"></i> مدیریت تراکنش‌ها
+                    </a>
+                    <a href="/dashboard/petty-cash/balance/" class="nav-link">
+                        <i class="fas fa-chart-pie"></i> گزارش وضعیت مالی
+                    </a>
+                    <a href="/dashboard/petty-cash/period/" class="nav-link">
+                        <i class="fas fa-calendar-alt"></i> گزارش دوره‌ای
+                    </a>
+                </p>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <div class="filters-section">
+                <h3><i class="fas fa-filter"></i> فیلترها و جستجو</h3>
+                <div class="filter-row">
+                    <div class="ui fluid search selection dropdown" id="expenseTypeFilter">
+                        <input type="hidden" name="expense_type">
+                        <i class="dropdown icon"></i>
+                        <div class="default text">همه عوامل اجرایی</div>
+                        <div class="menu"></div>
+                    </div>
+                    
+                    <div class="ui fluid search selection dropdown" id="transactionTypeFilter">
+                        <input type="hidden" name="transaction_type">
+                        <i class="dropdown icon"></i>
+                        <div class="default text">همه انواع تراکنش</div>
+                        <div class="menu">
+                            <div class="item" data-value="">همه انواع تراکنش</div>
+                            <div class="item" data-value="receipt">دریافت تنخواه</div>
+                            <div class="item" data-value="return">عودت تنخواه</div>
+                        </div>
+                    </div>
+
+                    <input type="text" id="searchInput" placeholder="جستجو در توضیحات و شماره فیش..." 
+                           style="padding: 12px; border: 2px solid var(--border-color); border-radius: 10px;">
+                </div>
+
+                <div class="filter-row">
+                    <input type="date" id="startDateInput" placeholder="از تاریخ" 
+                           style="padding: 12px; border: 2px solid var(--border-color); border-radius: 10px;">
+                    <input type="date" id="endDateInput" placeholder="تا تاریخ" 
+                           style="padding: 12px; border: 2px solid var(--border-color); border-radius: 10px;">
+                    <input type="number" id="minAmountInput" placeholder="حداقل مبلغ" 
+                           style="padding: 12px; border: 2px solid var(--border-color); border-radius: 10px;">
+                    <input type="number" id="maxAmountInput" placeholder="حداکثر مبلغ" 
+                           style="padding: 12px; border: 2px solid var(--border-color); border-radius: 10px;">
+                </div>
+
+                <div style="margin-top: 15px;">
+                    <button onclick="applyFilters()" class="ui primary button">
+                        <i class="search icon"></i> اعمال فیلترها
+                    </button>
+                    <button onclick="clearFilters()" class="ui button">
+                        <i class="refresh icon"></i> پاک کردن فیلترها
+                    </button>
+                    <button onclick="exportToExcel()" class="ui teal button">
+                        <i class="file excel icon"></i> دانلود Excel
+                    </button>
+                </div>
+            </div>
+
+            <div class="summary-section" id="summarySection" style="display: none;">
+                <h4><i class="fas fa-calculator"></i> خلاصه گزارش</h4>
+                <div class="summary-item">
+                    <strong>تعداد تراکنش‌ها:</strong> <span id="totalCount">0</span>
+                </div>
+                <div class="summary-item">
+                    <strong>مجموع دریافت‌ها:</strong> <span id="totalReceipts" style="color: var(--deposit-color);">0</span>
+                </div>
+                <div class="summary-item">
+                    <strong>مجموع عودت‌ها:</strong> <span id="totalReturns" style="color: var(--withdrawal-color);">0</span>
+                </div>
+                <div class="summary-item">
+                    <strong>خالص:</strong> <span id="netAmount">0</span>
+                </div>
+            </div>
+
+            <div id="loading" class="loading">
+                <i class="fas fa-spinner fa-spin fa-3x"></i>
+                <p>در حال بارگذاری...</p>
+            </div>
+
+            <div class="table-container" id="tableContainer" style="display: none;">
+                <div id="transactionsTable"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/js/tabulator.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <script>
+        const API_BASE = '/api/v1/';
+        let table = null;
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function formatNumber(num) {
+            return new Intl.NumberFormat('en-US').format(Math.round(num));
+        }
+
+        async function loadDetailedReport() {
+            try {
+                document.getElementById('loading').style.display = 'block';
+                document.getElementById('tableContainer').style.display = 'none';
+
+                let url = `${API_BASE}PettyCashTransaction/detailed_report/`;
+                const params = new URLSearchParams();
+                
+                const expenseType = $('#expenseTypeFilter').dropdown('get value');
+                const transactionType = $('#transactionTypeFilter').dropdown('get value');
+                const search = document.getElementById('searchInput').value;
+                const startDate = document.getElementById('startDateInput').value;
+                const endDate = document.getElementById('endDateInput').value;
+                const minAmount = document.getElementById('minAmountInput').value;
+                const maxAmount = document.getElementById('maxAmountInput').value;
+
+                if (expenseType) params.append('expense_type', expenseType);
+                if (transactionType) params.append('transaction_type', transactionType);
+                if (search) params.append('search', search);
+                if (startDate) params.append('start_date', startDate);
+                if (endDate) params.append('end_date', endDate);
+                if (minAmount) params.append('min_amount', minAmount);
+                if (maxAmount) params.append('max_amount', maxAmount);
+
+                if (params.toString()) {
+                    url += '?' + params.toString();
+                }
+
+                const response = await fetch(url, {
+                    headers: {'X-CSRFToken': getCookie('csrftoken') || ''}
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    displayData(result.data);
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('tableContainer').style.display = 'block';
+                } else {
+                    throw new Error(result.error || 'خطا در دریافت داده‌ها');
+                }
+            } catch (error) {
+                console.error('Error loading detailed report:', error);
+                document.getElementById('loading').innerHTML = 
+                    `<i class="fas fa-exclamation-triangle fa-3x"></i><p>خطا: ${error.message}</p>`;
+            }
+        }
+
+        function displayData(data) {
+            const transactions = data.transactions;
+            const summary = data.summary;
+
+            // Update summary
+            document.getElementById('totalCount').textContent = summary.count;
+            document.getElementById('totalReceipts').textContent = formatNumber(summary.total_receipts);
+            document.getElementById('totalReturns').textContent = formatNumber(summary.total_returns);
+            document.getElementById('netAmount').textContent = formatNumber(summary.net_amount);
+            document.getElementById('summarySection').style.display = 'block';
+
+            // Create table
+            if (table) {
+                table.destroy();
+            }
+
+            const columns = [
+                {title: 'ردیف', formatter: function(cell) { return cell.getRow().getPosition() + 1; }, width: 60},
+                {title: 'تاریخ', field: 'date_shamsi', width: 110},
+                {title: 'عامل اجرایی', field: 'expense_type_label', width: 150},
+                {title: 'نوع تراکنش', field: 'transaction_type_label', width: 140},
+                {
+                    title: 'مبلغ (تومان)', 
+                    field: 'signed_amount', 
+                    width: 150,
+                    formatter: function(cell) {
+                        const value = cell.getValue();
+                        const formatted = formatNumber(Math.abs(value));
+                        return value >= 0 ? `<span style="color: var(--deposit-color);">+${formatted}</span>` : 
+                               `<span style="color: var(--withdrawal-color);">${formatted}</span>`;
+                    }
+                },
+                {title: 'شماره فیش', field: 'receipt_number', width: 120},
+                {title: 'توضیحات', field: 'description', width: 300}
+            ];
+
+            table = new Tabulator("#transactionsTable", {
+                data: transactions,
+                columns: columns,
+                layout: "fitData",
+                pagination: true,
+                paginationSize: 30,
+                paginationSizeSelector: [10, 30, 50, 100, true]
+            });
+        }
+
+        function applyFilters() {
+            loadDetailedReport();
+        }
+
+        function clearFilters() {
+            $('#expenseTypeFilter').dropdown('clear');
+            $('#transactionTypeFilter').dropdown('clear');
+            document.getElementById('searchInput').value = '';
+            document.getElementById('startDateInput').value = '';
+            document.getElementById('endDateInput').value = '';
+            document.getElementById('minAmountInput').value = '';
+            document.getElementById('maxAmountInput').value = '';
+            loadDetailedReport();
+        }
+
+        function exportToExcel() {
+            if (!table) {
+                alert('هیچ داده‌ای برای دانلود موجود نیست');
+                return;
+            }
+
+            const tableData = table.getData();
+            if (!tableData || tableData.length === 0) {
+                alert('هیچ داده‌ای برای دانلود موجود نیست');
+                return;
+            }
+
+            const worksheet = XLSX.utils.json_to_sheet(tableData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "گزارش تفصیلی");
+            
+            const filename = `petty_cash_detail_${new Date().toISOString().split('T')[0]}.xlsx`;
+            XLSX.writeFile(workbook, filename);
+        }
+
+        // Initialize
+        $(document).ready(function() {
+            // Populate expense types
+            const expenseTypes = [
+                ['project_manager', 'مدیر پروژه'],
+                ['facilities_manager', 'سرپرست کارگاه'],
+                ['procurement', 'کارپرداز'],
+                ['warehouse', 'انباردار']
+            ];
+
+            const expenseTypeMenu = $('#expenseTypeFilter .menu');
+            expenseTypeMenu.append('<div class="item" data-value="">همه عوامل اجرایی</div>');
+            expenseTypes.forEach(([value, label]) => {
+                expenseTypeMenu.append(`<div class="item" data-value="${value}">${label}</div>`);
+            });
+            $('#expenseTypeFilter').dropdown();
+
+            $('#transactionTypeFilter').dropdown();
+
+            loadDetailedReport();
+        });
+    </script>
+    
+    <script src="/static/js/project-switcher.js"></script>
+</body>
+</html>
+

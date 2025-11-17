@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>گزارش وضعیت مالی تنخواه</title>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Vazir Font CSS -->
+    <link rel="stylesheet" href="/static/fonts/vazir.css">
+    
+    <!-- Project Switcher CSS -->
+    <link rel="stylesheet" href="/static/css/project-switcher.css">
+    
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --deposit-color: #2185d0;
+            --deposit-color-light: rgba(33, 133, 208, 0.1);
+            --withdrawal-color: #db2828;
+            --withdrawal-color-light: rgba(219, 40, 40, 0.1);
+            --profit-color: #21ba45;
+            --profit-color-light: rgba(33, 186, 69, 0.1);
+            --balance-color: #6c757d;
+            --balance-color-light: rgba(108, 117, 125, 0.1);
+            --bg-primary: #f8f9fa;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --text-primary: #2c3e50;
+            --text-secondary: #6c757d;
+            --border-color: #e9ecef;
+            --shadow-md: 0 8px 25px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 15px 35px rgba(0, 0, 0, 0.12);
+        }
+
+        [data-theme="dark"] {
+            --deposit-color: #4fc3f7;
+            --deposit-color-light: rgba(79, 195, 247, 0.2);
+            --withdrawal-color: #f48fb1;
+            --withdrawal-color-light: rgba(244, 143, 177, 0.2);
+            --profit-color: #81c784;
+            --profit-color-light: rgba(129, 199, 132, 0.2);
+            --balance-color: #b0bec5;
+            --balance-color-light: rgba(176, 190, 197, 0.2);
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e1e;
+            --bg-card: #2d2d2d;
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --border-color: #404040;
+        }
+
+        body {
+            font-family: 'Vazir','Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            min-height: 100vh;
+            padding: 20px;
+            direction: rtl;
+            color: var(--text-primary);
+        }
+
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: var(--bg-card);
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .unified-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            border-radius: 20px 20px 0 0;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .unified-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .unified-header-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+
+        .unified-header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            font-weight: 300;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .unified-header .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 25px;
+        }
+
+        .unified-header .navigation-links {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .unified-header .nav-link {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .unified-header .nav-link:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .unified-header .project-switcher-container {
+            position: absolute;
+            top: 20px;
+            z-index: 10;
+        }
+
+        .content-section {
+            padding: 30px;
+            background: var(--bg-card);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: var(--shadow-md);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card.positive {
+            background: linear-gradient(135deg, var(--withdrawal-color) 0%, #b71c1c 100%);
+        }
+
+        .stat-card.negative {
+            background: linear-gradient(135deg, var(--profit-color) 0%, #1b8e3a 100%);
+        }
+
+        .stat-card.zero {
+            background: linear-gradient(135deg, var(--balance-color) 0%, #495057 100%);
+        }
+
+        .stat-number {
+            font-size: 2.8rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            direction: ltr;
+        }
+
+        .balance-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: var(--bg-secondary);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+        }
+
+        .balance-table th,
+        .balance-table td {
+            padding: 15px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .balance-table th {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            font-weight: 600;
+        }
+
+        .balance-table td {
+            background: var(--bg-secondary);
+        }
+
+        .balance-table tr:hover td {
+            background: var(--bg-primary);
+        }
+
+        .balance-positive {
+            color: var(--withdrawal-color);
+            font-weight: bold;
+        }
+
+        .balance-negative {
+            color: var(--profit-color);
+            font-weight: bold;
+        }
+
+        .balance-zero {
+            color: var(--balance-color);
+            font-weight: bold;
+        }
+
+        .chart-container {
+            background: var(--bg-secondary);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 30px;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .unified-header h1 {
+                font-size: 2.2rem;
+                flex-direction: column;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="unified-header">
+            <div class="project-switcher-container">
+                <div id="projectSwitcherContainer"></div>
+            </div>
+            <div class="unified-header-content">
+                <h1>
+                    <i class="fas fa-chart-pie"></i>
+                    گزارش وضعیت مالی تنخواه
+                </h1>
+                <p class="subtitle">وضعیت مالی همه عوامل اجرایی</p>
+                <div class="navigation-links">
+                    <a href="/dashboard/petty-cash/" class="nav-link">
+                        <i class="fas fa-wallet"></i> مدیریت تراکنش‌ها
+                    </a>
+                    <a href="/dashboard/petty-cash/period/" class="nav-link">
+                        <i class="fas fa-calendar-alt"></i> گزارش دوره‌ای
+                    </a>
+                    <a href="/dashboard/petty-cash/detail/" class="nav-link">
+                        <i class="fas fa-list"></i> گزارش تفصیلی
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="noProjectWarning" style="display: none; margin: 20px; padding: 20px; border-radius: 10px; background: #fff3cd; border: 2px solid #ffc107; color: #856404;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>هشدار:</strong> هیچ پروژه فعالی یافت نشد.
+        </div>
+
+        <div class="content-section">
+            <div id="loading" class="loading">
+                <i class="fas fa-spinner fa-spin fa-3x"></i>
+                <p>در حال بارگذاری داده‌ها...</p>
+            </div>
+
+            <div id="content" style="display: none;">
+                <div class="stats-grid" id="statsGrid"></div>
+
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-bar"></i> نمودار وضعیت مالی</h3>
+                    </div>
+                    <canvas id="balanceChart"></canvas>
+                </div>
+
+                <div style="background: var(--bg-secondary); padding: 25px; border-radius: 15px; box-shadow: var(--shadow-md);">
+                    <h3 style="margin-bottom: 20px;"><i class="fas fa-table"></i> جدول خلاصه وضعیت مالی</h3>
+                    <div class="table-responsive">
+                        <table class="balance-table">
+                            <thead>
+                                <tr>
+                                    <th>عامل اجرایی</th>
+                                    <th style="background-color: var(--deposit-color-light); border-left: 3px solid var(--deposit-color);">
+                                        <i class="fas fa-plus-circle"></i> مجموع دریافت‌ها
+                                    </th>
+                                    <th style="background-color: var(--expense-color-light); border-left: 3px solid var(--expense-color);">
+                                        <i class="fas fa-receipt"></i> مجموع هزینه‌ها
+                                    </th>
+                                    <th style="background-color: var(--withdrawal-color-light); border-left: 3px solid var(--withdrawal-color);">
+                                        <i class="fas fa-minus-circle"></i> مجموع عودت‌ها
+                                    </th>
+                                    <th style="background-color: var(--balance-color-light); border-left: 3px solid var(--balance-color);">
+                                        <i class="fas fa-balance-scale"></i> وضعیت مالی
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="balanceTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api/v1/';
+        let balanceChart = null;
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function formatNumber(num) {
+            return new Intl.NumberFormat('en-US').format(Math.round(num));
+        }
+
+        async function loadBalanceData() {
+            try {
+                document.getElementById('loading').style.display = 'block';
+                document.getElementById('content').style.display = 'none';
+
+                const response = await fetch(`${API_BASE}PettyCashTransaction/balances/`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken') || ''
+                    },
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    throw new Error('خطا در دریافت داده‌ها');
+                }
+
+                const result = await response.json();
+                if (result.success) {
+                    displayBalanceData(result.data);
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('content').style.display = 'block';
+                } else {
+                    throw new Error(result.error || 'خطا در دریافت داده‌ها');
+                }
+            } catch (error) {
+                console.error('Error loading balance data:', error);
+                document.getElementById('loading').innerHTML = 
+                    `<i class="fas fa-exclamation-triangle fa-3x"></i><p>خطا: ${error.message}</p>`;
+            }
+        }
+
+        function displayBalanceData(data) {
+            const statsGrid = document.getElementById('statsGrid');
+            const tableBody = document.getElementById('balanceTableBody');
+            
+            statsGrid.innerHTML = '';
+            tableBody.innerHTML = '';
+
+            const chartLabels = [];
+            const chartBalances = [];
+            const chartColors = [];
+
+            for (const [expenseType, info] of Object.entries(data)) {
+                const balance = info.balance;
+                const isPositive = balance > 0;
+                const isNegative = balance < 0;
+                const isZero = balance === 0;
+
+                // Create stat card
+                const card = document.createElement('div');
+                card.className = `stat-card ${isPositive ? 'positive' : isNegative ? 'negative' : 'zero'}`;
+                card.innerHTML = `
+                    <i class="fas ${isPositive ? 'fa-exclamation-circle' : isNegative ? 'fa-check-circle' : 'fa-balance-scale'} fa-2x"></i>
+                    <div class="stat-number">${formatNumber(Math.abs(balance))}</div>
+                    <p style="margin-bottom: 10px;">${info.label}</p>
+                    <small style="opacity: 0.9;">
+                        ${isPositive ? 'بدهکار (باید برگرداند)' : isNegative ? 'بستانکار (صندوق باید بدهد)' : 'تسویه شده'}
+                    </small>
+                `;
+                statsGrid.appendChild(card);
+
+                // Add to table
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${info.label}</strong></td>
+                    <td class="number-format">${formatNumber(info.total_receipts)}</td>
+                    <td class="number-format">${formatNumber(info.total_expenses)}</td>
+                    <td class="number-format">${formatNumber(info.total_returns)}</td>
+                    <td class="number-format ${isPositive ? 'balance-positive' : isNegative ? 'balance-negative' : 'balance-zero'}">
+                        ${isPositive ? '+' : ''}${formatNumber(balance)}
+                    </td>
+                `;
+                tableBody.appendChild(row);
+
+                // Add to chart data
+                chartLabels.push(info.label);
+                chartBalances.push(balance);
+                chartColors.push(isPositive ? 'var(--withdrawal-color)' : isNegative ? 'var(--profit-color)' : 'var(--balance-color)');
+            }
+
+            // Create chart
+            createBalanceChart(chartLabels, chartBalances, chartColors);
+        }
+
+        function createBalanceChart(labels, balances, colors) {
+            const ctx = document.getElementById('balanceChart').getContext('2d');
+            
+            if (balanceChart) {
+                balanceChart.destroy();
+            }
+
+            balanceChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'وضعیت مالی (تومان)',
+                        data: balances,
+                        backgroundColor: colors.map(c => c.replace('var(', '').replace(')', '')),
+                        borderColor: colors,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.parsed.y;
+                                    const formatted = formatNumber(Math.abs(value));
+                                    const sign = value >= 0 ? '+' : '';
+                                    return `${sign}${formatted} تومان`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatNumber(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadBalanceData();
+        });
+    </script>
+    
+    <script src="/static/js/project-switcher.js"></script>
+</body>
+</html>
+
