@@ -44,11 +44,27 @@ async function switchProject(projectId) {
     dropdown.style.pointerEvents = 'none';
     
     try {
+        // دریافت CSRF token
+        let csrfToken = getCookie('csrftoken');
+        
+        // اگر token پیدا نشد، از API endpoint دریافت کن (برای Production)
+        if (!csrfToken) {
+            csrfToken = await getCSRFToken();
+        }
+        
+        if (!csrfToken) {
+            console.error('CSRF token یافت نشد');
+            alert('خطا: CSRF token یافت نشد. لطفاً صفحه را رفرش کنید.');
+            dropdown.style.opacity = '1';
+            dropdown.style.pointerEvents = 'auto';
+            return;
+        }
+        
         const response = await fetch('/api/v1/Project/switch/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
+                'X-CSRFToken': csrfToken
             },
             body: JSON.stringify({ project_id: projectId })
         });
@@ -71,8 +87,20 @@ async function switchProject(projectId) {
     }
 }
 
-// تابع دریافت CSRF token از cookie
+// تابع دریافت CSRF token از منابع مختلف (برای سازگاری با DEBUG و Production)
 function getCookie(name) {
+    // 1. ابتدا از window.csrfToken استفاده کن (از سرور در script tag)
+    if (window.csrfToken) {
+        return window.csrfToken;
+    }
+    
+    // 2. سپس از meta tag استفاده کن (اگر موجود باشد)
+    const metaTag = document.querySelector('meta[name="csrf-token"]');
+    if (metaTag) {
+        return metaTag.getAttribute('content');
+    }
+    
+    // 3. در آخر از cookie استفاده کن (فقط در DEBUG که CSRF_COOKIE_HTTPONLY = False)
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
         const cookies = document.cookie.split(';');
@@ -84,7 +112,42 @@ function getCookie(name) {
             }
         }
     }
+    
+    // 4. اگر هنوز token پیدا نشد و name برابر csrftoken است، از API endpoint دریافت کن
+    if (!cookieValue && name === 'csrftoken') {
+        // این یک async operation است، اما getCookie synchronous است
+        // پس اگر token موجود نبود، null برمی‌گردانیم
+        // درخواست‌های API باید خودشان token را از API endpoint دریافت کنند
+        return null;
+    }
+    
     return cookieValue;
+}
+
+// تابع async برای دریافت CSRF token از API endpoint (برای Production)
+async function getCSRFToken() {
+    // ابتدا از منابع محلی چک کن
+    const localToken = getCookie('csrftoken');
+    if (localToken) {
+        return localToken;
+    }
+    
+    // اگر پیدا نشد، از API endpoint دریافت کن
+    try {
+        const response = await fetch('/api/v1/auth/csrf/');
+        if (response.ok) {
+            const data = await response.json();
+            if (data.csrf_token) {
+                // ذخیره در window برای استفاده بعدی
+                window.csrfToken = data.csrf_token;
+                return data.csrf_token;
+            }
+        }
+    } catch (error) {
+        console.error('خطا در دریافت CSRF token:', error);
+    }
+    
+    return null;
 }
 
 // بستن dropdown با کلید ESC
@@ -334,11 +397,27 @@ async function switchProject(projectId) {
     dropdown.style.pointerEvents = 'none';
     
     try {
+        // دریافت CSRF token
+        let csrfToken = getCookie('csrftoken');
+        
+        // اگر token پیدا نشد، از API endpoint دریافت کن (برای Production)
+        if (!csrfToken) {
+            csrfToken = await getCSRFToken();
+        }
+        
+        if (!csrfToken) {
+            console.error('CSRF token یافت نشد');
+            alert('خطا: CSRF token یافت نشد. لطفاً صفحه را رفرش کنید.');
+            dropdown.style.opacity = '1';
+            dropdown.style.pointerEvents = 'auto';
+            return;
+        }
+        
         const response = await fetch('/api/v1/Project/switch/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
+                'X-CSRFToken': csrfToken
             },
             body: JSON.stringify({ project_id: projectId })
         });

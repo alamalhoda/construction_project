@@ -1,6 +1,7 @@
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.authentication import SessionAuthentication
 from django.db.models import Sum, Q, Count
 from django.db import connection
 
@@ -10,6 +11,26 @@ from . import calculations
 from .calculations import InvestorCalculations
 from .api_security import APISecurityPermission, ReadOnlyPermission, AdminOnlyPermission
 from .mixins import ProjectFilterMixin
+
+
+class CsrfExemptSessionAuthentication(SessionAuthentication):
+    """
+    SessionAuthentication که CSRF را بر اساس محیط (DEBUG/Production) مدیریت می‌کند
+    
+    - در محیط DEBUG: CSRF را نادیده می‌گیرد (برای سهولت توسعه)
+    - در محیط Production: CSRF را اعمال می‌کند (برای امنیت)
+    """
+    def enforce_csrf(self, request):
+        from django.conf import settings
+        
+        # در محیط DEBUG، CSRF را نادیده بگیر
+        if settings.DEBUG:
+            return  # CSRF را نادیده بگیر در development
+        
+        # در محیط Production، CSRF را اعمال کن
+        # اما به جای استفاده از enforce_csrf که ممکن است مشکل ایجاد کند،
+        # از parent class استفاده می‌کنیم که CSRF را به صورت صحیح مدیریت می‌کند
+        return super().enforce_csrf(request)
 
 
 class ExpenseViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
@@ -984,6 +1005,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
     queryset = models.Project.objects.all()
     serializer_class = serializers.ProjectSerializer
     permission_classes = [APISecurityPermission]
+    authentication_classes = [CsrfExemptSessionAuthentication]
 
     @action(detail=False, methods=['get'])
     def active(self, request):
