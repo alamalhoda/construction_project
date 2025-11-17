@@ -38,6 +38,7 @@ class ExpenseViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
     queryset = models.Expense.objects.all()
     serializer_class = serializers.ExpenseSerializer
+    authentication_classes = [CsrfExemptSessionAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
     @action(detail=False, methods=['get'])
@@ -691,6 +692,7 @@ class InvestorViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 class ComprehensiveAnalysisViewSet(viewsets.ViewSet):
     """ViewSet for comprehensive project analysis"""
     
+    authentication_classes = [CsrfExemptSessionAuthentication]
     permission_classes = [permissions.IsAuthenticated]
     
     @action(detail=False, methods=['get'])
@@ -1437,6 +1439,7 @@ class SaleViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
     queryset = models.Sale.objects.all()
     serializer_class = serializers.SaleSerializer
+    authentication_classes = [CsrfExemptSessionAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
     @action(detail=False, methods=['get'])
@@ -1782,6 +1785,7 @@ class PettyCashTransactionViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
     """ViewSet برای مدیریت تراکنش‌های تنخواه"""
   
     queryset = models.PettyCashTransaction.objects.all()
+    authentication_classes = [CsrfExemptSessionAuthentication]
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = serializers.PettyCashTransactionSerializer
   

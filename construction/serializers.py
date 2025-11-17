@@ -683,7 +683,7 @@ class PettyCashTransactionSerializer(serializers.ModelSerializer):
             'created_at',
             'updated_at',
         ]
-        read_only_fields = ['created_at', 'updated_at', 'date_gregorian']
+        read_only_fields = ['created_at', 'updated_at', 'date_gregorian', 'project']
   
     def get_signed_amount(self, obj):
         """مبلغ با علامت"""
@@ -730,6 +730,15 @@ class PettyCashTransactionSerializer(serializers.ModelSerializer):
             jdate = jdatetime.strptime(str(date_shamsi_input), '%Y-%m-%d')
             validated_data['date_gregorian'] = jdate.togregorian().date()
             validated_data['date_shamsi'] = jdate.date()
+        
+        # project در read_only_fields است، پس از instance.project استفاده می‌شود
+        # اما اگر instance.project نباشد، از session استفاده می‌کنیم
+        if not instance.project:
+            request = self.context.get('request')
+            if request:
+                current_project = ProjectManager.get_current_project(request)
+                if current_project:
+                    validated_data['project'] = current_project
         
         return super().update(instance, validated_data)
 

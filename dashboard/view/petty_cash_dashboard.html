@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com https://stackpath.bootstrapcdn.com data: blob:;">
     <title>مدیریت تراکنش‌های تنخواه</title>
 
     <!-- Tabulator CSS -->
@@ -33,15 +34,42 @@
             --warning-color: #ffc107;
             --info-color: #17a2b8;
             
-            /* Project Standard Colors - Financial Categories */
-            --deposit-color: #2185d0;
+            /* 
+            =======================================================
+            Project Standard Colors - Financial Categories
+            =======================================================
+            این رنگ‌ها به عنوان استاندارد پروژه تعریف شده‌اند و در تمام صفحات باید از آن‌ها استفاده شود:
+            
+            آبی (#2185d0) - آورده و واریزی
+            قرمز (#db2828) - برداشت و خروجی
+            سبز (#21ba45) - سود مشارکت و درآمد
+            بنفش (#aa26ff) - سرمایه موجود و موجودی
+            قرمز تیره (#dc3545) - هزینه‌ها و خرجی
+            زرد (#ffc107) - فروش/مرجوعی
+            خاکستری (#6c757d) - مانده صندوق، مجموع و کل
+            طلایی (#ffd700) - شاخص نفع و عملکرد برتر
+            =======================================================
+            */
+            --deposit-color: #2185d0;           /* آبی - آورده و واریزی */
             --deposit-color-light: rgba(33, 133, 208, 0.1);
-            --withdrawal-color: #db2828;
+            --withdrawal-color: #db2828;        /* قرمز - برداشت و خروجی */
             --withdrawal-color-light: rgba(219, 40, 40, 0.1);
-            --profit-color: #21ba45;
+            --profit-color: #21ba45;            /* سبز - سود مشارکت و درآمد */
             --profit-color-light: rgba(33, 186, 69, 0.1);
-            --balance-color: #6c757d;
+            --capital-color: #aa26ff;           /* بنفش - سرمایه موجود و موجودی */
+            --capital-color-light: rgba(170, 38, 255, 0.1);
+            --expense-color: #dc3545;           /* قرمز تیره - هزینه‌ها و خرجی */
+            --expense-color-light: rgba(220, 53, 69, 0.1);
+            --refund-color: #ffc107;            /* زرد - فروش/مرجوعی */
+            --refund-color-light: rgba(255, 193, 7, 0.1);
+            --balance-color: #6c757d;           /* خاکستری - مانده صندوق */
             --balance-color-light: rgba(108, 117, 125, 0.1);
+            --total-color: #6c757d;             /* خاکستری - مجموع و کل */
+            --total-color-light: rgba(108, 117, 125, 0.1);
+            --gold-color: #ffd700;              /* طلایی - شاخص نفع و عملکرد برتر */
+            --gold-color-light: rgba(255, 215, 0, 0.1);
+            --loan-deposit-color: #5ca5e8;      /* آبی روشن - آورده وام (نزدیک به #2185d0 اما روشن‌تر) */
+            --loan-deposit-color-light: rgba(92, 165, 232, 0.1);
             
             --bg-primary: #f8f9fa;
             --bg-secondary: #ffffff;
@@ -55,14 +83,27 @@
         }
 
         [data-theme="dark"] {
-            --deposit-color: #4fc3f7;
+            /* Project Standard Colors - Financial Categories (Dark Theme) */
+            --deposit-color: #4fc3f7;           /* آبی روشن‌تر - آورده */
             --deposit-color-light: rgba(79, 195, 247, 0.2);
-            --withdrawal-color: #f48fb1;
+            --withdrawal-color: #f48fb1;        /* قرمز روشن‌تر - برداشت */
             --withdrawal-color-light: rgba(244, 143, 177, 0.2);
-            --profit-color: #81c784;
+            --profit-color: #81c784;            /* سبز روشن‌تر - سود مشارکت */
             --profit-color-light: rgba(129, 199, 132, 0.2);
-            --balance-color: #b0bec5;
+            --capital-color: #c77dff;           /* بنفش روشن‌تر - سرمایه موجود */
+            --capital-color-light: rgba(199, 125, 255, 0.2);
+            --expense-color: #f48fb1;           /* قرمز روشن‌تر - هزینه‌ها */
+            --expense-color-light: rgba(244, 143, 177, 0.2);
+            --refund-color: #ffeb3b;            /* زرد روشن‌تر - مرجوعی */
+            --refund-color-light: rgba(255, 235, 59, 0.2);
+            --balance-color: #b0bec5;           /* خاکستری روشن‌تر - مانده */
             --balance-color-light: rgba(176, 190, 197, 0.2);
+            --total-color: #b0bec5;             /* خاکستری روشن‌تر - مجموع */
+            --total-color-light: rgba(176, 190, 197, 0.2);
+            --gold-color: #ffed4e;              /* طلایی روشن‌تر */
+            --gold-color-light: rgba(255, 237, 78, 0.2);
+            --loan-deposit-color: #7eb8f0;      /* آبی روشن‌تر برای حالت تاریک */
+            --loan-deposit-color-light: rgba(126, 184, 240, 0.15);
             
             --bg-primary: #121212;
             --bg-secondary: #1e1e1e;
@@ -92,7 +133,7 @@
         }
 
         .unified-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             color: white;
             padding: 40px 30px;
             border-radius: 20px 20px 0 0;
@@ -182,7 +223,7 @@
         }
 
         .stat-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             color: white;
             padding: 30px;
             border-radius: 15px;
@@ -196,11 +237,18 @@
         }
 
         .stat-card.receipt-card {
-            background: linear-gradient(135deg, var(--deposit-color) 0%, #1e6ba8 100%);
+            background: linear-gradient(135deg, var(--deposit-color) 0%, var(--secondary-color) 100%);
+            box-shadow: 0 12px 40px var(--deposit-color-light);
         }
 
         .stat-card.return-card {
-            background: linear-gradient(135deg, var(--withdrawal-color) 0%, #b71c1c 100%);
+            background: linear-gradient(135deg, var(--withdrawal-color) 0%, var(--secondary-color) 100%);
+            box-shadow: 0 12px 40px var(--withdrawal-color-light);
+        }
+
+        .stat-card.net-card {
+            background: linear-gradient(135deg, var(--balance-color) 0%, var(--secondary-color) 100%);
+            box-shadow: 0 12px 40px var(--balance-color-light);
         }
 
         .stat-number {
@@ -248,7 +296,7 @@
         }
 
         .tabulator-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%) !important;
         }
 
         .tabulator-header .tabulator-col {
@@ -279,7 +327,7 @@
         }
 
         .ui.modal .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             color: white;
             border-radius: 15px 15px 0 0;
         }
@@ -327,7 +375,7 @@
             </div>
         </div>
 
-        <div id="noProjectWarning" style="display: none; margin: 20px; padding: 20px; border-radius: 10px; background: #fff3cd; border: 2px solid #ffc107; color: #856404;">
+        <div id="noProjectWarning" style="display: none; margin: 20px; padding: 20px; border-radius: 10px; background: var(--refund-color-light); border: 2px solid var(--refund-color); color: var(--text-primary);">
             <i class="fas fa-exclamation-triangle"></i>
             <strong>هشدار:</strong> هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید.
         </div>
@@ -348,7 +396,7 @@
                     <div class="stat-number" id="totalReturns">0</div>
                     <div class="stat-label">مجموع عودت‌های تنخواه (تومان)</div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card net-card">
                     <div class="stat-number" id="netAmount">0</div>
                     <div class="stat-label">خالص تنخواه (تومان)</div>
                 </div>
@@ -399,7 +447,7 @@
             </div>
 
             <div class="table-container">
-                <div class="results-info" style="margin-bottom: 15px; padding: 10px; background: #e3f2fd; border-radius: 8px; text-align: center;">
+                <div class="results-info" style="margin-bottom: 15px; padding: 10px; background: var(--deposit-color-light); border-radius: 8px; text-align: center;">
                     <span id="resultsCount">در حال بارگذاری...</span>
                 </div>
                 <div id="transactionsTable"></div>
@@ -477,6 +525,72 @@
         </div>
     </div>
 
+    <!-- Edit Transaction Modal -->
+    <div class="ui modal" id="editTransactionModal">
+        <div class="header">
+            <i class="edit icon"></i> ویرایش تراکنش تنخواه
+        </div>
+        <div class="content">
+            <form class="ui form" id="editTransactionForm">
+                <div class="two fields">
+                    <div class="field">
+                        <label>عامل اجرایی <span class="text-danger">*</span></label>
+                        <div class="ui fluid selection dropdown" id="editExpenseTypeDropdown">
+                            <input type="hidden" name="expense_type" id="editExpenseTypeInput">
+                            <i class="dropdown icon"></i>
+                            <div class="default text">انتخاب عامل اجرایی</div>
+                            <div class="menu" id="editExpenseTypeMenu"></div>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label>نوع تراکنش <span class="text-danger">*</span></label>
+                        <div class="ui fluid selection dropdown" id="editTransactionTypeDropdown">
+                            <input type="hidden" name="transaction_type" id="editTransactionTypeInput">
+                            <i class="dropdown icon"></i>
+                            <div class="default text">انتخاب نوع تراکنش</div>
+                            <div class="menu">
+                                <div class="item" data-value="receipt">
+                                    <i class="ui blue circle icon"></i>دریافت تنخواه
+                                </div>
+                                <div class="item" data-value="return">
+                                    <i class="ui red circle icon"></i>عودت تنخواه
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="two fields">
+                    <div class="field">
+                        <label>مبلغ (تومان) <span class="text-danger">*</span></label>
+                        <div class="ui right labeled input">
+                            <input type="text" name="amount" id="editAmountInput" placeholder="مثال: 1000000" 
+                                   oninput="formatAmount(this)" onblur="validateAmount(this)">
+                            <div class="ui basic label">تومان</div>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label>تاریخ شمسی <span class="text-danger">*</span></label>
+                        <input type="text" name="date_shamsi_input" id="editDateShamsiInput" placeholder="1403-01-01" class="form-control">
+                    </div>
+                </div>
+                <div class="field">
+                    <label>شماره فیش/رسید</label>
+                    <input type="text" name="receipt_number" id="editReceiptNumberInput" placeholder="شماره فیش/رسید">
+                </div>
+                <div class="field">
+                    <label>توضیحات</label>
+                    <textarea name="description" id="editDescriptionInput" rows="3" placeholder="توضیحات تراکنش..."></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="actions">
+            <div class="ui cancel button">انصراف</div>
+            <div class="ui primary button" onclick="updateTransaction()">
+                <i class="save icon"></i> ذخیره تغییرات
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.js"></script>
@@ -488,6 +602,7 @@
     <script>
         let table;
         let transactionsData = [];
+        let editingTransactionId = null; // برای ذخیره ID تراکنش در حال ویرایش
         const API_BASE = '/api/v1/';
         
         // Transaction type mappings
@@ -556,30 +671,31 @@
             }
         }
 
-        function populateFilters() {
-            // Populate expense type filter
-            const expenseTypeMenu = document.getElementById('expenseTypeFilterMenu');
-            expenseTypeMenu.innerHTML = '<div class="item" data-value="">همه عوامل اجرایی</div>';
+        // Helper function to populate dropdown menu
+        function populateDropdownMenu(menuElement, includeAll = false) {
+            if (includeAll) {
+                menuElement.innerHTML = '<div class="item" data-value="">همه عوامل اجرایی</div>';
+            } else {
+                menuElement.innerHTML = '';
+            }
             EXPENSE_TYPES.forEach(([value, label]) => {
                 const item = document.createElement('div');
                 item.className = 'item';
                 item.setAttribute('data-value', value);
                 item.textContent = label;
-                expenseTypeMenu.appendChild(item);
+                menuElement.appendChild(item);
             });
+        }
+
+        function populateFilters() {
+            populateDropdownMenu(document.getElementById('expenseTypeFilterMenu'), true);
             $('#expenseTypeFilter').dropdown('refresh');
 
-            // Populate add form expense types
-            const addExpenseTypeMenu = document.getElementById('addExpenseTypeMenu');
-            addExpenseTypeMenu.innerHTML = '';
-            EXPENSE_TYPES.forEach(([value, label]) => {
-                const item = document.createElement('div');
-                item.className = 'item';
-                item.setAttribute('data-value', value);
-                item.textContent = label;
-                addExpenseTypeMenu.appendChild(item);
-            });
+            populateDropdownMenu(document.getElementById('addExpenseTypeMenu'));
             $('#addExpenseTypeDropdown').dropdown('refresh');
+
+            populateDropdownMenu(document.getElementById('editExpenseTypeMenu'));
+            $('#editExpenseTypeDropdown').dropdown('refresh');
         }
 
         function createTable() {
@@ -769,6 +885,15 @@
         function showAddTransactionModal() {
             $('#addTransactionModal').modal('show');
             
+            // Initialize dropdowns
+            $('#addExpenseTypeDropdown').dropdown({
+                clearable: false
+            });
+            
+            $('#addTransactionTypeDropdown').dropdown({
+                clearable: false
+            });
+            
             // Initialize Persian Datepicker
             $("#addDateShamsiInput").persianDatepicker({
                 format: 'YYYY-MM-DD',
@@ -830,6 +955,9 @@
 
                 $('#addTransactionModal').modal('hide');
                 $('#addTransactionForm')[0].reset();
+                // Reset dropdowns
+                $('#addExpenseTypeDropdown').dropdown('clear');
+                $('#addTransactionTypeDropdown').dropdown('clear');
                 loadInitialData();
                 alert('تراکنش با موفقیت اضافه شد');
             } catch (error) {
@@ -838,31 +966,242 @@
             }
         }
 
-        function editTransaction(id) {
-            window.location.href = `/construction/PettyCashTransaction/update/${id}/`;
-        }
-
-        function deleteTransaction(id) {
-            if (confirm('آیا از حذف این تراکنش اطمینان دارید؟')) {
-                fetch(`${API_BASE}PettyCashTransaction/${id}/`, {
-                    method: 'DELETE',
+        async function editTransaction(id) {
+            try {
+                editingTransactionId = id;
+                showLoading(true);
+                
+                // دریافت داده‌های تراکنش از API
+                const response = await fetch(`${API_BASE}PettyCashTransaction/${id}/`, {
+                    method: 'GET',
                     headers: {
+                        'Content-Type': 'application/json',
                         'X-CSRFToken': getCSRFToken() || ''
                     },
                     credentials: 'include'
-                })
-                .then(response => {
-                    if (response.ok) {
-                        loadInitialData();
-                        alert('تراکنش با موفقیت حذف شد');
-                    } else {
-                        throw new Error('خطا در حذف تراکنش');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error deleting transaction:', error);
-                    alert('خطا در حذف تراکنش: ' + error.message);
                 });
+
+                if (!response.ok) {
+                    throw new Error('خطا در دریافت داده‌های تراکنش');
+                }
+
+                const transaction = await response.json();
+                
+                // پر کردن فرم با داده‌های تراکنش
+                $('#editExpenseTypeDropdown').dropdown('set selected', transaction.expense_type);
+                $('#editTransactionTypeDropdown').dropdown('set selected', transaction.transaction_type);
+                $('#editAmountInput').val(parseFloat(transaction.amount || 0).toLocaleString('en-US'));
+                $('#editReceiptNumberInput').val(transaction.receipt_number || '');
+                $('#editDescriptionInput').val(transaction.description || '');
+                
+                // Initialize dropdowns
+                $('#editExpenseTypeDropdown').dropdown({
+                    clearable: false
+                });
+                
+                $('#editTransactionTypeDropdown').dropdown({
+                    clearable: false
+                });
+                
+                // Destroy existing datepicker if exists
+                if ($("#editDateShamsiInput").data('persianDatepicker')) {
+                    $("#editDateShamsiInput").persianDatepicker('destroy');
+                }
+                
+                // مقدار تاریخ تراکنش را set می‌کنیم
+                const transactionDate = transaction.date_shamsi || '';
+                $("#editDateShamsiInput").val(transactionDate);
+                
+                // Initialize Persian Datepicker
+                $("#editDateShamsiInput").persianDatepicker({
+                    format: 'YYYY-MM-DD',
+                    initialValue: transactionDate || false,
+                    calendar: {
+                        persian: {
+                            locale: 'fa',
+                            leapYearMode: 'astronomical'
+                        }
+                    },
+                    observer: true
+                });
+                
+                // نمایش مودال
+                $('#editTransactionModal').modal('show');
+                showLoading(false);
+            } catch (error) {
+                console.error('Error loading transaction:', error);
+                showError('خطا در بارگذاری داده‌های تراکنش: ' + error.message);
+                showLoading(false);
+            }
+        }
+
+        async function updateTransaction() {
+            if (!editingTransactionId) {
+                alert('خطا: شناسه تراکنش یافت نشد');
+                return;
+            }
+
+            try {
+                const amountValue = parseFloat($('#editAmountInput').val().replace(/,/g, ''));
+                
+                // تابع تبدیل اعداد فارسی به انگلیسی
+                function persianToEnglish(str) {
+                    const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+                    const englishDigits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+                    let result = str;
+                    for (let i = 0; i < persianDigits.length; i++) {
+                        result = result.replace(new RegExp(persianDigits[i], 'g'), englishDigits[i]);
+                    }
+                    return result;
+                }
+                
+                // دریافت تاریخ از datepicker
+                let dateShamsiValue = $('#editDateShamsiInput').val();
+                
+                // تبدیل اعداد فارسی به انگلیسی
+                if (dateShamsiValue) {
+                    dateShamsiValue = persianToEnglish(dateShamsiValue);
+                }
+                
+                // اگر تاریخ خالی است یا فرمت نامعتبر دارد، از persianDatepicker API استفاده می‌کنیم
+                if (!dateShamsiValue || dateShamsiValue.trim() === '' || !/^\d{4}-\d{2}-\d{2}$/.test(dateShamsiValue.trim())) {
+                    const datepickerInstance = $("#editDateShamsiInput").data('persianDatepicker');
+                    if (datepickerInstance) {
+                        try {
+                            // استفاده از getDate برای دریافت تاریخ
+                            if (typeof datepickerInstance.getDate === 'function') {
+                                const pd = datepickerInstance.getDate();
+                                if (pd && pd.year && pd.month !== undefined && pd.date !== undefined) {
+                                    // ماه در persianDate از 0 شروع می‌شود، پس باید +1 کنیم
+                                    const month = String(pd.month + 1).padStart(2, '0');
+                                    const day = String(pd.date).padStart(2, '0');
+                                    dateShamsiValue = `${pd.year}-${month}-${day}`;
+                                }
+                            }
+                            // اگر getDate کار نکرد، از getValue استفاده می‌کنیم
+                            if (!dateShamsiValue || !/^\d{4}-\d{2}-\d{2}$/.test(dateShamsiValue.trim())) {
+                                const dateValue = $("#editDateShamsiInput").persianDatepicker('getDate');
+                                if (dateValue) {
+                                    if (typeof dateValue === 'string') {
+                                        dateShamsiValue = persianToEnglish(dateValue);
+                                    } else if (dateValue.year && dateValue.month !== undefined && dateValue.date !== undefined) {
+                                        const month = String(dateValue.month + 1).padStart(2, '0');
+                                        const day = String(dateValue.date).padStart(2, '0');
+                                        dateShamsiValue = `${dateValue.year}-${month}-${day}`;
+                                    }
+                                }
+                            }
+                        } catch (e) {
+                            console.warn('خطا در دریافت تاریخ از datepicker:', e);
+                        }
+                    }
+                }
+                
+                const formData = {
+                    expense_type: $('#editExpenseTypeInput').val(),
+                    transaction_type: $('#editTransactionTypeInput').val(),
+                    amount: amountValue,
+                    date_shamsi_input: dateShamsiValue,
+                    receipt_number: $('#editReceiptNumberInput').val() || '',
+                    description: $('#editDescriptionInput').val() || ''
+                };
+
+                // Validation
+                if (!formData.expense_type || !formData.transaction_type || !formData.amount || !formData.date_shamsi_input) {
+                    alert('لطفاً تمام فیلدهای الزامی را پر کنید');
+                    return;
+                }
+
+                // بررسی معتبر بودن amount
+                if (isNaN(formData.amount) || formData.amount <= 0) {
+                    alert('مبلغ باید یک عدد مثبت باشد');
+                    return;
+                }
+
+                // بررسی فرمت تاریخ (با trim کردن فاصله‌ها)
+                const dateValue = String(formData.date_shamsi_input).trim();
+                if (!dateValue || !/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+                    console.error('تاریخ نامعتبر:', dateValue, 'نوع:', typeof dateValue);
+                    alert('فرمت تاریخ نامعتبر است. فرمت صحیح: YYYY-MM-DD\nمقدار فعلی: ' + dateValue);
+                    return;
+                }
+                formData.date_shamsi_input = dateValue;
+
+                const response = await fetch(`${API_BASE}PettyCashTransaction/${editingTransactionId}/`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFToken() || ''
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify(formData)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    // بررسی خطاهای validation از serializer
+                    let errorMessage = 'خطا در به‌روزرسانی تراکنش';
+                    if (errorData.detail) {
+                        errorMessage = errorData.detail;
+                    } else if (errorData.error) {
+                        errorMessage = errorData.error;
+                    } else if (errorData.non_field_errors) {
+                        errorMessage = errorData.non_field_errors.join(', ');
+                    } else {
+                        // بررسی خطاهای فیلدهای خاص
+                        const fieldErrors = [];
+                        for (const [field, messages] of Object.entries(errorData)) {
+                            if (Array.isArray(messages)) {
+                                fieldErrors.push(`${field}: ${messages.join(', ')}`);
+                            } else if (typeof messages === 'string') {
+                                fieldErrors.push(`${field}: ${messages}`);
+                            }
+                        }
+                        if (fieldErrors.length > 0) {
+                            errorMessage = fieldErrors.join('\n');
+                        }
+                    }
+                    throw new Error(errorMessage);
+                }
+
+                $('#editTransactionModal').modal('hide');
+                $('#editTransactionForm')[0].reset();
+                $('#editExpenseTypeDropdown').dropdown('clear');
+                $('#editTransactionTypeDropdown').dropdown('clear');
+                editingTransactionId = null;
+                loadInitialData();
+                alert('تراکنش با موفقیت به‌روزرسانی شد');
+            } catch (error) {
+                console.error('Error updating transaction:', error);
+                alert('خطا در به‌روزرسانی تراکنش: ' + error.message);
+            }
+        }
+
+        async function deleteTransaction(id) {
+            if (!confirm('آیا از حذف این تراکنش اطمینان دارید؟')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}PettyCashTransaction/${id}/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFToken() || ''
+                    },
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ error: 'خطا در حذف تراکنش' }));
+                    throw new Error(errorData.error || errorData.detail || 'خطا در حذف تراکنش');
+                }
+
+                loadInitialData();
+                alert('تراکنش با موفقیت حذف شد');
+            } catch (error) {
+                console.error('Error deleting transaction:', error);
+                alert('خطا در حذف تراکنش: ' + error.message);
             }
         }
 
@@ -896,6 +1235,22 @@
         $('#transactionTypeFilter').dropdown({
             onChange: function(value) {
                 applyFilters();
+            }
+        });
+
+        // Initialize modal event listeners
+        $('#addTransactionModal').modal({
+            onHide: function() {
+                $('#addExpenseTypeDropdown').dropdown('clear');
+                $('#addTransactionTypeDropdown').dropdown('clear');
+            }
+        });
+
+        $('#editTransactionModal').modal({
+            onHide: function() {
+                $('#editExpenseTypeDropdown').dropdown('clear');
+                $('#editTransactionTypeDropdown').dropdown('clear');
+                editingTransactionId = null;
             }
         });
 
