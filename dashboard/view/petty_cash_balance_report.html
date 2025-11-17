@@ -19,41 +19,86 @@
     
     <style>
         :root {
+            /* Primary Colors */
             --primary-color: #667eea;
             --secondary-color: #764ba2;
-            --deposit-color: #2185d0;
+            
+            /* Project Standard Colors - Financial Categories */
+            --deposit-color: #2185d0;           /* آبی - آورده و واریزی */
             --deposit-color-light: rgba(33, 133, 208, 0.1);
-            --withdrawal-color: #db2828;
+            --withdrawal-color: #db2828;        /* قرمز - برداشت و خروجی */
             --withdrawal-color-light: rgba(219, 40, 40, 0.1);
-            --profit-color: #21ba45;
+            --profit-color: #21ba45;            /* سبز - سود مشارکت و درآمد */
             --profit-color-light: rgba(33, 186, 69, 0.1);
-            --balance-color: #6c757d;
+            --capital-color: #aa26ff;           /* بنفش - سرمایه موجود و موجودی */
+            --capital-color-light: rgba(170, 38, 255, 0.1);
+            --expense-color: #dc3545;           /* قرمز تیره - هزینه‌ها و خرجی */
+            --expense-color-light: rgba(220, 53, 69, 0.1);
+            --refund-color: #ffc107;            /* زرد - فروش/مرجوعی */
+            --refund-color-light: rgba(255, 193, 7, 0.1);
+            --balance-color: #6c757d;           /* خاکستری - مانده صندوق، مجموع و کل */
             --balance-color-light: rgba(108, 117, 125, 0.1);
+            --total-color: #6c757d;             /* خاکستری - مجموع و کل */
+            --total-color-light: rgba(108, 117, 125, 0.1);
+            --gold-color: #ffd700;              /* طلایی - شاخص نفع و عملکرد برتر */
+            --gold-color-light: rgba(255, 215, 0, 0.1);
+            --loan-deposit-color: #5ca5e8;      /* آبی روشن - آورده وام */
+            --loan-deposit-color-light: rgba(92, 165, 232, 0.1);
+            
+            /* Background Colors */
             --bg-primary: #f8f9fa;
             --bg-secondary: #ffffff;
             --bg-card: #ffffff;
+            
+            /* Text Colors */
             --text-primary: #2c3e50;
             --text-secondary: #6c757d;
+            
+            /* Border & Shadow */
             --border-color: #e9ecef;
             --shadow-md: 0 8px 25px rgba(0, 0, 0, 0.08);
             --shadow-lg: 0 15px 35px rgba(0, 0, 0, 0.12);
         }
 
         [data-theme="dark"] {
-            --deposit-color: #4fc3f7;
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            
+            /* Project Standard Colors - Dark Theme */
+            --deposit-color: #4fc3f7;           /* آبی روشن‌تر */
             --deposit-color-light: rgba(79, 195, 247, 0.2);
-            --withdrawal-color: #f48fb1;
+            --withdrawal-color: #f48fb1;        /* قرمز روشن‌تر */
             --withdrawal-color-light: rgba(244, 143, 177, 0.2);
-            --profit-color: #81c784;
+            --profit-color: #81c784;            /* سبز روشن‌تر */
             --profit-color-light: rgba(129, 199, 132, 0.2);
-            --balance-color: #b0bec5;
+            --capital-color: #c77dff;           /* بنفش روشن‌تر */
+            --capital-color-light: rgba(199, 125, 255, 0.2);
+            --expense-color: #f48fb1;           /* قرمز روشن‌تر */
+            --expense-color-light: rgba(244, 143, 177, 0.2);
+            --refund-color: #ffeb3b;            /* زرد روشن‌تر */
+            --refund-color-light: rgba(255, 235, 59, 0.2);
+            --balance-color: #b0bec5;           /* خاکستری روشن‌تر */
             --balance-color-light: rgba(176, 190, 197, 0.2);
+            --total-color: #b0bec5;             /* خاکستری روشن‌تر */
+            --total-color-light: rgba(176, 190, 197, 0.2);
+            --gold-color: #ffed4e;              /* طلایی روشن‌تر */
+            --gold-color-light: rgba(255, 237, 78, 0.2);
+            --loan-deposit-color: #7eb8f0;      /* آبی روشن‌تر برای حالت تاریک */
+            --loan-deposit-color-light: rgba(126, 184, 240, 0.15);
+            
+            /* Dark Background Colors */
             --bg-primary: #121212;
             --bg-secondary: #1e1e1e;
             --bg-card: #2d2d2d;
+            
+            /* Dark Text Colors */
             --text-primary: #ffffff;
             --text-secondary: #b3b3b3;
+            
+            /* Dark Border & Shadow */
             --border-color: #404040;
+            --shadow-md: 0 8px 25px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 15px 35px rgba(0, 0, 0, 0.5);
         }
 
         body {
@@ -76,7 +121,7 @@
         }
 
         .unified-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             color: white;
             padding: 40px 30px;
             border-radius: 20px 20px 0 0;
@@ -166,7 +211,7 @@
         }
 
         .stat-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             color: white;
             padding: 30px;
             border-radius: 15px;
@@ -181,18 +226,21 @@
 
         .stat-card.positive {
             background: linear-gradient(135deg, var(--withdrawal-color) 0%, #b71c1c 100%);
+            box-shadow: 0 12px 40px var(--withdrawal-color-light);
         }
 
         .stat-card.negative {
             background: linear-gradient(135deg, var(--profit-color) 0%, #1b8e3a 100%);
+            box-shadow: 0 12px 40px var(--profit-color-light);
         }
 
         .stat-card.zero {
             background: linear-gradient(135deg, var(--balance-color) 0%, #495057 100%);
+            box-shadow: 0 12px 40px var(--balance-color-light);
         }
 
         .stat-number {
-            font-size: 2.8rem;
+            font-size: 1.5rem;
             font-weight: bold;
             margin-bottom: 15px;
             direction: ltr;
@@ -468,6 +516,21 @@
                 balanceChart.destroy();
             }
 
+            // تبدیل CSS Variables به مقادیر واقعی رنگ
+            function getComputedColor(cssVar) {
+                const root = document.documentElement;
+                // تبدیل 'var(--color-name)' به '--color-name'
+                const varName = cssVar.replace(/var\(|\)/g, '').trim();
+                return getComputedStyle(root).getPropertyValue(varName).trim();
+            }
+
+            const computedColors = colors.map(color => {
+                if (color.startsWith('var(')) {
+                    return getComputedColor(color);
+                }
+                return color;
+            });
+
             balanceChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -475,8 +538,8 @@
                     datasets: [{
                         label: 'وضعیت مالی (تومان)',
                         data: balances,
-                        backgroundColor: colors.map(c => c.replace('var(', '').replace(')', '')),
-                        borderColor: colors,
+                        backgroundColor: computedColors,
+                        borderColor: computedColors,
                         borderWidth: 2
                     }]
                 },
