@@ -241,7 +241,7 @@
             font-size: 1rem;
             background: var(--bg-secondary);
             color: var(--text-primary);
-            width: 100%;
+            width: 50%;
             transition: border-color 0.3s ease;
         }
 
@@ -536,31 +536,15 @@
         <div class="content-section">
             <div class="controls-section">
                 <div class="period-selector">
-                    <div>
-                        <label>عامل اجرایی:</label>
+                    <div style="text-align: center;">
                         <select id="expenseTypeSelect" class="form-control">
-                            <option value="">همه عوامل اجرایی</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label>دوره شروع:</label>
-                        <select id="startPeriodSelect" class="form-control">
-                            <option value="">انتخاب دوره</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label>دوره پایان:</label>
-                        <select id="endPeriodSelect" class="form-control">
-                            <option value="">انتخاب دوره</option>
+                            <option value="">انتخاب عامل اجرایی</option>
                         </select>
                     </div>
                 </div>
-                <button onclick="loadTrendData()" class="btn btn-primary">
-                    <i class="fas fa-search"></i> نمایش گزارش
-                </button>
             </div>
 
-            <div id="loading" class="loading">
+            <div id="loading" class="loading" style="display: none;">
                 <i class="fas fa-spinner fa-spin fa-3x"></i>
                 <p>در حال بارگذاری...</p>
             </div>
@@ -620,28 +604,6 @@
                     console.warn('خطا در دریافت نام پروژه:', error);
                 }
                 
-                // Load periods
-                const periodsResponse = await fetch(`${API_BASE}Period/`, {
-                    headers: {'X-CSRFToken': getCookie('csrftoken') || ''}
-                });
-                const periodsData = await periodsResponse.json();
-                const periods = periodsData.results || periodsData;
-
-                const startSelect = document.getElementById('startPeriodSelect');
-                const endSelect = document.getElementById('endPeriodSelect');
-                
-                periods.forEach(period => {
-                    const option1 = document.createElement('option');
-                    option1.value = period.id;
-                    option1.textContent = period.label || `${period.year}/${period.month_number}`;
-                    startSelect.appendChild(option1);
-
-                    const option2 = document.createElement('option');
-                    option2.value = period.id;
-                    option2.textContent = period.label || `${period.year}/${period.month_number}`;
-                    endSelect.appendChild(option2);
-                });
-
                 // Load expense types
                 const expenseTypes = [
                     ['project_manager', 'مدیر پروژه'],
@@ -657,6 +619,17 @@
                     option.textContent = label;
                     expenseTypeSelect.appendChild(option);
                 });
+                
+                // اضافه کردن event listener برای تغییر عامل اجرایی
+                expenseTypeSelect.addEventListener('change', function() {
+                    if (this.value) {
+                        loadTrendData();
+                    } else {
+                        // اگر هیچ عاملی انتخاب نشده باشد، محتوا را پنهان کن
+                        document.getElementById('loading').style.display = 'none';
+                        document.getElementById('content').style.display = 'none';
+                    }
+                });
             } catch (error) {
                 console.error('Error loading initial data:', error);
             }
@@ -666,19 +639,16 @@
             try {
                 const expenseType = document.getElementById('expenseTypeSelect').value;
                 if (!expenseType) {
-                    alert('لطفاً عامل اجرایی را انتخاب کنید');
+                    // اگر عامل اجرایی انتخاب نشده باشد، محتوا را پنهان کن
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('content').style.display = 'none';
                     return;
                 }
 
                 document.getElementById('loading').style.display = 'block';
                 document.getElementById('content').style.display = 'none';
 
-                const startPeriodId = document.getElementById('startPeriodSelect').value;
-                const endPeriodId = document.getElementById('endPeriodSelect').value;
-
-                let url = `${API_BASE}PettyCashTransaction/balance_trend/?expense_type=${expenseType}`;
-                if (startPeriodId) url += `&start_period_id=${startPeriodId}`;
-                if (endPeriodId) url += `&end_period_id=${endPeriodId}`;
+                const url = `${API_BASE}PettyCashTransaction/balance_trend/?expense_type=${expenseType}`;
 
                 const response = await fetch(url, {
                     headers: {'X-CSRFToken': getCookie('csrftoken') || ''}
