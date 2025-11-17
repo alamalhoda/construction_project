@@ -113,6 +113,46 @@
             --border-color: #404040;
         }
 
+        /* استثنا برای آیکون‌های Font Awesome */
+        i.fas,
+        i.far,
+        i.fal,
+        i.fab,
+        i.fa,
+        .fa,
+        .fas,
+        .far,
+        .fal,
+        .fab,
+        i.fas::before,
+        i.far::before,
+        i.fal::before,
+        i.fab::before,
+        i.fa::before {
+            font-family: 'Font Awesome 6 Free', 'Font Awesome 6 Pro' !important;
+        }
+
+        /* استثنا برای آیکون‌های Semantic UI - با specificity بالا */
+        i.icon,
+        i[class*="icon"],
+        [class*=" icon"],
+        [class^="icon"],
+        .icon,
+        button i.icon,
+        .ui.button i.icon,
+        .ui.icon.button i,
+        .ui.button .icon,
+        i.icon::before,
+        [class*="icon"]::before,
+        button i.icon::before,
+        .ui.button i.icon::before,
+        .ui.blue.icon.button i.icon,
+        .ui.red.icon.button i.icon,
+        .ui.small.buttons button i.icon,
+        .ui.small.buttons .ui.button i.icon {
+            font-family: 'Icons' !important;
+        }
+
         body {
             font-family: 'Vazir','Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
@@ -120,6 +160,51 @@
             padding: 20px;
             direction: rtl;
             color: var(--text-primary);
+        }
+
+        /* اعمال فونت به المان‌های Semantic UI */
+        .ui.button,
+        .ui.input input,
+        .ui.dropdown,
+        .ui.dropdown .menu,
+        .ui.dropdown .menu .item,
+        .ui.form input,
+        .ui.form textarea,
+        .ui.form select,
+        .ui.form label,
+        .ui.modal,
+        .ui.modal .header,
+        .ui.modal .content,
+        .ui.message,
+        .ui.label,
+        .ui.selection.dropdown,
+        .ui.selection.dropdown .menu,
+        .ui.selection.dropdown .menu .item {
+            font-family: 'Vazir', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+        }
+
+        /* اعمال فونت به المان‌های Tabulator (به جز آیکون‌ها) */
+        .tabulator,
+        .tabulator .tabulator-header,
+        .tabulator .tabulator-header .tabulator-col,
+        .tabulator .tabulator-cell,
+        .tabulator .tabulator-footer {
+            font-family: 'Vazir', 'Tahoma', 'Arial', sans-serif !important;
+        }
+
+        /* استثنا برای آیکون‌ها در Tabulator - با specificity بالاتر */
+        .tabulator i.icon,
+        .tabulator i[class*="icon"],
+        .tabulator button i.icon,
+        .tabulator .ui.button i.icon,
+        .tabulator .ui.small.buttons button i.icon,
+        .tabulator .ui.blue.icon.button i.icon,
+        .tabulator .ui.red.icon.button i.icon,
+        .tabulator i.icon::before,
+        .tabulator button i.icon::before,
+        .tabulator .ui.button i.icon::before,
+        .tabulator .ui.small.buttons button i.icon::before {
+            font-family: 'Icons' !important;
         }
 
         .main-container {
@@ -160,6 +245,7 @@
         }
 
         .unified-header h1 {
+            font-family: 'Vazir', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             font-size: 2.8rem;
             margin-bottom: 15px;
             font-weight: 300;
@@ -344,6 +430,16 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* اطمینان از اعمال فونت Semantic UI Icons - با بالاترین specificity */
+        .tabulator .tabulator-cell .ui.small.buttons .ui.button i.icon,
+        .tabulator .tabulator-cell .ui.blue.icon.button i.icon,
+        .tabulator .tabulator-cell .ui.red.icon.button i.icon,
+        .tabulator .tabulator-cell button.ui.button i.icon {
+            font-family: 'Icons' !important;
+            font-style: normal !important;
+            font-weight: normal !important;
+        }
     </style>
 </head>
 <body>
@@ -356,6 +452,8 @@
                 <h1>
                     <i class="fas fa-wallet"></i>
                     مدیریت تراکنش‌های تنخواه
+                    <!-- Project Badge will be rendered here by JavaScript -->
+                    <span id="currentProjectBadge" style="display: none; font-size: 0.6em; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; margin-right: 15px; display: inline-flex; align-items: center; gap: 8px;"></span>
                 </h1>
                 <p class="subtitle">مدیریت کامل تراکنش‌های تنخواه عوامل اجرایی</p>
                 <div class="navigation-links">
