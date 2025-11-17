@@ -23,6 +23,7 @@ from django.test import RequestFactory
 from django.contrib.sessions.middleware import SessionMiddleware
 from datetime import date
 from django_jalali.db.models import jDateField
+from django.db.models import Sum, Q
 import jdatetime
 
 
@@ -1529,10 +1530,112 @@ def test_project_isolation():
         assert 'period_id' in item, "❌ trend item باید period_id داشته باشد"
         assert 'period_label' in item, "❌ trend item باید period_label داشته باشد"
         assert 'balance' in item, "❌ trend item باید balance داشته باشد"
+        assert 'cumulative_balance' in item, "❌ trend item باید cumulative_balance داشته باشد"
+        assert 'period_receipts' in item, "❌ trend item باید period_receipts داشته باشد"
+        assert 'period_returns' in item, "❌ trend item باید period_returns داشته باشد"
+        assert 'period_expenses' in item, "❌ trend item باید period_expenses داشته باشد"
+        assert 'period_balance' in item, "❌ trend item باید period_balance داشته باشد"
         assert 'year' in item, "❌ trend item باید year داشته باشد"
         assert 'month_number' in item, "❌ trend item باید month_number داشته باشد"
     
     print(f"  ✅ get_period_balance_trend برای {test_expense_type} {len(trend_data)} دوره برگرداند")
+    
+    # تست منطق محاسبه مانده تجمعی
+    print("\n📊 تست منطق محاسبه مانده تجمعی...")
+    
+    # بررسی اینکه مانده تجمعی به صورت صحیح محاسبه می‌شود
+    previous_cumulative = None
+    for idx, item in enumerate(trend_data):
+        period_receipts = item['period_receipts']
+        period_returns = item['period_returns']
+        period_expenses = item['period_expenses']
+        period_balance = item['period_balance']
+        cumulative_balance = item['cumulative_balance']
+        
+        # بررسی اینکه مانده دوره‌ای درست محاسبه شده است
+        expected_period_balance = period_receipts - period_expenses - period_returns
+        assert abs(period_balance - expected_period_balance) < 0.01, \
+            f"❌ مانده دوره‌ای برای دوره {item['period_label']} باید برابر با receipts - expenses - returns باشد"
+        
+        # بررسی اینکه مانده تجمعی از get_balance_by_period درست است
+        period_obj = Period.objects.get(id=item['period_id'])
+        expected_cumulative = PettyCashTransaction.objects.get_balance_by_period(
+            project2, test_expense_type, period_obj
+        )
+        assert abs(cumulative_balance - expected_cumulative) < 0.01, \
+            f"❌ مانده تجمعی برای دوره {item['period_label']} باید با get_balance_by_period یکسان باشد"
+        
+        # بررسی اینکه اگر در یک دوره تراکنشی نباشد، مانده تجمعی باید ثابت بماند
+        if period_receipts == 0 and period_returns == 0 and period_expenses == 0:
+            if previous_cumulative is not None:
+                assert abs(cumulative_balance - previous_cumulative) < 0.01, \
+                    f"❌ اگر در دوره {item['period_label']} تراکنشی نباشد، مانده تجمعی باید ثابت بماند (قبلی: {previous_cumulative:,.0f}, فعلی: {cumulative_balance:,.0f})"
+        
+        previous_cumulative = cumulative_balance
+    
+    print(f"  ✅ منطق محاسبه مانده تجمعی برای {len(trend_data)} دوره صحیح است")
+    
+    # تست اینکه هزینه‌های دوره‌های بعدی در محاسبه مانده دوره قبل لحاظ نمی‌شوند
+    print("\n📊 تست عدم لحاظ هزینه‌های دوره‌های بعدی...")
+    
+    if len(trend_data) >= 2:
+        # انتخاب یک دوره میانی
+        mid_idx = len(trend_data) // 2
+        test_period_item = trend_data[mid_idx]
+        test_period_obj = Period.objects.get(id=test_period_item['period_id'])
+        
+        # محاسبه هزینه‌های تا این دوره
+        expenses_until_period = Expense.objects.filter(
+            project=project2,
+            expense_type=test_expense_type
+        ).filter(
+            Q(period__year__lt=test_period_obj.year) |
+            Q(period__year=test_period_obj.year, period__month_number__lte=test_period_obj.month_number)
+        )
+        
+        # محاسبه هزینه‌های بعد از این دوره
+        expenses_after_period = Expense.objects.filter(
+            project=project2,
+            expense_type=test_expense_type
+        ).filter(
+            Q(period__year__gt=test_period_obj.year) |
+            Q(period__year=test_period_obj.year, period__month_number__gt=test_period_obj.month_number)
+        )
+        
+        total_expenses_until = sum(float(exp.amount) for exp in expenses_until_period)
+        total_expenses_after = sum(float(exp.amount) for exp in expenses_after_period)
+        
+        # مانده تجمعی این دوره
+        balance_at_period = test_period_item['cumulative_balance']
+        
+        # محاسبه دستی مانده (بدون هزینه‌های بعدی)
+        receipts_until = PettyCashTransaction.objects.filter(
+            project=project2,
+            expense_type=test_expense_type,
+            transaction_type='receipt',
+            date_gregorian__lte=test_period_obj.end_date_gregorian
+        ).aggregate(total=Sum('amount'))['total'] or 0
+        
+        returns_until = PettyCashTransaction.objects.filter(
+            project=project2,
+            expense_type=test_expense_type,
+            transaction_type='return',
+            date_gregorian__lte=test_period_obj.end_date_gregorian
+        ).aggregate(total=Sum('amount'))['total'] or 0
+        
+        manual_balance = float(receipts_until) - float(returns_until) - total_expenses_until
+        
+        assert abs(balance_at_period - manual_balance) < 0.01, \
+            f"❌ مانده تجمعی دوره {test_period_item['period_label']} باید بدون هزینه‌های بعدی محاسبه شود"
+        
+        # بررسی اینکه هزینه‌های بعدی در محاسبه لحاظ نشده‌اند
+        if total_expenses_after > 0:
+            # اگر هزینه‌های بعدی در محاسبه لحاظ شده بودند، مانده باید کمتر می‌بود
+            balance_with_after = float(receipts_until) - float(returns_until) - total_expenses_until - total_expenses_after
+            assert abs(balance_at_period - balance_with_after) >= 0.01, \
+                f"❌ هزینه‌های دوره‌های بعدی ({total_expenses_after:,.0f} تومان) نباید در محاسبه مانده دوره {test_period_item['period_label']} لحاظ شوند"
+        
+        print(f"  ✅ هزینه‌های دوره‌های بعدی ({total_expenses_after:,.0f} تومان) در محاسبه مانده دوره {test_period_item['period_label']} لحاظ نشده‌اند")
     
     # تست API endpoints
     print("\n📊 تست API endpoints...")

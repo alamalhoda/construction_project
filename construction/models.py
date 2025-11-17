@@ -1131,7 +1131,7 @@ class PettyCashTransactionManager(models.Manager):
         from django.db.models import Sum, Q
         from decimal import Decimal
       
-        # دریافت‌های قبل از پایان دوره
+        # دریافت‌های قبل از پایان دوره (بر اساس تاریخ میلادی)
         total_receipts = self.get_queryset().filter(
             project=project,
             expense_type=expense_type,
@@ -1139,7 +1139,7 @@ class PettyCashTransactionManager(models.Manager):
             date_gregorian__lte=period.end_date_gregorian
         ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
       
-        # عودت‌های قبل از پایان دوره
+        # عودت‌های قبل از پایان دوره (بر اساس تاریخ میلادی)
         total_returns = self.get_queryset().filter(
             project=project,
             expense_type=expense_type,
@@ -1147,13 +1147,30 @@ class PettyCashTransactionManager(models.Manager):
             date_gregorian__lte=period.end_date_gregorian
         ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
       
-        # هزینه‌های دوره‌های قبل و شامل این دوره
-        total_expenses = Expense.objects.filter(
+        # هزینه‌های قبل از پایان دوره (بر اساس تاریخ میلادی یا period)
+        # هزینه‌هایی که period دارند: فقط دوره‌های قبل یا شامل این دوره
+        # استفاده از Q object برای مقایسه صحیح سال و ماه
+        from django.db.models import Q
+        
+        expenses_with_period = Expense.objects.filter(
             project=project,
             expense_type=expense_type,
-            period__year__lte=period.year,
-            period__month_number__lte=period.month_number
+            period__isnull=False
+        ).filter(
+            Q(period__year__lt=period.year) |
+            Q(period__year=period.year, period__month_number__lte=period.month_number)
         ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        
+        # هزینه‌های بدون period که قبل از پایان این دوره ایجاد شده‌اند
+        # استفاده از created_at برای هزینه‌های بدون period
+        expenses_without_period = Expense.objects.filter(
+            project=project,
+            expense_type=expense_type,
+            period__isnull=True,
+            created_at__date__lte=period.end_date_gregorian
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        
+        total_expenses = expenses_with_period + expenses_without_period
       
         balance = total_receipts - total_expenses - total_returns
         return float(balance)
@@ -1175,7 +1192,8 @@ class PettyCashTransactionManager(models.Manager):
   
     def get_period_balance_trend(self, project: Project, expense_type: str, start_period: Period = None, end_period: Period = None):
         """
-        ترند زمانی وضعیت مالی عامل اجرایی
+        ترند زمانی وضعیت مالی عامل اجرایی با جزئیات کامل
+        شامل: دریافت‌ها، عودت‌ها، هزینه‌ها، مانده دوره‌ای و تجمعی
         """
         from django.db.models import Sum, Q
         from decimal import Decimal
@@ -1195,14 +1213,51 @@ class PettyCashTransactionManager(models.Manager):
             )
       
         trend_data = []
+        cumulative_balance = Decimal('0')  # مانده تجمعی کلی
+        
         for period in periods:
-            balance = self.get_balance_by_period(project, expense_type, period)
+            # دریافت‌های دوره‌ای (همان دوره)
+            period_receipts = self.get_queryset().filter(
+                project=project,
+                expense_type=expense_type,
+                transaction_type='receipt',
+                date_gregorian__gte=period.start_date_gregorian,
+                date_gregorian__lte=period.end_date_gregorian
+            ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+            
+            # عودت‌های دوره‌ای (همان دوره)
+            period_returns = self.get_queryset().filter(
+                project=project,
+                expense_type=expense_type,
+                transaction_type='return',
+                date_gregorian__gte=period.start_date_gregorian,
+                date_gregorian__lte=period.end_date_gregorian
+            ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+            
+            # هزینه‌های دوره‌ای (همان دوره)
+            period_expenses = Expense.objects.filter(
+                project=project,
+                expense_type=expense_type,
+                period=period
+            ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+            
+            # مانده دوره‌ای (receipts - expenses - returns)
+            period_balance = period_receipts - period_expenses - period_returns
+            
+            # مانده تجمعی تا این دوره (از ابتدا تا پایان این دوره)
+            cumulative_balance = self.get_balance_by_period(project, expense_type, period)
+            
             trend_data.append({
                 'period_id': period.id,
                 'period_label': period.label,
                 'year': period.year,
                 'month_number': period.month_number,
-                'balance': balance,
+                'period_receipts': float(period_receipts),      # تنخواه دریافتی دوره
+                'period_returns': float(period_returns),        # عودت تنخواه دوره
+                'period_expenses': float(period_expenses),      # هزینه دوره
+                'period_balance': float(period_balance),        # مانده ماهانه (دوره‌ای)
+                'cumulative_balance': float(cumulative_balance), # مانده تجمعی کلی (تا پایان این دوره)
+                'balance': float(cumulative_balance),            # برای سازگاری با کد قبلی
             })
       
         return trend_data
