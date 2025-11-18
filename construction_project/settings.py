@@ -321,15 +321,23 @@ REST_FRAMEWORK = {
 }
 
 # AI Assistant Settings
-AI_ASSISTANT_PROVIDER = os.getenv('AI_ASSISTANT_PROVIDER', 'openai')  # 'openai', 'anthropic', 'huggingface', 'local'
+AI_ASSISTANT_PROVIDER = os.getenv('AI_ASSISTANT_PROVIDER', 'openai')  # 'openai', 'anthropic', 'huggingface', 'gemini', 'openrouter', 'local'
 AI_ASSISTANT_PROVIDER_CONFIG = {
     # برای OpenAI
-    'api_key': os.getenv('OPENAI_API_KEY'),
-    'model': os.getenv('OPENAI_MODEL', 'gpt-4'),
+    # 'api_key': os.getenv('OPENAI_API_KEY'),
+    # 'model': os.getenv('OPENAI_MODEL', 'gpt-4'),
     
     # برای Anthropic
     # 'api_key': os.getenv('ANTHROPIC_API_KEY'),
     # 'model': os.getenv('ANTHROPIC_MODEL', 'claude-3-sonnet-20240229'),
+    
+    # برای Google Gemini
+    # 'api_key': os.getenv('GOOGLE_API_KEY') or os.getenv('GEMINI_API_KEY'),
+    # 'model': os.getenv('GEMINI_MODEL', 'gemini-pro'),
+    
+    # برای OpenRouter
+    'api_key': os.getenv('OPENROUTER_API_KEY'),
+    'model': os.getenv('OPENROUTER_MODEL', 'openai/gpt-4'),
     
     # برای Hugging Face
     # 'model_id': os.getenv('HUGGINGFACE_MODEL_ID', 'mistralai/Mistral-7B-Instruct-v0.2'),

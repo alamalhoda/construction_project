@@ -31,6 +31,14 @@ OPENAI_MODEL=gpt-4
 # ANTHROPIC_API_KEY=your_anthropic_api_key
 # ANTHROPIC_MODEL=claude-3-sonnet-20240229
 
+# یا Google Gemini
+# GOOGLE_API_KEY=your_google_api_key
+# GEMINI_MODEL=gemini-pro
+
+# یا OpenRouter (unified interface for multiple LLMs)
+# OPENROUTER_API_KEY=your_openrouter_api_key
+# OPENROUTER_MODEL=openai/gpt-4  # یا anthropic/claude-3-sonnet, google/gemini-pro
+
 # یا Hugging Face
 # HUGGINGFACE_API_KEY=your_huggingface_api_key
 # HUGGINGFACE_ENDPOINT=https://your-space.hf.space
@@ -40,7 +48,7 @@ OPENAI_MODEL=gpt-4
 # LOCAL_MODEL_NAME=llama2
 
 # انتخاب Provider
-AI_ASSISTANT_PROVIDER=openai  # openai, anthropic, huggingface, local
+AI_ASSISTANT_PROVIDER=openai  # openai, anthropic, gemini, openrouter, huggingface, local
 ```
 
 ### 3. تنظیمات Django

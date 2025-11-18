@@ -3,6 +3,7 @@ Views برای AI Assistant
 """
 
 import json
+import logging
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
@@ -10,6 +11,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from construction.assistant.agent import create_assistant_agent
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -31,6 +34,17 @@ def chat_api(request):
                 'error': 'پیام خالی است',
                 'success': False
             }, status=400)
+        
+        # نمایش سوال کاربر در کنسول
+        username = request.user.username if request.user.is_authenticated else 'Anonymous'
+        logger.info("=" * 80)
+        logger.info(f"👤 کاربر: {username}")
+        logger.info(f"❓ سوال: {user_message}")
+        logger.info("=" * 80)
+        print("=" * 80)
+        print(f"👤 کاربر: {username}")
+        print(f"❓ سوال: {user_message}")
+        print("=" * 80)
         
         # دریافت نوع provider از تنظیمات یا request
         provider_type = data.get('provider_type') or getattr(settings, 'AI_ASSISTANT_PROVIDER', 'openai')

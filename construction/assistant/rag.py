@@ -21,7 +21,7 @@ class RAGPipeline:
             schema_path: مسیر فایل OpenAPI schema (اختیاری)
             vector_store_path: مسیر ذخیره vector store (اختیاری)
         """
-        self.schema_path = schema_path or os.path.join(settings.BASE_DIR, 'schema.yaml')
+        self.schema_path = schema_path or os.path.join(settings.BASE_DIR, 'schema.json')
         self.vector_store_path = vector_store_path or os.path.join(settings.BASE_DIR, 'chroma_db')
         self.vector_store = None
         self.retriever = None
@@ -53,16 +53,30 @@ class RAGPipeline:
             لیست Document objects
         """
         try:
-            from langchain.document_loaders import OpenAPISpecLoader
+            # در langchain 1.0، OpenAPISpecLoader حذف شده است
+            # استفاده از روش جایگزین: بارگذاری مستقیم JSON schema
+            from langchain_core.documents import Document
             
             # بررسی وجود فایل schema
             if not os.path.exists(self.schema_path):
                 # اگر وجود ندارد، تولید کن
                 self.generate_schema()
             
-            # بارگذاری schema
-            loader = OpenAPISpecLoader(self.schema_path)
-            documents = loader.load()
+            # بارگذاری schema به صورت مستقیم
+            with open(self.schema_path, 'r', encoding='utf-8') as f:
+                schema_data = json.load(f)
+            
+            # تبدیل به Document objects
+            documents = []
+            # پردازش paths
+            if 'paths' in schema_data:
+                for path, methods in schema_data['paths'].items():
+                    for method, details in methods.items():
+                        if isinstance(details, dict):
+                            summary = details.get('summary', '')
+                            description = details.get('description', '')
+                            content = f"Endpoint: {method.upper()} {path}\nSummary: {summary}\nDescription: {description}"
+                            documents.append(Document(page_content=content, metadata={"path": path, "method": method}))
             
             return documents
         except ImportError:
@@ -77,13 +91,20 @@ class RAGPipeline:
         Args:
             use_huggingface: استفاده از Hugging Face برای embeddings (کاهش هزینه)
             model_name: نام مدل برای embeddings
+        
+        Returns:
+            VectorStore instance یا None در صورت خطا
         """
         try:
-            from langchain.text_splitter import RecursiveCharacterTextSplitter
-            from langchain.vectorstores import Chroma
+            from langchain_text_splitters import RecursiveCharacterTextSplitter
+            from langchain_community.vectorstores import Chroma
             
             # بارگذاری documents
             documents = self.load_schema()
+            
+            if not documents:
+                print("Warning: No documents found in schema")
+                return None
             
             # تقسیم به chunkهای کوچک‌تر
             text_splitter = RecursiveCharacterTextSplitter(
@@ -93,18 +114,34 @@ class RAGPipeline:
             chunks = text_splitter.split_documents(documents)
             
             # ایجاد embeddings
+            embeddings = None
             if use_huggingface:
-                from langchain_huggingface import HuggingFaceEmbeddings
-                embeddings = HuggingFaceEmbeddings(
-                    model_name=model_name,
-                    model_kwargs={'device': 'cpu'}
-                )
-            else:
-                from langchain_openai import OpenAIEmbeddings
-                api_key = os.getenv('OPENAI_API_KEY')
-                if not api_key:
-                    raise ValueError("OPENAI_API_KEY is required for OpenAI embeddings")
-                embeddings = OpenAIEmbeddings(openai_api_key=api_key)
+                try:
+                    from langchain_huggingface import HuggingFaceEmbeddings
+                    embeddings = HuggingFaceEmbeddings(
+                        model_name=model_name,
+                        model_kwargs={'device': 'cpu'}
+                    )
+                except ImportError as e:
+                    print(f"Warning: Hugging Face embeddings not available: {str(e)}")
+                    print("   Trying OpenAI embeddings instead...")
+                    use_huggingface = False
+            
+            if not embeddings and not use_huggingface:
+                try:
+                    from langchain_openai import OpenAIEmbeddings
+                    api_key = os.getenv('OPENAI_API_KEY')
+                    if not api_key:
+                        print("Warning: OPENAI_API_KEY not found. RAG will be disabled.")
+                        return None
+                    embeddings = OpenAIEmbeddings(openai_api_key=api_key)
+                except ImportError:
+                    print("Warning: OpenAI embeddings not available. RAG will be disabled.")
+                    return None
+            
+            if not embeddings:
+                print("Warning: No embeddings available. RAG will be disabled.")
+                return None
             
             # ایجاد vector store
             self.vector_store = Chroma.from_documents(
@@ -121,20 +158,28 @@ class RAGPipeline:
             return self.vector_store
         
         except ImportError as e:
-            raise ImportError(f"Required package not installed: {str(e)}")
+            print(f"Warning: Required package not installed: {str(e)}")
+            print("   RAG will be disabled. To enable RAG, install required packages:")
+            print("   - For Hugging Face: pip install sentence-transformers torch")
+            print("   - For OpenAI: Set OPENAI_API_KEY environment variable")
+            return None
         except Exception as e:
-            raise Exception(f"Error creating embeddings: {str(e)}")
+            print(f"Warning: Error creating embeddings: {str(e)}")
+            print("   RAG will be disabled.")
+            return None
     
     def get_retriever(self):
         """
         دریافت retriever برای استفاده در Agent
         
         Returns:
-            Retriever instance
+            Retriever instance یا None در صورت خطا
         """
         if not self.retriever:
             # اگر retriever وجود ندارد، ایجاد کن
-            self.create_embeddings()
+            vector_store = self.create_embeddings()
+            if not vector_store:
+                return None
         
         return self.retriever
     
@@ -147,12 +192,19 @@ class RAGPipeline:
             k: تعداد نتایج
         
         Returns:
-            لیست نتایج مرتبط
+            لیست نتایج مرتبط یا لیست خالی در صورت خطا
         """
         if not self.retriever:
-            self.get_retriever()
+            self.retriever = self.get_retriever()
         
-        return self.retriever.get_relevant_documents(query)
+        if not self.retriever:
+            return []
+        
+        try:
+            return self.retriever.get_relevant_documents(query)
+        except Exception as e:
+            print(f"Warning: Error searching in RAG: {str(e)}")
+            return []
     
     def reload(self):
         """بارگذاری مجدد schema و به‌روزرسانی vector store"""

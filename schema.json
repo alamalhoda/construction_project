@@ -1,0 +1,5277 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+        "title": "Construction Project API",
+        "version": "1.0.0",
+        "description": "API documentation for Construction Project Management System"
+    },
+    "paths": {
+        "/api/v1/Expense/": {
+            "get": {
+                "operationId": "Expense_list",
+                "description": "ViewSet for the Expense class",
+                "tags": [
+                    "Expense"
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Expense"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "operationId": "Expense_create",
+                "description": "ViewSet for the Expense class",
+                "tags": [
+                    "Expense"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Expense"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Expense"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Expense"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Expense"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/Expense/{id}/": {
+            "get": {
+                "operationId": "Expense_retrieve",
+                "description": "ViewSet for the Expense class",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این هزینه را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Expense"
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Expense"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "operationId": "Expense_update",
+                "description": "ViewSet for the Expense class",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این هزینه را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Expense"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Expense"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Expense"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Expense"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Expense"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "Expense_partial_update",
+                "description": "ViewSet for the Expense class",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این هزینه را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Expense"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedExpense"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedExpense"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedExpense"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Expense"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "Expense_destroy",
+                "description": "ViewSet for the Expense class",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این هزینه را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Expense"
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/v1/Expense/dashboard_data/": {
+            "get": {
+                "operationId": "Expense_dashboard_data_retrieve",
+                "description": "دریافت داده‌های لیست هزینه ها",
+                "tags": [
+                    "Expense"
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Expense"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/Expense/get_expense_details/": {
+            "get": {
+                "operationId": "Expense_get_expense_details_retrieve",
+                "description": "دریافت جزئیات هزینه برای ویرایش",
+                "tags": [
+                    "Expense"
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Expense"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/Expense/total_expenses/": {
+            "get": {
+                "operationId": "Expense_total_expenses_retrieve",
+                "description": "دریافت مجموع کل هزینه‌های پروژه",
+                "tags": [
+                    "Expense"
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Expense"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/Expense/update_expense/": {
+            "post": {
+                "operationId": "Expense_update_expense_create",
+                "description": "به‌روزرسانی هزینه",
+                "tags": [
+                    "Expense"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Expense"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Expense"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Expense"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Expense"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/Expense/with_periods/": {
+            "get": {
+                "operationId": "Expense_with_periods_retrieve",
+                "description": "دریافت هزینه‌ها با اطلاعات دوره‌ها برای محاسبه دوره متوسط ساخت",
+                "tags": [
+                    "Expense"
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Expense"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/InterestRate/": {
+            "get": {
+                "operationId": "InterestRate_list",
+                "description": "ViewSet for the InterestRate class",
+                "tags": [
+                    "InterestRate"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/InterestRate"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "operationId": "InterestRate_create",
+                "description": "ViewSet for the InterestRate class",
+                "tags": [
+                    "InterestRate"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/InterestRate"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/InterestRate"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/InterestRate"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InterestRate"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/InterestRate/{id}/": {
+            "get": {
+                "operationId": "InterestRate_retrieve",
+                "description": "ViewSet for the InterestRate class",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این نرخ سود را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "InterestRate"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InterestRate"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "operationId": "InterestRate_update",
+                "description": "ViewSet for the InterestRate class",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این نرخ سود را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "InterestRate"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/InterestRate"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/InterestRate"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/InterestRate"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InterestRate"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "InterestRate_partial_update",
+                "description": "ViewSet for the InterestRate class",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این نرخ سود را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "InterestRate"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedInterestRate"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedInterestRate"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedInterestRate"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InterestRate"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "InterestRate_destroy",
+                "description": "ViewSet for the InterestRate class",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این نرخ سود را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "InterestRate"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/v1/InterestRate/current/": {
+            "get": {
+                "operationId": "InterestRate_current_retrieve",
+                "description": "دریافت نرخ سود فعال فعلی برای پروژه فعال",
+                "tags": [
+                    "InterestRate"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InterestRate"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/Investor/": {
+            "get": {
+                "operationId": "Investor_list",
+                "description": "ViewSet for the Investor class",
+                "tags": [
+                    "Investor"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Investor"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "operationId": "Investor_create",
+                "description": "ViewSet for the Investor class",
+                "tags": [
+                    "Investor"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Investor"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Investor"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Investor"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Investor"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/Investor/{id}/": {
+            "get": {
+                "operationId": "Investor_retrieve",
+                "description": "ViewSet for the Investor class",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این سرمایه‌گذار را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Investor"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Investor"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "operationId": "Investor_update",
+                "description": "ViewSet for the Investor class",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این سرمایه‌گذار را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Investor"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Investor"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Investor"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Investor"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Investor"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "Investor_partial_update",
+                "description": "ViewSet for the Investor class",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این سرمایه‌گذار را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Investor"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedInvestor"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedInvestor"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedInvestor"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Investor"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "Investor_destroy",
+                "description": "ViewSet for the Investor class",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این سرمایه‌گذار را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Investor"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/v1/Investor/{id}/detailed_statistics/": {
+            "get": {
+                "operationId": "Investor_detailed_statistics_retrieve",
+                "description": "دریافت آمار تفصیلی سرمایه‌گذار",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این سرمایه‌گذار را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Investor"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Investor"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/Investor/{id}/investor_cumulative_capital_and_unit_cost_chart/": {
+            "get": {
+                "operationId": "Investor_investor_cumulative_capital_and_unit_cost_chart_retrieve",
+                "description": "دریافت داده‌های نمودار ترند سرمایه موجود و هزینه واحد برای سرمایه‌گذار\n\nاین endpoint داده‌های لازم برای نمودار ترند را محاسبه می‌کند:\n- سرمایه موجود تجمعی به میلیون تومان\n- هزینه واحد به میلیون تومان برای هر دوره",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این سرمایه‌گذار را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Investor"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Investor"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/Investor/{id}/ownership/": {
+            "get": {
+                "operationId": "Investor_ownership_retrieve",
+                "description": "دریافت مالکیت سرمایه‌گذار به متر مربع\n\nمحاسبه: (آورده + سود) / قیمت هر متر مربع واحد انتخابی",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این سرمایه‌گذار را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Investor"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Investor"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/Investor/{id}/ratios/": {
+            "get": {
+                "operationId": "Investor_ratios_retrieve",
+                "description": "دریافت نسبت‌های سرمایه‌گذار",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این سرمایه‌گذار را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Investor"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Investor"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/Investor/all_investors_summary/": {
+            "get": {
+                "operationId": "Investor_all_investors_summary_retrieve",
+                "description": "دریافت خلاصه آمار تمام سرمایه‌گذاران\n\nاین endpoint از سرویس محاسباتی InvestorCalculations استفاده می‌کند\nتا آمار کامل شامل نسبت‌های سرمایه، سود و شاخص نفع را ارائه دهد.",
+                "tags": [
+                    "Investor"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Investor"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/Investor/participation_stats/": {
+            "get": {
+                "operationId": "Investor_participation_stats_retrieve",
+                "description": "دریافت آمار مشارکت کنندگان بر اساس نوع (مالک و سرمایه گذار)",
+                "tags": [
+                    "Investor"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Investor"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/Investor/summary/": {
+            "get": {
+                "operationId": "Investor_summary_retrieve",
+                "description": "خلاصه مالی تمام سرمایه‌گذاران - نسخه مرجع واحد (جایگزین SQL خام)",
+                "tags": [
+                    "Investor"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Investor"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/Investor/summary_ssot/": {
+            "get": {
+                "operationId": "Investor_summary_ssot_retrieve",
+                "description": "خلاصه مالی تمام سرمایه‌گذاران با مرجع واحد (بدون SQL خام)",
+                "tags": [
+                    "Investor"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Investor"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/Period/": {
+            "get": {
+                "operationId": "Period_list",
+                "description": "ViewSet for the Period class",
+                "tags": [
+                    "Period"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Period"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "operationId": "Period_create",
+                "description": "ViewSet for the Period class",
+                "tags": [
+                    "Period"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Period"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Period"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Period"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Period"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/Period/{id}/": {
+            "get": {
+                "operationId": "Period_retrieve",
+                "description": "ViewSet for the Period class",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این دوره را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Period"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Period"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "operationId": "Period_update",
+                "description": "ViewSet for the Period class",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این دوره را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Period"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Period"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Period"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Period"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Period"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "Period_partial_update",
+                "description": "ViewSet for the Period class",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این دوره را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Period"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedPeriod"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedPeriod"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedPeriod"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Period"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "Period_destroy",
+                "description": "ViewSet for the Period class",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این دوره را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Period"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/v1/Period/chart_data/": {
+            "get": {
+                "operationId": "Period_chart_data_retrieve",
+                "description": "دریافت داده‌های دوره‌ای برای نمودارها (سرمایه، هزینه، فروش، مانده صندوق)",
+                "tags": [
+                    "Period"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Period"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/Period/period_summary/": {
+            "get": {
+                "operationId": "Period_period_summary_retrieve",
+                "description": "دریافت خلاصه کامل دوره‌ای شامل تمام فاکتورها و مقادیر تجمعی",
+                "tags": [
+                    "Period"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Period"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/PettyCashTransaction/": {
+            "get": {
+                "operationId": "PettyCashTransaction_list",
+                "description": "ViewSet برای مدیریت تراکنش‌های تنخواه",
+                "tags": [
+                    "PettyCashTransaction"
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/PettyCashTransaction"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "operationId": "PettyCashTransaction_create",
+                "description": "ViewSet برای مدیریت تراکنش‌های تنخواه",
+                "tags": [
+                    "PettyCashTransaction"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PettyCashTransaction"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PettyCashTransaction"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PettyCashTransaction"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PettyCashTransaction"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/PettyCashTransaction/{id}/": {
+            "get": {
+                "operationId": "PettyCashTransaction_retrieve",
+                "description": "ViewSet برای مدیریت تراکنش‌های تنخواه",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این تراکنش تنخواه را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "PettyCashTransaction"
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PettyCashTransaction"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "operationId": "PettyCashTransaction_update",
+                "description": "ViewSet برای مدیریت تراکنش‌های تنخواه",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این تراکنش تنخواه را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "PettyCashTransaction"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PettyCashTransaction"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PettyCashTransaction"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PettyCashTransaction"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PettyCashTransaction"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "PettyCashTransaction_partial_update",
+                "description": "ViewSet برای مدیریت تراکنش‌های تنخواه",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این تراکنش تنخواه را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "PettyCashTransaction"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedPettyCashTransaction"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedPettyCashTransaction"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedPettyCashTransaction"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PettyCashTransaction"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "PettyCashTransaction_destroy",
+                "description": "ViewSet برای مدیریت تراکنش‌های تنخواه",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این تراکنش تنخواه را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "PettyCashTransaction"
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/v1/PettyCashTransaction/balance_detail/": {
+            "get": {
+                "operationId": "PettyCashTransaction_balance_detail_retrieve",
+                "description": "دریافت وضعیت مالی یک عامل اجرایی خاص",
+                "tags": [
+                    "PettyCashTransaction"
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PettyCashTransaction"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/PettyCashTransaction/balance_trend/": {
+            "get": {
+                "operationId": "PettyCashTransaction_balance_trend_retrieve",
+                "description": "ترند زمانی وضعیت مالی عامل اجرایی",
+                "tags": [
+                    "PettyCashTransaction"
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PettyCashTransaction"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/PettyCashTransaction/balances/": {
+            "get": {
+                "operationId": "PettyCashTransaction_balances_retrieve",
+                "description": "دریافت وضعیت مالی همه عوامل اجرایی",
+                "tags": [
+                    "PettyCashTransaction"
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PettyCashTransaction"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/PettyCashTransaction/detailed_report/": {
+            "get": {
+                "operationId": "PettyCashTransaction_detailed_report_retrieve",
+                "description": "گزارش تفصیلی تراکنش‌های تنخواه با فیلتر و جستجو",
+                "tags": [
+                    "PettyCashTransaction"
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PettyCashTransaction"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/PettyCashTransaction/period_balance/": {
+            "get": {
+                "operationId": "PettyCashTransaction_period_balance_retrieve",
+                "description": "دریافت وضعیت مالی عامل اجرایی در یک دوره",
+                "tags": [
+                    "PettyCashTransaction"
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PettyCashTransaction"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/Project/": {
+            "get": {
+                "operationId": "Project_list",
+                "description": "ViewSet for the Project class",
+                "tags": [
+                    "Project"
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Project"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "operationId": "Project_create",
+                "description": "ViewSet for the Project class",
+                "tags": [
+                    "Project"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Project"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Project"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Project"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Project"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/Project/{id}/": {
+            "get": {
+                "operationId": "Project_retrieve",
+                "description": "ViewSet for the Project class",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این پروژه را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Project"
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Project"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "operationId": "Project_update",
+                "description": "ViewSet for the Project class",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این پروژه را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Project"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Project"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Project"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Project"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Project"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "Project_partial_update",
+                "description": "ViewSet for the Project class",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این پروژه را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Project"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedProject"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedProject"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedProject"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Project"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "Project_destroy",
+                "description": "ViewSet for the Project class",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این پروژه را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Project"
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/v1/Project/active/": {
+            "get": {
+                "operationId": "Project_active_retrieve",
+                "description": "دریافت پروژه جاری (از session)",
+                "tags": [
+                    "Project"
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Project"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/Project/comprehensive_analysis/": {
+            "get": {
+                "operationId": "Project_comprehensive_analysis_retrieve",
+                "description": "دریافت تحلیل جامع پروژه شامل تمام محاسبات مالی",
+                "tags": [
+                    "Project"
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Project"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/Project/cost_metrics/": {
+            "get": {
+                "operationId": "Project_cost_metrics_retrieve",
+                "description": "دریافت متریک‌های هزینه",
+                "tags": [
+                    "Project"
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Project"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/Project/current/": {
+            "get": {
+                "operationId": "Project_current_retrieve",
+                "description": "دریافت پروژه جاری کاربر از session",
+                "tags": [
+                    "Project"
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Project"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/Project/profit_metrics/": {
+            "get": {
+                "operationId": "Project_profit_metrics_retrieve",
+                "description": "دریافت متریک‌های سود (کل، سالانه، ماهانه، روزانه)",
+                "tags": [
+                    "Project"
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Project"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/Project/project_statistics_detailed/": {
+            "get": {
+                "operationId": "Project_project_statistics_detailed_retrieve",
+                "description": "دریافت آمار تفصیلی پروژه",
+                "tags": [
+                    "Project"
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Project"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/Project/project_timeline/": {
+            "get": {
+                "operationId": "Project_project_timeline_retrieve",
+                "description": "محاسبه روزهای مانده و گذشته پروژه بر اساس تاریخ امروز",
+                "tags": [
+                    "Project"
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Project"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/Project/set_active/": {
+            "post": {
+                "operationId": "Project_set_active_create",
+                "description": "تنظیم پروژه فعال",
+                "tags": [
+                    "Project"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Project"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Project"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Project"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Project"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/Project/statistics/": {
+            "get": {
+                "operationId": "Project_statistics_retrieve",
+                "description": "دریافت آمار کامل پروژه جاری شامل اطلاعات پروژه و آمار واحدها",
+                "tags": [
+                    "Project"
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Project"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/Project/switch/": {
+            "post": {
+                "operationId": "Project_switch_create",
+                "description": "تغییر پروژه جاری کاربر",
+                "tags": [
+                    "Project"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Project"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Project"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Project"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Project"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/Sale/": {
+            "get": {
+                "operationId": "Sale_list",
+                "description": "ViewSet for the Sale class",
+                "tags": [
+                    "Sale"
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Sale"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "operationId": "Sale_create",
+                "description": "ViewSet for the Sale class",
+                "tags": [
+                    "Sale"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Sale"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Sale"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Sale"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Sale"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/Sale/{id}/": {
+            "get": {
+                "operationId": "Sale_retrieve",
+                "description": "ViewSet for the Sale class",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این فروش/مرجوعی را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Sale"
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Sale"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "operationId": "Sale_update",
+                "description": "ViewSet for the Sale class",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این فروش/مرجوعی را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Sale"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Sale"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Sale"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Sale"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Sale"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "Sale_partial_update",
+                "description": "ViewSet for the Sale class",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این فروش/مرجوعی را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Sale"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedSale"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedSale"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedSale"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Sale"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "Sale_destroy",
+                "description": "ViewSet for the Sale class",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این فروش/مرجوعی را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Sale"
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/v1/Sale/total_sales/": {
+            "get": {
+                "operationId": "Sale_total_sales_retrieve",
+                "description": "دریافت مجموع فروش‌ها",
+                "tags": [
+                    "Sale"
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Sale"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/Transaction/": {
+            "get": {
+                "operationId": "Transaction_list",
+                "description": "ViewSet for the Transaction class",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "investor",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "period",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "project",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "transaction_type",
+                        "schema": {
+                            "type": "string",
+                            "title": "نوع تراکنش",
+                            "enum": [
+                                "loan_deposit",
+                                "principal_deposit",
+                                "principal_withdrawal",
+                                "profit_accrual"
+                            ]
+                        },
+                        "description": "* `principal_deposit` - آورده\n* `loan_deposit` - آورده وام\n* `principal_withdrawal` - خروج از سرمایه\n* `profit_accrual` - سود"
+                    }
+                ],
+                "tags": [
+                    "Transaction"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Transaction"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "operationId": "Transaction_create",
+                "description": "ViewSet for the Transaction class",
+                "tags": [
+                    "Transaction"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Transaction"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Transaction"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Transaction"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Transaction"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/Transaction/{id}/": {
+            "get": {
+                "operationId": "Transaction_retrieve",
+                "description": "ViewSet for the Transaction class",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این تراکنش را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Transaction"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Transaction"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "operationId": "Transaction_update",
+                "description": "ViewSet for the Transaction class",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این تراکنش را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Transaction"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Transaction"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Transaction"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Transaction"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Transaction"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "Transaction_partial_update",
+                "description": "ViewSet for the Transaction class",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این تراکنش را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Transaction"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedTransaction"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedTransaction"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedTransaction"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Transaction"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "Transaction_destroy",
+                "description": "ViewSet for the Transaction class",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این تراکنش را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Transaction"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/v1/Transaction/detailed_statistics/": {
+            "get": {
+                "operationId": "Transaction_detailed_statistics_retrieve",
+                "description": "دریافت آمار تفصیلی تراکنش‌ها با فیلترهای پیشرفته",
+                "tags": [
+                    "Transaction"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Transaction"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/Transaction/recalculate_construction_contractor/": {
+            "post": {
+                "operationId": "Transaction_recalculate_construction_contractor_create",
+                "description": "محاسبه مجدد همه هزینه‌های پیمان ساختمان",
+                "tags": [
+                    "Transaction"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Transaction"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Transaction"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Transaction"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Transaction"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/Transaction/recalculate_profits/": {
+            "post": {
+                "operationId": "Transaction_recalculate_profits_create",
+                "description": "محاسبه مجدد سودها با نرخ سود فعال فعلی برای پروژه فعال",
+                "tags": [
+                    "Transaction"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Transaction"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Transaction"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Transaction"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Transaction"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/Transaction/statistics/": {
+            "get": {
+                "operationId": "Transaction_statistics_retrieve",
+                "description": "آمار کلی تراکنش‌ها برای پروژه جاری",
+                "tags": [
+                    "Transaction"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Transaction"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/Unit/": {
+            "get": {
+                "operationId": "Unit_list",
+                "description": "ViewSet for the Unit class",
+                "tags": [
+                    "Unit"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Unit"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "operationId": "Unit_create",
+                "description": "ViewSet for the Unit class",
+                "tags": [
+                    "Unit"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Unit"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Unit"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Unit"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Unit"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/Unit/{id}/": {
+            "get": {
+                "operationId": "Unit_retrieve",
+                "description": "ViewSet for the Unit class",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این واحد را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Unit"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Unit"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "operationId": "Unit_update",
+                "description": "ViewSet for the Unit class",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این واحد را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Unit"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Unit"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Unit"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Unit"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Unit"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "Unit_partial_update",
+                "description": "ViewSet for the Unit class",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این واحد را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Unit"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedUnit"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedUnit"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedUnit"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Unit"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "Unit_destroy",
+                "description": "ViewSet for the Unit class",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این واحد را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Unit"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/v1/Unit/statistics/": {
+            "get": {
+                "operationId": "Unit_statistics_retrieve",
+                "description": "دریافت آمار کلی واحدها",
+                "tags": [
+                    "Unit"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Unit"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/UnitSpecificExpense/": {
+            "get": {
+                "operationId": "UnitSpecificExpense_list",
+                "description": "ViewSet for the UnitSpecificExpense class",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "project",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "unit",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "tags": [
+                    "UnitSpecificExpense"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/UnitSpecificExpense"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "operationId": "UnitSpecificExpense_create",
+                "description": "ViewSet for the UnitSpecificExpense class",
+                "tags": [
+                    "UnitSpecificExpense"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UnitSpecificExpense"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UnitSpecificExpense"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UnitSpecificExpense"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnitSpecificExpense"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/UnitSpecificExpense/{id}/": {
+            "get": {
+                "operationId": "UnitSpecificExpense_retrieve",
+                "description": "ViewSet for the UnitSpecificExpense class",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این هزینه اختصاصی واحد را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "UnitSpecificExpense"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnitSpecificExpense"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "operationId": "UnitSpecificExpense_update",
+                "description": "ViewSet for the UnitSpecificExpense class",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این هزینه اختصاصی واحد را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "UnitSpecificExpense"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UnitSpecificExpense"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UnitSpecificExpense"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UnitSpecificExpense"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnitSpecificExpense"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "UnitSpecificExpense_partial_update",
+                "description": "ViewSet for the UnitSpecificExpense class",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این هزینه اختصاصی واحد را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "UnitSpecificExpense"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedUnitSpecificExpense"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedUnitSpecificExpense"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedUnitSpecificExpense"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnitSpecificExpense"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "UnitSpecificExpense_destroy",
+                "description": "ViewSet for the UnitSpecificExpense class",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "یک مقداد عدد یکتا که این هزینه اختصاصی واحد را شناسایی میکند.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "UnitSpecificExpense"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/change-password/": {
+            "post": {
+                "operationId": "auth_change_password_create",
+                "description": "تغییر رمز عبور",
+                "tags": [
+                    "auth"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/csrf/": {
+            "get": {
+                "operationId": "auth_csrf_retrieve",
+                "description": "دریافت CSRF Token",
+                "tags": [
+                    "auth"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    },
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/login/": {
+            "post": {
+                "operationId": "auth_login_create",
+                "description": "ورود به API",
+                "tags": [
+                    "auth"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    },
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/logout/": {
+            "post": {
+                "operationId": "auth_logout_create",
+                "description": "خروج از API",
+                "tags": [
+                    "auth"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/register/": {
+            "post": {
+                "operationId": "auth_register_create",
+                "description": "ثبت‌نام کاربر جدید (فقط برای ادمین‌ها)",
+                "tags": [
+                    "auth"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    },
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/user/": {
+            "get": {
+                "operationId": "auth_user_retrieve",
+                "description": "دریافت اطلاعات کاربر فعلی",
+                "tags": [
+                    "auth"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/v1/comprehensive/comprehensive_analysis/": {
+            "get": {
+                "operationId": "comprehensive_comprehensive_analysis_retrieve",
+                "description": "دریافت تحلیل جامع پروژه",
+                "tags": [
+                    "comprehensive"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/v1/status/": {
+            "get": {
+                "operationId": "status_retrieve",
+                "description": "بررسی وضعیت API",
+                "tags": [
+                    "status"
+                ],
+                "security": [
+                    {
+                        "cookieAuth": []
+                    },
+                    {
+                        "tokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Expense": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "project": {
+                        "type": "integer",
+                        "title": "پروژه"
+                    },
+                    "expense_type": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/ExpenseTypeEnum"
+                            }
+                        ],
+                        "title": "نوع هزینه"
+                    },
+                    "amount": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,18}(?:\\.\\d{0,2})?$",
+                        "title": "مبلغ"
+                    },
+                    "description": {
+                        "type": "string",
+                        "title": "توضیحات"
+                    },
+                    "period": {
+                        "type": "integer",
+                        "title": "دوره"
+                    },
+                    "period_data": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/Period"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "period_weight": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "title": "تاریخ ایجاد"
+                    }
+                },
+                "required": [
+                    "amount",
+                    "created_at",
+                    "expense_type",
+                    "id",
+                    "period",
+                    "period_data",
+                    "period_weight",
+                    "project"
+                ]
+            },
+            "ExpenseTypeEnum": {
+                "enum": [
+                    "project_manager",
+                    "facilities_manager",
+                    "procurement",
+                    "warehouse",
+                    "construction_contractor",
+                    "other"
+                ],
+                "type": "string",
+                "description": "* `project_manager` - مدیر پروژه\n* `facilities_manager` - سرپرست کارگاه\n* `procurement` - کارپرداز\n* `warehouse` - انباردار\n* `construction_contractor` - پیمان ساختمان\n* `other` - سایر"
+            },
+            "InterestRate": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "project": {
+                        "type": "integer",
+                        "nullable": true,
+                        "description": "پروژه (در صورت خالی بودن، از پروژه پیش‌فرض استفاده می‌شود)"
+                    },
+                    "rate": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,5}(?:\\.\\d{0,15})?$",
+                        "title": "نرخ سود روزانه",
+                        "description": "مثال: 0.000481925679775"
+                    },
+                    "effective_date": {
+                        "type": "string",
+                        "writeOnly": true,
+                        "description": "تاریخ شمسی به فرمت YYYY-MM-DD"
+                    },
+                    "effective_date_display": {
+                        "type": "string",
+                        "readOnly": true,
+                        "description": "تاریخ شمسی برای نمایش"
+                    },
+                    "effective_date_gregorian": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true,
+                        "title": "تاریخ اعمال (میلادی)"
+                    },
+                    "description": {
+                        "type": "string",
+                        "title": "توضیحات",
+                        "description": "دلیل تغییر نرخ سود"
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "title": "فعال",
+                        "description": "آیا این نرخ در حال حاضر فعال است؟"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "title": "تاریخ ایجاد"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "title": "تاریخ به‌روزرسانی"
+                    }
+                },
+                "required": [
+                    "created_at",
+                    "effective_date",
+                    "effective_date_display",
+                    "id",
+                    "rate",
+                    "updated_at"
+                ]
+            },
+            "Investor": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "project": {
+                        "type": "integer",
+                        "title": "پروژه",
+                        "description": "پروژه‌ای که این سرمایه‌گذار در آن مشارکت دارد"
+                    },
+                    "first_name": {
+                        "type": "string",
+                        "title": "نام",
+                        "maxLength": 100
+                    },
+                    "last_name": {
+                        "type": "string",
+                        "title": "نام خانوادگی",
+                        "maxLength": 100
+                    },
+                    "phone": {
+                        "type": "string",
+                        "title": "شماره تماس",
+                        "maxLength": 20
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "nullable": true,
+                        "title": "ایمیل",
+                        "maxLength": 254
+                    },
+                    "participation_type": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/ParticipationTypeEnum"
+                            }
+                        ],
+                        "title": "نوع مشارکت"
+                    },
+                    "units": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "contract_date_shamsi": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true,
+                        "title": "تاریخ قرارداد (شمسی)"
+                    },
+                    "description": {
+                        "type": "string",
+                        "nullable": true,
+                        "title": "توضیحات",
+                        "description": "توضیحات اضافی درباره این سرمایه‌گذار"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "title": "تاریخ ایجاد"
+                    }
+                },
+                "required": [
+                    "created_at",
+                    "first_name",
+                    "id",
+                    "last_name",
+                    "phone",
+                    "project",
+                    "units"
+                ]
+            },
+            "ParticipationTypeEnum": {
+                "enum": [
+                    "owner",
+                    "investor"
+                ],
+                "type": "string",
+                "description": "* `owner` - مالک\n* `investor` - سرمایه‌گذار"
+            },
+            "PatchedExpense": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "project": {
+                        "type": "integer",
+                        "title": "پروژه"
+                    },
+                    "expense_type": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/ExpenseTypeEnum"
+                            }
+                        ],
+                        "title": "نوع هزینه"
+                    },
+                    "amount": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,18}(?:\\.\\d{0,2})?$",
+                        "title": "مبلغ"
+                    },
+                    "description": {
+                        "type": "string",
+                        "title": "توضیحات"
+                    },
+                    "period": {
+                        "type": "integer",
+                        "title": "دوره"
+                    },
+                    "period_data": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/Period"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "period_weight": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "title": "تاریخ ایجاد"
+                    }
+                }
+            },
+            "PatchedInterestRate": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "project": {
+                        "type": "integer",
+                        "nullable": true,
+                        "description": "پروژه (در صورت خالی بودن، از پروژه پیش‌فرض استفاده می‌شود)"
+                    },
+                    "rate": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,5}(?:\\.\\d{0,15})?$",
+                        "title": "نرخ سود روزانه",
+                        "description": "مثال: 0.000481925679775"
+                    },
+                    "effective_date": {
+                        "type": "string",
+                        "writeOnly": true,
+                        "description": "تاریخ شمسی به فرمت YYYY-MM-DD"
+                    },
+                    "effective_date_display": {
+                        "type": "string",
+                        "readOnly": true,
+                        "description": "تاریخ شمسی برای نمایش"
+                    },
+                    "effective_date_gregorian": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true,
+                        "title": "تاریخ اعمال (میلادی)"
+                    },
+                    "description": {
+                        "type": "string",
+                        "title": "توضیحات",
+                        "description": "دلیل تغییر نرخ سود"
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "title": "فعال",
+                        "description": "آیا این نرخ در حال حاضر فعال است؟"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "title": "تاریخ ایجاد"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "title": "تاریخ به‌روزرسانی"
+                    }
+                }
+            },
+            "PatchedInvestor": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "project": {
+                        "type": "integer",
+                        "title": "پروژه",
+                        "description": "پروژه‌ای که این سرمایه‌گذار در آن مشارکت دارد"
+                    },
+                    "first_name": {
+                        "type": "string",
+                        "title": "نام",
+                        "maxLength": 100
+                    },
+                    "last_name": {
+                        "type": "string",
+                        "title": "نام خانوادگی",
+                        "maxLength": 100
+                    },
+                    "phone": {
+                        "type": "string",
+                        "title": "شماره تماس",
+                        "maxLength": 20
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "nullable": true,
+                        "title": "ایمیل",
+                        "maxLength": 254
+                    },
+                    "participation_type": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/ParticipationTypeEnum"
+                            }
+                        ],
+                        "title": "نوع مشارکت"
+                    },
+                    "units": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "contract_date_shamsi": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true,
+                        "title": "تاریخ قرارداد (شمسی)"
+                    },
+                    "description": {
+                        "type": "string",
+                        "nullable": true,
+                        "title": "توضیحات",
+                        "description": "توضیحات اضافی درباره این سرمایه‌گذار"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "title": "تاریخ ایجاد"
+                    }
+                }
+            },
+            "PatchedPeriod": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "label": {
+                        "type": "string",
+                        "title": "عنوان دوره",
+                        "maxLength": 50
+                    },
+                    "year": {
+                        "type": "integer",
+                        "title": "سال شمسی"
+                    },
+                    "month_number": {
+                        "type": "integer",
+                        "title": "شماره ماه"
+                    },
+                    "month_name": {
+                        "type": "string",
+                        "title": "نام ماه",
+                        "maxLength": 20
+                    },
+                    "weight": {
+                        "type": "integer",
+                        "title": "وزن دوره"
+                    },
+                    "start_date_shamsi": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "تاریخ شروع شمسی"
+                    },
+                    "end_date_shamsi": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "تاریخ پایان شمسی"
+                    },
+                    "start_date_gregorian": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "تاریخ شروع میلادی"
+                    },
+                    "end_date_gregorian": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "تاریخ پایان میلادی"
+                    },
+                    "project": {
+                        "type": "integer",
+                        "title": "پروژه"
+                    }
+                }
+            },
+            "PatchedPettyCashTransaction": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "project": {
+                        "type": "integer",
+                        "readOnly": true,
+                        "title": "پروژه"
+                    },
+                    "expense_type": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/ExpenseTypeEnum"
+                            }
+                        ],
+                        "title": "عامل اجرایی",
+                        "description": "نوع هزینه که به عنوان عامل اجرایی استفاده می‌شود\n\n* `project_manager` - مدیر پروژه\n* `facilities_manager` - سرپرست کارگاه\n* `procurement` - کارپرداز\n* `warehouse` - انباردار\n* `construction_contractor` - پیمان ساختمان\n* `other` - سایر"
+                    },
+                    "expense_type_label": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "transaction_type": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/PettyCashTransactionTransactionTypeEnum"
+                            }
+                        ],
+                        "title": "نوع تراکنش"
+                    },
+                    "transaction_type_label": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "amount": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,18}(?:\\.\\d{0,2})?$",
+                        "title": "مبلغ",
+                        "description": "همیشه مثبت ذخیره می‌شود"
+                    },
+                    "signed_amount": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "description": {
+                        "type": "string",
+                        "title": "توضیحات"
+                    },
+                    "receipt_number": {
+                        "type": "string",
+                        "title": "شماره فیش/رسید",
+                        "maxLength": 100
+                    },
+                    "date_shamsi": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "date_shamsi_input": {
+                        "type": "string",
+                        "writeOnly": true
+                    },
+                    "date_gregorian": {
+                        "type": "string",
+                        "format": "date",
+                        "readOnly": true,
+                        "title": "تاریخ میلادی"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    }
+                }
+            },
+            "PatchedProject": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "name": {
+                        "type": "string",
+                        "title": "نام پروژه",
+                        "maxLength": 200
+                    },
+                    "start_date_shamsi": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "تاریخ شروع (شمسی)"
+                    },
+                    "end_date_shamsi": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "تاریخ پایان (شمسی)"
+                    },
+                    "start_date_gregorian": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "تاریخ شروع (میلادی)"
+                    },
+                    "end_date_gregorian": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "تاریخ پایان (میلادی)"
+                    },
+                    "total_infrastructure": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,13}(?:\\.\\d{0,2})?$",
+                        "title": "زیر بنای کل",
+                        "description": "زیر بنای کل پروژه به متر مربع"
+                    },
+                    "correction_factor": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,10}(?:\\.\\d{0,10})?$",
+                        "title": "ضریب اصلاحی",
+                        "description": "ضریب اصلاحی برای محاسبات پروژه"
+                    },
+                    "construction_contractor_percentage": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,3}(?:\\.\\d{0,3})?$",
+                        "title": "درصد پیمان ساخت",
+                        "description": "درصد پیمان ساخت از مجموع سایر هزینه‌ها (به صورت اعشاری، مثلاً 0.100 برای 10%)"
+                    },
+                    "description": {
+                        "type": "string",
+                        "nullable": true,
+                        "title": "توضیحات",
+                        "description": "توضیحات اضافی درباره پروژه"
+                    },
+                    "color": {
+                        "type": "string",
+                        "title": "رنگ پروژه",
+                        "description": "رنگ نمایش پروژه (فرمت HEX)",
+                        "maxLength": 7
+                    },
+                    "icon": {
+                        "type": "string",
+                        "title": "آیکون پروژه",
+                        "description": "نام کلاس آیکون Font Awesome (مثال: fa-building)",
+                        "maxLength": 50
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "title": "تاریخ ایجاد"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "title": "تاریخ به‌روزرسانی"
+                    }
+                }
+            },
+            "PatchedSale": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "project": {
+                        "type": "integer",
+                        "title": "پروژه"
+                    },
+                    "period": {
+                        "type": "integer",
+                        "title": "دوره"
+                    },
+                    "amount": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,18}(?:\\.\\d{0,2})?$",
+                        "title": "مبلغ"
+                    },
+                    "description": {
+                        "type": "string",
+                        "title": "توضیحات"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "title": "تاریخ ایجاد"
+                    },
+                    "project_data": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/Project"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "period_data": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/Period"
+                            }
+                        ],
+                        "readOnly": true
+                    }
+                }
+            },
+            "PatchedTransaction": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "date_shamsi": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "date_shamsi_input": {
+                        "type": "string",
+                        "writeOnly": true
+                    },
+                    "date_shamsi_raw": {
+                        "type": "string",
+                        "writeOnly": true
+                    },
+                    "date_gregorian": {
+                        "type": "string",
+                        "format": "date",
+                        "readOnly": true
+                    },
+                    "amount": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,18}(?:\\.\\d{0,2})?$",
+                        "title": "مبلغ"
+                    },
+                    "transaction_type": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/TransactionTransactionTypeEnum"
+                            }
+                        ],
+                        "title": "نوع تراکنش"
+                    },
+                    "description": {
+                        "type": "string",
+                        "title": "توضیحات"
+                    },
+                    "day_remaining": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "day_from_start": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "title": "تاریخ ایجاد"
+                    },
+                    "investor": {
+                        "type": "integer",
+                        "writeOnly": true,
+                        "nullable": true
+                    },
+                    "period": {
+                        "type": "integer",
+                        "writeOnly": true,
+                        "nullable": true
+                    },
+                    "investor_id": {
+                        "type": "integer",
+                        "writeOnly": true,
+                        "nullable": true
+                    },
+                    "period_id": {
+                        "type": "integer",
+                        "writeOnly": true,
+                        "nullable": true
+                    },
+                    "investor_data": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/Investor"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "project_data": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/Project"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "period_data": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/Period"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "parent_transaction_id": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "parent_transaction_data": {
+                        "type": "string",
+                        "readOnly": true
+                    }
+                }
+            },
+            "PatchedUnit": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "name": {
+                        "type": "string",
+                        "title": "نام واحد",
+                        "maxLength": 200
+                    },
+                    "area": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,8}(?:\\.\\d{0,4})?$",
+                        "title": "متراژ"
+                    },
+                    "price_per_meter": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,13}(?:\\.\\d{0,2})?$",
+                        "title": "قیمت هر متر"
+                    },
+                    "total_price": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,13}(?:\\.\\d{0,2})?$",
+                        "title": "قیمت نهایی"
+                    },
+                    "project": {
+                        "type": "integer",
+                        "title": "پروژه"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "title": "تاریخ ایجاد"
+                    }
+                }
+            },
+            "PatchedUnitSpecificExpense": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "project": {
+                        "type": "integer",
+                        "writeOnly": true,
+                        "nullable": true
+                    },
+                    "project_id": {
+                        "type": "integer",
+                        "writeOnly": true,
+                        "nullable": true
+                    },
+                    "project_data": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/Project"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "unit": {
+                        "type": "integer",
+                        "writeOnly": true,
+                        "nullable": true
+                    },
+                    "unit_id": {
+                        "type": "integer",
+                        "writeOnly": true,
+                        "nullable": true
+                    },
+                    "unit_data": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/Unit"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "title": {
+                        "type": "string",
+                        "title": "عنوان",
+                        "maxLength": 200
+                    },
+                    "date_shamsi": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "date_shamsi_input": {
+                        "type": "string",
+                        "writeOnly": true
+                    },
+                    "date_gregorian": {
+                        "type": "string",
+                        "format": "date",
+                        "readOnly": true
+                    },
+                    "amount": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,18}(?:\\.\\d{0,2})?$",
+                        "title": "مبلغ"
+                    },
+                    "description": {
+                        "type": "string",
+                        "nullable": true,
+                        "title": "توضیحات"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    }
+                }
+            },
+            "Period": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "label": {
+                        "type": "string",
+                        "title": "عنوان دوره",
+                        "maxLength": 50
+                    },
+                    "year": {
+                        "type": "integer",
+                        "title": "سال شمسی"
+                    },
+                    "month_number": {
+                        "type": "integer",
+                        "title": "شماره ماه"
+                    },
+                    "month_name": {
+                        "type": "string",
+                        "title": "نام ماه",
+                        "maxLength": 20
+                    },
+                    "weight": {
+                        "type": "integer",
+                        "title": "وزن دوره"
+                    },
+                    "start_date_shamsi": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "تاریخ شروع شمسی"
+                    },
+                    "end_date_shamsi": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "تاریخ پایان شمسی"
+                    },
+                    "start_date_gregorian": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "تاریخ شروع میلادی"
+                    },
+                    "end_date_gregorian": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "تاریخ پایان میلادی"
+                    },
+                    "project": {
+                        "type": "integer",
+                        "title": "پروژه"
+                    }
+                },
+                "required": [
+                    "end_date_gregorian",
+                    "end_date_shamsi",
+                    "id",
+                    "label",
+                    "month_name",
+                    "month_number",
+                    "project",
+                    "start_date_gregorian",
+                    "start_date_shamsi",
+                    "weight",
+                    "year"
+                ]
+            },
+            "PettyCashTransaction": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "project": {
+                        "type": "integer",
+                        "readOnly": true,
+                        "title": "پروژه"
+                    },
+                    "expense_type": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/ExpenseTypeEnum"
+                            }
+                        ],
+                        "title": "عامل اجرایی",
+                        "description": "نوع هزینه که به عنوان عامل اجرایی استفاده می‌شود\n\n* `project_manager` - مدیر پروژه\n* `facilities_manager` - سرپرست کارگاه\n* `procurement` - کارپرداز\n* `warehouse` - انباردار\n* `construction_contractor` - پیمان ساختمان\n* `other` - سایر"
+                    },
+                    "expense_type_label": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "transaction_type": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/PettyCashTransactionTransactionTypeEnum"
+                            }
+                        ],
+                        "title": "نوع تراکنش"
+                    },
+                    "transaction_type_label": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "amount": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,18}(?:\\.\\d{0,2})?$",
+                        "title": "مبلغ",
+                        "description": "همیشه مثبت ذخیره می‌شود"
+                    },
+                    "signed_amount": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "description": {
+                        "type": "string",
+                        "title": "توضیحات"
+                    },
+                    "receipt_number": {
+                        "type": "string",
+                        "title": "شماره فیش/رسید",
+                        "maxLength": 100
+                    },
+                    "date_shamsi": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "date_shamsi_input": {
+                        "type": "string",
+                        "writeOnly": true
+                    },
+                    "date_gregorian": {
+                        "type": "string",
+                        "format": "date",
+                        "readOnly": true,
+                        "title": "تاریخ میلادی"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "amount",
+                    "created_at",
+                    "date_gregorian",
+                    "date_shamsi",
+                    "expense_type",
+                    "expense_type_label",
+                    "id",
+                    "project",
+                    "signed_amount",
+                    "transaction_type",
+                    "transaction_type_label",
+                    "updated_at"
+                ]
+            },
+            "PettyCashTransactionTransactionTypeEnum": {
+                "enum": [
+                    "receipt",
+                    "return"
+                ],
+                "type": "string",
+                "description": "* `receipt` - دریافت تنخواه\n* `return` - عودت تنخواه"
+            },
+            "Project": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "name": {
+                        "type": "string",
+                        "title": "نام پروژه",
+                        "maxLength": 200
+                    },
+                    "start_date_shamsi": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "تاریخ شروع (شمسی)"
+                    },
+                    "end_date_shamsi": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "تاریخ پایان (شمسی)"
+                    },
+                    "start_date_gregorian": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "تاریخ شروع (میلادی)"
+                    },
+                    "end_date_gregorian": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "تاریخ پایان (میلادی)"
+                    },
+                    "total_infrastructure": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,13}(?:\\.\\d{0,2})?$",
+                        "title": "زیر بنای کل",
+                        "description": "زیر بنای کل پروژه به متر مربع"
+                    },
+                    "correction_factor": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,10}(?:\\.\\d{0,10})?$",
+                        "title": "ضریب اصلاحی",
+                        "description": "ضریب اصلاحی برای محاسبات پروژه"
+                    },
+                    "construction_contractor_percentage": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,3}(?:\\.\\d{0,3})?$",
+                        "title": "درصد پیمان ساخت",
+                        "description": "درصد پیمان ساخت از مجموع سایر هزینه‌ها (به صورت اعشاری، مثلاً 0.100 برای 10%)"
+                    },
+                    "description": {
+                        "type": "string",
+                        "nullable": true,
+                        "title": "توضیحات",
+                        "description": "توضیحات اضافی درباره پروژه"
+                    },
+                    "color": {
+                        "type": "string",
+                        "title": "رنگ پروژه",
+                        "description": "رنگ نمایش پروژه (فرمت HEX)",
+                        "maxLength": 7
+                    },
+                    "icon": {
+                        "type": "string",
+                        "title": "آیکون پروژه",
+                        "description": "نام کلاس آیکون Font Awesome (مثال: fa-building)",
+                        "maxLength": 50
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "title": "تاریخ ایجاد"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "title": "تاریخ به‌روزرسانی"
+                    }
+                },
+                "required": [
+                    "created_at",
+                    "end_date_gregorian",
+                    "end_date_shamsi",
+                    "id",
+                    "name",
+                    "start_date_gregorian",
+                    "start_date_shamsi",
+                    "updated_at"
+                ]
+            },
+            "Sale": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "project": {
+                        "type": "integer",
+                        "title": "پروژه"
+                    },
+                    "period": {
+                        "type": "integer",
+                        "title": "دوره"
+                    },
+                    "amount": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,18}(?:\\.\\d{0,2})?$",
+                        "title": "مبلغ"
+                    },
+                    "description": {
+                        "type": "string",
+                        "title": "توضیحات"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "title": "تاریخ ایجاد"
+                    },
+                    "project_data": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/Project"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "period_data": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/Period"
+                            }
+                        ],
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "amount",
+                    "created_at",
+                    "id",
+                    "period",
+                    "period_data",
+                    "project",
+                    "project_data"
+                ]
+            },
+            "Transaction": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "date_shamsi": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "date_shamsi_input": {
+                        "type": "string",
+                        "writeOnly": true
+                    },
+                    "date_shamsi_raw": {
+                        "type": "string",
+                        "writeOnly": true
+                    },
+                    "date_gregorian": {
+                        "type": "string",
+                        "format": "date",
+                        "readOnly": true
+                    },
+                    "amount": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,18}(?:\\.\\d{0,2})?$",
+                        "title": "مبلغ"
+                    },
+                    "transaction_type": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/TransactionTransactionTypeEnum"
+                            }
+                        ],
+                        "title": "نوع تراکنش"
+                    },
+                    "description": {
+                        "type": "string",
+                        "title": "توضیحات"
+                    },
+                    "day_remaining": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "day_from_start": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "title": "تاریخ ایجاد"
+                    },
+                    "investor": {
+                        "type": "integer",
+                        "writeOnly": true,
+                        "nullable": true
+                    },
+                    "period": {
+                        "type": "integer",
+                        "writeOnly": true,
+                        "nullable": true
+                    },
+                    "investor_id": {
+                        "type": "integer",
+                        "writeOnly": true,
+                        "nullable": true
+                    },
+                    "period_id": {
+                        "type": "integer",
+                        "writeOnly": true,
+                        "nullable": true
+                    },
+                    "investor_data": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/Investor"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "project_data": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/Project"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "period_data": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/Period"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "parent_transaction_id": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "parent_transaction_data": {
+                        "type": "string",
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "amount",
+                    "created_at",
+                    "date_gregorian",
+                    "date_shamsi",
+                    "day_from_start",
+                    "day_remaining",
+                    "id",
+                    "investor_data",
+                    "parent_transaction_data",
+                    "parent_transaction_id",
+                    "period_data",
+                    "project_data",
+                    "transaction_type"
+                ]
+            },
+            "TransactionTransactionTypeEnum": {
+                "enum": [
+                    "principal_deposit",
+                    "loan_deposit",
+                    "principal_withdrawal",
+                    "profit_accrual"
+                ],
+                "type": "string",
+                "description": "* `principal_deposit` - آورده\n* `loan_deposit` - آورده وام\n* `principal_withdrawal` - خروج از سرمایه\n* `profit_accrual` - سود"
+            },
+            "Unit": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "name": {
+                        "type": "string",
+                        "title": "نام واحد",
+                        "maxLength": 200
+                    },
+                    "area": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,8}(?:\\.\\d{0,4})?$",
+                        "title": "متراژ"
+                    },
+                    "price_per_meter": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,13}(?:\\.\\d{0,2})?$",
+                        "title": "قیمت هر متر"
+                    },
+                    "total_price": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,13}(?:\\.\\d{0,2})?$",
+                        "title": "قیمت نهایی"
+                    },
+                    "project": {
+                        "type": "integer",
+                        "title": "پروژه"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "title": "تاریخ ایجاد"
+                    }
+                },
+                "required": [
+                    "area",
+                    "created_at",
+                    "id",
+                    "name",
+                    "price_per_meter",
+                    "project",
+                    "total_price"
+                ]
+            },
+            "UnitSpecificExpense": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "project": {
+                        "type": "integer",
+                        "writeOnly": true,
+                        "nullable": true
+                    },
+                    "project_id": {
+                        "type": "integer",
+                        "writeOnly": true,
+                        "nullable": true
+                    },
+                    "project_data": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/Project"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "unit": {
+                        "type": "integer",
+                        "writeOnly": true,
+                        "nullable": true
+                    },
+                    "unit_id": {
+                        "type": "integer",
+                        "writeOnly": true,
+                        "nullable": true
+                    },
+                    "unit_data": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/Unit"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "title": {
+                        "type": "string",
+                        "title": "عنوان",
+                        "maxLength": 200
+                    },
+                    "date_shamsi": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "date_shamsi_input": {
+                        "type": "string",
+                        "writeOnly": true
+                    },
+                    "date_gregorian": {
+                        "type": "string",
+                        "format": "date",
+                        "readOnly": true
+                    },
+                    "amount": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,18}(?:\\.\\d{0,2})?$",
+                        "title": "مبلغ"
+                    },
+                    "description": {
+                        "type": "string",
+                        "nullable": true,
+                        "title": "توضیحات"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "amount",
+                    "created_at",
+                    "date_gregorian",
+                    "date_shamsi",
+                    "id",
+                    "project_data",
+                    "title",
+                    "unit_data",
+                    "updated_at"
+                ]
+            }
+        },
+        "securitySchemes": {
+            "cookieAuth": {
+                "type": "apiKey",
+                "in": "cookie",
+                "name": "sessionid"
+            },
+            "tokenAuth": {
+                "type": "apiKey",
+                "in": "header",
+                "name": "Authorization",
+                "description": "Token-based authentication with required prefix \"Token\""
+            }
+        }
+    }
+}

@@ -263,16 +263,16 @@ def list_periods(project_id: Optional[int] = None, request=None) -> str:
 
 
 @tool
-def get_project_stats(project_id: Optional[int] = None, request=None) -> str:
+def get_expense_stats(project_id: Optional[int] = None, request=None) -> str:
     """
-    دریافت آمار پروژه
+    دریافت آمار هزینه‌های پروژه
     
     Args:
         project_id: شناسه پروژه (اختیاری)
         request: درخواست HTTP برای دریافت پروژه جاری
     
     Returns:
-        آمار پروژه
+        آمار هزینه‌ها
     """
     try:
         # دریافت پروژه
@@ -291,21 +291,114 @@ def get_project_stats(project_id: Optional[int] = None, request=None) -> str:
             count=Count('id')
         )
         
+        result = f"💰 آمار هزینه‌های پروژه {project.name}:\n\n"
+        result += f"📊 مجموع هزینه‌ها: {total_expenses['total'] or 0:,.0f} تومان\n"
+        result += f"📋 تعداد هزینه‌ها: {total_expenses['count'] or 0}\n"
+        
+        return result
+    
+    except Exception as e:
+        return f"❌ خطا: {str(e)}"
+
+
+@tool
+def get_investor_stats(project_id: Optional[int] = None, request=None) -> str:
+    """
+    دریافت آمار سرمایه‌گذاران پروژه
+    
+    Args:
+        project_id: شناسه پروژه (اختیاری)
+        request: درخواست HTTP برای دریافت پروژه جاری
+    
+    Returns:
+        آمار سرمایه‌گذاران
+    """
+    try:
+        # دریافت پروژه
+        project = None
+        if project_id:
+            project = Project.objects.get(id=project_id)
+        elif request:
+            project = ProjectManager.get_current_project(request)
+        
+        if not project:
+            return "❌ خطا: پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید."
+        
         # آمار سرمایه‌گذاران
         investor_count = Investor.objects.filter(project=project).count()
+        
+        result = f"👥 آمار سرمایه‌گذاران پروژه {project.name}:\n\n"
+        result += f"📊 تعداد سرمایه‌گذاران: {investor_count}\n"
+        
+        return result
+    
+    except Exception as e:
+        return f"❌ خطا: {str(e)}"
+
+
+@tool
+def get_unit_stats(project_id: Optional[int] = None, request=None) -> str:
+    """
+    دریافت آمار واحدهای پروژه
+    
+    Args:
+        project_id: شناسه پروژه (اختیاری)
+        request: درخواست HTTP برای دریافت پروژه جاری
+    
+    Returns:
+        آمار واحدها
+    """
+    try:
+        # دریافت پروژه
+        project = None
+        if project_id:
+            project = Project.objects.get(id=project_id)
+        elif request:
+            project = ProjectManager.get_current_project(request)
+        
+        if not project:
+            return "❌ خطا: پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید."
         
         # آمار واحدها
         unit_count = project.unit_set.count()
         
+        result = f"🏠 آمار واحدهای پروژه {project.name}:\n\n"
+        result += f"📊 تعداد واحدها: {unit_count}\n"
+        
+        return result
+    
+    except Exception as e:
+        return f"❌ خطا: {str(e)}"
+
+
+@tool
+def get_period_stats(project_id: Optional[int] = None, request=None) -> str:
+    """
+    دریافت آمار دوره‌های پروژه
+    
+    Args:
+        project_id: شناسه پروژه (اختیاری)
+        request: درخواست HTTP برای دریافت پروژه جاری
+    
+    Returns:
+        آمار دوره‌ها
+    """
+    try:
+        # دریافت پروژه
+        project = None
+        if project_id:
+            project = Project.objects.get(id=project_id)
+        elif request:
+            project = ProjectManager.get_current_project(request)
+        
+        if not project:
+            return "❌ خطا: پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید."
+        
         # آمار دوره‌ها
         period_count = Period.objects.filter(project=project).count()
         
-        result = f"📊 آمار پروژه {project.name}:\n\n"
-        result += f"💰 مجموع هزینه‌ها: {total_expenses['total'] or 0:,.0f} تومان\n"
-        result += f"📋 تعداد هزینه‌ها: {total_expenses['count'] or 0}\n"
-        result += f"👥 تعداد سرمایه‌گذاران: {investor_count}\n"
-        result += f"🏠 تعداد واحدها: {unit_count}\n"
-        result += f"📅 تعداد دوره‌ها: {period_count}\n"
+        result = f"📅 آمار دوره‌های پروژه {project.name}:\n\n"
+        result += f"📊 تعداد دوره‌ها: {period_count}\n"
         
         return result
     

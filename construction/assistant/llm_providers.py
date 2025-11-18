@@ -1,6 +1,6 @@
 """
 LLM Provider Abstraction Layer
-پشتیبانی از چندین LLM provider شامل OpenAI, Anthropic, Hugging Face و Local models
+پشتیبانی از چندین LLM provider شامل OpenAI, Anthropic, Hugging Face, Google Gemini, OpenRouter و Local models
 """
 
 import os
@@ -134,6 +134,87 @@ class HuggingFaceProvider(LLMProvider):
         return f"HuggingFace {self.model_id}"
 
 
+class GoogleGeminiProvider(LLMProvider):
+    """Provider برای Google Gemini models"""
+    
+    def __init__(self, api_key: Optional[str] = None, model: str = "gemini-pro"):
+        """
+        Args:
+            api_key: API key برای Google Gemini
+            model: نام مدل (gemini-pro, gemini-pro-vision, gemini-1.5-pro, etc.)
+        """
+        self.api_key = api_key or os.getenv('GOOGLE_API_KEY') or os.getenv('GEMINI_API_KEY')
+        self.model = model
+        
+        if not self.api_key:
+            raise ValueError("GOOGLE_API_KEY or GEMINI_API_KEY environment variable is required")
+    
+    def get_llm(self, temperature: float = 0, **kwargs):
+        """ایجاد Google Gemini LLM"""
+        try:
+            from langchain_google_genai import ChatGoogleGenerativeAI
+            
+            return ChatGoogleGenerativeAI(
+                model=self.model,
+                temperature=temperature,
+                google_api_key=self.api_key,
+                **kwargs
+            )
+        except ImportError:
+            raise ImportError("langchain-google-genai is not installed. Install it with: pip install langchain-google-genai")
+    
+    def supports_function_calling(self) -> bool:
+        # Google Gemini از Function Calling پشتیبانی می‌کند
+        return True
+    
+    def get_model_name(self) -> str:
+        return f"Google Gemini {self.model}"
+
+
+class OpenRouterProvider(LLMProvider):
+    """Provider برای OpenRouter (unified interface for multiple LLMs)"""
+    
+    def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None):
+        """
+        Args:
+            api_key: API key برای OpenRouter
+            model: نام مدل در OpenRouter (مثلاً 'openai/gpt-4', 'anthropic/claude-3-sonnet', 'google/gemini-pro')
+        """
+        self.api_key = api_key or os.getenv('OPENROUTER_API_KEY')
+        self.model = model or os.getenv('OPENROUTER_MODEL', 'openai/gpt-4')
+        self.base_url = "https://openrouter.ai/api/v1"
+        
+        if not self.api_key:
+            raise ValueError("OPENROUTER_API_KEY environment variable is required")
+    
+    def get_llm(self, temperature: float = 0, **kwargs):
+        """ایجاد OpenRouter LLM"""
+        try:
+            from langchain_openai import ChatOpenAI
+            
+            # OpenRouter با OpenAI API compatible است
+            return ChatOpenAI(
+                model=self.model,
+                temperature=temperature,
+                openai_api_key=self.api_key,
+                base_url=self.base_url,
+                default_headers={
+                    "HTTP-Referer": os.getenv('OPENROUTER_HTTP_REFERER', 'https://github.com/your-repo'),
+                    "X-Title": os.getenv('OPENROUTER_X_TITLE', 'Construction Project Assistant'),
+                },
+                **kwargs
+            )
+        except ImportError:
+            raise ImportError("langchain-openai is not installed. Install it with: pip install langchain-openai")
+    
+    def supports_function_calling(self) -> bool:
+        # بستگی به مدل انتخابی دارد، اما اکثر مدل‌های معروف پشتیبانی می‌کنند
+        return True
+    
+    def get_model_name(self) -> str:
+        return f"OpenRouter {self.model}"
+
+
 class LocalModelProvider(LLMProvider):
     """Provider برای مدل‌های محلی (Ollama, LocalAI)"""
     
@@ -177,7 +258,7 @@ class LLMProviderFactory:
         ایجاد provider بر اساس نوع
         
         Args:
-            provider_type: نوع provider ('openai', 'anthropic', 'huggingface', 'local')
+            provider_type: نوع provider ('openai', 'anthropic', 'huggingface', 'gemini', 'openrouter', 'local')
             **kwargs: پارامترهای اضافی برای provider
         
         Returns:
@@ -191,10 +272,14 @@ class LLMProviderFactory:
             return AnthropicProvider(**kwargs)
         elif provider_type == 'huggingface':
             return HuggingFaceProvider(**kwargs)
+        elif provider_type == 'gemini' or provider_type == 'google':
+            return GoogleGeminiProvider(**kwargs)
+        elif provider_type == 'openrouter':
+            return OpenRouterProvider(**kwargs)
         elif provider_type == 'local':
             return LocalModelProvider(**kwargs)
         else:
-            raise ValueError(f"Unknown provider type: {provider_type}")
+            raise ValueError(f"Unknown provider type: {provider_type}. Supported types: openai, anthropic, huggingface, gemini, openrouter, local")
     
     @staticmethod
     def get_default_provider() -> LLMProvider:
