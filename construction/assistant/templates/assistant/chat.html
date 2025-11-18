@@ -1,0 +1,299 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}دستیار هوشمند - AI Assistant{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chat-container {
+        max-width: 900px;
+        margin: 30px auto;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        background: white;
+        height: calc(100vh - 200px);
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .chat-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        text-align: center;
+        border-bottom: 1px solid #ddd;
+    }
+    
+    .chat-header h2 {
+        margin: 0;
+        font-size: 24px;
+    }
+    
+    .chat-header p {
+        margin: 5px 0 0 0;
+        opacity: 0.9;
+        font-size: 14px;
+    }
+    
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        background: #f5f5f5;
+        direction: rtl;
+    }
+    
+    .message {
+        margin-bottom: 15px;
+        padding: 12px 18px;
+        border-radius: 12px;
+        max-width: 75%;
+        word-wrap: break-word;
+        line-height: 1.6;
+    }
+    
+    .user-message {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        margin-left: auto;
+        margin-right: 0;
+        text-align: right;
+        box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+    }
+    
+    .assistant-message {
+        background: white;
+        border: 1px solid #e0e0e0;
+        margin-right: auto;
+        margin-left: 0;
+        text-align: right;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    
+    .assistant-message pre {
+        background: #f5f5f5;
+        padding: 10px;
+        border-radius: 5px;
+        overflow-x: auto;
+        margin: 10px 0;
+        direction: ltr;
+        text-align: left;
+    }
+    
+    .chat-input-container {
+        padding: 20px;
+        background: white;
+        border-top: 1px solid #ddd;
+        display: flex;
+        gap: 10px;
+    }
+    
+    .chat-input {
+        flex: 1;
+        padding: 12px 18px;
+        border: 2px solid #e0e0e0;
+        border-radius: 25px;
+        font-size: 16px;
+        outline: none;
+        transition: border-color 0.3s;
+        direction: rtl;
+    }
+    
+    .chat-input:focus {
+        border-color: #667eea;
+    }
+    
+    .send-button {
+        padding: 12px 30px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 25px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .send-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+    }
+    
+    .send-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+    
+    .loading {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    .error-message {
+        background: #ffebee;
+        color: #c62828;
+        border: 1px solid #ef5350;
+        padding: 10px;
+        border-radius: 5px;
+        margin: 10px 0;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: #999;
+    }
+    
+    .empty-state svg {
+        width: 64px;
+        height: 64px;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+    <div class="chat-header">
+        <h2>🤖 دستیار هوشمند</h2>
+        <p>سوالات خود را بپرسید و دستورات را اجرا کنید</p>
+    </div>
+    
+    <div class="chat-messages" id="messages">
+        <div class="message assistant-message">
+            👋 سلام! من دستیار هوشمند شما هستم. 
+            می‌توانم به شما در ایجاد هزینه‌ها، دریافت اطلاعات و مدیریت پروژه کمک کنم.
+            <br><br>
+            <strong>مثال‌های دستورات:</strong><br>
+            • "یک هزینه با رقم 1000000 و در دوره 1 برای مدیر پروژه ایجاد کن"<br>
+            • "لیست دوره‌ها را نشان بده"<br>
+            • "آمار پروژه را نمایش بده"<br>
+            • "هزینه شماره 5 را نشان بده"
+        </div>
+    </div>
+    
+    <div class="chat-input-container">
+        <input 
+            type="text" 
+            id="messageInput" 
+            class="chat-input" 
+            placeholder="دستور یا سوال خود را بنویسید..."
+            autocomplete="off"
+        >
+        <button onclick="sendMessage()" id="sendButton" class="send-button">
+            ارسال
+        </button>
+    </div>
+</div>
+
+<script>
+    const messagesDiv = document.getElementById('messages');
+    const messageInput = document.getElementById('messageInput');
+    const sendButton = document.getElementById('sendButton');
+    
+    function addMessage(text, isUser) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${isUser ? 'user-message' : 'assistant-message'}`;
+        
+        // تبدیل خطوط جدید به <br>
+        text = text.replace(/\n/g, '<br>');
+        
+        // فرمت کردن کدها
+        text = text.replace(/```([\s\S]*?)```/g, '<pre>$1</pre>');
+        
+        messageDiv.innerHTML = text;
+        messagesDiv.appendChild(messageDiv);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+    
+    function setLoading(loading) {
+        if (loading) {
+            sendButton.disabled = true;
+            sendButton.innerHTML = '<span class="loading"></span>';
+        } else {
+            sendButton.disabled = false;
+            sendButton.innerHTML = 'ارسال';
+        }
+    }
+    
+    async function sendMessage() {
+        const message = messageInput.value.trim();
+        
+        if (!message) return;
+        
+        // اضافه کردن پیام کاربر
+        addMessage(message, true);
+        messageInput.value = '';
+        setLoading(true);
+        
+        try {
+            const response = await fetch('{% url "assistant:chat_api" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                credentials: 'include',
+                body: JSON.stringify({ 
+                    message: message,
+                    use_rag: true
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                addMessage(data.output, false);
+            } else {
+                addMessage(`❌ خطا: ${data.error || 'خطای نامشخص'}`, false);
+            }
+        } catch (error) {
+            addMessage('❌ خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید.', false);
+            console.error('Error:', error);
+        } finally {
+            setLoading(false);
+        }
+    }
+    
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    // ارسال با Enter
+    messageInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+    
+    // فوکوس خودکار روی input
+    messageInput.focus();
+</script>
+{% endblock %}
+

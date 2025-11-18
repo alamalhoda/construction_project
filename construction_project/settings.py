@@ -106,8 +106,10 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'django_filters',
+    'drf_spectacular',  # برای تولید OpenAPI schema
 
     'construction.apps.ConstructionConfig',  # استفاده از apps.py
+    'construction.assistant',  # AI Assistant app
     'dashboard',
     'backup',
     'django_extensions',
@@ -315,4 +317,33 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
     ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+# AI Assistant Settings
+AI_ASSISTANT_PROVIDER = os.getenv('AI_ASSISTANT_PROVIDER', 'openai')  # 'openai', 'anthropic', 'huggingface', 'local'
+AI_ASSISTANT_PROVIDER_CONFIG = {
+    # برای OpenAI
+    'api_key': os.getenv('OPENAI_API_KEY'),
+    'model': os.getenv('OPENAI_MODEL', 'gpt-4'),
+    
+    # برای Anthropic
+    # 'api_key': os.getenv('ANTHROPIC_API_KEY'),
+    # 'model': os.getenv('ANTHROPIC_MODEL', 'claude-3-sonnet-20240229'),
+    
+    # برای Hugging Face
+    # 'model_id': os.getenv('HUGGINGFACE_MODEL_ID', 'mistralai/Mistral-7B-Instruct-v0.2'),
+    # 'endpoint': os.getenv('HUGGINGFACE_ENDPOINT'),
+    
+    # برای Local models
+    # 'base_url': os.getenv('LOCAL_MODEL_URL', 'http://localhost:11434'),
+    # 'model': os.getenv('LOCAL_MODEL_NAME', 'llama2'),
+}
+
+# drf-spectacular settings (برای RAG)
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Construction Project API',
+    'DESCRIPTION': 'API documentation for Construction Project Management System',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
 }
