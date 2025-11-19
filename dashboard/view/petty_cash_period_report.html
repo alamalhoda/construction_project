@@ -706,15 +706,7 @@
             const depositColorLight = getComputedStyle(document.documentElement).getPropertyValue('--deposit-color-light').trim();
             const refundColorLight = getComputedStyle(document.documentElement).getPropertyValue('--refund-color-light').trim();
             const expenseColorLight = getComputedStyle(document.documentElement).getPropertyValue('--expense-color-light').trim();
-
-            // تعیین رنگ خط بر اساس میانگین balance
-            const avgBalance = balances.reduce((a, b) => a + b, 0) / balances.length;
             let lineColor = getComputedStyle(document.documentElement).getPropertyValue('--balance-color').trim();
-            if (avgBalance > 0) {
-                lineColor = getComputedStyle(document.documentElement).getPropertyValue('--withdrawal-color').trim();
-            } else if (avgBalance < 0) {
-                lineColor = getComputedStyle(document.documentElement).getPropertyValue('--profit-color').trim();
-            }
 
             // Create combo chart
             const ctx = document.getElementById('trendChart').getContext('2d');
