@@ -755,7 +755,7 @@
                 const data = await response.json();
                 transactionsData = data.results || data;
                 createTable();
-                updateStats();
+                await updateStats();
                 populateFilters();
                 
                 showLoading(false);
@@ -909,29 +909,58 @@
                 updateResultsCount(data.length);
             });
 
-            table.on("dataFiltered", function(filters, rows) {
+            table.on("dataFiltered", async function(filters, rows) {
                 updateResultsCount(rows.length);
-                updateStats();
+                await updateStats();
             });
         }
 
-        function updateStats() {
-            const data = table ? table.getData() : transactionsData;
-            
-            const totalReceipts = data
-                .filter(row => row.transaction_type === 'receipt')
-                .reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
-            
-            const totalReturns = data
-                .filter(row => row.transaction_type === 'return')
-                .reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
-            
-            const netAmount = totalReceipts - totalReturns;
-
-            document.getElementById('totalReceipts').textContent = totalReceipts.toLocaleString('en-US');
-            document.getElementById('totalReturns').textContent = totalReturns.toLocaleString('en-US');
-            document.getElementById('netAmount').textContent = netAmount.toLocaleString('en-US');
-            document.getElementById('statsCards').style.display = 'grid';
+        async function updateStats() {
+            try {
+                // دریافت فیلترهای فعلی
+                const expenseType = $('#expenseTypeFilter').dropdown('get value');
+                const transactionType = $('#transactionTypeFilter').dropdown('get value');
+                
+                // ساخت URL با فیلترها
+                let url = `${API_BASE}PettyCashTransaction/statistics/`;
+                const params = new URLSearchParams();
+                if (expenseType) params.append('expense_type', expenseType);
+                if (transactionType) params.append('transaction_type', transactionType);
+                if (params.toString()) {
+                    url += '?' + params.toString();
+                }
+                
+                // دریافت آمار از سرور (Single Source of Truth)
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFToken() || ''
+                    },
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) {
+                    throw new Error('خطا در دریافت آمار');
+                }
+                
+                const result = await response.json();
+                if (result.success && result.data) {
+                    const stats = result.data;
+                    document.getElementById('totalReceipts').textContent = stats.total_receipts.toLocaleString('en-US');
+                    document.getElementById('totalReturns').textContent = stats.total_returns.toLocaleString('en-US');
+                    document.getElementById('netAmount').textContent = stats.net_amount.toLocaleString('en-US');
+                    document.getElementById('statsCards').style.display = 'grid';
+                } else {
+                    throw new Error(result.error || 'خطا در دریافت آمار');
+                }
+            } catch (error) {
+                console.error('Error updating stats:', error);
+                // در صورت خطا، نمایش صفر
+                document.getElementById('totalReceipts').textContent = '0';
+                document.getElementById('totalReturns').textContent = '0';
+                document.getElementById('netAmount').textContent = '0';
+            }
         }
 
         function updateResultsCount(count) {

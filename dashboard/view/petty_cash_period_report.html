@@ -658,7 +658,8 @@
 
                 const result = await response.json();
                 if (result.success) {
-                    displayTrendData(result.data);
+                    // ارسال کل response شامل data و summary (Single Source of Truth)
+                    displayTrendData(result);
                     document.getElementById('loading').style.display = 'none';
                     document.getElementById('content').style.display = 'block';
                 } else {
@@ -671,7 +672,11 @@
             }
         }
 
-        function displayTrendData(data) {
+        function displayTrendData(responseData) {
+            // دریافت داده‌ها و آمار از سرور (Single Source of Truth)
+            const data = responseData.data || [];
+            const summary = responseData.summary || {};
+            
             if (!data || data.length === 0) {
                 document.getElementById('trendTable').innerHTML = 
                     '<p style="text-align: center; padding: 20px; color: var(--text-secondary);">داده‌ای برای نمایش وجود ندارد</p>';
@@ -679,22 +684,11 @@
                 return;
             }
 
-            // محاسبه آمار کلی
-            let statsTotalReceipts = 0;
-            let statsTotalReturns = 0;
-            let statsTotalExpenses = 0;
-            let finalBalance = 0;
-
-            data.forEach(item => {
-                statsTotalReceipts += parseFloat(item.period_receipts || 0);
-                statsTotalReturns += parseFloat(item.period_returns || 0);
-                statsTotalExpenses += parseFloat(item.period_expenses || 0);
-            });
-
-            // مانده نهایی (آخرین مانده تجمعی)
-            if (data.length > 0) {
-                finalBalance = parseFloat(data[data.length - 1].cumulative_balance || data[data.length - 1].balance || 0);
-            }
+            // استفاده از آمار محاسبه شده در سرور
+            const statsTotalReceipts = summary.total_receipts || 0;
+            const statsTotalReturns = summary.total_returns || 0;
+            const statsTotalExpenses = summary.total_expenses || 0;
+            const finalBalance = summary.final_balance || 0;
 
             // نمایش کارت‌های آماری
             displayStatsCards(statsTotalReceipts, statsTotalReturns, statsTotalExpenses, finalBalance);
@@ -963,11 +957,12 @@
             tableHTML += '</th>';
             tableHTML += '</tr></thead><tbody>';
             
-            // محاسبه مجموع‌ها
-            let totalReceipts = 0;
-            let totalReturns = 0;
-            let totalExpenses = 0;
-            let totalPeriodBalance = 0;
+            // استفاده از آمار محاسبه شده در سرور (Single Source of Truth)
+            const totalReceipts = summary.total_receipts || 0;
+            const totalReturns = summary.total_returns || 0;
+            const totalExpenses = summary.total_expenses || 0;
+            const totalPeriodBalance = summary.total_period_balance || 0;
+            const finalCumulativeBalance = summary.final_balance || 0;
             
             data.forEach(item => {
                 const receipts = parseFloat(item.period_receipts || 0);
@@ -975,11 +970,6 @@
                 const expenses = parseFloat(item.period_expenses || 0);
                 const periodBalance = parseFloat(item.period_balance || 0);
                 const cumulativeBalance = parseFloat(item.cumulative_balance || item.balance || 0);
-                
-                totalReceipts += receipts;
-                totalReturns += returns;
-                totalExpenses += expenses;
-                totalPeriodBalance += periodBalance;
                 
                 // تعیین کلاس برای مانده ماهانه
                 const periodBalancePositive = periodBalance > 0;
@@ -1008,8 +998,7 @@
                 </tr>`;
             });
             
-            // محاسبه مجموع نهایی
-            const finalCumulativeBalance = data.length > 0 ? parseFloat(data[data.length - 1].cumulative_balance || data[data.length - 1].balance || 0) : 0;
+            // استفاده از مانده نهایی از سرور (Single Source of Truth)
             const finalCumulativeClass = finalCumulativeBalance > 0 ? 'balance-positive' : finalCumulativeBalance < 0 ? 'balance-negative' : 'balance-zero';
             const finalCumulativeSign = finalCumulativeBalance >= 0 ? '+' : '';
             

@@ -1894,7 +1894,24 @@ class PettyCashTransactionViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
                 active_project, expense_type, start_period, end_period
             )
           
-            return Response({'success': True, 'data': trend})
+            # محاسبه آمار کلی (Single Source of Truth)
+            stats_total_receipts = sum(float(item.get('period_receipts', 0) or 0) for item in trend)
+            stats_total_returns = sum(float(item.get('period_returns', 0) or 0) for item in trend)
+            stats_total_expenses = sum(float(item.get('period_expenses', 0) or 0) for item in trend)
+            total_period_balance = sum(float(item.get('period_balance', 0) or 0) for item in trend)
+            final_balance = float(trend[-1].get('cumulative_balance', trend[-1].get('balance', 0)) or 0) if trend else 0.0
+          
+            return Response({
+                'success': True,
+                'data': trend,
+                'summary': {
+                    'total_receipts': stats_total_receipts,
+                    'total_returns': stats_total_returns,
+                    'total_expenses': stats_total_expenses,
+                    'total_period_balance': total_period_balance,
+                    'final_balance': final_balance
+                }
+            })
         except Exception as e:
             return Response({'error': str(e)}, status=500)
     
@@ -1973,6 +1990,55 @@ class PettyCashTransactionViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
                         'net_amount': net_amount,
                         'count': queryset.count()
                     }
+                }
+            })
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
+    
+    @action(detail=False, methods=['get'])
+    def statistics(self, request):
+        """آمار کلی تراکنش‌های تنخواه (Single Source of Truth)"""
+        try:
+            from construction.project_manager import ProjectManager
+            from django.db.models import Sum
+            
+            active_project = ProjectManager.get_current_project(request)
+            if not active_project:
+                return Response({'error': 'هیچ پروژه فعالی یافت نشد'}, status=400)
+            
+            # دریافت فیلترها
+            expense_type = request.query_params.get('expense_type')
+            transaction_type = request.query_params.get('transaction_type')
+            
+            # QuerySet اولیه
+            queryset = models.PettyCashTransaction.objects.filter(project=active_project)
+            
+            # اعمال فیلترها
+            if expense_type:
+                queryset = queryset.filter(expense_type=expense_type)
+            if transaction_type:
+                queryset = queryset.filter(transaction_type=transaction_type)
+            
+            # محاسبه آمار با استفاده از Manager (Single Source of Truth)
+            total_receipts = queryset.filter(transaction_type='receipt').aggregate(
+                total=Sum('amount')
+            )['total'] or 0
+            
+            total_returns = queryset.filter(transaction_type='return').aggregate(
+                total=Sum('amount')
+            )['total'] or 0
+            
+            total_receipts = float(total_receipts)
+            total_returns = float(total_returns)
+            net_amount = total_receipts - total_returns
+            
+            return Response({
+                'success': True,
+                'data': {
+                    'total_receipts': total_receipts,
+                    'total_returns': total_returns,
+                    'net_amount': net_amount,
+                    'count': queryset.count()
                 }
             })
         except Exception as e:
