@@ -152,12 +152,10 @@
     /* استایل مخصوص کارت‌های مدیر فنی */
     .dashboard-card.admin-card {
         border-left: 4px solid #667eea;
-        background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
     }
     
     .dashboard-card.user-card {
         border-left: 4px solid #28a745;
-        background: linear-gradient(135deg, rgba(40, 167, 69, 0.05) 0%, rgba(32, 201, 151, 0.05) 100%);
     }
     
     .section-header {
@@ -467,6 +465,8 @@
                 </a>
             </div>
 
+
+
             <div class="dashboard-card user-card">
                 <span class="card-icon">📊 <!-- <i class="fas fa-chart-pie" style="margin-right: 10px;"></i> --></span>
                 <h3 class="card-title">خلاصه مالی</h3>
@@ -521,7 +521,42 @@
                     پروفایل مالی مشارکت کنندگان
                 </a>
             </div>
+                        <!-- بخش مستندات API -->
+                        <div class="section-header" style="margin-top: 30px;">
+                            <h2>📚 مستندات API</h2>
+                            <p>دسترسی به مستندات و شماتیک API</p>
+                        </div>
             
+                        <div class="dashboard-card admin-card">
+                            <span class="card-icon">🔍</span>
+                            <h3 class="card-title">Swagger UI</h3>
+                            <p class="card-description">
+                                رابط کاربری تعاملی برای تست و مشاهده API‌ها
+                            </p>
+                            <a href="/api/swagger-ui/" target="_blank" class="card-btn">
+                                باز کردن Swagger UI
+                            </a>
+                        </div>
+                        <div class="dashboard-card admin-card">
+                            <span class="card-icon">🔍</span>
+                            <h3 class="card-title">Redoc</h3>
+                            <p class="card-description">
+                                رابط کاربری تعاملی برای تست و مشاهده API‌ها
+                            </p>
+                            <a href="/api/redoc/" target="_blank" class="card-btn">
+                                باز کردن Redoc
+                            </a>
+                        </div>
+                        <div class="dashboard-card admin-card">
+                            <span class="card-icon">📄</span>
+                            <h3 class="card-title">Schema JSON</h3>
+                            <p class="card-description">
+                                دریافت فایل JSON شماتیک API برای استفاده برنامه‌نویسی
+                            </p>
+                            <a href="/api/schema/" target="_blank" class="card-btn">
+                                دریافت Schema JSON
+                            </a>
+                        </div>
             <!-- بخش حسابداری تنخواه -->
             <div class="petty-cash-section">
                 <div class="petty-cash-section-border"></div>

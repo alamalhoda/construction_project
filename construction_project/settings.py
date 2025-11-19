@@ -348,10 +348,13 @@ AI_ASSISTANT_PROVIDER_CONFIG = {
     # 'model': os.getenv('LOCAL_MODEL_NAME', 'llama2'),
 }
 
-# drf-spectacular settings (برای RAG)
+# drf-spectacular settings (برای RAG و API Documentation)
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Construction Project API',
     'DESCRIPTION': 'API documentation for Construction Project Management System',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+    'SERVE_PERMISSIONS': ['rest_framework.permissions.AllowAny'],  # برای دسترسی به مستندات
+    'COMPONENT_SPLIT_REQUEST': True,  # برای جدا کردن request و response
+    'SCHEMA_PATH_PREFIX': '/api/v1/',  # پیشوند مسیر API
 }
