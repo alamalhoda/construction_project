@@ -745,6 +745,12 @@ from construction.project_manager import ProjectManager
         """
         تحلیل OpenAPI schema و تولید Tools
         
+        این متد از OpenAPI schema کامل استفاده می‌کند که شامل:
+        - تمام endpoints (standard و custom actions)
+        - پارامترهای path و query
+        - requestBody با schema کامل
+        - components/schemas با تمام جزئیات
+        
         Args:
             schema_path: مسیر فایل schema.json
         
@@ -767,6 +773,60 @@ from construction.project_manager import ProjectManager
             schema = json.load(f)
         
         tools = []
+        components = schema.get('components', {}).get('schemas', {})
+        
+        def resolve_schema_ref(ref: str) -> dict:
+            """حل کردن $ref به schema واقعی"""
+            if ref.startswith('#/components/schemas/'):
+                schema_name = ref.split('/')[-1]
+                return components.get(schema_name, {})
+            return {}
+        
+        def extract_properties_from_schema(schema_obj: dict, components: dict) -> List[Dict[str, Any]]:
+            """استخراج properties از schema (با پشتیبانی از $ref)"""
+            params = []
+            
+            # اگر $ref دارد، آن را حل کن
+            if '$ref' in schema_obj:
+                schema_obj = resolve_schema_ref(schema_obj['$ref'])
+            
+            # استخراج properties
+            properties = schema_obj.get('properties', {})
+            required_fields = schema_obj.get('required', [])
+            
+            for prop_name, prop_schema in properties.items():
+                # اگر prop_schema خودش $ref دارد
+                if '$ref' in prop_schema:
+                    prop_schema = resolve_schema_ref(prop_schema['$ref'])
+                
+                # استخراج نوع
+                prop_type = prop_schema.get('type', 'string')
+                
+                # تبدیل enum به string با description
+                if 'enum' in prop_schema:
+                    enum_values = prop_schema.get('enum', [])
+                    prop_type = 'string'
+                    enum_desc = f"مقادیر مجاز: {', '.join(map(str, enum_values))}"
+                    description = prop_schema.get('description', '') or prop_schema.get('title', '')
+                    if enum_desc:
+                        description = f"{description} ({enum_desc})" if description else enum_desc
+                else:
+                    description = prop_schema.get('description', '') or prop_schema.get('title', '')
+                
+                # بررسی readOnly
+                if prop_schema.get('readOnly', False):
+                    continue  # فیلدهای readOnly را در requestBody نادیده بگیر
+                
+                params.append({
+                    'name': prop_name,
+                    'type': prop_type,
+                    'required': prop_name in required_fields,
+                    'description': description,
+                    'format': prop_schema.get('format'),  # برای date, date-time و...
+                    'nullable': prop_schema.get('nullable', False)
+                })
+            
+            return params
         
         # تحلیل paths
         if 'paths' in schema:
@@ -777,12 +837,18 @@ from construction.project_manager import ProjectManager
                         description = details.get('description', details.get('summary', ''))
                         tags = details.get('tags', [])
                         
-                        # استخراج پارامترها
+                        # استخراج پارامترهای path و query
                         params = []
                         if 'parameters' in details:
                             for param in details['parameters']:
                                 param_name = param.get('name', '')
-                                param_type = param.get('schema', {}).get('type', 'string')
+                                param_schema = param.get('schema', {})
+                                
+                                # حل کردن $ref در schema
+                                if '$ref' in param_schema:
+                                    param_schema = resolve_schema_ref(param_schema['$ref'])
+                                
+                                param_type = param_schema.get('type', 'string')
                                 required = param.get('required', False)
                                 
                                 if param_name:
@@ -790,15 +856,25 @@ from construction.project_manager import ProjectManager
                                         'name': param_name,
                                         'type': param_type,
                                         'required': required,
-                                        'description': param.get('description', '')
+                                        'description': param.get('description', ''),
+                                        'in': param.get('in', 'query'),  # path, query, header
+                                        'format': param_schema.get('format')
                                     })
                         
-                        # استخراج request body
+                        # استخراج request body (برای POST, PUT, PATCH)
                         if 'requestBody' in details:
                             content = details['requestBody'].get('content', {})
                             if 'application/json' in content:
-                                schema_ref = content['application/json'].get('schema', {})
-                                # می‌توانیم schema را تحلیل کنیم و فیلدها را استخراج کنیم
+                                request_schema = content['application/json'].get('schema', {})
+                                
+                                # استخراج properties از requestBody schema
+                                body_params = extract_properties_from_schema(request_schema, components)
+                                
+                                # اضافه کردن به params (بدون تکرار)
+                                existing_names = {p['name'] for p in params}
+                                for body_param in body_params:
+                                    if body_param['name'] not in existing_names:
+                                        params.append(body_param)
                         
                         # تولید نام Tool
                         tool_name = operation_id.lower().replace('_', '_')
@@ -808,6 +884,27 @@ from construction.project_manager import ProjectManager
                             resource = path_parts[-1] if path_parts else 'resource'
                             tool_name = f"{method.lower()}_{resource}".replace('-', '_').replace('{', '').replace('}', '')
                         
+                        # استخراج اطلاعات security
+                        security = details.get('security', [])
+                        security_info = []
+                        for sec in security:
+                            if isinstance(sec, dict):
+                                security_info.extend(list(sec.keys()))
+                        
+                        # استخراج اطلاعات response (برای docstring)
+                        responses = details.get('responses', {})
+                        response_info = []
+                        for status_code, response_detail in responses.items():
+                            if isinstance(response_detail, dict):
+                                content = response_detail.get('content', {})
+                                if 'application/json' in content:
+                                    response_schema = content['application/json'].get('schema', {})
+                                    if '$ref' in response_schema:
+                                        schema_name = response_schema['$ref'].split('/')[-1]
+                                        response_info.append(f"{status_code}: {schema_name}")
+                                    else:
+                                        response_info.append(f"{status_code}: {response_schema.get('type', 'object')}")
+                        
                         tools.append({
                             'name': tool_name,
                             'description': description or f"{method.upper()} {path}",
@@ -815,7 +912,9 @@ from construction.project_manager import ProjectManager
                             'path': path,
                             'params': params,
                             'tags': tags,
-                            'operation_id': operation_id
+                            'operation_id': operation_id,
+                            'security': security_info,
+                            'responses': response_info
                         })
         
         return tools
@@ -843,10 +942,11 @@ from construction.project_manager import ProjectManager
         for param in params:
             param_name = param['name']
             param_type = param['type']
-            required = param.get('required', False)
+            required = param.get('required', False) and not param.get('nullable', False)
             param_desc = param.get('description', '')
+            param_format = param.get('format', '')
             
-            # تبدیل نوع OpenAPI به Python
+            # تبدیل نوع OpenAPI به Python (با توجه به format)
             type_mapping = {
                 'integer': 'int',
                 'number': 'float',
@@ -856,6 +956,15 @@ from construction.project_manager import ProjectManager
                 'object': 'dict'
             }
             python_type = type_mapping.get(param_type, 'str')
+            
+            # اگر format دارد، در description اضافه کن
+            if param_format:
+                if param_format == 'date':
+                    param_desc = f"{param_desc} (فرمت: YYYY-MM-DD)" if param_desc else "فرمت: YYYY-MM-DD"
+                elif param_format == 'date-time':
+                    param_desc = f"{param_desc} (فرمت: ISO 8601)" if param_desc else "فرمت: ISO 8601"
+                elif param_format == 'email':
+                    param_desc = f"{param_desc} (ایمیل)" if param_desc else "ایمیل"
             
             if not required:
                 param_signatures.append(f"{param_name}: Optional[{python_type}] = None")
@@ -869,19 +978,48 @@ from construction.project_manager import ProjectManager
         
         signature = ", ".join(param_signatures)
         
-        # ساخت docstring
-        docstring = f'''    """
-    {description}
-    
-    این Tool از API endpoint {method} {path} استفاده می‌کند.
-    
-    Args:
-{chr(10).join(param_docs) if param_docs else "        (بدون پارامتر)"}
-        request: درخواست HTTP برای احراز هویت (برای استفاده داخلی)
-    
-    Returns:
-        نتیجه عملیات به صورت رشته متنی
-    """'''
+        # استخراج اطلاعات اضافی
+        tags = tool_info.get('tags', [])
+        security = tool_info.get('security', [])
+        responses = tool_info.get('responses', [])
+        operation_id = tool_info.get('operation_id', '')
+        
+        # ساخت docstring کامل
+        docstring_parts = [f"    {description}"]
+        docstring_parts.append("")
+        docstring_parts.append(f"    این Tool از API endpoint {method} {path} استفاده می‌کند.")
+        
+        if operation_id:
+            docstring_parts.append(f"    Operation ID: {operation_id}")
+        
+        if tags:
+            docstring_parts.append(f"    دسته‌بندی: {', '.join(tags)}")
+        
+        if security:
+            security_str = ', '.join(security)
+            docstring_parts.append(f"    نیاز به احراز هویت: {security_str}")
+        
+        docstring_parts.append("")
+        docstring_parts.append("    Args:")
+        if param_docs:
+            docstring_parts.extend(param_docs)
+        else:
+            docstring_parts.append("        (بدون پارامتر)")
+        docstring_parts.append("        request: درخواست HTTP برای احراز هویت (برای استفاده داخلی)")
+        
+        if responses:
+            docstring_parts.append("")
+            docstring_parts.append("    Returns:")
+            docstring_parts.append("        نتیجه عملیات به صورت رشته متنی")
+            docstring_parts.append("        کدهای وضعیت ممکن:")
+            for resp in responses:
+                docstring_parts.append(f"        - {resp}")
+        else:
+            docstring_parts.append("")
+            docstring_parts.append("    Returns:")
+            docstring_parts.append("        نتیجه عملیات به صورت رشته متنی")
+        
+        docstring = '\n'.join(docstring_parts)
         
         # ساخت body
         # برای GET requests
@@ -937,10 +1075,34 @@ def {tool_name}({signature}) -> str:
         """
         tools_info = self.analyze_openapi_schema()
         
-        all_code = '''"""
+        # شمارش اطلاعات استخراج شده
+        total_endpoints = len(tools_info)
+        total_params = sum(len(t.get('params', [])) for t in tools_info)
+        tags_count = len(set(tag for tool in tools_info for tag in tool.get('tags', [])))
+        
+        all_code = f'''"""
 Tools تولید شده خودکار از OpenAPI Schema
 این فایل به صورت خودکار از schema.json تولید شده است.
-توجه: این Tools نیاز به پیاده‌سازی کامل دارند.
+
+📊 آمار استخراج شده:
+   - تعداد کل Endpoints: {total_endpoints}
+   - تعداد کل پارامترها: {total_params}
+   - تعداد دسته‌بندی‌ها (Tags): {tags_count}
+
+✅ اطلاعات شامل شده در هر Tool:
+   - توضیحات کامل endpoint (description)
+   - مسیر API (path)
+   - متد HTTP (GET, POST, PUT, DELETE, PATCH)
+   - تمام پارامترها (path, query, body)
+   - توضیحات کامل هر فیلد (description, type, format)
+   - فیلدهای الزامی و اختیاری (required)
+   - مقادیر enum (اگر وجود داشته باشد)
+   - نیاز به احراز هویت (security)
+   - کدهای وضعیت پاسخ (responses)
+   - Operation ID
+   - دسته‌بندی (tags)
+
+⚠️  توجه: این Tools نیاز به پیاده‌سازی کامل دارند.
 """
 
 from langchain.tools import tool
@@ -961,7 +1123,7 @@ from django.conf import settings
         
         # تولید کد برای هر گروه
         for tag, tools in tools_by_tag.items():
-            all_code += f"\n# ===== Tools for {tag} =====\n\n"
+            all_code += f"\n# ===== Tools for {tag} ({len(tools)} endpoint) =====\n\n"
             
             for tool_info in tools:
                 tool_code = self.generate_tool_from_openapi(tool_info)
@@ -972,17 +1134,54 @@ from django.conf import settings
             with open(output_file, 'w', encoding='utf-8') as f:
                 f.write(all_code)
             print(f"✅ Tools در فایل {output_file} ذخیره شد")
+            
+            # نمایش خلاصه
+            print(f"\n📊 خلاصه اطلاعات استخراج شده:")
+            print(f"   - تعداد کل Endpoints: {total_endpoints}")
+            print(f"   - تعداد کل پارامترها: {total_params}")
+            print(f"   - تعداد دسته‌بندی‌ها: {tags_count}")
+            print(f"\n✅ هر Tool شامل:")
+            print(f"   ✓ توضیحات کامل endpoint")
+            print(f"   ✓ مسیر API و متد HTTP")
+            print(f"   ✓ تمام پارامترها با توضیحات")
+            print(f"   ✓ فیلدهای الزامی/اختیاری")
+            print(f"   ✓ مقادیر enum و format ها")
+            print(f"   ✓ نیاز به احراز هویت")
+            print(f"   ✓ کدهای وضعیت پاسخ")
         
         return all_code
 
 
 def main():
-    """تابع اصلی برای اجرای generator"""
+    """
+    تابع اصلی برای اجرای generator
+    
+    توصیه: استفاده از روش 'schema' به عنوان روش پیش‌فرض
+    چرا که OpenAPI schema تولید شده توسط drf-spectacular شامل تمام اطلاعات لازم است:
+    - تمام endpoints (standard و custom actions)
+    - پارامترهای path و query
+    - requestBody با schema کامل
+    - components/schemas با تمام جزئیات (types, required, descriptions, enums)
+    """
     import argparse
     
-    parser = argparse.ArgumentParser(description='تولید خودکار Tools از APIs')
+    parser = argparse.ArgumentParser(
+        description='تولید خودکار Tools از APIs',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+مثال‌ها:
+  # استفاده از OpenAPI schema (توصیه می‌شود)
+  python tool_generator.py --method schema
+  
+  # استفاده از ViewSets (برای موارد خاص)
+  python tool_generator.py --method viewset
+  
+  # استفاده از هر دو روش
+  python tool_generator.py --method both
+        """
+    )
     parser.add_argument('--method', choices=['viewset', 'schema', 'both'], default='schema',
-                       help='روش تولید: viewset (از ViewSets), schema (از OpenAPI), both (هر دو)')
+                       help='روش تولید: schema (از OpenAPI - توصیه می‌شود), viewset (از ViewSets), both (هر دو)')
     parser.add_argument('--output', type=str, default=None,
                        help='مسیر فایل خروجی (پیش‌فرض: generated_tools.py)')
     
@@ -995,6 +1194,8 @@ def main():
     
     if args.method in ['viewset', 'both']:
         print("🔧 در حال تولید Tools از ViewSets...")
+        print("   ⚠️  توجه: این روش ممکن است تمام اطلاعات را شامل نشود.")
+        print("   💡 توصیه: از روش 'schema' استفاده کنید که کامل‌تر است.\n")
         code = generator.generate_all_tools(
             output_file=args.output if args.method == 'viewset' else None
         )
@@ -1002,6 +1203,8 @@ def main():
     
     if args.method in ['schema', 'both']:
         print("\n🔧 در حال تولید Tools از OpenAPI Schema...")
+        print("   ✅ استفاده از schema کامل drf-spectacular")
+        print("   ✅ شامل تمام endpoints، parameters، requestBody و schemas\n")
         code = generator.generate_tools_from_schema(
             output_file=args.output if args.method == 'schema' else args.output.replace('.py', '_from_schema.py')
         )
@@ -1009,6 +1212,12 @@ def main():
     
     print(f"\n📁 فایل خروجی: {args.output}")
     print("\n⚠️  توجه: این Tools به صورت خودکار تولید شده‌اند و نیاز به بررسی و تکمیل دارند.")
+    if args.method == 'schema':
+        print("💡 مزایای استفاده از schema:")
+        print("   - شامل تمام custom actions")
+        print("   - شامل تمام پارامترهای requestBody")
+        print("   - شامل descriptions و types کامل")
+        print("   - شامل enum values و format ها")
 
 
 if __name__ == "__main__":
