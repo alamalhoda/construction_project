@@ -9,7 +9,7 @@
         "/api/v1/Expense/": {
             "get": {
                 "operationId": "Expense_list",
-                "description": "ViewSet for the Expense class",
+                "description": "ViewSet برای مدیریت هزینه‌های پروژه\n\nاین ViewSet امکان مدیریت کامل هزینه‌های پروژه را فراهم می‌کند.\n\nقابلیت‌ها:\n- ایجاد، خواندن، به‌روزرسانی و حذف هزینه‌ها\n- دریافت آمار و گزارش‌های مالی\n- محاسبه مجموع هزینه‌ها بر اساس نوع و دوره\n- مدیریت هزینه‌های دوره‌ای\n\nسناریوهای استفاده:\n- ثبت هزینه‌های مواد اولیه (material)\n- ثبت هزینه‌های نیروی کار (labor)\n- ثبت هزینه‌های اداری و عمومی (administrative)\n- دریافت گزارش‌های مالی برای تحلیل پروژه\n- محاسبه هزینه‌های تجمعی برای هر دوره\n\nمثال‌های کاربرد:\n- برای ثبت خرید سیمان و آجر: expense_type='material', amount='5000000'\n- برای ثبت حقوق کارگران: expense_type='labor', amount='3000000'\n- برای دریافت لیست تمام هزینه‌ها: GET /api/v1/Expense/\n- برای دریافت آمار هزینه‌ها: GET /api/v1/Expense/dashboard_data/\n\nنکات مهم:\n- تمام عملیات بر اساس پروژه جاری (active project) انجام می‌شود\n- هزینه‌ها می‌توانند به یک دوره خاص مرتبط باشند\n- انواع هزینه: project_manager, facilities_manager, procurement, warehouse, construction_contractor, other",
                 "tags": [
                     "Expense"
                 ],
@@ -31,7 +31,7 @@
             },
             "post": {
                 "operationId": "Expense_create",
-                "description": "ViewSet for the Expense class",
+                "description": "ViewSet برای مدیریت هزینه‌های پروژه\n\nاین ViewSet امکان مدیریت کامل هزینه‌های پروژه را فراهم می‌کند.\n\nقابلیت‌ها:\n- ایجاد، خواندن، به‌روزرسانی و حذف هزینه‌ها\n- دریافت آمار و گزارش‌های مالی\n- محاسبه مجموع هزینه‌ها بر اساس نوع و دوره\n- مدیریت هزینه‌های دوره‌ای\n\nسناریوهای استفاده:\n- ثبت هزینه‌های مواد اولیه (material)\n- ثبت هزینه‌های نیروی کار (labor)\n- ثبت هزینه‌های اداری و عمومی (administrative)\n- دریافت گزارش‌های مالی برای تحلیل پروژه\n- محاسبه هزینه‌های تجمعی برای هر دوره\n\nمثال‌های کاربرد:\n- برای ثبت خرید سیمان و آجر: expense_type='material', amount='5000000'\n- برای ثبت حقوق کارگران: expense_type='labor', amount='3000000'\n- برای دریافت لیست تمام هزینه‌ها: GET /api/v1/Expense/\n- برای دریافت آمار هزینه‌ها: GET /api/v1/Expense/dashboard_data/\n\nنکات مهم:\n- تمام عملیات بر اساس پروژه جاری (active project) انجام می‌شود\n- هزینه‌ها می‌توانند به یک دوره خاص مرتبط باشند\n- انواع هزینه: project_manager, facilities_manager, procurement, warehouse, construction_contractor, other",
                 "tags": [
                     "Expense"
                 ],
@@ -39,17 +39,17 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/Expense"
+                                "$ref": "#/components/schemas/ExpenseRequest"
                             }
                         },
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/Expense"
+                                "$ref": "#/components/schemas/ExpenseRequest"
                             }
                         },
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/Expense"
+                                "$ref": "#/components/schemas/ExpenseRequest"
                             }
                         }
                     },
@@ -72,7 +72,7 @@
         "/api/v1/Expense/{id}/": {
             "get": {
                 "operationId": "Expense_retrieve",
-                "description": "ViewSet for the Expense class",
+                "description": "ViewSet برای مدیریت هزینه‌های پروژه\n\nاین ViewSet امکان مدیریت کامل هزینه‌های پروژه را فراهم می‌کند.\n\nقابلیت‌ها:\n- ایجاد، خواندن، به‌روزرسانی و حذف هزینه‌ها\n- دریافت آمار و گزارش‌های مالی\n- محاسبه مجموع هزینه‌ها بر اساس نوع و دوره\n- مدیریت هزینه‌های دوره‌ای\n\nسناریوهای استفاده:\n- ثبت هزینه‌های مواد اولیه (material)\n- ثبت هزینه‌های نیروی کار (labor)\n- ثبت هزینه‌های اداری و عمومی (administrative)\n- دریافت گزارش‌های مالی برای تحلیل پروژه\n- محاسبه هزینه‌های تجمعی برای هر دوره\n\nمثال‌های کاربرد:\n- برای ثبت خرید سیمان و آجر: expense_type='material', amount='5000000'\n- برای ثبت حقوق کارگران: expense_type='labor', amount='3000000'\n- برای دریافت لیست تمام هزینه‌ها: GET /api/v1/Expense/\n- برای دریافت آمار هزینه‌ها: GET /api/v1/Expense/dashboard_data/\n\nنکات مهم:\n- تمام عملیات بر اساس پروژه جاری (active project) انجام می‌شود\n- هزینه‌ها می‌توانند به یک دوره خاص مرتبط باشند\n- انواع هزینه: project_manager, facilities_manager, procurement, warehouse, construction_contractor, other",
                 "parameters": [
                     {
                         "in": "path",
@@ -102,7 +102,7 @@
             },
             "put": {
                 "operationId": "Expense_update",
-                "description": "ViewSet for the Expense class",
+                "description": "ViewSet برای مدیریت هزینه‌های پروژه\n\nاین ViewSet امکان مدیریت کامل هزینه‌های پروژه را فراهم می‌کند.\n\nقابلیت‌ها:\n- ایجاد، خواندن، به‌روزرسانی و حذف هزینه‌ها\n- دریافت آمار و گزارش‌های مالی\n- محاسبه مجموع هزینه‌ها بر اساس نوع و دوره\n- مدیریت هزینه‌های دوره‌ای\n\nسناریوهای استفاده:\n- ثبت هزینه‌های مواد اولیه (material)\n- ثبت هزینه‌های نیروی کار (labor)\n- ثبت هزینه‌های اداری و عمومی (administrative)\n- دریافت گزارش‌های مالی برای تحلیل پروژه\n- محاسبه هزینه‌های تجمعی برای هر دوره\n\nمثال‌های کاربرد:\n- برای ثبت خرید سیمان و آجر: expense_type='material', amount='5000000'\n- برای ثبت حقوق کارگران: expense_type='labor', amount='3000000'\n- برای دریافت لیست تمام هزینه‌ها: GET /api/v1/Expense/\n- برای دریافت آمار هزینه‌ها: GET /api/v1/Expense/dashboard_data/\n\nنکات مهم:\n- تمام عملیات بر اساس پروژه جاری (active project) انجام می‌شود\n- هزینه‌ها می‌توانند به یک دوره خاص مرتبط باشند\n- انواع هزینه: project_manager, facilities_manager, procurement, warehouse, construction_contractor, other",
                 "parameters": [
                     {
                         "in": "path",
@@ -121,17 +121,17 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/Expense"
+                                "$ref": "#/components/schemas/ExpenseRequest"
                             }
                         },
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/Expense"
+                                "$ref": "#/components/schemas/ExpenseRequest"
                             }
                         },
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/Expense"
+                                "$ref": "#/components/schemas/ExpenseRequest"
                             }
                         }
                     },
@@ -152,7 +152,7 @@
             },
             "patch": {
                 "operationId": "Expense_partial_update",
-                "description": "ViewSet for the Expense class",
+                "description": "ViewSet برای مدیریت هزینه‌های پروژه\n\nاین ViewSet امکان مدیریت کامل هزینه‌های پروژه را فراهم می‌کند.\n\nقابلیت‌ها:\n- ایجاد، خواندن، به‌روزرسانی و حذف هزینه‌ها\n- دریافت آمار و گزارش‌های مالی\n- محاسبه مجموع هزینه‌ها بر اساس نوع و دوره\n- مدیریت هزینه‌های دوره‌ای\n\nسناریوهای استفاده:\n- ثبت هزینه‌های مواد اولیه (material)\n- ثبت هزینه‌های نیروی کار (labor)\n- ثبت هزینه‌های اداری و عمومی (administrative)\n- دریافت گزارش‌های مالی برای تحلیل پروژه\n- محاسبه هزینه‌های تجمعی برای هر دوره\n\nمثال‌های کاربرد:\n- برای ثبت خرید سیمان و آجر: expense_type='material', amount='5000000'\n- برای ثبت حقوق کارگران: expense_type='labor', amount='3000000'\n- برای دریافت لیست تمام هزینه‌ها: GET /api/v1/Expense/\n- برای دریافت آمار هزینه‌ها: GET /api/v1/Expense/dashboard_data/\n\nنکات مهم:\n- تمام عملیات بر اساس پروژه جاری (active project) انجام می‌شود\n- هزینه‌ها می‌توانند به یک دوره خاص مرتبط باشند\n- انواع هزینه: project_manager, facilities_manager, procurement, warehouse, construction_contractor, other",
                 "parameters": [
                     {
                         "in": "path",
@@ -171,17 +171,17 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/PatchedExpense"
+                                "$ref": "#/components/schemas/PatchedExpenseRequest"
                             }
                         },
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/PatchedExpense"
+                                "$ref": "#/components/schemas/PatchedExpenseRequest"
                             }
                         },
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/PatchedExpense"
+                                "$ref": "#/components/schemas/PatchedExpenseRequest"
                             }
                         }
                     }
@@ -201,7 +201,7 @@
             },
             "delete": {
                 "operationId": "Expense_destroy",
-                "description": "ViewSet for the Expense class",
+                "description": "ViewSet برای مدیریت هزینه‌های پروژه\n\nاین ViewSet امکان مدیریت کامل هزینه‌های پروژه را فراهم می‌کند.\n\nقابلیت‌ها:\n- ایجاد، خواندن، به‌روزرسانی و حذف هزینه‌ها\n- دریافت آمار و گزارش‌های مالی\n- محاسبه مجموع هزینه‌ها بر اساس نوع و دوره\n- مدیریت هزینه‌های دوره‌ای\n\nسناریوهای استفاده:\n- ثبت هزینه‌های مواد اولیه (material)\n- ثبت هزینه‌های نیروی کار (labor)\n- ثبت هزینه‌های اداری و عمومی (administrative)\n- دریافت گزارش‌های مالی برای تحلیل پروژه\n- محاسبه هزینه‌های تجمعی برای هر دوره\n\nمثال‌های کاربرد:\n- برای ثبت خرید سیمان و آجر: expense_type='material', amount='5000000'\n- برای ثبت حقوق کارگران: expense_type='labor', amount='3000000'\n- برای دریافت لیست تمام هزینه‌ها: GET /api/v1/Expense/\n- برای دریافت آمار هزینه‌ها: GET /api/v1/Expense/dashboard_data/\n\nنکات مهم:\n- تمام عملیات بر اساس پروژه جاری (active project) انجام می‌شود\n- هزینه‌ها می‌توانند به یک دوره خاص مرتبط باشند\n- انواع هزینه: project_manager, facilities_manager, procurement, warehouse, construction_contractor, other",
                 "parameters": [
                     {
                         "in": "path",
@@ -226,7 +226,7 @@
         "/api/v1/Expense/dashboard_data/": {
             "get": {
                 "operationId": "Expense_dashboard_data_retrieve",
-                "description": "دریافت داده‌های لیست هزینه ها",
+                "description": "دریافت داده‌های لیست هزینه‌ها برای نمایش در داشبورد\n\nاین endpoint داده‌های لازم برای نمایش در داشبورد هزینه‌ها را برمی‌گرداند.\n\nخروجی شامل:\n- لیست تمام هزینه‌ها با اطلاعات دوره\n- آمار کلی هزینه‌ها (تعداد، مجموع)\n- اطلاعات پروژه جاری\n- داده‌های ماتریسی برای نمایش جدولی\n\nسناریوهای استفاده:\n- نمایش داشبورد هزینه‌ها در رابط کاربری\n- فیلتر کردن هزینه‌ها بر اساس دوره\n- محاسبه مجموع هزینه‌ها برای گزارش‌گیری\n- نمایش ترند هزینه‌ها در طول زمان\n\nمثال استفاده:\nGET /api/v1/Expense/dashboard_data/\n\nمثال خروجی:\n{\n    \"success\": true,\n    \"data\": {\n        \"periods\": [\n            {\n                \"period_id\": 1,\n                \"period_label\": \"مرداد 1402\",\n                \"expenses\": {\n                    \"material\": {\"amount\": 5000000, \"label\": \"مواد اولیه\"},\n                    \"labor\": {\"amount\": 3000000, \"label\": \"نیروی کار\"}\n                },\n                \"period_total\": 8000000,\n                \"cumulative_total\": 8000000\n            }\n        ],\n        \"grand_total\": 15000000,\n        \"project_name\": \"پروژه نمونه\"\n    }\n}\n\nنکات مهم:\n- فقط هزینه‌های پروژه جاری را برمی‌گرداند\n- اگر پروژه جاری وجود نداشته باشد، خطای 400 برمی‌گرداند\n- داده‌ها بر اساس دوره مرتب می‌شوند",
                 "tags": [
                     "Expense"
                 ],
@@ -289,7 +289,7 @@
         "/api/v1/Expense/update_expense/": {
             "post": {
                 "operationId": "Expense_update_expense_create",
-                "description": "به‌روزرسانی هزینه",
+                "description": "به‌روزرسانی یا ایجاد هزینه برای یک دوره و نوع خاص.\n\nاین endpoint هزینه را برای یک دوره و نوع خاص به‌روزرسانی می‌کند.\nاگر هزینه وجود نداشته باشد، آن را ایجاد می‌کند. هزینه بر اساس پروژه جاری،\nدوره و نوع هزینه شناسایی می‌شود. مبلغ به صورت Decimal ذخیره می‌شود.\n\nقابلیت‌ها/خروجی شامل:\n- ثبت یا به‌روزرسانی هزینه با جزئیات کامل\n- بازگشت جزئیات هزینه با ID و وضعیت ایجاد/به‌روزرسانی\n\nسناریوهای استفاده:\n- ثبت هزینه‌های ماهانه پروژه ساختمانی توسط مدیر پروژه\n- به‌روزرسانی مبلغ هزینه‌های قبلی در صورت تغییر\n- ثبت هزینه‌های دوره‌ای به صورت دسته‌ای از سیستم حسابداری خارجی\n- ویرایش هزینه‌های ثبت شده در داشبورد مدیریت\n\nمثال استفاده:\n    POST /api/v1/Expense/update_expense/\n\nمثال ورودی/خروجی:\n    Input:\n    {\n        \"period_id\": 3,\n        \"expense_type\": \"project_manager\",\n        \"amount\": \"5000000\",\n        \"description\": \"حقوق مدیر پروژه\"\n    }\n\n    Output:\n    {\n        \"success\": true,\n        \"message\": \"هزینه با موفقیت به‌روزرسانی شد\",\n        \"data\": {\n            \"expense_id\": 15,\n            \"amount\": 5000000.0,\n            \"description\": \"حقوق مدیر پروژه\",\n            \"created\": false\n        }\n    }\n\nنکات مهم:\n- هزینه بر اساس پروژه جاری (active project) از session شناسایی می‌شود\n- اگر هزینه وجود داشته باشد، به‌روزرسانی می‌شود؛ در غیر این صورت ایجاد می‌شود\n- مبلغ باید به صورت string ارسال شود تا از مشکلات precision جلوگیری شود\n- نیاز به احراز هویت دارد (IsAuthenticated)",
                 "tags": [
                     "Expense"
                 ],
@@ -297,17 +297,17 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/Expense"
+                                "$ref": "#/components/schemas/ExpenseRequest"
                             }
                         },
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/Expense"
+                                "$ref": "#/components/schemas/ExpenseRequest"
                             }
                         },
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/Expense"
+                                "$ref": "#/components/schemas/ExpenseRequest"
                             }
                         }
                     },
@@ -389,17 +389,17 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/InterestRate"
+                                "$ref": "#/components/schemas/InterestRateRequest"
                             }
                         },
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/InterestRate"
+                                "$ref": "#/components/schemas/InterestRateRequest"
                             }
                         },
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/InterestRate"
+                                "$ref": "#/components/schemas/InterestRateRequest"
                             }
                         }
                     },
@@ -487,17 +487,17 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/InterestRate"
+                                "$ref": "#/components/schemas/InterestRateRequest"
                             }
                         },
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/InterestRate"
+                                "$ref": "#/components/schemas/InterestRateRequest"
                             }
                         },
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/InterestRate"
+                                "$ref": "#/components/schemas/InterestRateRequest"
                             }
                         }
                     },
@@ -545,17 +545,17 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/PatchedInterestRate"
+                                "$ref": "#/components/schemas/PatchedInterestRateRequest"
                             }
                         },
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/PatchedInterestRate"
+                                "$ref": "#/components/schemas/PatchedInterestRateRequest"
                             }
                         },
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/PatchedInterestRate"
+                                "$ref": "#/components/schemas/PatchedInterestRateRequest"
                             }
                         }
                     }
@@ -683,17 +683,17 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/Investor"
+                                "$ref": "#/components/schemas/InvestorRequest"
                             }
                         },
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/Investor"
+                                "$ref": "#/components/schemas/InvestorRequest"
                             }
                         },
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/Investor"
+                                "$ref": "#/components/schemas/InvestorRequest"
                             }
                         }
                     },
@@ -781,17 +781,17 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/Investor"
+                                "$ref": "#/components/schemas/InvestorRequest"
                             }
                         },
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/Investor"
+                                "$ref": "#/components/schemas/InvestorRequest"
                             }
                         },
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/Investor"
+                                "$ref": "#/components/schemas/InvestorRequest"
                             }
                         }
                     },
@@ -839,17 +839,17 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/PatchedInvestor"
+                                "$ref": "#/components/schemas/PatchedInvestorRequest"
                             }
                         },
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/PatchedInvestor"
+                                "$ref": "#/components/schemas/PatchedInvestorRequest"
                             }
                         },
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/PatchedInvestor"
+                                "$ref": "#/components/schemas/PatchedInvestorRequest"
                             }
                         }
                     }
@@ -910,7 +910,7 @@
         "/api/v1/Investor/{id}/detailed_statistics/": {
             "get": {
                 "operationId": "Investor_detailed_statistics_retrieve",
-                "description": "دریافت آمار تفصیلی سرمایه‌گذار",
+                "description": "دریافت آمار تفصیلی سرمایه‌گذار\n\nاین endpoint آمار کامل و تفصیلی یک سرمایه‌گذار خاص را محاسبه و برمی‌گرداند.\n\nپارامترها:\n- pk (int): شناسه یکتای سرمایه‌گذار\n- project_id (query param, اختیاری): شناسه پروژه (در صورت عدم ارسال از پروژه جاری استفاده می‌شود)\n\nخروجی شامل:\n- مجموع آورده‌ها (deposits)\n- مجموع برداشت‌ها (withdrawals)\n- مجموع سود (profits)\n- سرمایه خالص (net principal)\n- مجموع کل (grand total)\n- درصد مالکیت\n- نسبت‌های مالی\n\nسناریوهای استفاده:\n- نمایش پروفایل کامل سرمایه‌گذار\n- محاسبه سهم هر سرمایه‌گذار در پروژه\n- تهیه گزارش‌های مالی تفصیلی\n- تحلیل عملکرد سرمایه‌گذاری\n\nمثال استفاده:\nGET /api/v1/Investor/5/detailed_statistics/\nGET /api/v1/Investor/5/detailed_statistics/?project_id=1\n\nمثال خروجی:\n{\n    \"investor_id\": 5,\n    \"name\": \"علی احمدی\",\n    \"total_deposits\": 100000000,\n    \"total_withdrawals\": 0,\n    \"net_principal\": 100000000,\n    \"total_profit\": 15000000,\n    \"grand_total\": 115000000,\n    \"ownership_percentage\": 25.5,\n    \"unit_cost\": 5000000\n}\n\nنکات مهم:\n- اگر سرمایه‌گذار یافت نشود، خطای 404 برمی‌گرداند\n- محاسبات بر اساس پروژه جاری یا project_id ارسالی انجام می‌شود\n- تمام مبالغ به تومان هستند",
                 "parameters": [
                     {
                         "in": "path",
@@ -1128,7 +1128,7 @@
         "/api/v1/Investor/summary/": {
             "get": {
                 "operationId": "Investor_summary_retrieve",
-                "description": "خلاصه مالی تمام سرمایه‌گذاران - نسخه مرجع واحد (جایگزین SQL خام)",
+                "description": "خلاصه مالی تمام سرمایه‌گذاران پروژه\n\nاین endpoint خلاصه مالی تمام سرمایه‌گذاران پروژه جاری را محاسبه و برمی‌گرداند.\n\nخروجی شامل:\n- شناسه و نام هر سرمایه‌گذار\n- نوع مشارکت (مالک یا سرمایه‌گذار)\n- مجموع آورده‌ها\n- مجموع برداشت‌ها\n- سرمایه خالص\n- مجموع سود\n- مجموع کل (سرمایه + سود)\n\nسناریوهای استفاده:\n- نمایش لیست خلاصه تمام سرمایه‌گذاران\n- مقایسه عملکرد سرمایه‌گذاران\n- تهیه گزارش‌های مدیریتی\n- نمایش داشبورد سرمایه‌گذاران\n\nمثال استفاده:\nGET /api/v1/Investor/summary/\n\nمثال خروجی:\n[\n    {\n        \"investor_id\": 1,\n        \"name\": \"علی احمدی\",\n        \"participation_type\": \"owner\",\n        \"total_deposits\": 100000000,\n        \"total_withdrawals\": 0,\n        \"net_principal\": 100000000,\n        \"total_profit\": 15000000,\n        \"grand_total\": 115000000\n    },\n    {\n        \"investor_id\": 2,\n        \"name\": \"محمد رضایی\",\n        \"participation_type\": \"investor\",\n        \"total_deposits\": 50000000,\n        \"total_withdrawals\": 10000000,\n        \"net_principal\": 40000000,\n        \"total_profit\": 7500000,\n        \"grand_total\": 47500000\n    }\n]\n\nنکات مهم:\n- نتایج بر اساس سرمایه خالص (net_principal) به صورت نزولی مرتب می‌شوند\n- فقط سرمایه‌گذاران پروژه جاری را شامل می‌شود\n- اگر پروژه جاری وجود نداشته باشد، تمام سرمایه‌گذاران را برمی‌گرداند\n- تمام مبالغ به تومان هستند",
                 "tags": [
                     "Investor"
                 ],
@@ -1224,17 +1224,17 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/Period"
+                                "$ref": "#/components/schemas/PeriodRequest"
                             }
                         },
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/Period"
+                                "$ref": "#/components/schemas/PeriodRequest"
                             }
                         },
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/Period"
+                                "$ref": "#/components/schemas/PeriodRequest"
                             }
                         }
                     },
@@ -1322,17 +1322,17 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/Period"
+                                "$ref": "#/components/schemas/PeriodRequest"
                             }
                         },
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/Period"
+                                "$ref": "#/components/schemas/PeriodRequest"
                             }
                         },
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/Period"
+                                "$ref": "#/components/schemas/PeriodRequest"
                             }
                         }
                     },
@@ -1380,17 +1380,17 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/PatchedPeriod"
+                                "$ref": "#/components/schemas/PatchedPeriodRequest"
                             }
                         },
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/PatchedPeriod"
+                                "$ref": "#/components/schemas/PatchedPeriodRequest"
                             }
                         },
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/PatchedPeriod"
+                                "$ref": "#/components/schemas/PatchedPeriodRequest"
                             }
                         }
                     }
@@ -1480,7 +1480,7 @@
         "/api/v1/Period/period_summary/": {
             "get": {
                 "operationId": "Period_period_summary_retrieve",
-                "description": "دریافت خلاصه کامل دوره‌ای شامل تمام فاکتورها و مقادیر تجمعی",
+                "description": "دریافت خلاصه کامل دوره‌ای شامل تمام فاکتورها و مقادیر تجمعی\n\nاین endpoint خلاصه کامل مالی برای تمام دوره‌های پروژه را برمی‌گرداند.\n\nخروجی شامل:\n- اطلاعات هر دوره (شناسه، برچسب، تاریخ)\n- آورده‌های دوره و تجمعی\n- برداشت‌های دوره و تجمعی\n- سرمایه خالص دوره و تجمعی\n- سود دوره و تجمعی\n- هزینه‌های دوره و تجمعی\n- فروش/مرجوعی دوره و تجمعی\n- مانده صندوق برای هر دوره\n\nسناریوهای استفاده:\n- نمایش گزارش دوره‌ای کامل پروژه\n- تحلیل روند مالی در طول زمان\n- نمایش ترند سرمایه، هزینه و سود\n- محاسبه مانده صندوق برای هر دوره\n- تهیه گزارش‌های تفصیلی دوره‌ای\n\nمثال استفاده:\nGET /api/v1/Period/period_summary/\n\nمثال خروجی:\n{\n    \"success\": true,\n    \"data\": [\n        {\n            \"period_id\": 1,\n            \"period_label\": \"مرداد 1402\",\n            \"deposits\": 100000000,\n            \"cumulative_deposits\": 100000000,\n            \"withdrawals\": 0,\n            \"cumulative_withdrawals\": 0,\n            \"net_capital\": 100000000,\n            \"cumulative_net_capital\": 100000000,\n            \"profits\": 5000000,\n            \"cumulative_profits\": 5000000,\n            \"expenses\": 30000000,\n            \"cumulative_expenses\": 30000000,\n            \"sales\": 0,\n            \"cumulative_sales\": 0,\n            \"fund_balance\": 75000000\n        }\n    ],\n    \"current\": {...}\n}\n\nنکات مهم:\n- فقط دوره‌های پروژه جاری را شامل می‌شود\n- اگر پروژه جاری وجود نداشته باشد، خطای 400 برمی‌گرداند\n- دوره‌ها به ترتیب زمانی مرتب می‌شوند\n- تمام مبالغ به تومان هستند",
                 "tags": [
                     "Period"
                 ],
@@ -1539,17 +1539,17 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/PettyCashTransaction"
+                                "$ref": "#/components/schemas/PettyCashTransactionRequest"
                             }
                         },
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/PettyCashTransaction"
+                                "$ref": "#/components/schemas/PettyCashTransactionRequest"
                             }
                         },
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/PettyCashTransaction"
+                                "$ref": "#/components/schemas/PettyCashTransactionRequest"
                             }
                         }
                     },
@@ -1621,17 +1621,17 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/PettyCashTransaction"
+                                "$ref": "#/components/schemas/PettyCashTransactionRequest"
                             }
                         },
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/PettyCashTransaction"
+                                "$ref": "#/components/schemas/PettyCashTransactionRequest"
                             }
                         },
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/PettyCashTransaction"
+                                "$ref": "#/components/schemas/PettyCashTransactionRequest"
                             }
                         }
                     },
@@ -1671,17 +1671,17 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/PatchedPettyCashTransaction"
+                                "$ref": "#/components/schemas/PatchedPettyCashTransactionRequest"
                             }
                         },
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/PatchedPettyCashTransaction"
+                                "$ref": "#/components/schemas/PatchedPettyCashTransactionRequest"
                             }
                         },
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/PatchedPettyCashTransaction"
+                                "$ref": "#/components/schemas/PatchedPettyCashTransactionRequest"
                             }
                         }
                     }
@@ -1726,7 +1726,7 @@
         "/api/v1/PettyCashTransaction/balance_detail/": {
             "get": {
                 "operationId": "PettyCashTransaction_balance_detail_retrieve",
-                "description": "دریافت وضعیت مالی یک عامل اجرایی خاص",
+                "description": "دریافت وضعیت مالی یک عامل اجرایی خاص\n\nاین endpoint وضعیت مالی تفصیلی یک عامل اجرایی (مدیر پروژه، سرپرست کارگاه، کارپرداز، انباردار، پیمانکار) را برمی‌گرداند.\n\nپارامترها:\n- expense_type (query param, الزامی): نوع عامل اجرایی (project_manager, facilities_manager, procurement, warehouse, construction_contractor)\n\nخروجی شامل:\n- نوع عامل اجرایی و برچسب فارسی آن\n- مانده فعلی (balance)\n- مجموع دریافت‌ها (total_receipts)\n- مجموع هزینه‌ها (total_expenses)\n- مجموع برگشت‌ها (total_returns)\n- وضعیت بستانکاری/بدهکاری\n\nسناریوهای استفاده:\n- نمایش وضعیت مالی هر عامل اجرایی\n- بررسی مانده تنخواه هر شخص\n- محاسبه بدهی یا طلب هر عامل\n- تهیه گزارش‌های تفصیلی تنخواه\n- مدیریت جریان نقدی عوامل اجرایی\n\nمثال استفاده:\nGET /api/v1/PettyCashTransaction/balance_detail/?expense_type=project_manager\n\nمثال خروجی:\n{\n    \"success\": true,\n    \"data\": {\n        \"expense_type\": \"project_manager\",\n        \"expense_type_label\": \"مدیر پروژه\",\n        \"balance\": 5000000,\n        \"total_receipts\": 20000000,\n        \"total_expenses\": 15000000,\n        \"total_returns\": 0,\n        \"is_creditor\": false,\n        \"is_debtor\": true\n    }\n}\n\nنکات مهم:\n- فقط تراکنش‌های پروژه جاری را شامل می‌شود\n- اگر پروژه جاری وجود نداشته باشد، خطای 400 برمی‌گرداند\n- اگر expense_type ارسال نشود، خطای 400 برمی‌گرداند\n- مانده مثبت = بدهکار (پول در دست دارد)\n- مانده منفی = بستانکار (بدهکار است)\n- تمام مبالغ به تومان هستند",
                 "tags": [
                     "PettyCashTransaction"
                 ],
@@ -1861,17 +1861,17 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/Project"
+                                "$ref": "#/components/schemas/ProjectRequest"
                             }
                         },
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/Project"
+                                "$ref": "#/components/schemas/ProjectRequest"
                             }
                         },
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/Project"
+                                "$ref": "#/components/schemas/ProjectRequest"
                             }
                         }
                     },
@@ -1943,17 +1943,17 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/Project"
+                                "$ref": "#/components/schemas/ProjectRequest"
                             }
                         },
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/Project"
+                                "$ref": "#/components/schemas/ProjectRequest"
                             }
                         },
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/Project"
+                                "$ref": "#/components/schemas/ProjectRequest"
                             }
                         }
                     },
@@ -1993,17 +1993,17 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/PatchedProject"
+                                "$ref": "#/components/schemas/PatchedProjectRequest"
                             }
                         },
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/PatchedProject"
+                                "$ref": "#/components/schemas/PatchedProjectRequest"
                             }
                         },
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/PatchedProject"
+                                "$ref": "#/components/schemas/PatchedProjectRequest"
                             }
                         }
                     }
@@ -2069,7 +2069,7 @@
         "/api/v1/Project/comprehensive_analysis/": {
             "get": {
                 "operationId": "Project_comprehensive_analysis_retrieve",
-                "description": "دریافت تحلیل جامع پروژه شامل تمام محاسبات مالی",
+                "description": "دریافت تحلیل جامع پروژه شامل تمام محاسبات مالی\n\nاین endpoint یک تحلیل کامل و جامع از وضعیت مالی پروژه را ارائه می‌دهد.\n\nپارامترها:\n- project_id (query param, اختیاری): شناسه پروژه (در صورت عدم ارسال از پروژه جاری استفاده می‌شود)\n\nخروجی شامل:\n- اطلاعات کلی پروژه\n- آمار سرمایه‌گذاران\n- آمار تراکنش‌ها (آورده، برداشت، سود)\n- آمار هزینه‌ها\n- آمار فروش‌ها\n- محاسبات مالی (سرمایه خالص، مجموع کل، مانده صندوق)\n- متریک‌های عملکردی\n\nسناریوهای استفاده:\n- نمایش داشبورد مدیریتی پروژه\n- تهیه گزارش‌های جامع برای مدیران\n- تحلیل سلامت مالی پروژه\n- تصمیم‌گیری‌های استراتژیک\n- ارائه گزارش به سرمایه‌گذاران\n\nمثال استفاده:\nGET /api/v1/Project/comprehensive_analysis/\nGET /api/v1/Project/comprehensive_analysis/?project_id=1\n\nمثال خروجی:\n{\n    \"project\": {\n        \"id\": 1,\n        \"name\": \"پروژه نمونه\",\n        \"start_date\": \"1402-05-01\",\n        \"end_date\": \"1405-05-01\"\n    },\n    \"investors\": {\n        \"total_count\": 5,\n        \"total_deposits\": 500000000,\n        \"total_withdrawals\": 20000000,\n        \"net_principal\": 480000000,\n        \"total_profits\": 75000000\n    },\n    \"expenses\": {\n        \"total_amount\": 300000000,\n        \"by_type\": {...}\n    },\n    \"financial_summary\": {\n        \"grand_total\": 555000000,\n        \"fund_balance\": 255000000\n    }\n}\n\nنکات مهم:\n- اگر پروژه جاری وجود نداشته باشد، خطای 400 برمی‌گرداند\n- تمام محاسبات بر اساس داده‌های واقعی انجام می‌شود\n- مبالغ به تومان هستند",
                 "tags": [
                     "Project"
                 ],
@@ -2132,7 +2132,7 @@
         "/api/v1/Project/profit_metrics/": {
             "get": {
                 "operationId": "Project_profit_metrics_retrieve",
-                "description": "دریافت متریک‌های سود (کل، سالانه، ماهانه، روزانه)",
+                "description": "دریافت متریک‌های سود پروژه\n\nاین endpoint متریک‌های مختلف سود پروژه را محاسبه و برمی‌گرداند.\n\nپارامترها:\n- project_id (query param, اختیاری): شناسه پروژه (در صورت عدم ارسال از پروژه جاری استفاده می‌شود)\n\nخروجی شامل:\n- مجموع کل سود\n- سود سالانه (میانگین)\n- سود ماهانه (میانگین)\n- سود روزانه (میانگین)\n- نرخ بازدهی\n- ترند سود در طول زمان\n\nسناریوهای استفاده:\n- نمایش عملکرد مالی پروژه\n- مقایسه سودآوری پروژه‌های مختلف\n- تحلیل روند سوددهی\n- محاسبه نرخ بازدهی سرمایه‌گذاری\n- تهیه گزارش‌های تحلیلی\n\nمثال استفاده:\nGET /api/v1/Project/profit_metrics/\nGET /api/v1/Project/profit_metrics/?project_id=1\n\nمثال خروجی:\n{\n    \"total_profit\": 75000000,\n    \"annual_profit\": 25000000,\n    \"monthly_profit\": 2083333.33,\n    \"daily_profit\": 69444.44,\n    \"return_rate\": 15.6,\n    \"profit_trend\": [...]\n}\n\nنکات مهم:\n- اگر پروژه جاری وجود نداشته باشد، خطای 400 برمی‌گرداند\n- محاسبات بر اساس تاریخ شروع و پایان پروژه انجام می‌شود\n- مبالغ به تومان هستند",
                 "tags": [
                     "Project"
                 ],
@@ -2203,17 +2203,17 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/Project"
+                                "$ref": "#/components/schemas/ProjectRequest"
                             }
                         },
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/Project"
+                                "$ref": "#/components/schemas/ProjectRequest"
                             }
                         },
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/Project"
+                                "$ref": "#/components/schemas/ProjectRequest"
                             }
                         }
                     },
@@ -2265,17 +2265,17 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/Project"
+                                "$ref": "#/components/schemas/ProjectRequest"
                             }
                         },
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/Project"
+                                "$ref": "#/components/schemas/ProjectRequest"
                             }
                         },
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/Project"
+                                "$ref": "#/components/schemas/ProjectRequest"
                             }
                         }
                     },
@@ -2328,17 +2328,17 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/Sale"
+                                "$ref": "#/components/schemas/SaleRequest"
                             }
                         },
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/Sale"
+                                "$ref": "#/components/schemas/SaleRequest"
                             }
                         },
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/Sale"
+                                "$ref": "#/components/schemas/SaleRequest"
                             }
                         }
                     },
@@ -2410,17 +2410,17 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/Sale"
+                                "$ref": "#/components/schemas/SaleRequest"
                             }
                         },
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/Sale"
+                                "$ref": "#/components/schemas/SaleRequest"
                             }
                         },
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/Sale"
+                                "$ref": "#/components/schemas/SaleRequest"
                             }
                         }
                     },
@@ -2460,17 +2460,17 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/PatchedSale"
+                                "$ref": "#/components/schemas/PatchedSaleRequest"
                             }
                         },
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/PatchedSale"
+                                "$ref": "#/components/schemas/PatchedSaleRequest"
                             }
                         },
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/PatchedSale"
+                                "$ref": "#/components/schemas/PatchedSaleRequest"
                             }
                         }
                     }
@@ -2612,17 +2612,17 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/Transaction"
+                                "$ref": "#/components/schemas/TransactionRequest"
                             }
                         },
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/Transaction"
+                                "$ref": "#/components/schemas/TransactionRequest"
                             }
                         },
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/Transaction"
+                                "$ref": "#/components/schemas/TransactionRequest"
                             }
                         }
                     },
@@ -2710,17 +2710,17 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/Transaction"
+                                "$ref": "#/components/schemas/TransactionRequest"
                             }
                         },
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/Transaction"
+                                "$ref": "#/components/schemas/TransactionRequest"
                             }
                         },
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/Transaction"
+                                "$ref": "#/components/schemas/TransactionRequest"
                             }
                         }
                     },
@@ -2768,17 +2768,17 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/PatchedTransaction"
+                                "$ref": "#/components/schemas/PatchedTransactionRequest"
                             }
                         },
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/PatchedTransaction"
+                                "$ref": "#/components/schemas/PatchedTransactionRequest"
                             }
                         },
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/PatchedTransaction"
+                                "$ref": "#/components/schemas/PatchedTransactionRequest"
                             }
                         }
                     }
@@ -2876,17 +2876,17 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/Transaction"
+                                "$ref": "#/components/schemas/TransactionRequest"
                             }
                         },
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/Transaction"
+                                "$ref": "#/components/schemas/TransactionRequest"
                             }
                         },
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/Transaction"
+                                "$ref": "#/components/schemas/TransactionRequest"
                             }
                         }
                     },
@@ -2925,17 +2925,17 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/Transaction"
+                                "$ref": "#/components/schemas/TransactionRequest"
                             }
                         },
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/Transaction"
+                                "$ref": "#/components/schemas/TransactionRequest"
                             }
                         },
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/Transaction"
+                                "$ref": "#/components/schemas/TransactionRequest"
                             }
                         }
                     },
@@ -2966,7 +2966,7 @@
         "/api/v1/Transaction/statistics/": {
             "get": {
                 "operationId": "Transaction_statistics_retrieve",
-                "description": "آمار کلی تراکنش‌ها برای پروژه جاری",
+                "description": "دریافت آمار کلی تراکنش‌های پروژه\n\nاین endpoint آمار جامع و کلی تمام تراکنش‌های پروژه جاری را برمی‌گرداند.\n\nخروجی شامل:\n- تعداد کل تراکنش‌ها\n- مجموع آورده‌ها (deposits)\n- مجموع برداشت‌ها (withdrawals)\n- مجموع سود (profits)\n- سرمایه خالص (net principal)\n- مجموع کل (grand total)\n- تعداد سرمایه‌گذاران منحصر به فرد\n\nسناریوهای استفاده:\n- نمایش خلاصه مالی پروژه\n- نمایش داشبورد تراکنش‌ها\n- تحلیل جریان نقدی پروژه\n- محاسبه شاخص‌های مالی کلیدی\n- تهیه گزارش‌های مدیریتی\n\nمثال استفاده:\nGET /api/v1/Transaction/statistics/\n\nمثال خروجی:\n{\n    \"total_transactions\": 150,\n    \"total_deposits\": 500000000,\n    \"total_withdrawals\": -20000000,\n    \"total_profits\": 75000000,\n    \"net_principal\": 480000000,\n    \"grand_total\": 555000000,\n    \"unique_investors\": 5\n}\n\nنکات مهم:\n- فقط تراکنش‌های پروژه جاری را شامل می‌شود\n- اگر پروژه جاری وجود نداشته باشد، خطای 400 برمی‌گرداند\n- مجموع برداشت‌ها به صورت منفی محاسبه می‌شود\n- تمام مبالغ به تومان هستند",
                 "tags": [
                     "Transaction"
                 ],
@@ -3033,17 +3033,17 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/Unit"
+                                "$ref": "#/components/schemas/UnitRequest"
                             }
                         },
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/Unit"
+                                "$ref": "#/components/schemas/UnitRequest"
                             }
                         },
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/Unit"
+                                "$ref": "#/components/schemas/UnitRequest"
                             }
                         }
                     },
@@ -3131,17 +3131,17 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/Unit"
+                                "$ref": "#/components/schemas/UnitRequest"
                             }
                         },
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/Unit"
+                                "$ref": "#/components/schemas/UnitRequest"
                             }
                         },
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/Unit"
+                                "$ref": "#/components/schemas/UnitRequest"
                             }
                         }
                     },
@@ -3189,17 +3189,17 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/PatchedUnit"
+                                "$ref": "#/components/schemas/PatchedUnitRequest"
                             }
                         },
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/PatchedUnit"
+                                "$ref": "#/components/schemas/PatchedUnitRequest"
                             }
                         },
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/PatchedUnit"
+                                "$ref": "#/components/schemas/PatchedUnitRequest"
                             }
                         }
                     }
@@ -3343,17 +3343,17 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/UnitSpecificExpense"
+                                "$ref": "#/components/schemas/UnitSpecificExpenseRequest"
                             }
                         },
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/UnitSpecificExpense"
+                                "$ref": "#/components/schemas/UnitSpecificExpenseRequest"
                             }
                         },
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/UnitSpecificExpense"
+                                "$ref": "#/components/schemas/UnitSpecificExpenseRequest"
                             }
                         }
                     },
@@ -3441,17 +3441,17 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/UnitSpecificExpense"
+                                "$ref": "#/components/schemas/UnitSpecificExpenseRequest"
                             }
                         },
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/UnitSpecificExpense"
+                                "$ref": "#/components/schemas/UnitSpecificExpenseRequest"
                             }
                         },
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/UnitSpecificExpense"
+                                "$ref": "#/components/schemas/UnitSpecificExpenseRequest"
                             }
                         }
                     },
@@ -3499,17 +3499,17 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/PatchedUnitSpecificExpense"
+                                "$ref": "#/components/schemas/PatchedUnitSpecificExpenseRequest"
                             }
                         },
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/PatchedUnitSpecificExpense"
+                                "$ref": "#/components/schemas/PatchedUnitSpecificExpenseRequest"
                             }
                         },
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/PatchedUnitSpecificExpense"
+                                "$ref": "#/components/schemas/PatchedUnitSpecificExpenseRequest"
                             }
                         }
                     }
@@ -3804,6 +3804,43 @@
                     "project"
                 ]
             },
+            "ExpenseRequest": {
+                "type": "object",
+                "properties": {
+                    "project": {
+                        "type": "integer",
+                        "title": "پروژه"
+                    },
+                    "expense_type": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/ExpenseTypeEnum"
+                            }
+                        ],
+                        "title": "نوع هزینه"
+                    },
+                    "amount": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,18}(?:\\.\\d{0,2})?$",
+                        "title": "مبلغ"
+                    },
+                    "description": {
+                        "type": "string",
+                        "title": "توضیحات"
+                    },
+                    "period": {
+                        "type": "integer",
+                        "title": "دوره"
+                    }
+                },
+                "required": [
+                    "amount",
+                    "expense_type",
+                    "period",
+                    "project"
+                ]
+            },
             "ExpenseTypeEnum": {
                 "enum": [
                     "project_manager",
@@ -3834,11 +3871,6 @@
                         "pattern": "^-?\\d{0,5}(?:\\.\\d{0,15})?$",
                         "title": "نرخ سود روزانه",
                         "description": "مثال: 0.000481925679775"
-                    },
-                    "effective_date": {
-                        "type": "string",
-                        "writeOnly": true,
-                        "description": "تاریخ شمسی به فرمت YYYY-MM-DD"
                     },
                     "effective_date_display": {
                         "type": "string",
@@ -3876,11 +3908,53 @@
                 },
                 "required": [
                     "created_at",
-                    "effective_date",
                     "effective_date_display",
                     "id",
                     "rate",
                     "updated_at"
+                ]
+            },
+            "InterestRateRequest": {
+                "type": "object",
+                "properties": {
+                    "project": {
+                        "type": "integer",
+                        "nullable": true,
+                        "description": "پروژه (در صورت خالی بودن، از پروژه پیش‌فرض استفاده می‌شود)"
+                    },
+                    "rate": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,5}(?:\\.\\d{0,15})?$",
+                        "title": "نرخ سود روزانه",
+                        "description": "مثال: 0.000481925679775"
+                    },
+                    "effective_date": {
+                        "type": "string",
+                        "writeOnly": true,
+                        "minLength": 1,
+                        "description": "تاریخ شمسی به فرمت YYYY-MM-DD"
+                    },
+                    "effective_date_gregorian": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true,
+                        "title": "تاریخ اعمال (میلادی)"
+                    },
+                    "description": {
+                        "type": "string",
+                        "title": "توضیحات",
+                        "description": "دلیل تغییر نرخ سود"
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "title": "فعال",
+                        "description": "آیا این نرخ در حال حاضر فعال است؟"
+                    }
+                },
+                "required": [
+                    "effective_date",
+                    "rate"
                 ]
             },
             "Investor": {
@@ -3958,6 +4032,67 @@
                     "units"
                 ]
             },
+            "InvestorRequest": {
+                "type": "object",
+                "properties": {
+                    "project": {
+                        "type": "integer",
+                        "title": "پروژه",
+                        "description": "پروژه‌ای که این سرمایه‌گذار در آن مشارکت دارد"
+                    },
+                    "first_name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "نام",
+                        "maxLength": 100
+                    },
+                    "last_name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "نام خانوادگی",
+                        "maxLength": 100
+                    },
+                    "phone": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "شماره تماس",
+                        "maxLength": 20
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "nullable": true,
+                        "title": "ایمیل",
+                        "maxLength": 254
+                    },
+                    "participation_type": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/ParticipationTypeEnum"
+                            }
+                        ],
+                        "title": "نوع مشارکت"
+                    },
+                    "contract_date_shamsi": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true,
+                        "title": "تاریخ قرارداد (شمسی)"
+                    },
+                    "description": {
+                        "type": "string",
+                        "nullable": true,
+                        "title": "توضیحات",
+                        "description": "توضیحات اضافی درباره این سرمایه‌گذار"
+                    }
+                },
+                "required": [
+                    "first_name",
+                    "last_name",
+                    "phone",
+                    "project"
+                ]
+            },
             "ParticipationTypeEnum": {
                 "enum": [
                     "owner",
@@ -3966,13 +4101,9 @@
                 "type": "string",
                 "description": "* `owner` - مالک\n* `investor` - سرمایه‌گذار"
             },
-            "PatchedExpense": {
+            "PatchedExpenseRequest": {
                 "type": "object",
                 "properties": {
-                    "id": {
-                        "type": "integer",
-                        "readOnly": true
-                    },
                     "project": {
                         "type": "integer",
                         "title": "پروژه"
@@ -3998,34 +4129,12 @@
                     "period": {
                         "type": "integer",
                         "title": "دوره"
-                    },
-                    "period_data": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Period"
-                            }
-                        ],
-                        "readOnly": true
-                    },
-                    "period_weight": {
-                        "type": "string",
-                        "readOnly": true
-                    },
-                    "created_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "readOnly": true,
-                        "title": "تاریخ ایجاد"
                     }
                 }
             },
-            "PatchedInterestRate": {
+            "PatchedInterestRateRequest": {
                 "type": "object",
                 "properties": {
-                    "id": {
-                        "type": "integer",
-                        "readOnly": true
-                    },
                     "project": {
                         "type": "integer",
                         "nullable": true,
@@ -4041,12 +4150,8 @@
                     "effective_date": {
                         "type": "string",
                         "writeOnly": true,
+                        "minLength": 1,
                         "description": "تاریخ شمسی به فرمت YYYY-MM-DD"
-                    },
-                    "effective_date_display": {
-                        "type": "string",
-                        "readOnly": true,
-                        "description": "تاریخ شمسی برای نمایش"
                     },
                     "effective_date_gregorian": {
                         "type": "string",
@@ -4063,28 +4168,12 @@
                         "type": "boolean",
                         "title": "فعال",
                         "description": "آیا این نرخ در حال حاضر فعال است؟"
-                    },
-                    "created_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "readOnly": true,
-                        "title": "تاریخ ایجاد"
-                    },
-                    "updated_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "readOnly": true,
-                        "title": "تاریخ به‌روزرسانی"
                     }
                 }
             },
-            "PatchedInvestor": {
+            "PatchedInvestorRequest": {
                 "type": "object",
                 "properties": {
-                    "id": {
-                        "type": "integer",
-                        "readOnly": true
-                    },
                     "project": {
                         "type": "integer",
                         "title": "پروژه",
@@ -4092,16 +4181,19 @@
                     },
                     "first_name": {
                         "type": "string",
+                        "minLength": 1,
                         "title": "نام",
                         "maxLength": 100
                     },
                     "last_name": {
                         "type": "string",
+                        "minLength": 1,
                         "title": "نام خانوادگی",
                         "maxLength": 100
                     },
                     "phone": {
                         "type": "string",
+                        "minLength": 1,
                         "title": "شماره تماس",
                         "maxLength": 20
                     },
@@ -4120,10 +4212,6 @@
                         ],
                         "title": "نوع مشارکت"
                     },
-                    "units": {
-                        "type": "string",
-                        "readOnly": true
-                    },
                     "contract_date_shamsi": {
                         "type": "string",
                         "format": "date",
@@ -4135,24 +4223,15 @@
                         "nullable": true,
                         "title": "توضیحات",
                         "description": "توضیحات اضافی درباره این سرمایه‌گذار"
-                    },
-                    "created_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "readOnly": true,
-                        "title": "تاریخ ایجاد"
                     }
                 }
             },
-            "PatchedPeriod": {
+            "PatchedPeriodRequest": {
                 "type": "object",
                 "properties": {
-                    "id": {
-                        "type": "integer",
-                        "readOnly": true
-                    },
                     "label": {
                         "type": "string",
+                        "minLength": 1,
                         "title": "عنوان دوره",
                         "maxLength": 50
                     },
@@ -4166,6 +4245,7 @@
                     },
                     "month_name": {
                         "type": "string",
+                        "minLength": 1,
                         "title": "نام ماه",
                         "maxLength": 20
                     },
@@ -4199,18 +4279,9 @@
                     }
                 }
             },
-            "PatchedPettyCashTransaction": {
+            "PatchedPettyCashTransactionRequest": {
                 "type": "object",
                 "properties": {
-                    "id": {
-                        "type": "integer",
-                        "readOnly": true
-                    },
-                    "project": {
-                        "type": "integer",
-                        "readOnly": true,
-                        "title": "پروژه"
-                    },
                     "expense_type": {
                         "allOf": [
                             {
@@ -4220,10 +4291,6 @@
                         "title": "عامل اجرایی",
                         "description": "نوع هزینه که به عنوان عامل اجرایی استفاده می‌شود\n\n* `project_manager` - مدیر پروژه\n* `facilities_manager` - سرپرست کارگاه\n* `procurement` - کارپرداز\n* `warehouse` - انباردار\n* `construction_contractor` - پیمان ساختمان\n* `other` - سایر"
                     },
-                    "expense_type_label": {
-                        "type": "string",
-                        "readOnly": true
-                    },
                     "transaction_type": {
                         "allOf": [
                             {
@@ -4232,20 +4299,12 @@
                         ],
                         "title": "نوع تراکنش"
                     },
-                    "transaction_type_label": {
-                        "type": "string",
-                        "readOnly": true
-                    },
                     "amount": {
                         "type": "string",
                         "format": "decimal",
                         "pattern": "^-?\\d{0,18}(?:\\.\\d{0,2})?$",
                         "title": "مبلغ",
                         "description": "همیشه مثبت ذخیره می‌شود"
-                    },
-                    "signed_amount": {
-                        "type": "string",
-                        "readOnly": true
                     },
                     "description": {
                         "type": "string",
@@ -4256,41 +4315,19 @@
                         "title": "شماره فیش/رسید",
                         "maxLength": 100
                     },
-                    "date_shamsi": {
-                        "type": "string",
-                        "readOnly": true
-                    },
                     "date_shamsi_input": {
                         "type": "string",
-                        "writeOnly": true
-                    },
-                    "date_gregorian": {
-                        "type": "string",
-                        "format": "date",
-                        "readOnly": true,
-                        "title": "تاریخ میلادی"
-                    },
-                    "created_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "readOnly": true
-                    },
-                    "updated_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "readOnly": true
+                        "writeOnly": true,
+                        "minLength": 1
                     }
                 }
             },
-            "PatchedProject": {
+            "PatchedProjectRequest": {
                 "type": "object",
                 "properties": {
-                    "id": {
-                        "type": "integer",
-                        "readOnly": true
-                    },
                     "name": {
                         "type": "string",
+                        "minLength": 1,
                         "title": "نام پروژه",
                         "maxLength": 200
                     },
@@ -4343,37 +4380,23 @@
                     },
                     "color": {
                         "type": "string",
+                        "minLength": 1,
                         "title": "رنگ پروژه",
                         "description": "رنگ نمایش پروژه (فرمت HEX)",
                         "maxLength": 7
                     },
                     "icon": {
                         "type": "string",
+                        "minLength": 1,
                         "title": "آیکون پروژه",
                         "description": "نام کلاس آیکون Font Awesome (مثال: fa-building)",
                         "maxLength": 50
-                    },
-                    "created_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "readOnly": true,
-                        "title": "تاریخ ایجاد"
-                    },
-                    "updated_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "readOnly": true,
-                        "title": "تاریخ به‌روزرسانی"
                     }
                 }
             },
-            "PatchedSale": {
+            "PatchedSaleRequest": {
                 "type": "object",
                 "properties": {
-                    "id": {
-                        "type": "integer",
-                        "readOnly": true
-                    },
                     "project": {
                         "type": "integer",
                         "title": "پروژه"
@@ -4391,54 +4414,21 @@
                     "description": {
                         "type": "string",
                         "title": "توضیحات"
-                    },
-                    "created_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "readOnly": true,
-                        "title": "تاریخ ایجاد"
-                    },
-                    "project_data": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Project"
-                            }
-                        ],
-                        "readOnly": true
-                    },
-                    "period_data": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Period"
-                            }
-                        ],
-                        "readOnly": true
                     }
                 }
             },
-            "PatchedTransaction": {
+            "PatchedTransactionRequest": {
                 "type": "object",
                 "properties": {
-                    "id": {
-                        "type": "integer",
-                        "readOnly": true
-                    },
-                    "date_shamsi": {
-                        "type": "string",
-                        "readOnly": true
-                    },
                     "date_shamsi_input": {
                         "type": "string",
-                        "writeOnly": true
+                        "writeOnly": true,
+                        "minLength": 1
                     },
                     "date_shamsi_raw": {
                         "type": "string",
-                        "writeOnly": true
-                    },
-                    "date_gregorian": {
-                        "type": "string",
-                        "format": "date",
-                        "readOnly": true
+                        "writeOnly": true,
+                        "minLength": 1
                     },
                     "amount": {
                         "type": "string",
@@ -4457,20 +4447,6 @@
                     "description": {
                         "type": "string",
                         "title": "توضیحات"
-                    },
-                    "day_remaining": {
-                        "type": "integer",
-                        "readOnly": true
-                    },
-                    "day_from_start": {
-                        "type": "integer",
-                        "readOnly": true
-                    },
-                    "created_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "readOnly": true,
-                        "title": "تاریخ ایجاد"
                     },
                     "investor": {
                         "type": "integer",
@@ -4491,50 +4467,15 @@
                         "type": "integer",
                         "writeOnly": true,
                         "nullable": true
-                    },
-                    "investor_data": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Investor"
-                            }
-                        ],
-                        "readOnly": true
-                    },
-                    "project_data": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Project"
-                            }
-                        ],
-                        "readOnly": true
-                    },
-                    "period_data": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Period"
-                            }
-                        ],
-                        "readOnly": true
-                    },
-                    "parent_transaction_id": {
-                        "type": "integer",
-                        "readOnly": true
-                    },
-                    "parent_transaction_data": {
-                        "type": "string",
-                        "readOnly": true
                     }
                 }
             },
-            "PatchedUnit": {
+            "PatchedUnitRequest": {
                 "type": "object",
                 "properties": {
-                    "id": {
-                        "type": "integer",
-                        "readOnly": true
-                    },
                     "name": {
                         "type": "string",
+                        "minLength": 1,
                         "title": "نام واحد",
                         "maxLength": 200
                     },
@@ -4559,22 +4500,12 @@
                     "project": {
                         "type": "integer",
                         "title": "پروژه"
-                    },
-                    "created_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "readOnly": true,
-                        "title": "تاریخ ایجاد"
                     }
                 }
             },
-            "PatchedUnitSpecificExpense": {
+            "PatchedUnitSpecificExpenseRequest": {
                 "type": "object",
                 "properties": {
-                    "id": {
-                        "type": "integer",
-                        "readOnly": true
-                    },
                     "project": {
                         "type": "integer",
                         "writeOnly": true,
@@ -4584,14 +4515,6 @@
                         "type": "integer",
                         "writeOnly": true,
                         "nullable": true
-                    },
-                    "project_data": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Project"
-                            }
-                        ],
-                        "readOnly": true
                     },
                     "unit": {
                         "type": "integer",
@@ -4603,31 +4526,16 @@
                         "writeOnly": true,
                         "nullable": true
                     },
-                    "unit_data": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Unit"
-                            }
-                        ],
-                        "readOnly": true
-                    },
                     "title": {
                         "type": "string",
+                        "minLength": 1,
                         "title": "عنوان",
                         "maxLength": 200
                     },
-                    "date_shamsi": {
-                        "type": "string",
-                        "readOnly": true
-                    },
                     "date_shamsi_input": {
                         "type": "string",
-                        "writeOnly": true
-                    },
-                    "date_gregorian": {
-                        "type": "string",
-                        "format": "date",
-                        "readOnly": true
+                        "writeOnly": true,
+                        "minLength": 1
                     },
                     "amount": {
                         "type": "string",
@@ -4639,16 +4547,6 @@
                         "type": "string",
                         "nullable": true,
                         "title": "توضیحات"
-                    },
-                    "created_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "readOnly": true
-                    },
-                    "updated_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "readOnly": true
                     }
                 }
             },
@@ -4720,6 +4618,71 @@
                     "year"
                 ]
             },
+            "PeriodRequest": {
+                "type": "object",
+                "properties": {
+                    "label": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "عنوان دوره",
+                        "maxLength": 50
+                    },
+                    "year": {
+                        "type": "integer",
+                        "title": "سال شمسی"
+                    },
+                    "month_number": {
+                        "type": "integer",
+                        "title": "شماره ماه"
+                    },
+                    "month_name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "نام ماه",
+                        "maxLength": 20
+                    },
+                    "weight": {
+                        "type": "integer",
+                        "title": "وزن دوره"
+                    },
+                    "start_date_shamsi": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "تاریخ شروع شمسی"
+                    },
+                    "end_date_shamsi": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "تاریخ پایان شمسی"
+                    },
+                    "start_date_gregorian": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "تاریخ شروع میلادی"
+                    },
+                    "end_date_gregorian": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "تاریخ پایان میلادی"
+                    },
+                    "project": {
+                        "type": "integer",
+                        "title": "پروژه"
+                    }
+                },
+                "required": [
+                    "end_date_gregorian",
+                    "end_date_shamsi",
+                    "label",
+                    "month_name",
+                    "month_number",
+                    "project",
+                    "start_date_gregorian",
+                    "start_date_shamsi",
+                    "weight",
+                    "year"
+                ]
+            },
             "PettyCashTransaction": {
                 "type": "object",
                 "properties": {
@@ -4781,10 +4744,6 @@
                         "type": "string",
                         "readOnly": true
                     },
-                    "date_shamsi_input": {
-                        "type": "string",
-                        "writeOnly": true
-                    },
                     "date_gregorian": {
                         "type": "string",
                         "format": "date",
@@ -4815,6 +4774,54 @@
                     "transaction_type",
                     "transaction_type_label",
                     "updated_at"
+                ]
+            },
+            "PettyCashTransactionRequest": {
+                "type": "object",
+                "properties": {
+                    "expense_type": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/ExpenseTypeEnum"
+                            }
+                        ],
+                        "title": "عامل اجرایی",
+                        "description": "نوع هزینه که به عنوان عامل اجرایی استفاده می‌شود\n\n* `project_manager` - مدیر پروژه\n* `facilities_manager` - سرپرست کارگاه\n* `procurement` - کارپرداز\n* `warehouse` - انباردار\n* `construction_contractor` - پیمان ساختمان\n* `other` - سایر"
+                    },
+                    "transaction_type": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/PettyCashTransactionTransactionTypeEnum"
+                            }
+                        ],
+                        "title": "نوع تراکنش"
+                    },
+                    "amount": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,18}(?:\\.\\d{0,2})?$",
+                        "title": "مبلغ",
+                        "description": "همیشه مثبت ذخیره می‌شود"
+                    },
+                    "description": {
+                        "type": "string",
+                        "title": "توضیحات"
+                    },
+                    "receipt_number": {
+                        "type": "string",
+                        "title": "شماره فیش/رسید",
+                        "maxLength": 100
+                    },
+                    "date_shamsi_input": {
+                        "type": "string",
+                        "writeOnly": true,
+                        "minLength": 1
+                    }
+                },
+                "required": [
+                    "amount",
+                    "expense_type",
+                    "transaction_type"
                 ]
             },
             "PettyCashTransactionTransactionTypeEnum": {
@@ -4920,6 +4927,85 @@
                     "updated_at"
                 ]
             },
+            "ProjectRequest": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "نام پروژه",
+                        "maxLength": 200
+                    },
+                    "start_date_shamsi": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "تاریخ شروع (شمسی)"
+                    },
+                    "end_date_shamsi": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "تاریخ پایان (شمسی)"
+                    },
+                    "start_date_gregorian": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "تاریخ شروع (میلادی)"
+                    },
+                    "end_date_gregorian": {
+                        "type": "string",
+                        "format": "date",
+                        "title": "تاریخ پایان (میلادی)"
+                    },
+                    "total_infrastructure": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,13}(?:\\.\\d{0,2})?$",
+                        "title": "زیر بنای کل",
+                        "description": "زیر بنای کل پروژه به متر مربع"
+                    },
+                    "correction_factor": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,10}(?:\\.\\d{0,10})?$",
+                        "title": "ضریب اصلاحی",
+                        "description": "ضریب اصلاحی برای محاسبات پروژه"
+                    },
+                    "construction_contractor_percentage": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,3}(?:\\.\\d{0,3})?$",
+                        "title": "درصد پیمان ساخت",
+                        "description": "درصد پیمان ساخت از مجموع سایر هزینه‌ها (به صورت اعشاری، مثلاً 0.100 برای 10%)"
+                    },
+                    "description": {
+                        "type": "string",
+                        "nullable": true,
+                        "title": "توضیحات",
+                        "description": "توضیحات اضافی درباره پروژه"
+                    },
+                    "color": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "رنگ پروژه",
+                        "description": "رنگ نمایش پروژه (فرمت HEX)",
+                        "maxLength": 7
+                    },
+                    "icon": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "آیکون پروژه",
+                        "description": "نام کلاس آیکون Font Awesome (مثال: fa-building)",
+                        "maxLength": 50
+                    }
+                },
+                "required": [
+                    "end_date_gregorian",
+                    "end_date_shamsi",
+                    "name",
+                    "start_date_gregorian",
+                    "start_date_shamsi"
+                ]
+            },
             "Sale": {
                 "type": "object",
                 "properties": {
@@ -4978,6 +5064,34 @@
                     "project_data"
                 ]
             },
+            "SaleRequest": {
+                "type": "object",
+                "properties": {
+                    "project": {
+                        "type": "integer",
+                        "title": "پروژه"
+                    },
+                    "period": {
+                        "type": "integer",
+                        "title": "دوره"
+                    },
+                    "amount": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,18}(?:\\.\\d{0,2})?$",
+                        "title": "مبلغ"
+                    },
+                    "description": {
+                        "type": "string",
+                        "title": "توضیحات"
+                    }
+                },
+                "required": [
+                    "amount",
+                    "period",
+                    "project"
+                ]
+            },
             "Transaction": {
                 "type": "object",
                 "properties": {
@@ -4988,14 +5102,6 @@
                     "date_shamsi": {
                         "type": "string",
                         "readOnly": true
-                    },
-                    "date_shamsi_input": {
-                        "type": "string",
-                        "writeOnly": true
-                    },
-                    "date_shamsi_raw": {
-                        "type": "string",
-                        "writeOnly": true
                     },
                     "date_gregorian": {
                         "type": "string",
@@ -5033,26 +5139,6 @@
                         "format": "date-time",
                         "readOnly": true,
                         "title": "تاریخ ایجاد"
-                    },
-                    "investor": {
-                        "type": "integer",
-                        "writeOnly": true,
-                        "nullable": true
-                    },
-                    "period": {
-                        "type": "integer",
-                        "writeOnly": true,
-                        "nullable": true
-                    },
-                    "investor_id": {
-                        "type": "integer",
-                        "writeOnly": true,
-                        "nullable": true
-                    },
-                    "period_id": {
-                        "type": "integer",
-                        "writeOnly": true,
-                        "nullable": true
                     },
                     "investor_data": {
                         "allOf": [
@@ -5100,6 +5186,63 @@
                     "parent_transaction_id",
                     "period_data",
                     "project_data",
+                    "transaction_type"
+                ]
+            },
+            "TransactionRequest": {
+                "type": "object",
+                "properties": {
+                    "date_shamsi_input": {
+                        "type": "string",
+                        "writeOnly": true,
+                        "minLength": 1
+                    },
+                    "date_shamsi_raw": {
+                        "type": "string",
+                        "writeOnly": true,
+                        "minLength": 1
+                    },
+                    "amount": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,18}(?:\\.\\d{0,2})?$",
+                        "title": "مبلغ"
+                    },
+                    "transaction_type": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/TransactionTransactionTypeEnum"
+                            }
+                        ],
+                        "title": "نوع تراکنش"
+                    },
+                    "description": {
+                        "type": "string",
+                        "title": "توضیحات"
+                    },
+                    "investor": {
+                        "type": "integer",
+                        "writeOnly": true,
+                        "nullable": true
+                    },
+                    "period": {
+                        "type": "integer",
+                        "writeOnly": true,
+                        "nullable": true
+                    },
+                    "investor_id": {
+                        "type": "integer",
+                        "writeOnly": true,
+                        "nullable": true
+                    },
+                    "period_id": {
+                        "type": "integer",
+                        "writeOnly": true,
+                        "nullable": true
+                    }
+                },
+                "required": [
+                    "amount",
                     "transaction_type"
                 ]
             },
@@ -5164,22 +5307,52 @@
                     "total_price"
                 ]
             },
+            "UnitRequest": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "نام واحد",
+                        "maxLength": 200
+                    },
+                    "area": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,8}(?:\\.\\d{0,4})?$",
+                        "title": "متراژ"
+                    },
+                    "price_per_meter": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,13}(?:\\.\\d{0,2})?$",
+                        "title": "قیمت هر متر"
+                    },
+                    "total_price": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,13}(?:\\.\\d{0,2})?$",
+                        "title": "قیمت نهایی"
+                    },
+                    "project": {
+                        "type": "integer",
+                        "title": "پروژه"
+                    }
+                },
+                "required": [
+                    "area",
+                    "name",
+                    "price_per_meter",
+                    "project",
+                    "total_price"
+                ]
+            },
             "UnitSpecificExpense": {
                 "type": "object",
                 "properties": {
                     "id": {
                         "type": "integer",
                         "readOnly": true
-                    },
-                    "project": {
-                        "type": "integer",
-                        "writeOnly": true,
-                        "nullable": true
-                    },
-                    "project_id": {
-                        "type": "integer",
-                        "writeOnly": true,
-                        "nullable": true
                     },
                     "project_data": {
                         "allOf": [
@@ -5188,16 +5361,6 @@
                             }
                         ],
                         "readOnly": true
-                    },
-                    "unit": {
-                        "type": "integer",
-                        "writeOnly": true,
-                        "nullable": true
-                    },
-                    "unit_id": {
-                        "type": "integer",
-                        "writeOnly": true,
-                        "nullable": true
                     },
                     "unit_data": {
                         "allOf": [
@@ -5215,10 +5378,6 @@
                     "date_shamsi": {
                         "type": "string",
                         "readOnly": true
-                    },
-                    "date_shamsi_input": {
-                        "type": "string",
-                        "writeOnly": true
                     },
                     "date_gregorian": {
                         "type": "string",
@@ -5257,6 +5416,57 @@
                     "title",
                     "unit_data",
                     "updated_at"
+                ]
+            },
+            "UnitSpecificExpenseRequest": {
+                "type": "object",
+                "properties": {
+                    "project": {
+                        "type": "integer",
+                        "writeOnly": true,
+                        "nullable": true
+                    },
+                    "project_id": {
+                        "type": "integer",
+                        "writeOnly": true,
+                        "nullable": true
+                    },
+                    "unit": {
+                        "type": "integer",
+                        "writeOnly": true,
+                        "nullable": true
+                    },
+                    "unit_id": {
+                        "type": "integer",
+                        "writeOnly": true,
+                        "nullable": true
+                    },
+                    "title": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "عنوان",
+                        "maxLength": 200
+                    },
+                    "date_shamsi_input": {
+                        "type": "string",
+                        "writeOnly": true,
+                        "minLength": 1
+                    },
+                    "amount": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,18}(?:\\.\\d{0,2})?$",
+                        "title": "مبلغ"
+                    },
+                    "description": {
+                        "type": "string",
+                        "nullable": true,
+                        "title": "توضیحات"
+                    }
+                },
+                "required": [
+                    "amount",
+                    "title"
                 ]
             }
         },

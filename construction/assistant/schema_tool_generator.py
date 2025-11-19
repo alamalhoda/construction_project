@@ -326,8 +326,22 @@ class SchemaToolGenerator:
         responses = tool_info.get('responses', [])
         operation_id = tool_info.get('operation_id', '')
         
-        # ساخت docstring کامل
-        docstring_parts = [f"    {description}"]
+        # ساخت docstring کامل با فرمت استاندارد
+        # استخراج عنوان کوتاه از description (اولین خط)
+        description_lines = description.split('\n') if description else ['']
+        short_title = description_lines[0].strip() if description_lines else f"{method} {path}"
+        detailed_description = '\n'.join(description_lines[1:]).strip() if len(description_lines) > 1 else ""
+        
+        docstring_parts = [f"    {short_title}"]
+        
+        # اگر توضیحات کامل‌تری وجود دارد
+        if detailed_description:
+            docstring_parts.append("")
+            # تقسیم به خطوط و اضافه کردن با indent
+            for line in detailed_description.split('\n'):
+                docstring_parts.append(f"    {line}")
+        
+        # اضافه کردن اطلاعات تکنیکی
         docstring_parts.append("")
         docstring_parts.append(f"    این Tool از API endpoint {method} {path} استفاده می‌کند.")
         
@@ -337,29 +351,82 @@ class SchemaToolGenerator:
         if tags:
             docstring_parts.append(f"    دسته‌بندی: {', '.join(tags)}")
         
-        if security:
-            security_str = ', '.join(security)
-            docstring_parts.append(f"    نیاز به احراز هویت: {security_str}")
-        
+        # Args با فرمت استاندارد Python docstring - استخراج خودکار از schema
         docstring_parts.append("")
         docstring_parts.append("    Args:")
         if param_docs:
-            docstring_parts.extend(param_docs)
+            # تبدیل فرمت param_docs به فرمت استاندارد
+            for param_doc in param_docs:
+                # param_doc به صورت "        param_name: type - description" است
+                # تبدیل به "        param_name (type): description"
+                if ' - ' in param_doc:
+                    parts = param_doc.split(' - ', 1)
+                    param_part = parts[0].strip()  # "        param_name: type"
+                    desc_part = parts[1].strip() if len(parts) > 1 else ""  # "description"
+                    # استخراج نام و نوع
+                    if ':' in param_part:
+                        param_name = param_part.split(':', 1)[0].strip()  # "param_name"
+                        type_part = param_part.split(':', 1)[1].strip() if ':' in param_part else 'str'
+                        # اگر Optional است
+                        if 'Optional[' in type_part:
+                            type_part = type_part.replace('Optional[', '').replace(']', '').strip()
+                            if desc_part:
+                                docstring_parts.append(f"        {param_name} ({type_part}, optional): {desc_part}")
+                            else:
+                                docstring_parts.append(f"        {param_name} ({type_part}, optional): (اختیاری)")
+                        else:
+                            if desc_part:
+                                docstring_parts.append(f"        {param_name} ({type_part}): {desc_part}")
+                            else:
+                                docstring_parts.append(f"        {param_name} ({type_part}): (الزامی)")
+                    else:
+                        docstring_parts.append(f"    {param_doc}")
+                else:
+                    docstring_parts.append(f"    {param_doc}")
         else:
             docstring_parts.append("        (بدون پارامتر)")
-        docstring_parts.append("        request: درخواست HTTP برای احراز هویت (برای استفاده داخلی)")
+        docstring_parts.append("        request (optional): درخواست HTTP برای احراز هویت (برای استفاده داخلی)")
         
+        # Returns با فرمت استاندارد - استخراج خودکار از schema
+        docstring_parts.append("")
+        docstring_parts.append("    Returns:")
         if responses:
-            docstring_parts.append("")
-            docstring_parts.append("    Returns:")
-            docstring_parts.append("        نتیجه عملیات به صورت رشته متنی")
-            docstring_parts.append("        کدهای وضعیت ممکن:")
-            for resp in responses:
-                docstring_parts.append(f"        - {resp}")
+            docstring_parts.append("        str: نتیجه عملیات به صورت رشته متنی")
+            if len(responses) > 1:
+                docstring_parts.append("        کدهای وضعیت ممکن:")
+                for resp in responses:
+                    docstring_parts.append(f"        - {resp}")
+            else:
+                # اگر فقط یک response داریم، جزئیات بیشتری بدهیم
+                resp = responses[0]
+                if ':' in resp:
+                    status_code, schema_name = resp.split(':', 1)
+                    docstring_parts.append(f"        - {status_code}: {schema_name.strip()}")
         else:
+            docstring_parts.append("        str: نتیجه عملیات به صورت رشته متنی")
+        
+        # Raises (اگر خطاهای احتمالی وجود دارد)
+        if method in ['POST', 'PUT', 'PATCH', 'DELETE']:
             docstring_parts.append("")
-            docstring_parts.append("    Returns:")
-            docstring_parts.append("        نتیجه عملیات به صورت رشته متنی")
+            docstring_parts.append("    Raises:")
+            docstring_parts.append("        ValidationError: اگر ورودی‌ها نامعتبر باشند")
+            docstring_parts.append("        PermissionDenied: اگر کاربر دسترسی نداشته باشد")
+        
+        # مثال استفاده
+        docstring_parts.append("")
+        docstring_parts.append("    مثال استفاده:")
+        if method == 'GET':
+            example_path = path.replace('{id}', '1') if '{id}' in path else path
+            docstring_parts.append(f"        {method} {example_path}")
+        else:
+            docstring_parts.append(f"        {method} {path}")
+        
+        # نکات مهم
+        if security:
+            docstring_parts.append("")
+            docstring_parts.append("    نکات مهم:")
+            security_str = ', '.join(security)
+            docstring_parts.append(f"        - نیاز به احراز هویت: {security_str}")
         
         docstring = '\n'.join(docstring_parts)
         

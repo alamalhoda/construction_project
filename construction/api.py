@@ -34,7 +34,35 @@ class CsrfExemptSessionAuthentication(SessionAuthentication):
 
 
 class ExpenseViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
-    """ViewSet for the Expense class"""
+    """
+    ViewSet برای مدیریت هزینه‌های پروژه
+    
+    این ViewSet امکان مدیریت کامل هزینه‌های پروژه را فراهم می‌کند.
+    
+    قابلیت‌ها:
+    - ایجاد، خواندن، به‌روزرسانی و حذف هزینه‌ها
+    - دریافت آمار و گزارش‌های مالی
+    - محاسبه مجموع هزینه‌ها بر اساس نوع و دوره
+    - مدیریت هزینه‌های دوره‌ای
+    
+    سناریوهای استفاده:
+    - ثبت هزینه‌های مواد اولیه (material)
+    - ثبت هزینه‌های نیروی کار (labor)
+    - ثبت هزینه‌های اداری و عمومی (administrative)
+    - دریافت گزارش‌های مالی برای تحلیل پروژه
+    - محاسبه هزینه‌های تجمعی برای هر دوره
+    
+    مثال‌های کاربرد:
+    - برای ثبت خرید سیمان و آجر: expense_type='material', amount='5000000'
+    - برای ثبت حقوق کارگران: expense_type='labor', amount='3000000'
+    - برای دریافت لیست تمام هزینه‌ها: GET /api/v1/Expense/
+    - برای دریافت آمار هزینه‌ها: GET /api/v1/Expense/dashboard_data/
+    
+    نکات مهم:
+    - تمام عملیات بر اساس پروژه جاری (active project) انجام می‌شود
+    - هزینه‌ها می‌توانند به یک دوره خاص مرتبط باشند
+    - انواع هزینه: project_manager, facilities_manager, procurement, warehouse, construction_contractor, other
+    """
 
     queryset = models.Expense.objects.all()
     serializer_class = serializers.ExpenseSerializer
@@ -81,7 +109,52 @@ class ExpenseViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def dashboard_data(self, request):
-        """دریافت داده‌های لیست هزینه ها"""
+        """
+        دریافت داده‌های لیست هزینه‌ها برای نمایش در داشبورد
+        
+        این endpoint داده‌های لازم برای نمایش در داشبورد هزینه‌ها را برمی‌گرداند.
+        
+        خروجی شامل:
+        - لیست تمام هزینه‌ها با اطلاعات دوره
+        - آمار کلی هزینه‌ها (تعداد، مجموع)
+        - اطلاعات پروژه جاری
+        - داده‌های ماتریسی برای نمایش جدولی
+        
+        سناریوهای استفاده:
+        - نمایش داشبورد هزینه‌ها در رابط کاربری
+        - فیلتر کردن هزینه‌ها بر اساس دوره
+        - محاسبه مجموع هزینه‌ها برای گزارش‌گیری
+        - نمایش ترند هزینه‌ها در طول زمان
+        
+        مثال استفاده:
+        GET /api/v1/Expense/dashboard_data/
+        
+        مثال خروجی:
+        {
+            "success": true,
+            "data": {
+                "periods": [
+                    {
+                        "period_id": 1,
+                        "period_label": "مرداد 1402",
+                        "expenses": {
+                            "material": {"amount": 5000000, "label": "مواد اولیه"},
+                            "labor": {"amount": 3000000, "label": "نیروی کار"}
+                        },
+                        "period_total": 8000000,
+                        "cumulative_total": 8000000
+                    }
+                ],
+                "grand_total": 15000000,
+                "project_name": "پروژه نمونه"
+            }
+        }
+        
+        نکات مهم:
+        - فقط هزینه‌های پروژه جاری را برمی‌گرداند
+        - اگر پروژه جاری وجود نداشته باشد، خطای 400 برمی‌گرداند
+        - داده‌ها بر اساس دوره مرتب می‌شوند
+        """
         try:
             # دریافت پروژه جاری از session
             from construction.project_manager import ProjectManager
@@ -190,7 +263,53 @@ class ExpenseViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'])
     def update_expense(self, request):
-        """به‌روزرسانی هزینه"""
+        """
+        به‌روزرسانی یا ایجاد هزینه برای یک دوره و نوع خاص.
+        
+        این endpoint هزینه را برای یک دوره و نوع خاص به‌روزرسانی می‌کند.
+        اگر هزینه وجود نداشته باشد، آن را ایجاد می‌کند. هزینه بر اساس پروژه جاری،
+        دوره و نوع هزینه شناسایی می‌شود. مبلغ به صورت Decimal ذخیره می‌شود.
+        
+        قابلیت‌ها/خروجی شامل:
+        - ثبت یا به‌روزرسانی هزینه با جزئیات کامل
+        - بازگشت جزئیات هزینه با ID و وضعیت ایجاد/به‌روزرسانی
+        
+        سناریوهای استفاده:
+        - ثبت هزینه‌های ماهانه پروژه ساختمانی توسط مدیر پروژه
+        - به‌روزرسانی مبلغ هزینه‌های قبلی در صورت تغییر
+        - ثبت هزینه‌های دوره‌ای به صورت دسته‌ای از سیستم حسابداری خارجی
+        - ویرایش هزینه‌های ثبت شده در داشبورد مدیریت
+        
+        مثال استفاده:
+            POST /api/v1/Expense/update_expense/
+        
+        مثال ورودی/خروجی:
+            Input:
+            {
+                "period_id": 3,
+                "expense_type": "project_manager",
+                "amount": "5000000",
+                "description": "حقوق مدیر پروژه"
+            }
+            
+            Output:
+            {
+                "success": true,
+                "message": "هزینه با موفقیت به‌روزرسانی شد",
+                "data": {
+                    "expense_id": 15,
+                    "amount": 5000000.0,
+                    "description": "حقوق مدیر پروژه",
+                    "created": false
+                }
+            }
+        
+        نکات مهم:
+        - هزینه بر اساس پروژه جاری (active project) از session شناسایی می‌شود
+        - اگر هزینه وجود داشته باشد، به‌روزرسانی می‌شود؛ در غیر این صورت ایجاد می‌شود
+        - مبلغ باید به صورت string ارسال شود تا از مشکلات precision جلوگیری شود
+        - نیاز به احراز هویت دارد (IsAuthenticated)
+        """
         try:
             period_id = request.data.get('period_id')  # شناسه دوره
             expense_type = request.data.get('expense_type')  # نوع هزینه
@@ -397,7 +516,59 @@ class InvestorViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def summary(self, request):
-        """خلاصه مالی تمام سرمایه‌گذاران - نسخه مرجع واحد (جایگزین SQL خام)"""
+        """
+        خلاصه مالی تمام سرمایه‌گذاران پروژه
+        
+        این endpoint خلاصه مالی تمام سرمایه‌گذاران پروژه جاری را محاسبه و برمی‌گرداند.
+        
+        خروجی شامل:
+        - شناسه و نام هر سرمایه‌گذار
+        - نوع مشارکت (مالک یا سرمایه‌گذار)
+        - مجموع آورده‌ها
+        - مجموع برداشت‌ها
+        - سرمایه خالص
+        - مجموع سود
+        - مجموع کل (سرمایه + سود)
+        
+        سناریوهای استفاده:
+        - نمایش لیست خلاصه تمام سرمایه‌گذاران
+        - مقایسه عملکرد سرمایه‌گذاران
+        - تهیه گزارش‌های مدیریتی
+        - نمایش داشبورد سرمایه‌گذاران
+        
+        مثال استفاده:
+        GET /api/v1/Investor/summary/
+        
+        مثال خروجی:
+        [
+            {
+                "investor_id": 1,
+                "name": "علی احمدی",
+                "participation_type": "owner",
+                "total_deposits": 100000000,
+                "total_withdrawals": 0,
+                "net_principal": 100000000,
+                "total_profit": 15000000,
+                "grand_total": 115000000
+            },
+            {
+                "investor_id": 2,
+                "name": "محمد رضایی",
+                "participation_type": "investor",
+                "total_deposits": 50000000,
+                "total_withdrawals": 10000000,
+                "net_principal": 40000000,
+                "total_profit": 7500000,
+                "grand_total": 47500000
+            }
+        ]
+        
+        نکات مهم:
+        - نتایج بر اساس سرمایه خالص (net_principal) به صورت نزولی مرتب می‌شوند
+        - فقط سرمایه‌گذاران پروژه جاری را شامل می‌شود
+        - اگر پروژه جاری وجود نداشته باشد، تمام سرمایه‌گذاران را برمی‌گرداند
+        - تمام مبالغ به تومان هستند
+        """
         try:
             def norm_num(x):  # تابع نرمال‌سازی عدد (حذف اعشار در صورت امکان)
                 try:
@@ -524,7 +695,52 @@ class InvestorViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'])
     def detailed_statistics(self, request, pk=None):
-        """دریافت آمار تفصیلی سرمایه‌گذار"""
+        """
+        دریافت آمار تفصیلی سرمایه‌گذار
+        
+        این endpoint آمار کامل و تفصیلی یک سرمایه‌گذار خاص را محاسبه و برمی‌گرداند.
+        
+        پارامترها:
+        - pk (int): شناسه یکتای سرمایه‌گذار
+        - project_id (query param, اختیاری): شناسه پروژه (در صورت عدم ارسال از پروژه جاری استفاده می‌شود)
+        
+        خروجی شامل:
+        - مجموع آورده‌ها (deposits)
+        - مجموع برداشت‌ها (withdrawals)
+        - مجموع سود (profits)
+        - سرمایه خالص (net principal)
+        - مجموع کل (grand total)
+        - درصد مالکیت
+        - نسبت‌های مالی
+        
+        سناریوهای استفاده:
+        - نمایش پروفایل کامل سرمایه‌گذار
+        - محاسبه سهم هر سرمایه‌گذار در پروژه
+        - تهیه گزارش‌های مالی تفصیلی
+        - تحلیل عملکرد سرمایه‌گذاری
+        
+        مثال استفاده:
+        GET /api/v1/Investor/5/detailed_statistics/
+        GET /api/v1/Investor/5/detailed_statistics/?project_id=1
+        
+        مثال خروجی:
+        {
+            "investor_id": 5,
+            "name": "علی احمدی",
+            "total_deposits": 100000000,
+            "total_withdrawals": 0,
+            "net_principal": 100000000,
+            "total_profit": 15000000,
+            "grand_total": 115000000,
+            "ownership_percentage": 25.5,
+            "unit_cost": 5000000
+        }
+        
+        نکات مهم:
+        - اگر سرمایه‌گذار یافت نشود، خطای 404 برمی‌گرداند
+        - محاسبات بر اساس پروژه جاری یا project_id ارسالی انجام می‌شود
+        - تمام مبالغ به تومان هستند
+        """
         try:
             # دریافت project_id از query parameter یا از پروژه جاری از session
             project_id = request.query_params.get('project_id')
@@ -810,7 +1026,62 @@ class PeriodViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def period_summary(self, request):
-        """دریافت خلاصه کامل دوره‌ای شامل تمام فاکتورها و مقادیر تجمعی"""
+        """
+        دریافت خلاصه کامل دوره‌ای شامل تمام فاکتورها و مقادیر تجمعی
+        
+        این endpoint خلاصه کامل مالی برای تمام دوره‌های پروژه را برمی‌گرداند.
+        
+        خروجی شامل:
+        - اطلاعات هر دوره (شناسه، برچسب، تاریخ)
+        - آورده‌های دوره و تجمعی
+        - برداشت‌های دوره و تجمعی
+        - سرمایه خالص دوره و تجمعی
+        - سود دوره و تجمعی
+        - هزینه‌های دوره و تجمعی
+        - فروش/مرجوعی دوره و تجمعی
+        - مانده صندوق برای هر دوره
+        
+        سناریوهای استفاده:
+        - نمایش گزارش دوره‌ای کامل پروژه
+        - تحلیل روند مالی در طول زمان
+        - نمایش ترند سرمایه، هزینه و سود
+        - محاسبه مانده صندوق برای هر دوره
+        - تهیه گزارش‌های تفصیلی دوره‌ای
+        
+        مثال استفاده:
+        GET /api/v1/Period/period_summary/
+        
+        مثال خروجی:
+        {
+            "success": true,
+            "data": [
+                {
+                    "period_id": 1,
+                    "period_label": "مرداد 1402",
+                    "deposits": 100000000,
+                    "cumulative_deposits": 100000000,
+                    "withdrawals": 0,
+                    "cumulative_withdrawals": 0,
+                    "net_capital": 100000000,
+                    "cumulative_net_capital": 100000000,
+                    "profits": 5000000,
+                    "cumulative_profits": 5000000,
+                    "expenses": 30000000,
+                    "cumulative_expenses": 30000000,
+                    "sales": 0,
+                    "cumulative_sales": 0,
+                    "fund_balance": 75000000
+                }
+            ],
+            "current": {...}
+        }
+        
+        نکات مهم:
+        - فقط دوره‌های پروژه جاری را شامل می‌شود
+        - اگر پروژه جاری وجود نداشته باشد، خطای 400 برمی‌گرداند
+        - دوره‌ها به ترتیب زمانی مرتب می‌شوند
+        - تمام مبالغ به تومان هستند
+        """
         try:
             # دریافت پروژه جاری از session
             from construction.project_manager import ProjectManager
@@ -1196,7 +1467,64 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def comprehensive_analysis(self, request):
-        """دریافت تحلیل جامع پروژه شامل تمام محاسبات مالی"""
+        """
+        دریافت تحلیل جامع پروژه شامل تمام محاسبات مالی
+        
+        این endpoint یک تحلیل کامل و جامع از وضعیت مالی پروژه را ارائه می‌دهد.
+        
+        پارامترها:
+        - project_id (query param, اختیاری): شناسه پروژه (در صورت عدم ارسال از پروژه جاری استفاده می‌شود)
+        
+        خروجی شامل:
+        - اطلاعات کلی پروژه
+        - آمار سرمایه‌گذاران
+        - آمار تراکنش‌ها (آورده، برداشت، سود)
+        - آمار هزینه‌ها
+        - آمار فروش‌ها
+        - محاسبات مالی (سرمایه خالص، مجموع کل، مانده صندوق)
+        - متریک‌های عملکردی
+        
+        سناریوهای استفاده:
+        - نمایش داشبورد مدیریتی پروژه
+        - تهیه گزارش‌های جامع برای مدیران
+        - تحلیل سلامت مالی پروژه
+        - تصمیم‌گیری‌های استراتژیک
+        - ارائه گزارش به سرمایه‌گذاران
+        
+        مثال استفاده:
+        GET /api/v1/Project/comprehensive_analysis/
+        GET /api/v1/Project/comprehensive_analysis/?project_id=1
+        
+        مثال خروجی:
+        {
+            "project": {
+                "id": 1,
+                "name": "پروژه نمونه",
+                "start_date": "1402-05-01",
+                "end_date": "1405-05-01"
+            },
+            "investors": {
+                "total_count": 5,
+                "total_deposits": 500000000,
+                "total_withdrawals": 20000000,
+                "net_principal": 480000000,
+                "total_profits": 75000000
+            },
+            "expenses": {
+                "total_amount": 300000000,
+                "by_type": {...}
+            },
+            "financial_summary": {
+                "grand_total": 555000000,
+                "fund_balance": 255000000
+            }
+        }
+        
+        نکات مهم:
+        - اگر پروژه جاری وجود نداشته باشد، خطای 400 برمی‌گرداند
+        - تمام محاسبات بر اساس داده‌های واقعی انجام می‌شود
+        - مبالغ به تومان هستند
+        """
         try:
             project_id = request.query_params.get('project_id')  # شناسه پروژه از پارامترهای درخواست
             
@@ -1225,7 +1553,48 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def profit_metrics(self, request):
-        """دریافت متریک‌های سود (کل، سالانه، ماهانه، روزانه)"""
+        """
+        دریافت متریک‌های سود پروژه
+        
+        این endpoint متریک‌های مختلف سود پروژه را محاسبه و برمی‌گرداند.
+        
+        پارامترها:
+        - project_id (query param, اختیاری): شناسه پروژه (در صورت عدم ارسال از پروژه جاری استفاده می‌شود)
+        
+        خروجی شامل:
+        - مجموع کل سود
+        - سود سالانه (میانگین)
+        - سود ماهانه (میانگین)
+        - سود روزانه (میانگین)
+        - نرخ بازدهی
+        - ترند سود در طول زمان
+        
+        سناریوهای استفاده:
+        - نمایش عملکرد مالی پروژه
+        - مقایسه سودآوری پروژه‌های مختلف
+        - تحلیل روند سوددهی
+        - محاسبه نرخ بازدهی سرمایه‌گذاری
+        - تهیه گزارش‌های تحلیلی
+        
+        مثال استفاده:
+        GET /api/v1/Project/profit_metrics/
+        GET /api/v1/Project/profit_metrics/?project_id=1
+        
+        مثال خروجی:
+        {
+            "total_profit": 75000000,
+            "annual_profit": 25000000,
+            "monthly_profit": 2083333.33,
+            "daily_profit": 69444.44,
+            "return_rate": 15.6,
+            "profit_trend": [...]
+        }
+        
+        نکات مهم:
+        - اگر پروژه جاری وجود نداشته باشد، خطای 400 برمی‌گرداند
+        - محاسبات بر اساس تاریخ شروع و پایان پروژه انجام می‌شود
+        - مبالغ به تومان هستند
+        """
         try:
             project_id = request.query_params.get('project_id')  # شناسه پروژه از پارامترهای درخواست
             
@@ -1511,7 +1880,47 @@ class TransactionViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def statistics(self, request):
-        """آمار کلی تراکنش‌ها برای پروژه جاری"""
+        """
+        دریافت آمار کلی تراکنش‌های پروژه
+        
+        این endpoint آمار جامع و کلی تمام تراکنش‌های پروژه جاری را برمی‌گرداند.
+        
+        خروجی شامل:
+        - تعداد کل تراکنش‌ها
+        - مجموع آورده‌ها (deposits)
+        - مجموع برداشت‌ها (withdrawals)
+        - مجموع سود (profits)
+        - سرمایه خالص (net principal)
+        - مجموع کل (grand total)
+        - تعداد سرمایه‌گذاران منحصر به فرد
+        
+        سناریوهای استفاده:
+        - نمایش خلاصه مالی پروژه
+        - نمایش داشبورد تراکنش‌ها
+        - تحلیل جریان نقدی پروژه
+        - محاسبه شاخص‌های مالی کلیدی
+        - تهیه گزارش‌های مدیریتی
+        
+        مثال استفاده:
+        GET /api/v1/Transaction/statistics/
+        
+        مثال خروجی:
+        {
+            "total_transactions": 150,
+            "total_deposits": 500000000,
+            "total_withdrawals": -20000000,
+            "total_profits": 75000000,
+            "net_principal": 480000000,
+            "grand_total": 555000000,
+            "unique_investors": 5
+        }
+        
+        نکات مهم:
+        - فقط تراکنش‌های پروژه جاری را شامل می‌شود
+        - اگر پروژه جاری وجود نداشته باشد، خطای 400 برمی‌گرداند
+        - مجموع برداشت‌ها به صورت منفی محاسبه می‌شود
+        - تمام مبالغ به تومان هستند
+        """
         from django.db.models import Count, Sum, Q
         
         # دریافت پروژه جاری از session
@@ -1805,7 +2214,55 @@ class PettyCashTransactionViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
   
     @action(detail=False, methods=['get'])
     def balance_detail(self, request):
-        """دریافت وضعیت مالی یک عامل اجرایی خاص"""
+        """
+        دریافت وضعیت مالی یک عامل اجرایی خاص
+        
+        این endpoint وضعیت مالی تفصیلی یک عامل اجرایی (مدیر پروژه، سرپرست کارگاه، کارپرداز، انباردار، پیمانکار) را برمی‌گرداند.
+        
+        پارامترها:
+        - expense_type (query param, الزامی): نوع عامل اجرایی (project_manager, facilities_manager, procurement, warehouse, construction_contractor)
+        
+        خروجی شامل:
+        - نوع عامل اجرایی و برچسب فارسی آن
+        - مانده فعلی (balance)
+        - مجموع دریافت‌ها (total_receipts)
+        - مجموع هزینه‌ها (total_expenses)
+        - مجموع برگشت‌ها (total_returns)
+        - وضعیت بستانکاری/بدهکاری
+        
+        سناریوهای استفاده:
+        - نمایش وضعیت مالی هر عامل اجرایی
+        - بررسی مانده تنخواه هر شخص
+        - محاسبه بدهی یا طلب هر عامل
+        - تهیه گزارش‌های تفصیلی تنخواه
+        - مدیریت جریان نقدی عوامل اجرایی
+        
+        مثال استفاده:
+        GET /api/v1/PettyCashTransaction/balance_detail/?expense_type=project_manager
+        
+        مثال خروجی:
+        {
+            "success": true,
+            "data": {
+                "expense_type": "project_manager",
+                "expense_type_label": "مدیر پروژه",
+                "balance": 5000000,
+                "total_receipts": 20000000,
+                "total_expenses": 15000000,
+                "total_returns": 0,
+                "is_creditor": false,
+                "is_debtor": true
+            }
+        }
+        
+        نکات مهم:
+        - فقط تراکنش‌های پروژه جاری را شامل می‌شود
+        - اگر پروژه جاری وجود نداشته باشد، خطای 400 برمی‌گرداند
+        - اگر expense_type ارسال نشود، خطای 400 برمی‌گرداند
+        - مانده مثبت = بدهکار (پول در دست دارد)
+        - مانده منفی = بستانکار (بدهکار است)
+        - تمام مبالغ به تومان هستند
+        """
         try:
             expense_type = request.query_params.get('expense_type')
             if not expense_type:

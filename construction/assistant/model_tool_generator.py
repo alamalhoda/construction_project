@@ -183,13 +183,32 @@ class ModelToolGenerator:
                 
                 # پیدا کردن تمام ViewSets در این module
                 for attr_name in dir(api_module):
+                    # رد کردن private attributes و imports
+                    if attr_name.startswith('_'):
+                        continue
+                    
                     attr = getattr(api_module, attr_name, None)
-                    if (inspect.isclass(attr) and 
-                        issubclass(attr, viewsets.ViewSet) and 
-                        attr != viewsets.ViewSet and
-                        'ViewSet' in attr_name):
-                        viewsets_list.append(attr)
-            except (ImportError, AttributeError):
+                    if inspect.isclass(attr) and 'ViewSet' in attr_name:
+                        # بررسی اینکه ViewSet است (ViewSet یا ModelViewSet)
+                        is_viewset = False
+                        try:
+                            # استفاده از MRO برای بررسی (چون ModelViewSet مستقیماً از ViewSet ارث‌بری نمی‌کند)
+                            mro = getattr(attr, '__mro__', [])
+                            if (viewsets.ViewSet in mro or viewsets.ModelViewSet in mro):
+                                # رد کردن کلاس‌های پایه
+                                if attr not in [viewsets.ViewSet, viewsets.GenericViewSet, 
+                                               viewsets.ReadOnlyModelViewSet, viewsets.ModelViewSet]:
+                                    is_viewset = True
+                        except (TypeError, AttributeError):
+                            pass
+                        
+                        # بررسی اینکه این ViewSet از api_module است (نه import شده)
+                        if is_viewset:
+                            module_name = getattr(attr, '__module__', '')
+                            if module_name == api_module.__name__:
+                                viewsets_list.append(attr)
+            except (ImportError, AttributeError, TypeError) as e:
+                # TypeError ممکن است برای issubclass رخ دهد
                 continue
         
         return viewsets_list
@@ -286,25 +305,30 @@ class ModelToolGenerator:
             }
             
             # بررسی نوع فیلد
-            if isinstance(field, django_models.ForeignKey):
-                field_info['related_model'] = field.related_model.__name__
-                field_info['on_delete'] = str(field.on_delete)
-                model_info['relationships'].append({
-                    'name': field.name,
-                    'type': 'ForeignKey',
-                    'related_model': field.related_model.__name__
-                })
-            elif isinstance(field, django_models.ManyToManyField):
-                field_info['related_model'] = field.related_model.__name__
-                model_info['relationships'].append({
-                    'name': field.name,
-                    'type': 'ManyToMany',
-                    'related_model': field.related_model.__name__
-                })
-            elif isinstance(field, django_models.CharField):
-                if hasattr(field, 'choices') and field.choices:
-                    field_info['choices'] = dict(field.choices)
-                    model_info['choices'][field.name] = dict(field.choices)
+            try:
+                if isinstance(field, django_models.ForeignKey):
+                    field_info['related_model'] = field.related_model.__name__
+                    if hasattr(field, 'on_delete'):
+                        field_info['on_delete'] = str(field.on_delete)
+                    model_info['relationships'].append({
+                        'name': field.name,
+                        'type': 'ForeignKey',
+                        'related_model': field.related_model.__name__
+                    })
+                elif isinstance(field, django_models.ManyToManyField):
+                    field_info['related_model'] = field.related_model.__name__
+                    model_info['relationships'].append({
+                        'name': field.name,
+                        'type': 'ManyToMany',
+                        'related_model': field.related_model.__name__
+                    })
+                elif isinstance(field, django_models.CharField):
+                    if hasattr(field, 'choices') and field.choices:
+                        field_info['choices'] = dict(field.choices)
+                        model_info['choices'][field.name] = dict(field.choices)
+            except Exception:
+                # در صورت خطا، ادامه بده
+                pass
             
             model_info['fields'].append(field_info)
             model_info['verbose_names'][field.name] = field_info['verbose_name']
@@ -403,8 +427,9 @@ class ModelToolGenerator:
                             'description': field.get('help_text', '') or field.get('label', '')
                         })
         
-        # ساخت signature
-        param_signatures = []
+        # ساخت signature - جدا کردن required و optional
+        required_params = []
+        optional_params = []
         param_docs = []
         
         for param in params:
@@ -425,10 +450,11 @@ class ModelToolGenerator:
             else:
                 type_hint = 'str'
             
+            # جدا کردن required و optional
             if not required:
-                param_signatures.append(f"{param_name}: Optional[{type_hint}] = None")
+                optional_params.append(f"{param_name}: Optional[{type_hint}] = None")
             else:
-                param_signatures.append(f"{param_name}: {type_hint}")
+                required_params.append(f"{param_name}: {type_hint}")
             
             # ساخت docstring برای param
             param_doc = f"        {param_name}: {type_hint}"
@@ -438,7 +464,8 @@ class ModelToolGenerator:
                 param_doc += " (اختیاری)"
             param_docs.append(param_doc)
         
-        # اضافه کردن request
+        # ترکیب: ابتدا required، سپس optional، سپس request
+        param_signatures = required_params + optional_params
         param_signatures.append("request=None")
         
         signature = ", ".join(param_signatures)
@@ -474,7 +501,8 @@ class ModelToolGenerator:
         
         code = f'''@tool
 def {tool_name}({signature}) -> str:
-{docstring}
+    """{docstring}
+    """
 {body}
 '''
         
