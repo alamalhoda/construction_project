@@ -13,7 +13,9 @@ from datetime import datetime
 load_dotenv()
 
 # اضافه کردن مسیر پروژه به sys.path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# از construction/assistant/scripts/ به ریشه پروژه می‌رویم
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+sys.path.insert(0, project_root)
 
 # تنظیم Django settings
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'construction_project.settings')
