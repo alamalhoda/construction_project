@@ -185,6 +185,39 @@ def call_viewset_action(viewset_class, action_name, request=None, method='GET', 
     return response
 
 
+def translate_participation_type(data):
+    """
+    تبدیل participation_type از انگلیسی به فارسی در داده‌ها
+    
+    Args:
+        data: داده‌های dict یا list
+    
+    Returns:
+        داده‌های تبدیل شده
+    """
+    PARTICIPATION_TYPE_MAP = {
+        'owner': 'مالک',
+        'investor': 'سرمایه‌گذار'
+    }
+    
+    if isinstance(data, dict):
+        # اگر dict است، به صورت recursive تبدیل کن
+        result = {}
+        for key, value in data.items():
+            if key == 'participation_type' and value in PARTICIPATION_TYPE_MAP:
+                result[key] = PARTICIPATION_TYPE_MAP[value]
+            elif isinstance(value, (dict, list)):
+                result[key] = translate_participation_type(value)
+            else:
+                result[key] = value
+        return result
+    elif isinstance(data, list):
+        # اگر list است، هر آیتم را تبدیل کن
+        return [translate_participation_type(item) for item in data]
+    else:
+        return data
+
+
 def response_to_string(response: Response) -> str:
     """
     تبدیل Response object به string برای نمایش به کاربر
@@ -220,6 +253,9 @@ def response_to_string(response: Response) -> str:
     if hasattr(response, 'data'):
         data = response.data
         
+        # تبدیل participation_type به فارسی
+        data = translate_participation_type(data)
+        
         # اگر data یک dict است، اطلاعات مفید را استخراج کن
         if isinstance(data, dict):
             # اگر success message دارد
@@ -246,15 +282,12 @@ def response_to_string(response: Response) -> str:
             count = len(data)
             success_msg = f"📋 تعداد نتایج: {count}"
             if count > 0:
-                # نمایش چند مورد اول
-                preview = data[:5]
+                # نمایش همه نتایج
                 try:
-                    preview_str = json.dumps(preview, ensure_ascii=False, indent=2)
-                    success_msg += f"\n\n📊 نمونه نتایج:\n{preview_str}"
-                    if count > 5:
-                        success_msg += f"\n\n... و {count - 5} مورد دیگر"
+                    all_data_str = json.dumps(data, ensure_ascii=False, indent=2)
+                    success_msg += f"\n\n📊 نتایج:\n{all_data_str}"
                 except:
-                    success_msg += f"\n\n📊 نمونه نتایج: {str(preview)}"
+                    success_msg += f"\n\n📊 نتایج: {str(data)}"
         
         else:
             success_msg += f"\n\n📊 نتیجه: {str(data)}"

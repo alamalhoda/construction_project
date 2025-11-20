@@ -177,8 +177,15 @@ class RAGPipeline:
         """
         if not self.retriever:
             # اگر retriever وجود ندارد، ایجاد کن
-            vector_store = self.create_embeddings()
-            if not vector_store:
+            # اما ابتدا بررسی می‌کنیم که آیا embeddings در دسترس است
+            try:
+                vector_store = self.create_embeddings()
+                if not vector_store:
+                    print("Warning: Could not create embeddings. RAG will be disabled.")
+                    return None
+            except Exception as e:
+                print(f"Warning: Error creating embeddings: {str(e)}")
+                print("   RAG will be disabled.")
                 return None
         
         return self.retriever

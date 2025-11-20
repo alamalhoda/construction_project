@@ -211,48 +211,41 @@ def expense_create(project: int, expense_type: str, amount: str, period: int, de
 @tool
 def expense_retrieve(id: int, request=None) -> str:
     """
-    ViewSet برای مدیریت هزینه‌های پروژه
+    دریافت اطلاعات کامل یک هزینه خاص بر اساس شناسه (ID) آن.
 
-    این ViewSet امکان مدیریت کامل هزینه‌های پروژه را فراهم می‌کند.
-    
-    قابلیت‌ها:
-    - ایجاد، خواندن، به‌روزرسانی و حذف هزینه‌ها
-    - دریافت آمار و گزارش‌های مالی
-    - محاسبه مجموع هزینه‌ها بر اساس نوع و دوره
-    - مدیریت هزینه‌های دوره‌ای
-    
-    سناریوهای استفاده:
-    - ثبت هزینه‌های مواد اولیه (material)
-    - ثبت هزینه‌های نیروی کار (labor)
-    - ثبت هزینه‌های اداری و عمومی (administrative)
-    - دریافت گزارش‌های مالی برای تحلیل پروژه
-    - محاسبه هزینه‌های تجمعی برای هر دوره
-    
-    مثال‌های کاربرد:
-    - برای ثبت خرید سیمان و آجر: expense_type='material', amount='5000000'
-    - برای ثبت حقوق کارگران: expense_type='labor', amount='3000000'
-    - برای دریافت لیست تمام هزینه‌ها: GET /api/v1/Expense/
-    - برای دریافت آمار هزینه‌ها: GET /api/v1/Expense/dashboard_data/
-    
-    نکات مهم:
-    - تمام عملیات بر اساس پروژه جاری (active project) انجام می‌شود
-    - هزینه‌ها می‌توانند به یک دوره خاص مرتبط باشند
-    - انواع هزینه: project_manager, facilities_manager, procurement, warehouse, construction_contractor, other
+    ⚠️ **هشدار مهم:** این ابزار نیاز به پارامتر id دارد که باید یک عدد صحیح (int) باشد.
+    هیچ‌وقت این ابزار را بدون id فراخوانی نکنید - این کار باعث خطا می‌شود.
 
     این Tool از API endpoint GET /api/v1/Expense/{id}/ استفاده می‌کند.
     Operation ID: Expense_retrieve
     دسته‌بندی: Expense
 
     Args:
-        id (int): یک مقداد عدد یکتا که این هزینه را شناسایی میکند.
+        id (int): شناسه عددی هزینه (مثلاً 1، 2، 3 و غیره).
+                 ⚠️ این پارامتر الزامی است و نمی‌تواند None یا خالی باشد.
+                 اگر کاربر سوالی درباره "هزینه شماره X" یا "هزینه X" پرسید،
+                 ابتدا عدد X را از سوال استخراج کنید، سپس آن را به عنوان id پاس دهید.
         request (optional): درخواست HTTP برای احراز هویت (برای استفاده داخلی)
 
     Returns:
-        str: نتیجه عملیات به صورت رشته متنی
-        - 200: Expense
+        str: اطلاعات کامل هزینه شامل: مبلغ، نوع، دوره، توضیحات و سایر جزئیات
 
-    مثال استفاده:
-        GET /api/v1/Expense/1/
+    مثال‌های استفاده صحیح:
+        - سوال: "هزینه شماره 1" → expense_retrieve(id=1) ✅
+        - سوال: "هزینه 5" → expense_retrieve(id=5) ✅
+        - سوال: "اطلاعات هزینه 10" → expense_retrieve(id=10) ✅
+
+    مثال‌های استفاده نادرست (هرگز این کار را نکنید):
+        - expense_retrieve() ❌ (بدون id - خطا می‌دهد)
+        - expense_retrieve(id=None) ❌ (id نمی‌تواند None باشد)
+        - expense_retrieve(id="1") ❌ (id باید int باشد، نه string)
+
+    نکات مهم:
+        - نیاز به احراز هویت: cookieAuth, tokenAuth
+        - id باید یک عدد صحیح مثبت باشد (int)
+        - اگر هزینه‌ای با این id وجود نداشته باشد، خطا برمی‌گرداند
+        - اگر id را از سوال کاربر پیدا نکردید، ابتدا از expense_list استفاده کنید
+        - انواع هزینه: project_manager, facilities_manager, procurement, warehouse, construction_contractor, other
     """
     try:
         # پیدا کردن ViewSet class
@@ -1554,25 +1547,40 @@ def investor_create(project: int, first_name: str, last_name: str, phone: str, e
 @tool
 def investor_retrieve(id: int, request=None) -> str:
     """
-    ViewSet for the Investor class
+    دریافت اطلاعات کامل یک سرمایه‌گذار خاص بر اساس شناسه (ID) آن.
+
+    ⚠️ **هشدار مهم:** این ابزار نیاز به پارامتر id دارد که باید یک عدد صحیح (int) باشد.
+    هیچ‌وقت این ابزار را بدون id فراخوانی نکنید - این کار باعث خطا می‌شود.
 
     این Tool از API endpoint GET /api/v1/Investor/{id}/ استفاده می‌کند.
     Operation ID: Investor_retrieve
     دسته‌بندی: Investor
 
     Args:
-        id (int): یک مقداد عدد یکتا که این سرمایه‌گذار را شناسایی میکند.
+        id (int): شناسه عددی سرمایه‌گذار (مثلاً 1، 2، 3 و غیره).
+                 ⚠️ این پارامتر الزامی است و نمی‌تواند None یا خالی باشد.
+                 اگر کاربر سوالی درباره "سرمایه‌گذار شماره X" یا "سرمایه‌گذار X" پرسید،
+                 ابتدا عدد X را از سوال استخراج کنید، سپس آن را به عنوان id پاس دهید.
         request (optional): درخواست HTTP برای احراز هویت (برای استفاده داخلی)
 
     Returns:
-        str: نتیجه عملیات به صورت رشته متنی
-        - 200: Investor
+        str: اطلاعات کامل سرمایه‌گذار شامل: نام، واحدها، تراکنش‌ها و سایر جزئیات
 
-    مثال استفاده:
-        GET /api/v1/Investor/1/
+    مثال‌های استفاده صحیح:
+        - سوال: "سرمایه‌گذار شماره 1" → investor_retrieve(id=1) ✅
+        - سوال: "سرمایه‌گذار 5" → investor_retrieve(id=5) ✅
+        - سوال: "اطلاعات سرمایه‌گذار 10" → investor_retrieve(id=10) ✅
+
+    مثال‌های استفاده نادرست (هرگز این کار را نکنید):
+        - investor_retrieve() ❌ (بدون id - خطا می‌دهد)
+        - investor_retrieve(id=None) ❌ (id نمی‌تواند None باشد)
+        - investor_retrieve(id="1") ❌ (id باید int باشد، نه string)
 
     نکات مهم:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
+        - id باید یک عدد صحیح مثبت باشد (int)
+        - اگر سرمایه‌گذاری با این id وجود نداشته باشد، خطا برمی‌گرداند
+        - اگر id را از سوال کاربر پیدا نکردید، ابتدا از investor_list استفاده کنید
     """
     try:
         # پیدا کردن ViewSet class
@@ -1937,7 +1945,7 @@ def investor_detailed_statistics_retrieve(id: int, request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def investor_investor_cumulative_capital_and_unit_cost_chart_retrieve(id: int, request=None) -> str:
+def investor_cumulative_capital_and_unit_cost_chart_retrieve(id: int, request=None) -> str:
     """
     دریافت داده‌های نمودار ترند سرمایه موجود و هزینه واحد برای سرمایه‌گذار
 
@@ -2546,25 +2554,40 @@ def period_create(label: str, year: int, month_number: int, month_name: str, wei
 @tool
 def period_retrieve(id: int, request=None) -> str:
     """
-    ViewSet for the Period class
+    دریافت اطلاعات کامل یک دوره خاص بر اساس شناسه (ID) آن.
+
+    ⚠️ **هشدار مهم:** این ابزار نیاز به پارامتر id دارد که باید یک عدد صحیح (int) باشد.
+    هیچ‌وقت این ابزار را بدون id فراخوانی نکنید - این کار باعث خطا می‌شود.
 
     این Tool از API endpoint GET /api/v1/Period/{id}/ استفاده می‌کند.
     Operation ID: Period_retrieve
     دسته‌بندی: Period
 
     Args:
-        id (int): یک مقداد عدد یکتا که این دوره را شناسایی میکند.
+        id (int): شناسه عددی دوره (مثلاً 1، 2، 3 و غیره).
+                 ⚠️ این پارامتر الزامی است و نمی‌تواند None یا خالی باشد.
+                 اگر کاربر سوالی درباره "دوره شماره X" یا "دوره X" پرسید،
+                 ابتدا عدد X را از سوال استخراج کنید، سپس آن را به عنوان id پاس دهید.
         request (optional): درخواست HTTP برای احراز هویت (برای استفاده داخلی)
 
     Returns:
-        str: نتیجه عملیات به صورت رشته متنی
-        - 200: Period
+        str: اطلاعات کامل دوره شامل: نام، تاریخ شروع و پایان، هزینه‌ها و سایر جزئیات
 
-    مثال استفاده:
-        GET /api/v1/Period/1/
+    مثال‌های استفاده صحیح:
+        - سوال: "دوره شماره 1" → period_retrieve(id=1) ✅
+        - سوال: "دوره 5" → period_retrieve(id=5) ✅
+        - سوال: "اطلاعات دوره 10" → period_retrieve(id=10) ✅
+
+    مثال‌های استفاده نادرست (هرگز این کار را نکنید):
+        - period_retrieve() ❌ (بدون id - خطا می‌دهد)
+        - period_retrieve(id=None) ❌ (id نمی‌تواند None باشد)
+        - period_retrieve(id="1") ❌ (id باید int باشد، نه string)
 
     نکات مهم:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
+        - id باید یک عدد صحیح مثبت باشد (int)
+        - اگر دوره‌ای با این id وجود نداشته باشد، خطا برمی‌گرداند
+        - اگر id را از سوال کاربر پیدا نکردید، ابتدا از period_list استفاده کنید
     """
     try:
         # پیدا کردن ViewSet class
@@ -2898,7 +2921,7 @@ def period_chart_data_retrieve(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def period_period_summary_retrieve(request=None) -> str:
+def period_summary_retrieve(request=None) -> str:
     """
     دریافت خلاصه کامل دوره‌ای شامل تمام فاکتورها و مقادیر تجمعی
 
@@ -4538,7 +4561,7 @@ def project_profit_metrics_retrieve(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def project_project_statistics_detailed_retrieve(request=None) -> str:
+def project_statistics_detailed_retrieve(request=None) -> str:
     """
     دریافت آمار تفصیلی پروژه
 
@@ -4592,7 +4615,7 @@ def project_project_statistics_detailed_retrieve(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def project_project_timeline_retrieve(request=None) -> str:
+def project_timeline_retrieve(request=None) -> str:
     """
     محاسبه روزهای مانده و گذشته پروژه بر اساس تاریخ امروز
 
@@ -5467,25 +5490,41 @@ def transaction_create(amount: str, transaction_type: str, date_shamsi_input: Op
 @tool
 def transaction_retrieve(id: int, request=None) -> str:
     """
-    ViewSet for the Transaction class
+    دریافت اطلاعات کامل یک تراکنش خاص بر اساس شناسه (ID) آن.
+
+    ⚠️ **هشدار مهم:** این ابزار نیاز به پارامتر id دارد که باید یک عدد صحیح (int) باشد.
+    هیچ‌وقت این ابزار را بدون id فراخوانی نکنید - این کار باعث خطا می‌شود.
 
     این Tool از API endpoint GET /api/v1/Transaction/{id}/ استفاده می‌کند.
     Operation ID: Transaction_retrieve
     دسته‌بندی: Transaction
 
     Args:
-        id (int): یک مقداد عدد یکتا که این تراکنش را شناسایی میکند.
+        id (int): شناسه عددی تراکنش (مثلاً 1، 2، 3 و غیره).
+                 ⚠️ این پارامتر الزامی است و نمی‌تواند None یا خالی باشد.
+                 اگر کاربر سوالی درباره "تراکنش شماره X" یا "تراکنش X" پرسید،
+                 ابتدا عدد X را از سوال استخراج کنید، سپس آن را به عنوان id پاس دهید.
         request (optional): درخواست HTTP برای احراز هویت (برای استفاده داخلی)
 
     Returns:
-        str: نتیجه عملیات به صورت رشته متنی
-        - 200: Transaction
+        str: اطلاعات کامل تراکنش شامل: نوع، مبلغ، تاریخ، سرمایه‌گذار و سایر جزئیات
 
-    مثال استفاده:
-        GET /api/v1/Transaction/1/
+    مثال‌های استفاده صحیح:
+        - سوال: "تراکنش شماره 1" → transaction_retrieve(id=1) ✅
+        - سوال: "تراکنش 5" → transaction_retrieve(id=5) ✅
+        - سوال: "اطلاعات تراکنش 10" → transaction_retrieve(id=10) ✅
+
+    مثال‌های استفاده نادرست (هرگز این کار را نکنید):
+        - transaction_retrieve() ❌ (بدون id - خطا می‌دهد)
+        - transaction_retrieve(id=None) ❌ (id نمی‌تواند None باشد)
+        - transaction_retrieve(id="1") ❌ (id باید int باشد، نه string)
 
     نکات مهم:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
+        - id باید یک عدد صحیح مثبت باشد (int)
+        - اگر تراکنشی با این id وجود نداشته باشد، خطا برمی‌گرداند
+        - اگر id را از سوال کاربر پیدا نکردید، ابتدا از transaction_list استفاده کنید
+        - انواع تراکنش: principal_deposit, principal_withdrawal, profit, withdrawal
     """
     try:
         # پیدا کردن ViewSet class
@@ -6216,25 +6255,41 @@ def unit_create(name: str, area: str, price_per_meter: str, total_price: str, pr
 @tool
 def unit_retrieve(id: int, request=None) -> str:
     """
-    ViewSet for the Unit class
+    دریافت اطلاعات کامل یک واحد خاص بر اساس شناسه (ID) آن.
+
+    ⚠️ **هشدار مهم:** این ابزار نیاز به پارامتر id دارد که باید یک عدد صحیح (int) باشد.
+    هیچ‌وقت این ابزار را بدون id فراخوانی نکنید - این کار باعث خطا می‌شود.
 
     این Tool از API endpoint GET /api/v1/Unit/{id}/ استفاده می‌کند.
     Operation ID: Unit_retrieve
     دسته‌بندی: Unit
 
     Args:
-        id (int): یک مقداد عدد یکتا که این واحد را شناسایی میکند.
+        id (int): شناسه عددی واحد (مثلاً 1، 2، 3 و غیره). 
+                 ⚠️ این پارامتر الزامی است و نمی‌تواند None یا خالی باشد.
+                 اگر کاربر سوالی درباره "واحد شماره X" یا "واحد X" پرسید، 
+                 ابتدا عدد X را از سوال استخراج کنید، سپس آن را به عنوان id پاس دهید.
+                 مثال: "واحد شماره 1" → id=1
         request (optional): درخواست HTTP برای احراز هویت (برای استفاده داخلی)
 
     Returns:
-        str: نتیجه عملیات به صورت رشته متنی
-        - 200: Unit
+        str: اطلاعات کامل واحد شامل: نام، متراژ، قیمت، پروژه، مالکین و سایر جزئیات
 
-    مثال استفاده:
-        GET /api/v1/Unit/1/
+    مثال‌های استفاده صحیح:
+        - سوال: "اطلاعات واحد شماره 1" → unit_retrieve(id=1) ✅
+        - سوال: "واحد 5" → unit_retrieve(id=5) ✅
+        - سوال: "اطلاعات کامل واحد 10" → unit_retrieve(id=10) ✅
+
+    مثال‌های استفاده نادرست (هرگز این کار را نکنید):
+        - unit_retrieve() ❌ (بدون id - خطا می‌دهد)
+        - unit_retrieve(id=None) ❌ (id نمی‌تواند None باشد)
+        - unit_retrieve(id="1") ❌ (id باید int باشد، نه string)
 
     نکات مهم:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
+        - id باید یک عدد صحیح مثبت باشد (int)
+        - اگر واحدی با این id وجود نداشته باشد، خطا برمی‌گرداند
+        - اگر id را از سوال کاربر پیدا نکردید، ابتدا از unit_list استفاده کنید
     """
     try:
         # پیدا کردن ViewSet class
@@ -7328,7 +7383,7 @@ def auth_user_retrieve(request=None) -> str:
 # ===== Tools for comprehensive (1 endpoint) =====
 
 @tool
-def comprehensive_comprehensive_analysis_retrieve(request=None) -> str:
+def comprehensive_analysis_retrieve(request=None) -> str:
     """
     دریافت تحلیل جامع پروژه
 

@@ -32,24 +32,57 @@ class OpenAIProvider(LLMProvider):
     """Provider برای OpenAI GPT models"""
     
     def __init__(self, api_key: Optional[str] = None, model: str = "gpt-4"):
+        # اول از پارامتر api_key استفاده می‌کنیم، سپس از متغیر محیطی
         self.api_key = api_key or os.getenv('OPENAI_API_KEY')
         self.model = model
         
+        # Debug: بررسی اینکه کلید API خوانده شده است
+        if self.api_key:
+            print(f"✅ OpenAI API Key loaded: {self.api_key[:20]}... (length: {len(self.api_key)})")
+        else:
+            print("❌ OpenAI API Key not found!")
+            print(f"   api_key parameter: {api_key[:20] + '...' if api_key else 'None'}")
+            print(f"   OPENAI_API_KEY env: {os.getenv('OPENAI_API_KEY')[:20] + '...' if os.getenv('OPENAI_API_KEY') else 'None'}")
+        
         if not self.api_key:
-            raise ValueError("OPENAI_API_KEY environment variable is required")
+            raise ValueError(
+                "OPENAI_API_KEY environment variable is required. "
+                "Please set it in your .env file or environment variables."
+            )
     
     def get_llm(self, temperature: float = 0, **kwargs):
         """ایجاد OpenAI LLM"""
         try:
             from langchain_openai import ChatOpenAI
-            return ChatOpenAI(
-                model_name=self.model,
-                temperature=temperature,
-                openai_api_key=self.api_key,
-                **kwargs
-            )
+            
+            # بررسی اینکه کلید API وجود دارد
+            if not self.api_key:
+                raise ValueError("OPENAI_API_KEY is not set. Please check your .env file.")
+            
+            # استفاده از api_key به جای openai_api_key (برای نسخه‌های جدید langchain)
+            # اگر api_key کار نکرد، از openai_api_key استفاده می‌کنیم
+            llm_kwargs = {
+                'model': self.model,  # استفاده از model به جای model_name در نسخه‌های جدید
+                'temperature': temperature,
+                'api_key': self.api_key,  # استفاده از api_key
+            }
+            llm_kwargs.update(kwargs)
+            
+            return ChatOpenAI(**llm_kwargs)
         except ImportError:
             raise ImportError("langchain-openai is not installed. Install it with: pip install langchain-openai")
+        except Exception as e:
+            # اگر با api_key خطا داد، سعی می‌کنیم با openai_api_key
+            try:
+                from langchain_openai import ChatOpenAI
+                return ChatOpenAI(
+                    model=self.model,
+                    temperature=temperature,
+                    openai_api_key=self.api_key,
+                    **kwargs
+                )
+            except Exception as e2:
+                raise ValueError(f"Error creating ChatOpenAI: {str(e2)}. API Key: {'Set' if self.api_key else 'Not Set'}")
     
     def supports_function_calling(self) -> bool:
         return True
@@ -137,13 +170,17 @@ class HuggingFaceProvider(LLMProvider):
 class GoogleGeminiProvider(LLMProvider):
     """Provider برای Google Gemini models"""
     
-    def __init__(self, api_key: Optional[str] = None, model: str = "gemini-pro"):
+    def __init__(self, api_key: Optional[str] = None, model: str = "gemini-2.0-flash"):
         """
         Args:
             api_key: API key برای Google Gemini
             model: نام مدل (gemini-pro, gemini-pro-vision, gemini-1.5-pro, etc.)
         """
         self.api_key = api_key or os.getenv('GOOGLE_API_KEY') or os.getenv('GEMINI_API_KEY')
+        # پاک کردن کامنت‌ها از نام مدل (اگر وجود داشته باشد)
+        if model:
+            # حذف کامنت‌ها (هر چیزی بعد از #)
+            model = str(model).split('#')[0].strip()
         self.model = model
         
         if not self.api_key:
@@ -193,15 +230,60 @@ class OpenRouterProvider(LLMProvider):
             from langchain_openai import ChatOpenAI
             
             # OpenRouter با OpenAI API compatible است
+            # ساخت headers با encoding صحیح برای جلوگیری از UnicodeEncodeError
+            # IMPORTANT: تمام header values باید فقط ASCII characters باشند
+            headers = {}
+            
+            # Helper function برای تبدیل به ASCII-safe
+            def to_ascii_safe(value):
+                """تبدیل string به ASCII-safe"""
+                if not value:
+                    return None
+                # حذف comment ها
+                value = str(value).split('#')[0].strip()
+                # فقط کاراکترهای ASCII را نگه دار
+                ascii_safe = ''.join(c if ord(c) < 128 else '' for c in value)
+                return ascii_safe if ascii_safe else None
+            
+            # HTTP-Referer
+            http_referer_raw = os.getenv('OPENROUTER_HTTP_REFERER', 'https://github.com/your-repo')
+            http_referer_ascii = to_ascii_safe(http_referer_raw)
+            if http_referer_ascii:
+                headers["HTTP-Referer"] = http_referer_ascii
+            else:
+                headers["HTTP-Referer"] = "https://github.com/your-repo"
+            
+            # X-Title - فقط ASCII characters
+            x_title_raw = os.getenv('OPENROUTER_X_TITLE', 'Construction Project Assistant')
+            x_title_ascii = to_ascii_safe(x_title_raw)
+            if x_title_ascii:
+                headers["X-Title"] = x_title_ascii
+            else:
+                headers["X-Title"] = "Construction Project Assistant"
+            
+            # اطمینان از اینکه همه header values فقط ASCII هستند
+            safe_headers = {}
+            for key, value in headers.items():
+                safe_value = to_ascii_safe(value) or value
+                # اگر هنوز غیر-ASCII دارد، از مقدار پیش‌فرض استفاده کن
+                try:
+                    safe_value.encode('ascii')
+                    safe_headers[key] = safe_value
+                except UnicodeEncodeError:
+                    # استفاده از مقدار پیش‌فرض
+                    if key == "HTTP-Referer":
+                        safe_headers[key] = "https://github.com/your-repo"
+                    elif key == "X-Title":
+                        safe_headers[key] = "Construction Project Assistant"
+            
+            headers = safe_headers
+            
             return ChatOpenAI(
                 model=self.model,
                 temperature=temperature,
                 openai_api_key=self.api_key,
                 base_url=self.base_url,
-                default_headers={
-                    "HTTP-Referer": os.getenv('OPENROUTER_HTTP_REFERER', 'https://github.com/your-repo'),
-                    "X-Title": os.getenv('OPENROUTER_X_TITLE', 'Construction Project Assistant'),
-                },
+                default_headers=headers if headers else None,
                 **kwargs
             )
         except ImportError:
@@ -289,8 +371,13 @@ class LLMProviderFactory:
         Returns:
             LLMProvider instance
         """
+        import os
         provider_type = getattr(settings, 'AI_ASSISTANT_PROVIDER', 'openai').lower()
         provider_config = getattr(settings, 'AI_ASSISTANT_PROVIDER_CONFIG', {})
+        
+        # اگر api_key در config وجود ندارد یا None است، از متغیر محیطی استفاده می‌کنیم
+        if provider_type == 'openai' and (not provider_config.get('api_key')):
+            provider_config['api_key'] = os.getenv('OPENAI_API_KEY')
         
         return LLMProviderFactory.create_provider(provider_type, **provider_config)
 

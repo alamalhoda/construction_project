@@ -322,31 +322,66 @@ REST_FRAMEWORK = {
 
 # AI Assistant Settings
 AI_ASSISTANT_PROVIDER = os.getenv('AI_ASSISTANT_PROVIDER', 'openai')  # 'openai', 'anthropic', 'huggingface', 'gemini', 'openrouter', 'local'
-AI_ASSISTANT_PROVIDER_CONFIG = {
-    # برای OpenAI
-    # 'api_key': os.getenv('OPENAI_API_KEY'),
-    # 'model': os.getenv('OPENAI_MODEL', 'gpt-4'),
-    
-    # برای Anthropic
-    # 'api_key': os.getenv('ANTHROPIC_API_KEY'),
-    # 'model': os.getenv('ANTHROPIC_MODEL', 'claude-3-sonnet-20240229'),
-    
+# تنظیمات Provider بر اساس نوع provider انتخاب شده
+provider_type = os.getenv('AI_ASSISTANT_PROVIDER', 'openai').lower()
+
+if provider_type == 'gemini' or provider_type == 'google':
     # برای Google Gemini
-    # 'api_key': os.getenv('GOOGLE_API_KEY') or os.getenv('GEMINI_API_KEY'),
-    # 'model': os.getenv('GEMINI_MODEL', 'gemini-pro'),
-    
+    gemini_model_raw = os.getenv('GEMINI_MODEL', 'gemini-2.0-flash')
+    # پاک کردن کامنت‌ها از نام مدل (اگر وجود داشته باشد)
+    if gemini_model_raw:
+        gemini_model = str(gemini_model_raw).split('#')[0].strip()
+    else:
+        gemini_model = 'gemini-2.0-flash'
+    AI_ASSISTANT_PROVIDER_CONFIG = {
+        'api_key': os.getenv('GOOGLE_API_KEY') or os.getenv('GEMINI_API_KEY'),
+        'model': gemini_model,
+    }
+elif provider_type == 'openrouter':
     # برای OpenRouter
-    'api_key': os.getenv('OPENROUTER_API_KEY'),
-    'model': os.getenv('OPENROUTER_MODEL', 'openai/gpt-4'),
-    
-    # برای Hugging Face
-    # 'model_id': os.getenv('HUGGINGFACE_MODEL_ID', 'mistralai/Mistral-7B-Instruct-v0.2'),
-    # 'endpoint': os.getenv('HUGGINGFACE_ENDPOINT'),
-    
-    # برای Local models
-    # 'base_url': os.getenv('LOCAL_MODEL_URL', 'http://localhost:11434'),
-    # 'model': os.getenv('LOCAL_MODEL_NAME', 'llama2'),
-}
+    AI_ASSISTANT_PROVIDER_CONFIG = {
+        'api_key': os.getenv('OPENROUTER_API_KEY'),
+        'model': os.getenv('OPENROUTER_MODEL', 'google/gemini-2.0-flash-exp:free'),
+    }
+elif provider_type == 'openai':
+    # برای OpenAI
+    AI_ASSISTANT_PROVIDER_CONFIG = {
+        'api_key': os.getenv('OPENAI_API_KEY'),
+        'model': os.getenv('OPENAI_MODEL', 'gpt-4'),
+    }
+else:
+    # پیش‌فرض: OpenAI
+    AI_ASSISTANT_PROVIDER_CONFIG = {
+        'api_key': os.getenv('OPENAI_API_KEY'),
+        'model': os.getenv('OPENAI_MODEL', 'gpt-4'),
+    }
+
+# تنظیمات قدیمی (برای سازگاری - غیرفعال شده)
+# AI_ASSISTANT_PROVIDER_CONFIG = {
+#     # برای OpenAI
+#     # 'api_key': os.getenv('OPENAI_API_KEY'),
+#     # 'model': os.getenv('OPENAI_MODEL', 'gpt-4'),
+#     
+#     # برای Anthropic
+#     # 'api_key': os.getenv('ANTHROPIC_API_KEY'),
+#     # 'model': os.getenv('ANTHROPIC_MODEL', 'claude-3-sonnet-20240229'),
+#     
+#     # برای Google Gemini
+#     # 'api_key': os.getenv('GOOGLE_API_KEY') or os.getenv('GEMINI_API_KEY'),
+#     # 'model': os.getenv('GEMINI_MODEL', 'gemini-1.5-flash'),
+#     
+#     # برای OpenRouter
+#     # 'api_key': os.getenv('OPENROUTER_API_KEY'),
+#     # 'model': os.getenv('OPENROUTER_MODEL', 'google/gemini-2.0-flash-exp:free'),
+#     
+#     # برای Hugging Face
+#     # 'model_id': os.getenv('HUGGINGFACE_MODEL_ID', 'mistralai/Mistral-7B-Instruct-v0.2'),
+#     # 'endpoint': os.getenv('HUGGINGFACE_ENDPOINT'),
+#     
+#     # برای Local models
+#     # 'base_url': os.getenv('LOCAL_MODEL_URL', 'http://localhost:11434'),
+#     # 'model': os.getenv('LOCAL_MODEL_NAME', 'llama2'),
+# }
 
 # drf-spectacular settings (برای RAG و API Documentation)
 SPECTACULAR_SETTINGS = {

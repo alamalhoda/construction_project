@@ -4,8 +4,11 @@ AI Agent اصلی برای دستیار هوشمند
 """
 
 import logging
-from typing import Optional, Dict, Any
+import inspect
+from typing import Optional, Dict, Any, Callable
 from langchain.agents import create_agent
+from langchain.tools import tool
+from langchain_core.tools import BaseTool, StructuredTool
 from construction.assistant.llm_providers import LLMProviderFactory
 from construction.assistant.tools import (
     create_expense,
@@ -19,6 +22,8 @@ from construction.assistant.tools import (
     get_period_stats,
     search_expenses
 )
+# Import تمام ابزارهای تولید شده از schema
+from construction.assistant import generated_tools_from_schema
 from construction.project_manager import ProjectManager
 
 logger = logging.getLogger(__name__)
@@ -41,7 +46,47 @@ class ConstructionAssistantAgent:
         # ایجاد LLM provider
         if provider_type:
             from django.conf import settings
+            import os
             provider_config = getattr(settings, 'AI_ASSISTANT_PROVIDER_CONFIG', {})
+            print(f"🔧 Provider: {provider_type}")
+            
+            # اگر api_key در config وجود ندارد یا None است، از متغیر محیطی استفاده می‌کنیم
+            if provider_type.lower() == 'openai' and (not provider_config.get('api_key')):
+                env_api_key = os.getenv('OPENAI_API_KEY')
+                provider_config['api_key'] = env_api_key
+            elif provider_type.lower() == 'openai':
+                # اگر api_key در config وجود دارد اما None است، از متغیر محیطی استفاده می‌کنیم
+                if not provider_config.get('api_key'):
+                    env_api_key = os.getenv('OPENAI_API_KEY')
+                    provider_config['api_key'] = env_api_key
+            elif provider_type.lower() == 'openrouter':
+                # برای OpenRouter هم همین کار را می‌کنیم
+                if not provider_config.get('api_key'):
+                    env_api_key = os.getenv('OPENROUTER_API_KEY')
+                    provider_config['api_key'] = env_api_key
+                if not provider_config.get('model'):
+                    env_model = os.getenv('OPENROUTER_MODEL', 'google/gemini-2.0-flash-exp:free')
+                    provider_config['model'] = env_model
+            elif provider_type.lower() == 'gemini' or provider_type.lower() == 'google':
+                # برای Google Gemini هم همین کار را می‌کنیم
+                if not provider_config.get('api_key'):
+                    env_api_key = os.getenv('GOOGLE_API_KEY') or os.getenv('GEMINI_API_KEY')
+                    provider_config['api_key'] = env_api_key
+                if not provider_config.get('model'):
+                    env_model = os.getenv('GEMINI_MODEL', 'gemini-2.0-flash')
+                    # پاک کردن کامنت‌ها از نام مدل (اگر وجود داشته باشد)
+                    if env_model:
+                        env_model = str(env_model).split('#')[0].strip()
+                    provider_config['model'] = env_model
+                else:
+                    # پاک کردن کامنت‌ها از نام مدل موجود در config
+                    model_value = provider_config.get('model')
+                    if model_value:
+                        cleaned_model = str(model_value).split('#')[0].strip()
+                        provider_config['model'] = cleaned_model
+            
+            if provider_config.get('model'):
+                print(f"🔧 Model: {provider_config.get('model')}")
             self.provider = LLMProviderFactory.create_provider(provider_type, **provider_config)
         else:
             self.provider = LLMProviderFactory.get_default_provider()
@@ -57,6 +102,7 @@ class ConstructionAssistantAgent:
         
         # بارگذاری RAG در صورت نیاز
         if self.use_rag:
+            print("⚠️  RAG is enabled. This may try to use OpenAI embeddings.")
             try:
                 from construction.assistant.rag import get_rag_pipeline
                 self.rag_pipeline = get_rag_pipeline()
@@ -76,13 +122,45 @@ class ConstructionAssistantAgent:
     
     def _create_tools(self):
         """ایجاد لیست Tools برای Agent"""
-        from langchain.tools import tool
-        
-        # Wrapper functions برای اضافه کردن request
         request = self.request
+        tools_list = []
         
-        # تعریف wrapper functions بدون decorator
-        # استفاده از underlying function از tools
+        # Helper function برای ایجاد wrapper با request
+        def create_wrapper_with_request(original_func: Callable) -> Callable:
+            """ایجاد wrapper function که request را به تابع اصلی اضافه می‌کند و signature را حفظ می‌کند"""
+            from functools import wraps
+            import inspect
+            
+            sig = inspect.signature(original_func)
+            
+            # بررسی اینکه آیا تابع request parameter دارد یا نه
+            has_request_param = 'request' in sig.parameters
+            
+            # ایجاد signature جدید بدون request برای LangChain
+            if has_request_param:
+                params = list(sig.parameters.values())
+                params_without_request = [p for p in params if p.name != 'request']
+                new_sig = sig.replace(parameters=params_without_request)
+            else:
+                new_sig = sig
+            
+            # ایجاد wrapper function با signature جدید
+            def wrapper(*args, **kwargs):
+                # اگر request parameter وجود دارد، آن را اضافه کن
+                if has_request_param:
+                    kwargs['request'] = request
+                # فراخوانی تابع اصلی
+                return original_func(*args, **kwargs)
+            
+            # تنظیم signature برای LangChain (بدون request)
+            wrapper.__signature__ = new_sig
+            wrapper.__name__ = original_func.__name__
+            wrapper.__doc__ = original_func.__doc__
+            wrapper.__annotations__ = {k: v for k, v in original_func.__annotations__.items() if k != 'request'}
+            
+            return wrapper
+        
+        # اضافه کردن ابزارهای قدیمی (برای سازگاری)
         def create_expense_wrapper(amount: float, period_id: int, expense_type: str, description: str = "") -> str:
             """ایجاد یک هزینه جدید"""
             return create_expense.func(amount, period_id, expense_type, description, request)
@@ -123,30 +201,63 @@ class ConstructionAssistantAgent:
             """جستجوی هزینه‌ها بر اساس توضیحات"""
             return search_expenses.func(query, limit, request)
         
-        # ایجاد tools از wrapper functions
-        create_expense_tool = tool(create_expense_wrapper)
-        get_expense_tool = tool(get_expense_wrapper)
-        list_expenses_tool = tool(list_expenses_wrapper)
-        get_investor_info_tool = tool(get_investor_info_wrapper)
-        list_periods_tool = tool(list_periods_wrapper)
-        get_expense_stats_tool = tool(get_expense_stats_wrapper)
-        get_investor_stats_tool = tool(get_investor_stats_wrapper)
-        get_unit_stats_tool = tool(get_unit_stats_wrapper)
-        get_period_stats_tool = tool(get_period_stats_wrapper)
-        search_expenses_tool = tool(search_expenses_wrapper)
+        # اضافه کردن ابزارهای قدیمی
+        tools_list.extend([
+            tool(create_expense_wrapper),
+            tool(get_expense_wrapper),
+            tool(list_expenses_wrapper),
+            tool(get_investor_info_wrapper),
+            tool(list_periods_wrapper),
+            tool(get_expense_stats_wrapper),
+            tool(get_investor_stats_wrapper),
+            tool(get_unit_stats_wrapper),
+            tool(get_period_stats_wrapper),
+            tool(search_expenses_wrapper)
+        ])
         
-        return [
-            create_expense_tool,
-            get_expense_tool,
-            list_expenses_tool,
-            get_investor_info_tool,
-            list_periods_tool,
-            get_expense_stats_tool,
-            get_investor_stats_tool,
-            get_unit_stats_tool,
-            get_period_stats_tool,
-            search_expenses_tool
+        # اضافه کردن تمام ابزارهای تولید شده از schema
+        # استخراج تمام Tool objects از generated_tools_from_schema
+        tool_prefixes = [
+            'expense_', 'investor_', 'period_', 'project_', 'transaction_',
+            'unit_', 'pettycashtransaction_', 'interestrate_', 'sale_',
+            'unitspecificexpense_', 'auth_', 'comprehensive_', 'status_'
         ]
+        
+        for name, obj in inspect.getmembers(generated_tools_from_schema):
+            # بررسی اینکه آیا Tool object است و با یکی از prefix ها شروع می‌شود
+            if isinstance(obj, BaseTool) and any(name.startswith(prefix) for prefix in tool_prefixes):
+                try:
+                    # Tool objects قبلاً آماده هستند و request parameter را دارند
+                    # اما باید request را به صورت dynamic اضافه کنیم
+                    # بهترین راه این است که wrapper function بسازیم
+                    if hasattr(obj, 'func'):
+                        original_func = obj.func
+                        # ایجاد wrapper function که request را اضافه می‌کند
+                        wrapped_func = create_wrapper_with_request(original_func)
+                        # ایجاد tool جدید با wrapper function
+                        # حفظ نام و توضیحات از tool اصلی
+                        tool_name = obj.name if hasattr(obj, 'name') else name
+                        tool_description = obj.description if hasattr(obj, 'description') else (original_func.__doc__ or '')
+                        # استفاده از StructuredTool برای تعیین name و description
+                        tool_obj = StructuredTool.from_function(
+                            func=wrapped_func,
+                            name=tool_name,
+                            description=tool_description
+                        )
+                    else:
+                        # اگر func نداریم، از tool اصلی استفاده کنیم
+                        tool_obj = obj
+                    
+                    tools_list.append(tool_obj)
+                    logger.debug(f"✅ ابزار اضافه شد: {name}")
+                except Exception as e:
+                    logger.warning(f"⚠️ خطا در اضافه کردن ابزار {name}: {str(e)}")
+                    import traceback
+                    logger.warning(traceback.format_exc())
+                    continue
+        
+        logger.info(f"📊 تعداد کل ابزارها: {len(tools_list)}")
+        return tools_list
     
     def _create_agent(self):
         """ایجاد Agent executor با استفاده از API جدید langchain 1.0"""
@@ -162,23 +273,212 @@ class ConstructionAssistantAgent:
 
 پروژه جاری: {project_name}
 
-شما می‌توانید از ابزارهای زیر استفاده کنید:
-- list_periods_tool: برای دریافت لیست دوره‌های پروژه (نیازی به project_id نیست، از پروژه جاری استفاده می‌شود)
-- get_expense_stats_tool: برای دریافت آمار هزینه‌های پروژه (نیازی به project_id نیست)
-- get_investor_stats_tool: برای دریافت آمار سرمایه‌گذاران پروژه (نیازی به project_id نیست)
-- get_unit_stats_tool: برای دریافت آمار واحدهای پروژه (نیازی به project_id نیست)
-- get_period_stats_tool: برای دریافت آمار دوره‌های پروژه (نیازی به project_id نیست)
-- list_expenses_tool: برای لیست هزینه‌ها
-- create_expense_tool: برای ایجاد هزینه جدید
-- get_expense_tool: برای دریافت اطلاعات یک هزینه
-- search_expenses_tool: برای جستجوی هزینه‌ها
-- get_investor_info_tool: برای دریافت اطلاعات سرمایه‌گذار
+شما به بیش از 100 ابزار دسترسی دارید که شامل موارد زیر هستند:
 
-مهم: برای ابزارهای آمار (get_expense_stats_tool, get_investor_stats_tool, get_unit_stats_tool, get_period_stats_tool) و list_periods_tool، اگر project_id داده نشود، از پروژه جاری استفاده می‌شود.
-برای گزارش جامع پروژه، می‌توانید از تمام ابزارهای آمار استفاده کنید و نتایج را جمع‌بندی کنید.
-همیشه ابتدا از tools استفاده کنید و سپس پاسخ دهید.
+📊 **ابزارهای مدیریت هزینه‌ها (Expense):**
+- expense_list: دریافت لیست هزینه‌ها
+- expense_create: ایجاد هزینه جدید
+- expense_retrieve: دریافت اطلاعات یک هزینه
+- expense_update: به‌روزرسانی هزینه
+- expense_destroy: حذف هزینه
+- expense_dashboard_data_retrieve: دریافت داده‌های داشبورد هزینه‌ها
+- expense_total_expenses_retrieve: دریافت مجموع هزینه‌ها
+- expense_update_expense_create: به‌روزرسانی یا ایجاد هزینه برای دوره و نوع خاص
 
-انواع هزینه‌ها:
+👥 **ابزارهای مدیریت سرمایه‌گذاران (Investor):**
+- investor_list: دریافت لیست سرمایه‌گذاران
+- investor_create: ایجاد سرمایه‌گذار جدید
+- investor_retrieve: دریافت اطلاعات یک سرمایه‌گذار
+- investor_detailed_statistics_retrieve: دریافت آمار تفصیلی سرمایه‌گذار
+- investor_ownership_retrieve: دریافت اطلاعات مالکیت
+- investor_summary_retrieve: دریافت خلاصه سرمایه‌گذاران
+
+📅 **ابزارهای مدیریت دوره‌ها (Period):**
+- period_list: دریافت لیست دوره‌ها
+- period_create: ایجاد دوره جدید
+- period_retrieve: دریافت اطلاعات یک دوره
+- period_chart_data_retrieve: دریافت داده‌های نمودار دوره‌ها
+- period_period_summary_retrieve: دریافت خلاصه دوره‌ها
+
+🏢 **ابزارهای مدیریت پروژه‌ها (Project):**
+- project_list: دریافت لیست پروژه‌ها
+- project_create: ایجاد پروژه جدید
+- project_retrieve: دریافت اطلاعات یک پروژه
+- project_active_retrieve: دریافت پروژه فعال
+- project_statistics_retrieve: دریافت آمار پروژه
+- project_comprehensive_analysis_retrieve: دریافت تحلیل جامع پروژه
+
+💰 **ابزارهای مدیریت تراکنش‌ها (Transaction):**
+- transaction_list: دریافت لیست تراکنش‌ها
+- transaction_create: ایجاد تراکنش جدید
+- transaction_retrieve: دریافت اطلاعات یک تراکنش
+- transaction_statistics_retrieve: دریافت آمار تراکنش‌ها
+- transaction_detailed_statistics_retrieve: دریافت آمار تفصیلی تراکنش‌ها
+
+🏠 **ابزارهای مدیریت واحدها (Unit):**
+- unit_list: دریافت لیست واحدها
+- unit_create: ایجاد واحد جدید
+- unit_retrieve(id: int): دریافت اطلاعات یک واحد خاص - **⚠️ نیاز به id دارد (عدد صحیح)**
+- unit_statistics_retrieve: دریافت آمار واحدها
+
+**مثال استفاده از unit_retrieve:**
+- سوال کاربر: "اطلاعات کامل واحد شماره ۱ را بده"
+- شما باید: 
+  1. ابتدا عدد 1 را از سوال استخراج کنید
+  2. سپس unit_retrieve(id=1) را فراخوانی کنید
+  3. برای دریافت اطلاعات مالکین، از investor_list استفاده کنید
+  4. **نحوه پیدا کردن مالکین:**
+     * پاسخ investor_list یک آرایه JSON است که هر عنصر آن یک سرمایه‌گذار است
+     * برای هر سرمایه‌گذار در این آرایه:
+       - فیلد "units" را بررسی کنید (یک آرایه از واحدها)
+       - در این آرایه، به دنبال واحدی بگردید که `id` آن برابر با 1 باشد
+       - اگر پیدا کردید، این سرمایه‌گذار مالک واحد شماره 1 است
+     * مثال: اگر investor.units یک آرایه شامل واحد با id=1 باشد، این سرمایه‌گذار مالک واحد 1 است
+- **هیچ‌وقت unit_retrieve() را بدون id فراخوانی نکنید**
+- **مهم:** unit_retrieve فقط اطلاعات پایه واحد را برمی‌گرداند. برای اطلاعات مالکین، باید از investor_list استفاده کنید و در فیلد `units` هر سرمایه‌گذار جستجو کنید
+
+💵 **ابزارهای مدیریت صندوق خرد (PettyCash):**
+- pettycashtransaction_list: دریافت لیست تراکنش‌های صندوق خرد
+- pettycashtransaction_create: ایجاد تراکنش صندوق خرد
+- pettycashtransaction_balance_detail_retrieve: دریافت جزئیات موجودی صندوق خرد
+- pettycashtransaction_balances_retrieve: دریافت موجودی‌های صندوق خرد
+
+📈 **ابزارهای مدیریت نرخ سود (InterestRate):**
+- interestrate_list: دریافت لیست نرخ‌های سود
+- interestrate_create: ایجاد نرخ سود جدید
+- interestrate_current_retrieve: دریافت نرخ سود فعلی
+
+💼 **ابزارهای مدیریت فروش (Sale):**
+- sale_list: دریافت لیست فروش‌ها
+- sale_create: ایجاد فروش جدید
+- sale_total_sales_retrieve: دریافت مجموع فروش‌ها
+
+🔐 **ابزارهای احراز هویت (Auth):**
+- auth_login_create: ورود به سیستم
+- auth_logout_create: خروج از سیستم
+- auth_user_retrieve: دریافت اطلاعات کاربر
+- auth_register_create: ثبت نام کاربر جدید
+
+**قوانین مهم:**
+1. همیشه ابتدا از tools استفاده کنید و سپس پاسخ دهید
+2. برای ابزارهایی که project_id اختیاری است، اگر داده نشود، از پروژه جاری استفاده می‌شود
+3. تمام ابزارها به صورت خودکار request را دریافت می‌کنند و نیازی به ارسال آن نیست
+
+4. **⚠️ قانون طلایی برای ابزارهای retrieve (unit_retrieve, investor_retrieve, expense_retrieve, period_retrieve, transaction_retrieve):**
+   - **این ابزارها همیشه نیاز به پارامتر id دارند که باید یک عدد صحیح (int) باشد**
+   - **هیچ‌وقت ابزار retrieve را بدون id فراخوانی نکنید - این کار باعث خطا می‌شود**
+   - **مراحل استفاده:**
+     * ابتدا از سوال کاربر عدد id را استخراج کنید
+     * سپس ابزار را با id استخراج شده فراخوانی کنید
+   - **مثال‌های صحیح:**
+     * سوال: "اطلاعات واحد شماره 1" → استخراج id=1 → unit_retrieve(id=1)
+     * سوال: "واحد 5" → استخراج id=5 → unit_retrieve(id=5)
+     * سوال: "سرمایه‌گذار شماره 10" → استخراج id=10 → investor_retrieve(id=10)
+     * سوال: "هزینه 20" → استخراج id=20 → expense_retrieve(id=20)
+   - **مثال‌های نادرست (هرگز این کار را نکنید):**
+     * unit_retrieve() ❌ (بدون id - خطا می‌دهد)
+     * unit_retrieve(id="1") ❌ (id باید int باشد، نه string)
+     * unit_retrieve(id=None) ❌ (id نمی‌تواند None باشد)
+   - **اگر id را از سوال کاربر پیدا نکردید:**
+     * ابتدا از ابزار list استفاده کنید (مثلاً unit_list) تا لیست را ببینید
+     * سپس از کاربر بپرسید یا از اطلاعات list استفاده کنید
+
+5. **برای سوالات پیچیده که نیاز به اطلاعات چندگانه دارند، از چند ابزار استفاده کنید و نتایج را با هم ترکیب کنید:**
+   - **⚠️ قانون مهم: برای سوالات درباره واحدها، همیشه مالکین را هم پیدا کنید:**
+     * وقتی کاربر سوالی درباره یک واحد می‌پرسد (مثلاً "اطلاعات کامل واحد شماره X")، باید:
+       1. ابتدا unit_retrieve(id=X) را فراخوانی کنید
+       2. سپس investor_list را فراخوانی کنید
+       3. **نحوه جستجو در فیلد units:**
+          - پاسخ investor_list یک آرایه JSON است
+          - هر سرمایه‌گذار یک فیلد `units` دارد که یک آرایه از واحدها است
+          - برای پیدا کردن مالکین واحد شماره X:
+            * برای هر سرمایه‌گذار در لیست:
+              - فیلد `units` را بررسی کنید (یک آرایه JSON)
+              - در این آرایه، به دنبال واحدی بگردید که فیلد `id` آن برابر با X باشد
+              - اگر پیدا کردید، این سرمایه‌گذار مالک واحد شماره X است
+          - مثال: اگر واحدی با `id=1` در `units` سرمایه‌گذار با `id=11` وجود دارد، پس سرمایه‌گذار 11 مالک واحد 1 است
+       4. اطلاعات تمام مالکین پیدا شده را به پاسخ اضافه کنید
+     * اگر واحدی مالک نداشت، آن را به عنوان "بدون مالک" یا "خالی" نمایش دهید
+     * **مهم:** حتماً در آرایه `units` هر سرمایه‌گذار جستجو کنید و فیلد `id` واحدها را با id واحد مورد نظر مقایسه کنید
+   - **مثال: سوال درباره واحدها و مالکین:**
+     * ابتدا از `unit_list` لیست کامل همه واحدها را بگیرید
+     * سپس از `investor_list` لیست سرمایه‌گذاران و واحدهایشان را بگیرید
+     * **مهم - نحوه تطبیق:**
+       - پاسخ investor_list یک آرایه JSON است که هر عنصر آن یک سرمایه‌گذار است
+       - هر سرمایه‌گذار یک فیلد "units" دارد که یک آرایه از واحدها است
+       - برای پیدا کردن مالکین واحد با id=X:
+         * برای هر سرمایه‌گذار در لیست:
+           - فیلد `units` را بررسی کنید (یک آرایه)
+           - در این آرایه، به دنبال واحدی بگردید که `id` آن برابر با X باشد
+           - اگر پیدا کردید، این سرمایه‌گذار مالک است
+       - مثال: اگر investor.units یک آرایه شامل واحد با id=X باشد، این سرمایه‌گذار مالک واحد X است
+     * برای هر واحد، مالک(ین) آن را از لیست سرمایه‌گذاران پیدا کنید
+     * اگر واحدی مالک نداشت، آن را به عنوان "خالی" یا "-" نمایش دهید
+   - **مثال: سوال درباره پروژه و هزینه‌ها:**
+     * از project_list و expense_list استفاده کنید و نتایج را با هم ترکیب کنید
+   - **مثال: سوال درباره تراکنش‌ها و سرمایه‌گذاران:**
+     * از transaction_list و investor_list استفاده کنید و تراکنش‌ها را با سرمایه‌گذاران تطبیق دهید
+   - **همیشه:** برای سوالات ترکیبی، ابتدا همه داده‌های لازم را جمع‌آوری کنید، سپس آن‌ها را با هم ترکیب و تحلیل کنید
+6. **مثال‌های عملی استفاده از tools:**
+
+   **مثال 1: سوال درباره یک واحد خاص (شامل مالکین)**
+   - سوال: "اطلاعات کامل واحد شماره ۱ را بده"
+   - مراحل:
+     1. استخراج id از سوال: id = 1
+     2. فراخوانی: unit_retrieve(id=1) برای دریافت اطلاعات پایه واحد
+     3. فراخوانی: investor_list برای دریافت لیست سرمایه‌گذاران و واحدهایشان
+     4. پیدا کردن مالکین: در لیست سرمایه‌گذاران، سرمایه‌گذارانی که در فیلد `units` آن‌ها واحدی با `id=1` وجود دارد
+     5. نمایش اطلاعات واحد + اطلاعات مالکین
+   
+   **مثال 2: سوال درباره یک سرمایه‌گذار**
+   - سوال: "سرمایه‌گذار 5 چه کسی است؟"
+   - مراحل:
+     1. استخراج id از سوال: id = 5
+     2. فراخوانی: investor_retrieve(id=5)
+     3. نمایش اطلاعات سرمایه‌گذار
+   
+   **مثال 3: سوال بدون id مشخص**
+   - سوال: "لیست واحدها را بده"
+   - مراحل:
+     1. چون id مشخص نیست، از unit_list استفاده کنید
+     2. نمایش لیست کامل واحدها
+   
+   **مثال 4: سوال درباره مالکین یک واحد**
+   - سوال: "واحد شماره 1 چه کسی مالک آن است؟" یا "اطلاعات کامل واحد شماره 1 را بده" (شامل مالکین)
+   - مراحل:
+     1. ابتدا unit_retrieve(id=1) برای دریافت اطلاعات پایه واحد
+     2. سپس investor_list برای دریافت لیست کامل سرمایه‌گذاران (که شامل units هر سرمایه‌گذار است)
+     3. **مهم - نحوه جستجو در فیلد units:**
+        * پاسخ investor_list یک آرایه JSON از سرمایه‌گذاران است
+        * هر سرمایه‌گذار یک فیلد `units` دارد که یک آرایه از واحدها است
+        * برای پیدا کردن مالکین واحد شماره 1:
+          - برای هر سرمایه‌گذار در لیست:
+            - فیلد `units` را بررسی کنید (یک آرایه است)
+            - در این آرایه، به دنبال واحدی بگردید که `id` آن برابر با 1 باشد
+            - اگر پیدا کردید، این سرمایه‌گذار مالک واحد شماره 1 است
+        * مثال ساختار JSON:
+          پاسخ investor_list یک آرایه است که هر عنصر آن یک سرمایه‌گذار است
+          هر سرمایه‌گذار یک فیلد "units" دارد که یک آرایه از واحدها است
+          هر واحد در این آرایه یک فیلد "id" دارد
+          برای پیدا کردن مالکین واحد شماره 1، باید در فیلد "units" هر سرمایه‌گذار، واحدی با "id" برابر با 1 را پیدا کنید
+        * در این مثال، اگر سرمایه‌گذار با id=11 در فیلد "units" خود واحدی با id=1 داشته باشد، این سرمایه‌گذار مالک واحد شماره 1 است
+     4. اطلاعات تمام مالکین پیدا شده را به پاسخ اضافه کنید
+   
+   **نکته مهم درباره رابطه واحد و مالک:**
+   - رابطه بین Unit و Investor یک رابطه ManyToMany است
+   - هر سرمایه‌گذار می‌تواند چندین واحد داشته باشد (در فیلد `units` که یک آرایه است)
+   - هر واحد می‌تواند چندین مالک داشته باشد
+   - برای پیدا کردن مالکین یک واحد با id=X:
+     * از `investor_list` استفاده کنید
+     * برای هر سرمایه‌گذار، فیلد `units` را بررسی کنید (یک آرایه JSON)
+     * در این آرایه، به دنبال واحدی با `id == X` بگردید
+     * اگر پیدا کردید، این سرمایه‌گذار مالک است
+   - اگر واحدی مالک نداشت، آن را به عنوان "بدون مالک" یا "خالی" نمایش دهید
+
+7. همیشه پاسخ‌های خود را به فارسی و به صورت دوستانه و مفید بدهید
+8. اگر کاربر سوالی درباره API یا مستندات پرسید، از اطلاعات RAG استفاده کنید
+
+**انواع هزینه‌ها:**
 - مدیر پروژه (project_manager)
 - سرپرست کارگاه (facilities_manager)
 - کارپرداز (procurement)
@@ -186,8 +486,11 @@ class ConstructionAssistantAgent:
 - پیمان ساختمان (construction_contractor)
 - سایر (other)
 
-همیشه پاسخ‌های خود را به فارسی و به صورت دوستانه و مفید بدهید.
-اگر کاربر سوالی درباره API یا مستندات پرسید، از اطلاعات RAG استفاده کنید.
+**انواع تراکنش‌ها:**
+- آورده (principal_deposit)
+- برداشت (principal_withdrawal)
+- سود مشارکت (profit)
+- خروجی (withdrawal)
 """
         
         # استفاده از API جدید create_agent
@@ -247,21 +550,24 @@ class ConstructionAssistantAgent:
             # لاگ کردن استفاده از tools
             if result.get("messages"):
                 tool_usage_count = 0
+                tool_calls_seen = set()  # مجموعه tool_call های دیده شده برای جلوگیری از تکرار
+                
                 for msg in result["messages"]:
-                    # بررسی tool_calls در message
+                    # فقط tool_calls را شمارش می‌کنیم (ToolMessage ها فقط نتیجه هستند، نه فراخوانی)
                     if hasattr(msg, 'tool_calls') and msg.tool_calls:
-                        tool_usage_count += len(msg.tool_calls)
                         for tool_call in msg.tool_calls:
                             tool_name = tool_call.get('name', 'نامشخص') if isinstance(tool_call, dict) else getattr(tool_call, 'name', 'نامشخص')
-                            logger.info(f"🔧 استفاده از ابزار: {tool_name}")
-                            print(f"🔧 استفاده از ابزار: {tool_name}")
-                    # بررسی ToolMessage
-                    elif hasattr(msg, 'name') and hasattr(msg, 'content'):
-                        if 'tool' in str(type(msg)).lower() or 'ToolMessage' in str(type(msg)):
-                            tool_usage_count += 1
-                            tool_name = getattr(msg, 'name', 'نامشخص')
-                            logger.info(f"🔧 استفاده از ابزار: {tool_name}")
-                            print(f"🔧 استفاده از ابزار: {tool_name}")
+                            tool_id = tool_call.get('id', None) if isinstance(tool_call, dict) else getattr(tool_call, 'id', None)
+                            
+                            # استفاده از tool_id برای جلوگیری از شمارش تکراری
+                            # اگر tool_id نداشت، از tool_name استفاده می‌کنیم
+                            unique_key = tool_id if tool_id else f"{tool_name}_{id(tool_call)}"
+                            
+                            if unique_key not in tool_calls_seen:
+                                tool_usage_count += 1
+                                tool_calls_seen.add(unique_key)
+                                logger.info(f"🔧 استفاده از ابزار: {tool_name}")
+                                print(f"🔧 استفاده از ابزار: {tool_name}")
                 
                 if tool_usage_count > 0:
                     logger.info(f"📊 مجموع ابزارهای استفاده شده: {tool_usage_count}")
@@ -291,13 +597,19 @@ class ConstructionAssistantAgent:
             }
         
         except Exception as e:
+            import traceback
+            error_traceback = traceback.format_exc()
             error_message = f"❌ خطا در پردازش درخواست: {str(e)}"
             # نمایش خطا در کنسول
             logger.error("❌ خطا در پردازش درخواست:")
             logger.error(str(e))
+            logger.error("Traceback:")
+            logger.error(error_traceback)
             logger.error("=" * 80)
             print("❌ خطا در پردازش درخواست:")
             print(str(e))
+            print("Traceback:")
+            print(error_traceback)
             print("=" * 80)
             return {
                 "output": error_message,

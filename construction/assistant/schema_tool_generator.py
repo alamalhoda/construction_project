@@ -98,6 +98,101 @@ class SchemaToolGenerator:
             return self.components.get(schema_name, {})
         return {}
     
+    def normalize_tool_name(self, operation_id: str, max_length: int = 64) -> str:
+        """
+        نرمال‌سازی نام tool برای سازگاری با LLM providers
+        
+        این تابع:
+        1. نام‌های تکراری را حذف می‌کند (مثل investor_investor_ -> investor_)
+        2. نام‌های طولانی را کوتاه می‌کند
+        3. کاراکترهای غیرمجاز را حذف می‌کند
+        
+        Args:
+            operation_id: Operation ID از OpenAPI schema
+            max_length: حداکثر طول مجاز (پیش‌فرض: 64 برای Gemini)
+        
+        Returns:
+            نام نرمال‌سازی شده
+        """
+        if not operation_id:
+            return ''
+        
+        # تبدیل به lowercase و جایگزینی کاراکترهای غیرمجاز
+        tool_name = operation_id.lower().replace('-', '_').replace(' ', '_')
+        
+        # حذف کاراکترهای غیرمجاز (فقط alphanumeric و underscore)
+        tool_name = ''.join(c if c.isalnum() or c == '_' else '_' for c in tool_name)
+        
+        # حذف تکرارهای متوالی در ابتدای نام
+        # مثال: investor_investor_cumulative -> investor_cumulative
+        parts = tool_name.split('_')
+        if len(parts) >= 2:
+            # بررسی اینکه آیا دو بخش اول یکسان هستند
+            if parts[0] == parts[1]:
+                # حذف بخش تکراری
+                parts = [parts[0]] + parts[2:]
+            # بررسی تکرارهای دیگر (مثل investor_investor_investor)
+            filtered_parts = []
+            prev_part = None
+            for part in parts:
+                if part != prev_part:
+                    filtered_parts.append(part)
+                    prev_part = part
+                # اگر بخش فعلی با بخش قبلی متفاوت است اما با بخش قبل از آن یکسان است
+                # (مثل: investor_cumulative_investor -> investor_cumulative)
+                elif len(filtered_parts) >= 2 and part == filtered_parts[-2]:
+                    # حذف بخش تکراری
+                    continue
+            parts = filtered_parts
+        
+        tool_name = '_'.join(parts)
+        
+        # حذف underscore های متوالی
+        while '__' in tool_name:
+            tool_name = tool_name.replace('__', '_')
+        
+        # حذف underscore از ابتدا و انتها
+        tool_name = tool_name.strip('_')
+        
+        # اگر خیلی طولانی است، کوتاه کن
+        if len(tool_name) > max_length:
+            # استراتژی: حفظ بخش‌های مهم (اولین و آخرین بخش)
+            parts = tool_name.split('_')
+            if len(parts) > 2:
+                # حفظ اولین بخش (مثل investor) و آخرین بخش (مثل retrieve)
+                first_part = parts[0]
+                last_part = parts[-1]
+                middle_parts = parts[1:-1]
+                
+                # کوتاه کردن بخش‌های میانی
+                available_length = max_length - len(first_part) - len(last_part) - 2  # 2 برای underscore ها
+                if available_length > 0:
+                    # کوتاه کردن بخش‌های میانی
+                    shortened_middle = []
+                    for part in middle_parts:
+                        if len('_'.join(shortened_middle + [part])) <= available_length:
+                            shortened_middle.append(part)
+                        else:
+                            break
+                    
+                    if shortened_middle:
+                        tool_name = '_'.join([first_part] + shortened_middle + [last_part])
+                    else:
+                        # اگر نمی‌توانیم بخش میانی را نگه داریم، فقط اول و آخر را نگه دار
+                        tool_name = f"{first_part}_{last_part}"
+                else:
+                    # اگر حتی اول و آخر هم نمی‌گنجد، فقط اول را نگه دار
+                    tool_name = first_part[:max_length]
+            else:
+                # اگر فقط دو بخش دارد، کوتاه کن
+                tool_name = tool_name[:max_length]
+        
+        # اطمینان از اینکه با حرف یا underscore شروع می‌شود
+        if tool_name and not (tool_name[0].isalpha() or tool_name[0] == '_'):
+            tool_name = '_' + tool_name
+        
+        return tool_name
+    
     def extract_properties_from_schema(self, schema_obj: dict) -> List[Dict[str, Any]]:
         """استخراج properties از schema (با پشتیبانی از $ref)"""
         params = []
@@ -211,13 +306,14 @@ class SchemaToolGenerator:
                                         body_param['in'] = 'body'  # مشخص کردن که این body parameter است
                                         params.append(body_param)
                         
-                        # تولید نام Tool
-                        tool_name = operation_id.lower().replace('_', '_')
+                        # تولید نام Tool با نرمال‌سازی
+                        tool_name = self.normalize_tool_name(operation_id, max_length=64)
                         if not tool_name:
                             # ساخت نام از path و method
                             path_parts = path.strip('/').split('/')
                             resource = path_parts[-1] if path_parts else 'resource'
-                            tool_name = f"{method.lower()}_{resource}".replace('-', '_').replace('{', '').replace('}', '')
+                            fallback_name = f"{method.lower()}_{resource}".replace('-', '_').replace('{', '').replace('}', '')
+                            tool_name = self.normalize_tool_name(fallback_name, max_length=64)
                         
                         # استخراج اطلاعات security
                         security = details.get('security', [])
