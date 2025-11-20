@@ -762,7 +762,7 @@ def main():
     generator = SchemaToolGenerator(schema_path=args.schema)
     
     if not args.output:
-        args.output = str(project_root / 'construction' / 'assistant' / 'generated_tools_from_schema.py')
+        args.output = str(project_root / 'construction' / 'assistant' / 'generated' / 'generated_tools_from_schema.py')
     
     print("🔧 در حال تولید Tools از OpenAPI Schema...")
     print("   ✅ استفاده از schema کامل drf-spectacular")

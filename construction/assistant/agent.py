@@ -24,7 +24,7 @@ from construction.assistant.tools import (
     search_expenses
 )
 # Import تمام ابزارهای تولید شده از schema
-from construction.assistant import generated_tools_from_schema
+from construction.assistant.generated import generated_tools_from_schema
 from construction.project_manager import ProjectManager
 
 logger = logging.getLogger(__name__)

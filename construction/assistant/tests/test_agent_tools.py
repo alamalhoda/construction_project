@@ -31,7 +31,7 @@ from django.contrib.sessions.middleware import SessionMiddleware
 
 from construction.models import Project, Expense, Period, Investor, Transaction
 from construction.assistant.agent import ConstructionAssistantAgent
-from construction.assistant import generated_tools_from_schema
+from construction.assistant.generated import generated_tools_from_schema
 from langchain_core.tools import BaseTool
 
 

@@ -7,7 +7,8 @@ import sys
 import django
 
 # اضافه کردن مسیر پروژه به Python path
-project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# از construction/assistant/scripts/ به ریشه پروژه می‌رویم
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 sys.path.insert(0, project_root)
 
 # تنظیم Django
