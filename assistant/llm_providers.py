@@ -4,9 +4,57 @@ LLM Provider Abstraction Layer
 """
 
 import os
+import time
 from abc import ABC, abstractmethod
 from typing import Optional, List, Dict, Any
 from django.conf import settings
+from django.core.cache import cache
+from functools import wraps
+
+
+def rate_limit_decorator(max_calls: int = 60, period: int = 60):
+    """
+    Decorator برای rate limiting درخواست‌ها
+    
+    Args:
+        max_calls: حداکثر تعداد درخواست در دوره زمانی
+        period: دوره زمانی به ثانیه
+    """
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            # استفاده از cache key بر اساس نام تابع
+            cache_key = f"rate_limit_{func.__name__}"
+            current_time = time.time()
+            
+            # دریافت اطلاعات rate limit از cache
+            rate_limit_data = cache.get(cache_key, {'calls': [], 'last_reset': current_time})
+            
+            # پاک کردن درخواست‌های قدیمی‌تر از period
+            rate_limit_data['calls'] = [
+                call_time for call_time in rate_limit_data['calls']
+                if current_time - call_time < period
+            ]
+            
+            # بررسی اینکه آیا به حد مجاز رسیده‌ایم یا نه
+            if len(rate_limit_data['calls']) >= max_calls:
+                # محاسبه زمان باقی‌مانده تا reset
+                oldest_call = min(rate_limit_data['calls']) if rate_limit_data['calls'] else current_time
+                wait_time = period - (current_time - oldest_call)
+                
+                if wait_time > 0:
+                    raise Exception(
+                        f"Rate limit exceeded. Please wait {int(wait_time)} seconds before trying again."
+                    )
+            
+            # اضافه کردن درخواست فعلی
+            rate_limit_data['calls'].append(current_time)
+            cache.set(cache_key, rate_limit_data, period + 10)  # ذخیره برای مدت بیشتر
+            
+            # اجرای تابع
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
 
 
 class LLMProvider(ABC):
@@ -187,9 +235,16 @@ class GoogleGeminiProvider(LLMProvider):
             raise ValueError("GOOGLE_API_KEY or GEMINI_API_KEY environment variable is required")
     
     def get_llm(self, temperature: float = 0, **kwargs):
-        """ایجاد Google Gemini LLM"""
+        """ایجاد Google Gemini LLM با retry logic بهبود یافته"""
         try:
             from langchain_google_genai import ChatGoogleGenerativeAI
+            from tenacity import (
+                retry,
+                stop_after_attempt,
+                wait_exponential,
+                retry_if_exception_type
+            )
+            from google.api_core import exceptions as google_exceptions
             
             # تنظیمات پیش‌فرض برای جلوگیری از انتظار طولانی
             # توجه: timeout و max_retries ممکن است در نسخه‌های مختلف langchain متفاوت باشند
@@ -203,7 +258,7 @@ class GoogleGeminiProvider(LLMProvider):
             if 'timeout' not in kwargs:
                 try:
                     # برخی نسخه‌های langchain از request_timeout استفاده می‌کنند
-                    default_kwargs['request_timeout'] = 60  # 60 ثانیه
+                    default_kwargs['request_timeout'] = 120  # 120 ثانیه (افزایش یافته)
                 except:
                     pass
             
@@ -211,14 +266,22 @@ class GoogleGeminiProvider(LLMProvider):
             if 'max_retries' not in kwargs:
                 try:
                     # برخی نسخه‌های langchain از max_retries استفاده می‌کنند
-                    default_kwargs['max_retries'] = 2  # حداکثر 2 بار retry
+                    # افزایش max_retries برای مدیریت بهتر rate limit
+                    default_kwargs['max_retries'] = 5  # حداکثر 5 بار retry
                 except:
                     pass
             
             # override کردن با kwargs ورودی
             default_kwargs.update(kwargs)
             
-            return ChatGoogleGenerativeAI(**default_kwargs)
+            # ایجاد LLM instance
+            llm = ChatGoogleGenerativeAI(**default_kwargs)
+            
+            # اگر LLM از retry پشتیبانی می‌کند، آن را تنظیم می‌کنیم
+            # langchain_google_genai به صورت خودکار از tenacity برای retry استفاده می‌کند
+            # اما می‌توانیم آن را customize کنیم
+            
+            return llm
         except ImportError:
             raise ImportError("langchain-google-genai is not installed. Install it with: pip install langchain-google-genai")
     

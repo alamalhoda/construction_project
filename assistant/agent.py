@@ -5,8 +5,10 @@ AI Agent اصلی برای دستیار هوشمند
 
 import logging
 import inspect
+import time
 from typing import Optional, Dict, Any, Callable
 from django.conf import settings
+from django.core.cache import cache
 from langchain.agents import create_agent
 from langchain.tools import tool
 from langchain_core.tools import BaseTool, StructuredTool
@@ -505,6 +507,48 @@ class ConstructionAssistantAgent:
         
         return agent_graph
     
+    def _check_rate_limit(self, user_id: Optional[str] = None) -> bool:
+        """
+        بررسی rate limit برای کاربر
+        
+        Args:
+            user_id: شناسه کاربر (اختیاری)
+        
+        Returns:
+            True اگر درخواست مجاز است، False در غیر این صورت
+        """
+        # استفاده از IP یا user_id برای rate limiting
+        if self.request:
+            identifier = f"rate_limit_{self.request.user.id if self.request.user.is_authenticated else self.request.META.get('REMOTE_ADDR', 'anonymous')}"
+        else:
+            identifier = f"rate_limit_{user_id or 'anonymous'}"
+        
+        # محدودیت: حداکثر 30 درخواست در دقیقه
+        max_requests = 30
+        period = 60  # 60 ثانیه
+        
+        cache_key = f"agent_rate_limit_{identifier}"
+        current_time = time.time()
+        
+        # دریافت اطلاعات rate limit از cache
+        rate_limit_data = cache.get(cache_key, {'requests': [], 'last_reset': current_time})
+        
+        # پاک کردن درخواست‌های قدیمی‌تر از period
+        rate_limit_data['requests'] = [
+            req_time for req_time in rate_limit_data['requests']
+            if current_time - req_time < period
+        ]
+        
+        # بررسی اینکه آیا به حد مجاز رسیده‌ایم یا نه
+        if len(rate_limit_data['requests']) >= max_requests:
+            return False
+        
+        # اضافه کردن درخواست فعلی
+        rate_limit_data['requests'].append(current_time)
+        cache.set(cache_key, rate_limit_data, period + 10)  # ذخیره برای مدت بیشتر
+        
+        return True
+    
     def invoke(self, message: str, chat_history: list = None) -> Dict[str, Any]:
         """
         اجرای Agent با پیام کاربر و تاریخچه چت
@@ -516,6 +560,19 @@ class ConstructionAssistantAgent:
         Returns:
             نتیجه اجرای Agent
         """
+        # بررسی rate limit
+        if not self._check_rate_limit():
+            error_message = (
+                "⚠️ محدودیت نرخ درخواست: شما درخواست‌های زیادی ارسال کرده‌اید. "
+                "لطفاً یک دقیقه صبر کنید و دوباره تلاش کنید."
+            )
+            logger.warning("⚠️ Rate limit exceeded for user")
+            return {
+                "output": error_message,
+                "success": False,
+                "error": "Rate limit exceeded"
+            }
+        
         try:
             # تبدیل تاریخچه به فرمت LangChain messages
             from langchain_core.messages import HumanMessage, AIMessage
@@ -564,9 +621,51 @@ class ConstructionAssistantAgent:
             print("🔄 در حال پردازش درخواست...")
             
             # استفاده از messages به جای فقط یک HumanMessage
-            result = self.agent_graph.invoke({
-                "messages": messages
-            })
+            # با retry logic برای مدیریت rate limit
+            max_retries = 5
+            base_delay = 2  # شروع با 2 ثانیه
+            result = None
+            
+            for attempt in range(max_retries):
+                try:
+                    result = self.agent_graph.invoke({
+                        "messages": messages
+                    })
+                    break  # موفق بود، از حلقه خارج شو
+                except Exception as e:
+                    error_str = str(e)
+                    
+                    # بررسی اینکه آیا خطای rate limit است
+                    is_rate_limit = (
+                        "429" in error_str or 
+                        "ResourceExhausted" in error_str or 
+                        "rate limit" in error_str.lower()
+                    )
+                    
+                    if is_rate_limit and attempt < max_retries - 1:
+                        # محاسبه delay با exponential backoff
+                        delay = base_delay * (2 ** attempt)  # 2, 4, 8, 16, 32 ثانیه
+                        # محدود کردن delay به حداکثر 60 ثانیه
+                        delay = min(delay, 60)
+                        
+                        logger.warning(
+                            f"⚠️ Rate limit error (attempt {attempt + 1}/{max_retries}). "
+                            f"Waiting {delay} seconds before retry..."
+                        )
+                        print(
+                            f"⚠️ محدودیت نرخ درخواست از سمت Google Gemini (تلاش {attempt + 1}/{max_retries}). "
+                            f"در حال انتظار {delay} ثانیه..."
+                        )
+                        
+                        # انتظار قبل از retry
+                        time.sleep(delay)
+                        continue
+                    else:
+                        # خطای دیگر یا آخرین تلاش - خطا را throw کن
+                        raise
+            
+            if result is None:
+                raise Exception("Failed to get response after all retries")
             
             # لاگ کردن استفاده از tools
             if result.get("messages"):
