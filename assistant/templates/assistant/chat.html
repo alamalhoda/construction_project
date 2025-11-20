@@ -5,6 +5,7 @@
 
 {% block extrahead %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
 <style>
     /* CSS Variables - استفاده از رنگ‌های استاندارد پروژه */
     :root {
@@ -361,6 +362,14 @@
     .assistant-message .message-content {
         color: #2c3e50 !important;
         font-size: 15px !important;
+        word-wrap: break-word !important;
+        line-height: 1.7 !important;
+    }
+    
+    .assistant-message .message-content br {
+        display: block !important;
+        content: "" !important;
+        margin: 4px 0 !important;
     }
     
     .message-header {
@@ -459,6 +468,173 @@
     
     .assistant-message a:hover {
         color: #764ba2 !important;
+    }
+    
+    /* استایل‌های Markdown */
+    .assistant-message h1,
+    .assistant-message h2,
+    .assistant-message h3,
+    .assistant-message h4,
+    .assistant-message h5,
+    .assistant-message h6 {
+        color: #2c3e50 !important;
+        font-weight: 600 !important;
+        margin: 16px 0 12px 0 !important;
+        line-height: 1.4 !important;
+    }
+    
+    .assistant-message h1 {
+        font-size: 24px !important;
+        border-bottom: 2px solid var(--border-color) !important;
+        padding-bottom: 8px !important;
+    }
+    
+    .assistant-message h2 {
+        font-size: 20px !important;
+        border-bottom: 1px solid var(--border-color) !important;
+        padding-bottom: 6px !important;
+    }
+    
+    .assistant-message h3 {
+        font-size: 18px !important;
+    }
+    
+    .assistant-message h4 {
+        font-size: 16px !important;
+    }
+    
+    .assistant-message h5,
+    .assistant-message h6 {
+        font-size: 14px !important;
+    }
+    
+    .assistant-message p {
+        margin: 12px 0 !important;
+        line-height: 1.7 !important;
+    }
+    
+    .assistant-message em {
+        font-style: italic !important;
+        color: var(--text-primary) !important;
+    }
+    
+    .assistant-message blockquote {
+        border-right: 4px solid var(--capital-color) !important;
+        padding: 12px 16px !important;
+        margin: 16px 0 !important;
+        background: var(--capital-color-light) !important;
+        border-radius: 4px !important;
+        font-style: italic !important;
+        color: var(--text-secondary) !important;
+    }
+    
+    .assistant-message hr {
+        border: none !important;
+        border-top: 2px solid var(--border-color) !important;
+        margin: 24px 0 !important;
+    }
+    
+    /* استایل جداول Markdown */
+    .assistant-message table,
+    .assistant-message .message-content table,
+    .message-content table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        margin: 20px 0 !important;
+        background: white !important;
+        border-radius: 8px !important;
+        overflow: hidden !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+        display: table !important;
+        table-layout: auto !important;
+    }
+    
+    .assistant-message table thead,
+    .assistant-message .message-content table thead,
+    .message-content table thead {
+        display: table-header-group !important;
+    }
+    
+    .assistant-message table tbody,
+    .assistant-message .message-content table tbody,
+    .message-content table tbody {
+        display: table-row-group !important;
+    }
+    
+    .assistant-message table tr,
+    .assistant-message .message-content table tr,
+    .message-content table tr {
+        display: table-row !important;
+    }
+    
+    .assistant-message table th,
+    .assistant-message .message-content table th,
+    .message-content table th {
+        background: linear-gradient(135deg, var(--capital-color) 0%, var(--secondary-color) 100%) !important;
+        color: white !important;
+        padding: 12px 16px !important;
+        text-align: right !important;
+        font-weight: 600 !important;
+        border: none !important;
+        display: table-cell !important;
+        vertical-align: middle !important;
+    }
+    
+    .assistant-message table td,
+    .assistant-message .message-content table td,
+    .message-content table td {
+        padding: 10px 16px !important;
+        border-top: 1px solid var(--border-color) !important;
+        border-bottom: 1px solid var(--border-color) !important;
+        text-align: right !important;
+        display: table-cell !important;
+        vertical-align: middle !important;
+    }
+    
+    .assistant-message table tr:nth-child(even),
+    .assistant-message .message-content table tr:nth-child(even),
+    .message-content table tr:nth-child(even) {
+        background: var(--bg-primary) !important;
+    }
+    
+    .assistant-message table tr:hover,
+    .assistant-message .message-content table tr:hover,
+    .message-content table tr:hover {
+        background: var(--capital-color-light) !important;
+        transition: background 0.2s ease !important;
+    }
+    
+    .assistant-message table tr:last-child td,
+    .assistant-message .message-content table tr:last-child td,
+    .message-content table tr:last-child td {
+        border-bottom: none !important;
+    }
+    
+    .assistant-message table thead tr th:first-child,
+    .assistant-message .message-content table thead tr th:first-child,
+    .message-content table thead tr th:first-child {
+        border-top-right-radius: 8px !important;
+    }
+    
+    .assistant-message table thead tr th:last-child,
+    .assistant-message .message-content table thead tr th:last-child,
+    .message-content table thead tr th:last-child {
+        border-top-left-radius: 8px !important;
+    }
+    
+    /* استایل برای تصاویر */
+    .assistant-message img {
+        max-width: 100% !important;
+        height: auto !important;
+        border-radius: 8px !important;
+        margin: 12px 0 !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    /* استایل برای خط افقی */
+    .assistant-message del {
+        text-decoration: line-through !important;
+        opacity: 0.7 !important;
     }
     
     .typing-indicator {
@@ -773,6 +949,32 @@
             height: 36px !important;
             font-size: 16px !important;
         }
+        
+        /* جداول در موبایل */
+        .assistant-message table {
+            font-size: 12px !important;
+            display: block !important;
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+        }
+        
+        .assistant-message table th,
+        .assistant-message table td {
+            padding: 8px 10px !important;
+            font-size: 12px !important;
+        }
+        
+        .assistant-message h1 {
+            font-size: 20px !important;
+        }
+        
+        .assistant-message h2 {
+            font-size: 18px !important;
+        }
+        
+        .assistant-message h3 {
+            font-size: 16px !important;
+        }
     }
 </style>
 {% endblock %}
@@ -852,8 +1054,17 @@
         if (welcomeTime) {
             welcomeTime.textContent = getCurrentTime();
         }
+        
+        // لود کردن تاریخچه (بعد از لود شدن marked.js)
         loadChatHistory();
         autoResizeTextarea();
+        
+        // پردازش مجدد پیام‌های موجود بعد از لود شدن marked.js
+        setTimeout(() => {
+            if (markedReady) {
+                reprocessExistingMessages();
+            }
+        }, 1000);
     });
     
     // تابع برای دریافت زمان فعلی
@@ -864,18 +1075,313 @@
         return `${hours}:${minutes}`;
     }
     
-    // تابع برای فرمت کردن متن (markdown ساده)
+    // تنظیمات marked.js برای پردازش Markdown
+    function initializeMarked() {
+        if (typeof marked !== 'undefined') {
+            marked.setOptions({
+                breaks: true,  // تبدیل خطوط جدید به <br>
+                gfm: true,     // پشتیبانی از GitHub Flavored Markdown (جداول، و غیره)
+                headerIds: false,
+                mangle: false,
+                pedantic: false,
+                sanitize: false,
+                smartLists: true,
+                smartypants: false
+            });
+            return true;
+        }
+        return false;
+    }
+    
+    // بررسی لود شدن marked.js
+    let markedReady = false;
+    function checkMarkedReady() {
+        if (typeof marked !== 'undefined') {
+            markedReady = initializeMarked();
+            return true;
+        }
+        return false;
+    }
+    
+    // تلاش برای initialize کردن marked.js
+    if (!checkMarkedReady()) {
+        // اگر marked.js هنوز لود نشده، منتظر بمان
+        const checkInterval = setInterval(() => {
+            if (checkMarkedReady()) {
+                clearInterval(checkInterval);
+                // بعد از لود شدن marked.js، پیام‌های موجود را دوباره پردازش کن
+                setTimeout(() => {
+                    reprocessExistingMessages();
+                }, 500);
+            }
+        }, 100);
+        
+        // timeout برای جلوگیری از انتظار بی‌نهایت
+        setTimeout(() => {
+            clearInterval(checkInterval);
+            // حتی اگر marked.js لود نشد، سعی کن پیام‌ها را پردازش کن
+            setTimeout(() => {
+                reprocessExistingMessages();
+            }, 500);
+        }, 5000);
+    } else {
+        // اگر marked.js از ابتدا آماده بود، بعد از کمی تاخیر پردازش مجدد را انجام بده
+        setTimeout(() => {
+            reprocessExistingMessages();
+        }, 1000);
+    }
+    
+    // تابع برای پردازش مجدد پیام‌های موجود در صفحه
+    function reprocessExistingMessages() {
+        const messageWrappers = messagesDiv.querySelectorAll('.message-wrapper:not(.user-wrapper)');
+        messageWrappers.forEach(wrapper => {
+            const contentElement = wrapper.querySelector('.message-content');
+            if (!contentElement) return;
+            
+            // گرفتن متن خام از data-raw-text اگر موجود باشد، در غیر این صورت از textContent
+            const rawText = contentElement.getAttribute('data-raw-text');
+            const text = rawText || contentElement.textContent || '';
+            
+            // بررسی اینکه آیا پیام شامل Markdown است یا نه
+            const hasMarkdown = text.includes('|') || text.includes('**') || text.includes('*') || text.includes('`') || text.includes('#') || text.includes('-');
+            
+            // بررسی اینکه آیا پیام قبلاً به درستی پردازش شده است (دارای جدول است)
+            const hasTable = contentElement.querySelector('table');
+            
+            // اگر Markdown دارد (مخصوصاً جداول)، باید دوباره پردازش شود
+            if (hasMarkdown) {
+                // همیشه دوباره پردازش کن اگر شامل جداول است
+                if (text.includes('|')) {
+                    // پردازش مجدد با Markdown
+                    try {
+                        const formattedHtml = formatMessage(text);
+                        if (formattedHtml) {
+                            // ذخیره متن خام در data attribute
+                            contentElement.setAttribute('data-raw-text', text);
+                            contentElement.innerHTML = formattedHtml;
+                        }
+                    } catch (error) {
+                        console.error('خطا در پردازش مجدد پیام:', error);
+                    }
+                } else if (!hasTable) {
+                    // اگر Markdown دارد اما جدول ندارد، دوباره پردازش کن
+                    try {
+                        const formattedHtml = formatMessage(text);
+                        if (formattedHtml) {
+                            // ذخیره متن خام در data attribute
+                            contentElement.setAttribute('data-raw-text', text);
+                            contentElement.innerHTML = formattedHtml;
+                        }
+                    } catch (error) {
+                        console.error('خطا در پردازش مجدد پیام:', error);
+                    }
+                }
+            }
+        });
+    }
+    
+    // تابع برای پردازش جداول Markdown (fallback)
+    // این تابع می‌تواند هم متن خام و هم HTML را پردازش کند
+    function parseMarkdownTable(text) {
+        // اگر متن شامل تگ‌های HTML است، ابتدا آنها را با placeholder جایگزین می‌کنیم
+        const htmlPlaceholders = [];
+        let htmlIndex = 0;
+        let processedText = text.replace(/<[^>]+>/g, (tag) => {
+            const placeholder = `__HTML_PLACEHOLDER_${htmlIndex}__`;
+            htmlPlaceholders[htmlIndex] = tag;
+            htmlIndex++;
+            return placeholder;
+        });
+        // الگوی جدول Markdown: پیدا کردن جداول با الگوی | col1 | col2 |
+        // این regex جداول را پیدا می‌کند که شامل خط هدر، خط separator و حداقل یک خط داده است
+        // همچنین جداول یک خطی را هم پیدا می‌کند
+        
+        // ابتدا جداول چند خطی را پیدا می‌کنیم
+        // الگوی بهبود یافته: پیدا کردن جداول با خط هدر، separator و حداقل یک خط داده
+        let tableRegex = /(\|[^\n]+\|\s*\n\|[\s\-:]+\|\s*\n(?:\|[^\n]+\|\s*\n?)+)/g;
+        let matches = processedText.match(tableRegex);
+        
+        if (matches) {
+            // پردازش جداول چند خطی
+            matches.forEach(match => {
+                const lines = match.trim().split(/\r?\n/).map(line => line.trim()).filter(line => line && line.startsWith('|'));
+                if (lines.length < 2) return;
+                
+                // خط اول: هدر
+                const headers = lines[0].split('|').map(h => h.trim()).filter(h => h);
+                // خط دوم: separator (نادیده گرفته می‌شود)
+                // خطوط بعدی: داده‌ها
+                const rows = lines.slice(2).map(line => {
+                    return line.split('|').map(cell => cell.trim()).filter((cell, index) => index > 0 && index < line.split('|').length - 1);
+                }).filter(row => row.length > 0);
+                
+                if (headers.length === 0 || rows.length === 0) return;
+                
+                let tableHtml = '<table><thead><tr>';
+                headers.forEach(header => {
+                    tableHtml += `<th>${escapeHtml(header)}</th>`;
+                });
+                tableHtml += '</tr></thead><tbody>';
+                
+                rows.forEach(row => {
+                    tableHtml += '<tr>';
+                    headers.forEach((_, index) => {
+                        const cell = row[index] || '';
+                        tableHtml += `<td>${escapeHtml(cell)}</td>`;
+                    });
+                    tableHtml += '</tr>';
+                });
+                
+                tableHtml += '</tbody></table>';
+                processedText = processedText.replace(match, tableHtml);
+            });
+        }
+        
+        // اگر جدول چند خطی پیدا نشد، جداول یک خطی را پیدا می‌کنیم
+        // الگوی جدول یک خطی: | header1 | header2 | |---|---| | data1 | data2 |
+        // پیدا کردن الگوی: |...|...|...||---|...|...|...|
+        // استفاده از || به عنوان جداکننده سطرها
+        
+        // پیدا کردن تمام قسمت‌هایی که شامل | و --- هستند و شامل || هستند (جداکننده سطرها)
+        // الگوی: |...|...|...||---|...|...|...| که شامل || است
+        const singleLineTablePattern = /(\|[^|]+\|(?:\s*\|\s*[^|]+\|)+\s*\|\s*[\s\-:]+\s*\|(?:\s*\|\s*[^|]+\|)+)/g;
+        let singleLineMatches = processedText.match(singleLineTablePattern);
+        
+        // اگر regex بالا کار نکرد، از روش دیگری استفاده می‌کنیم
+        // پیدا کردن الگوی: |...|...|...||---|...|...|...| که شامل || است
+        if (!singleLineMatches) {
+            // پیدا کردن تمام قسمت‌هایی که شامل | و --- هستند و شامل || هستند
+            // استفاده از یک regex ساده‌تر که تمام جداول را پیدا می‌کند
+            const simpleTablePattern = /(\|[^|]+\|(?:\s*\|\s*[^|]+\|)+\s*\|\s*[\s\-:]+\s*\|(?:\s*\|\s*[^|]+\|)+)/g;
+            singleLineMatches = processedText.match(simpleTablePattern);
+        }
+        
+        if (singleLineMatches) {
+            singleLineMatches.forEach(match => {
+                // جدا کردن سطرها با استفاده از || به عنوان جداکننده
+                // اما باید مراقب باشیم که || داخل سلول‌ها نباشد
+                // برای سادگی، از split استفاده می‌کنیم
+                // ابتدا || را به یک کاراکتر خاص تبدیل می‌کنیم
+                const normalizedMatch = match.replace(/\|\s*\|/g, '||ROW_SEPARATOR||');
+                const rows = normalizedMatch.split('||ROW_SEPARATOR||').map(r => r.trim()).filter(r => r);
+                
+                if (rows.length < 2) return;
+                
+                // خط اول: هدر
+                const headerRow = rows[0];
+                const headers = headerRow.split('|').map(h => h.trim()).filter(h => h);
+                
+                // پیدا کردن separator (سطرهایی که فقط شامل - یا : هستند)
+                const separatorIndex = rows.findIndex(row => {
+                    const cleaned = row.replace(/\|/g, '').trim();
+                    return /^[\s\-:]+$/.test(cleaned);
+                });
+                
+                if (separatorIndex < 0) return;
+                
+                // خطوط داده (بعد از separator)
+                const dataRows = rows.slice(separatorIndex + 1).map(row => {
+                    return row.split('|').map(cell => cell.trim()).filter(cell => cell);
+                }).filter(row => row.length > 0);
+                
+                if (headers.length === 0 || dataRows.length === 0) return;
+                
+                let tableHtml = '<table><thead><tr>';
+                headers.forEach(header => {
+                    tableHtml += `<th>${escapeHtml(header)}</th>`;
+                });
+                tableHtml += '</tr></thead><tbody>';
+                
+                dataRows.forEach(row => {
+                    tableHtml += '<tr>';
+                    headers.forEach((_, index) => {
+                        const cell = row[index] || '';
+                        tableHtml += `<td>${escapeHtml(cell)}</td>`;
+                    });
+                    tableHtml += '</tr>';
+                });
+                
+                tableHtml += '</tbody></table>';
+                processedText = processedText.replace(match, tableHtml);
+            });
+        }
+        
+        // جایگزینی placeholderها با تگ‌های HTML
+        htmlPlaceholders.forEach((tag, index) => {
+            const placeholder = `__HTML_PLACEHOLDER_${index}__`;
+            processedText = processedText.replace(placeholder, tag);
+        });
+        
+        return processedText;
+    }
+    
+    // تابع برای فرمت کردن متن با استفاده از Markdown
     function formatMessage(text) {
+        // ابتدا جداول را پردازش می‌کنیم (قبل از marked.js)
+        // چون marked.js ممکن است جداول را به درستی پردازش نکند
+        const tablePlaceholders = [];
+        let tableIndex = 0;
+        
+        // پیدا کردن جداول و جایگزینی با placeholder
+        // الگوی جداول چند خطی
+        let processedText = text.replace(/(\|[^\n]+\|\s*\n\|[\s\-:]+\|\s*\n(?:\|[^\n]+\|\s*\n?)+)/g, (match) => {
+            const placeholder = `__TABLE_PLACEHOLDER_${tableIndex}__`;
+            tablePlaceholders[tableIndex] = match;
+            tableIndex++;
+            return placeholder;
+        });
+        
+        // الگوی جداول یک خطی (با ||)
+        processedText = processedText.replace(/(\|[^|]+\|(?:\s*\|\s*[^|]+\|)+\s*\|\s*[\s\-:]+\s*\|(?:\s*\|\s*[^|]+\|)+)/g, (match) => {
+            // بررسی اینکه آیا این match قبلاً پردازش شده است یا نه
+            if (!match.includes('__TABLE_PLACEHOLDER_')) {
+                const placeholder = `__TABLE_PLACEHOLDER_${tableIndex}__`;
+                tablePlaceholders[tableIndex] = match;
+                tableIndex++;
+                return placeholder;
+            }
+            return match;
+        });
+        
+        // اگر marked.js موجود است، از آن برای پردازش سایر عناصر استفاده می‌کنیم
+        if (typeof marked !== 'undefined' && markedReady) {
+            try {
+                // پردازش با marked.js (با breaks: true که خطوط جدید را به <br> تبدیل می‌کند)
+                let html = marked.parse(processedText);
+                
+                // جایگزینی placeholderها با جداول HTML
+                tablePlaceholders.forEach((tableText, index) => {
+                    const placeholder = `__TABLE_PLACEHOLDER_${index}__`;
+                    const tableHtml = parseMarkdownTable(tableText);
+                    html = html.replace(placeholder, tableHtml);
+                });
+                
+                return html;
+            } catch (error) {
+                console.error('Error parsing markdown:', error);
+                // در صورت خطا، به روش fallback برگرد
+            }
+        }
+        
+        // Fallback: پردازش جداول و سایر عناصر
+        // جایگزینی placeholderها با جداول HTML
+        tablePlaceholders.forEach((tableText, index) => {
+            const placeholder = `__TABLE_PLACEHOLDER_${index}__`;
+            const tableHtml = parseMarkdownTable(tableText);
+            processedText = processedText.replace(placeholder, tableHtml);
+        });
+        
+        // Fallback: پردازش ساده Markdown (روش قدیمی)
         // تبدیل کدهای بلوکی (قبل از هر چیز دیگری)
-        text = text.replace(/```(\w+)?\n?([\s\S]*?)```/g, function(match, lang, code) {
+        processedText = processedText.replace(/```(\w+)?\n?([\s\S]*?)```/g, function(match, lang, code) {
             return `<pre><code>${escapeHtml(code.trim())}</code></pre>`;
         });
         
         // تبدیل کدهای inline (بعد از کدهای بلوکی)
-        text = text.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+        processedText = processedText.replace(/`([^`\n]+)`/g, '<code>$1</code>');
         
         // تبدیل لیست‌ها (قبل از تبدیل خطوط جدید)
-        const lines = text.split('\n');
+        const lines = processedText.split('\n');
         let inList = false;
         let formattedLines = [];
         
@@ -902,15 +1408,15 @@
             formattedLines.push('</ul>');
         }
         
-        text = formattedLines.join('\n');
+        processedText = formattedLines.join('\n');
         
         // تبدیل خطوط جدید
-        text = text.replace(/\n/g, '<br>');
+        processedText = processedText.replace(/\n/g, '<br>');
         
         // تبدیل لینک‌ها
-        text = text.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+        processedText = processedText.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
         
-        return text;
+        return processedText;
     }
     
     function escapeHtml(text) {
@@ -953,6 +1459,9 @@
             
             const messageContent = document.createElement('div');
             messageContent.className = 'message-content';
+            
+            // ذخیره متن خام در data attribute برای استفاده در saveChatHistory
+            messageContent.setAttribute('data-raw-text', text);
             
             // استفاده از try-catch برای formatMessage
             try {
@@ -1228,7 +1737,9 @@
                     return null; // این پیام را نادیده بگیر
                 }
                 
-                const content = contentElement.textContent || '';
+                // استفاده از data-raw-text اگر موجود باشد (متن خام)، در غیر این صورت از textContent
+                const rawText = contentElement.getAttribute('data-raw-text');
+                const content = rawText || contentElement.textContent || '';
                 const isUser = message.classList.contains('user-message');
                 return { text: content, isUser };
             }).filter(msg => msg !== null); // حذف پیام‌های null
@@ -1245,9 +1756,38 @@
             const saved = localStorage.getItem(STORAGE_KEY);
             if (saved) {
                 const messages = JSON.parse(saved);
+                
+                // تابع برای لود کردن پیام‌ها
+                const loadMessages = () => {
                 messages.forEach(msg => {
                     addMessage(msg.text, msg.isUser);
                 });
+                    // بعد از لود شدن پیام‌ها، پردازش مجدد را انجام بده
+                    setTimeout(() => {
+                        reprocessExistingMessages();
+                    }, 500);
+                };
+                
+                // اگر marked.js آماده است، پیام‌ها را لود کن
+                if (markedReady) {
+                    loadMessages();
+                } else {
+                    // اگر marked.js آماده نیست، منتظر بمان
+                    const loadInterval = setInterval(() => {
+                        if (markedReady) {
+                            clearInterval(loadInterval);
+                            loadMessages();
+                        }
+                    }, 100);
+                    
+                    // timeout برای جلوگیری از انتظار بی‌نهایت (اما حداقل 5 ثانیه صبر کن)
+                    setTimeout(() => {
+                        clearInterval(loadInterval);
+                        // حتی اگر marked.js لود نشد، پیام‌ها را نمایش بده
+                        // formatMessage خودش fallback دارد
+                        loadMessages();
+                    }, 5000);
+                }
             }
         } catch (error) {
             console.error('Error loading chat history:', error);
