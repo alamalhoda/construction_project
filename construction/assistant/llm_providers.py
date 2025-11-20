@@ -191,12 +191,34 @@ class GoogleGeminiProvider(LLMProvider):
         try:
             from langchain_google_genai import ChatGoogleGenerativeAI
             
-            return ChatGoogleGenerativeAI(
-                model=self.model,
-                temperature=temperature,
-                google_api_key=self.api_key,
-                **kwargs
-            )
+            # تنظیمات پیش‌فرض برای جلوگیری از انتظار طولانی
+            # توجه: timeout و max_retries ممکن است در نسخه‌های مختلف langchain متفاوت باشند
+            default_kwargs = {
+                'model': self.model,
+                'temperature': temperature,
+                'google_api_key': self.api_key,
+            }
+            
+            # اضافه کردن timeout اگر پشتیبانی شود
+            if 'timeout' not in kwargs:
+                try:
+                    # برخی نسخه‌های langchain از request_timeout استفاده می‌کنند
+                    default_kwargs['request_timeout'] = 60  # 60 ثانیه
+                except:
+                    pass
+            
+            # اضافه کردن max_retries اگر پشتیبانی شود
+            if 'max_retries' not in kwargs:
+                try:
+                    # برخی نسخه‌های langchain از max_retries استفاده می‌کنند
+                    default_kwargs['max_retries'] = 2  # حداکثر 2 بار retry
+                except:
+                    pass
+            
+            # override کردن با kwargs ورودی
+            default_kwargs.update(kwargs)
+            
+            return ChatGoogleGenerativeAI(**default_kwargs)
         except ImportError:
             raise ImportError("langchain-google-genai is not installed. Install it with: pip install langchain-google-genai")
     

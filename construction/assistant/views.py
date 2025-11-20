@@ -37,6 +37,14 @@ def chat_api(request):
                 'success': False
             }, status=400)
         
+        # دریافت تاریخچه چت از session
+        chat_history = request.session.get('chat_history', [])
+        
+        # نگه داشتن فقط 5 سوال و جواب آخر (10 پیام = 5 جفت)
+        # این کار را قبل از ارسال انجام می‌دهیم تا فقط تاریخچه قبلی را بفرستیم
+        if len(chat_history) > 10:
+            chat_history = chat_history[-10:]
+        
         # نمایش سوال کاربر در کنسول
         username = request.user.username if request.user.is_authenticated else 'Anonymous'
         logger.info("=" * 80)
@@ -78,10 +86,56 @@ def chat_api(request):
             use_rag=use_rag
         )
         
-        # اجرای Agent
-        result = agent.invoke(user_message)
-        
-        return JsonResponse(result)
+        # اجرای Agent با تاریخچه (بدون پیام فعلی - agent خودش آن را اضافه می‌کند)
+        try:
+            result = agent.invoke(user_message, chat_history=chat_history)
+            
+            # بررسی اینکه result معتبر است
+            if not result or not isinstance(result, dict):
+                logger.error("نتیجه agent معتبر نیست")
+                return JsonResponse({
+                    'error': 'نتیجه پردازش نامعتبر است',
+                    'success': False
+                }, status=500)
+            
+            # اضافه کردن پیام کاربر و پاسخ به تاریخچه
+            if result.get('success'):
+                chat_history.append({
+                    'role': 'user',
+                    'content': user_message
+                })
+                chat_history.append({
+                    'role': 'assistant',
+                    'content': result.get('output', '')
+                })
+                # نگه داشتن فقط 5 سوال و جواب آخر (10 پیام = 5 جفت)
+                if len(chat_history) > 10:
+                    chat_history = chat_history[-10:]
+                # ذخیره تاریخچه در session
+                request.session['chat_history'] = chat_history
+            
+            # اطمینان از اینکه result ساختار درستی دارد
+            if 'success' not in result:
+                result['success'] = False
+            if 'output' not in result and result.get('success'):
+                result['output'] = 'پاسخ دریافت نشد.'
+            
+            return JsonResponse(result)
+            
+        except Exception as agent_error:
+            # اگر خطایی در agent رخ داد، آن را catch می‌کنیم
+            import traceback
+            error_traceback = traceback.format_exc()
+            logger.error("❌ خطا در اجرای agent:")
+            logger.error(error_traceback)
+            print("❌ خطا در اجرای agent:")
+            print(error_traceback)
+            
+            return JsonResponse({
+                'error': f'خطا در پردازش درخواست: {str(agent_error)}',
+                'success': False,
+                'traceback': error_traceback if settings.DEBUG else None
+            }, status=500)
     
     except json.JSONDecodeError:
         return JsonResponse({
@@ -110,4 +164,25 @@ def chat_history(request):
         'message': 'این قابلیت در حال توسعه است',
         'history': []
     })
+
+
+@login_required
+@csrf_exempt
+@require_http_methods(["POST"])
+def clear_chat_history(request):
+    """پاک کردن تاریخچه چت از session"""
+    try:
+        if 'chat_history' in request.session:
+            del request.session['chat_history']
+            request.session.modified = True
+        return JsonResponse({
+            'success': True,
+            'message': 'تاریخچه چت پاک شد'
+        })
+    except Exception as e:
+        logger.error(f"خطا در پاک کردن تاریخچه: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
 

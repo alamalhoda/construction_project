@@ -9,6 +9,10 @@ import sys
 from dotenv import load_dotenv
 from typing import Dict, List, Tuple, Optional
 from datetime import datetime
+import socket
+import urllib.request
+import urllib.error
+import time
 
 # بارگذاری متغیرهای محیطی از .env
 load_dotenv()
@@ -77,6 +81,121 @@ class LLMTester:
         if len(api_key) < 10:
             return "***"
         return f"{api_key[:10]}...{api_key[-4:]}"
+    
+    def test_google_connectivity(self) -> Dict:
+        """
+        تست دسترسی به سرویس‌های گوگل
+        بررسی می‌کند که آیا می‌توانیم به دامنه‌های گوگل وصل شویم یا نه
+        """
+        result = {
+            'test_name': 'Google Connectivity',
+            'google_com_http': False,
+            'google_com_https': False,
+            'googleapis_com': False,
+            'generativelanguage_googleapis_com': False,
+            'all_accessible': False,
+            'errors': []
+        }
+        
+        self.print_header("🌐 تست دسترسی به سرویس‌های گوگل")
+        
+        # تست‌های مختلف
+        tests = [
+            ('google.com (HTTP)', 80, 'google.com'),
+            ('google.com (HTTPS)', 443, 'google.com'),
+            ('googleapis.com', 443, 'googleapis.com'),
+            ('generativelanguage.googleapis.com', 443, 'generativelanguage.googleapis.com'),
+        ]
+        
+        for test_name, port, hostname in tests:
+            try:
+                print(f"\n🔍 تست اتصال به {test_name}...")
+                
+                # تست DNS resolution
+                try:
+                    ip = socket.gethostbyname(hostname)
+                    print(f"   ✅ DNS Resolution موفق: {hostname} -> {ip}")
+                except socket.gaierror as e:
+                    result['errors'].append(f"DNS Resolution برای {hostname} ناموفق: {str(e)}")
+                    self.print_error(f"   ❌ DNS Resolution ناموفق: {str(e)}")
+                    continue
+                
+                # تست اتصال TCP
+                try:
+                    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    sock.settimeout(5)
+                    result_connect = sock.connect_ex((hostname, port))
+                    sock.close()
+                    
+                    if result_connect == 0:
+                        print(f"   ✅ اتصال TCP به {hostname}:{port} موفق")
+                        if test_name == 'google.com (HTTP)':
+                            result['google_com_http'] = True
+                        elif test_name == 'google.com (HTTPS)':
+                            result['google_com_https'] = True
+                        elif test_name == 'googleapis.com':
+                            result['googleapis_com'] = True
+                        elif test_name == 'generativelanguage.googleapis.com':
+                            result['generativelanguage_googleapis_com'] = True
+                    else:
+                        result['errors'].append(f"اتصال TCP به {hostname}:{port} ناموفق (کد: {result_connect})")
+                        self.print_error(f"   ❌ اتصال TCP ناموفق (کد: {result_connect})")
+                except socket.timeout:
+                    result['errors'].append(f"Timeout در اتصال به {hostname}:{port}")
+                    self.print_error(f"   ❌ Timeout در اتصال")
+                except Exception as e:
+                    result['errors'].append(f"خطا در اتصال به {hostname}:{port}: {str(e)}")
+                    self.print_error(f"   ❌ خطا: {str(e)}")
+                
+                # تست HTTP/HTTPS (فقط برای googleapis)
+                if 'googleapis' in hostname:
+                    try:
+                        url = f"https://{hostname}"
+                        print(f"   🔄 تست HTTP GET به {url}...")
+                        req = urllib.request.Request(url)
+                        req.add_header('User-Agent', 'Mozilla/5.0')
+                        with urllib.request.urlopen(req, timeout=10) as response:
+                            status = response.getcode()
+                            if status == 200 or status == 404 or status == 403:  # 404 یا 403 هم یعنی سرور در دسترس است
+                                print(f"   ✅ HTTP Response: {status}")
+                            else:
+                                print(f"   ⚠️  HTTP Response: {status}")
+                    except urllib.error.HTTPError as e:
+                        # حتی خطای HTTP یعنی سرور در دسترس است
+                        print(f"   ✅ سرور پاسخ داد (HTTP {e.code})")
+                    except urllib.error.URLError as e:
+                        result['errors'].append(f"خطای URL در {url}: {str(e)}")
+                        self.print_error(f"   ❌ خطای URL: {str(e)}")
+                    except Exception as e:
+                        result['errors'].append(f"خطا در HTTP GET به {url}: {str(e)}")
+                        self.print_error(f"   ❌ خطا: {str(e)}")
+                        
+            except Exception as e:
+                result['errors'].append(f"خطای کلی در تست {test_name}: {str(e)}")
+                self.print_error(f"   ❌ خطای کلی: {str(e)}")
+        
+        # نتیجه نهایی - مهم‌ترین چیز دسترسی به API است
+        result['all_accessible'] = (
+            result['googleapis_com'] and 
+            result['generativelanguage_googleapis_com']
+        )
+        
+        print(f"\n{Colors.BOLD}📊 نتیجه تست دسترسی:{Colors.RESET}")
+        print(f"   google.com:80 (HTTP): {'✅' if result['google_com_http'] else '❌'}")
+        print(f"   google.com:443 (HTTPS): {'✅' if result['google_com_https'] else '❌'}")
+        print(f"   googleapis.com:443: {'✅' if result['googleapis_com'] else '❌'}")
+        print(f"   generativelanguage.googleapis.com:443: {'✅' if result['generativelanguage_googleapis_com'] else '❌'}")
+        
+        if result['all_accessible']:
+            self.print_success("همه سرویس‌های گوگل در دسترس هستند!")
+        else:
+            self.print_warning("برخی سرویس‌های گوگل در دسترس نیستند. ممکن است مشکل تحریم وجود داشته باشد.")
+            if result['errors']:
+                print(f"\n{Colors.YELLOW}خطاهای مشاهده شده:{Colors.RESET}")
+                for error in result['errors']:
+                    print(f"   • {error}")
+        
+        return result
     
     def test_provider(self, provider_type: str, **kwargs) -> Dict:
         """
@@ -262,6 +381,9 @@ class LLMTester:
         
         print(f"📅 تاریخ تست: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print(f"💬 پیام تست: {self.test_message}\n")
+        
+        # ابتدا تست دسترسی به گوگل را اجرا می‌کنیم
+        google_connectivity = self.test_google_connectivity()
         
         # لیست تمام تست‌ها
         tests = [

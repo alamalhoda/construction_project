@@ -920,56 +920,87 @@
     }
     
     function addMessage(text, isUser) {
-        const messageWrapper = document.createElement('div');
-        messageWrapper.className = `message-wrapper ${isUser ? 'user-wrapper' : ''}`;
-        
-        // آواتار
-        const avatar = document.createElement('div');
-        avatar.className = 'message-avatar';
-        avatar.innerHTML = isUser ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
-        
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${isUser ? 'user-message' : 'assistant-message'}`;
-        
-        const messageHeader = document.createElement('div');
-        messageHeader.className = 'message-header';
-        
-        const senderName = document.createElement('span');
-        senderName.innerHTML = isUser ? '<i class="fas fa-user"></i> شما' : '<i class="fas fa-robot"></i> دستیار';
-        
-        const messageTime = document.createElement('span');
-        messageTime.className = 'message-time';
-        messageTime.textContent = getCurrentTime();
-        
-        messageHeader.appendChild(senderName);
-        messageHeader.appendChild(messageTime);
-        
-        const messageContent = document.createElement('div');
-        messageContent.className = 'message-content';
-        messageContent.innerHTML = isUser ? escapeHtml(text) : formatMessage(text);
-        
-        if (!isUser) {
-            const messageActions = document.createElement('div');
-            messageActions.className = 'message-actions';
+        try {
+            // بررسی اینکه text معتبر است
+            if (text === null || text === undefined) {
+                text = '';
+            }
+            text = String(text);
             
-            const copyBtn = document.createElement('button');
-            copyBtn.className = 'message-action-btn';
-            copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
-            copyBtn.title = 'کپی کردن';
-            copyBtn.onclick = () => copyToClipboard(text);
+            const messageWrapper = document.createElement('div');
+            messageWrapper.className = `message-wrapper ${isUser ? 'user-wrapper' : ''}`;
             
-            messageActions.appendChild(copyBtn);
-            messageHeader.appendChild(messageActions);
+            // آواتار
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.innerHTML = isUser ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'assistant-message'}`;
+            
+            const messageHeader = document.createElement('div');
+            messageHeader.className = 'message-header';
+            
+            const senderName = document.createElement('span');
+            senderName.innerHTML = isUser ? '<i class="fas fa-user"></i> شما' : '<i class="fas fa-robot"></i> دستیار';
+            
+            const messageTime = document.createElement('span');
+            messageTime.className = 'message-time';
+            messageTime.textContent = getCurrentTime();
+            
+            messageHeader.appendChild(senderName);
+            messageHeader.appendChild(messageTime);
+            
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+            
+            // استفاده از try-catch برای formatMessage
+            try {
+                messageContent.innerHTML = isUser ? escapeHtml(text) : formatMessage(text);
+            } catch (formatError) {
+                console.error('خطا در format کردن پیام:', formatError);
+                // در صورت خطا، از escapeHtml استفاده می‌کنیم
+                messageContent.innerHTML = escapeHtml(text);
+            }
+            
+            if (!isUser) {
+                const messageActions = document.createElement('div');
+                messageActions.className = 'message-actions';
+                
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'message-action-btn';
+                copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
+                copyBtn.title = 'کپی کردن';
+                copyBtn.onclick = () => copyToClipboard(text);
+                
+                messageActions.appendChild(copyBtn);
+                messageHeader.appendChild(messageActions);
+            }
+            
+            messageDiv.appendChild(messageHeader);
+            messageDiv.appendChild(messageContent);
+            messageWrapper.appendChild(avatar);
+            messageWrapper.appendChild(messageDiv);
+            messagesDiv.appendChild(messageWrapper);
+            
+            scrollToBottom();
+            
+            // استفاده از try-catch برای saveChatHistory
+            try {
+                saveChatHistory();
+            } catch (saveError) {
+                console.error('خطا در ذخیره تاریخچه:', saveError);
+                // خطا را نادیده می‌گیریم چون ذخیره تاریخچه اختیاری است
+            }
+        } catch (error) {
+            console.error('خطا در addMessage:', error);
+            // در صورت خطا، حداقل یک پیام ساده نمایش می‌دهیم
+            const errorWrapper = document.createElement('div');
+            errorWrapper.className = 'message-wrapper';
+            errorWrapper.innerHTML = `<div class="message assistant-message"><div class="message-content">خطا در نمایش پیام: ${escapeHtml(String(text))}</div></div>`;
+            messagesDiv.appendChild(errorWrapper);
+            scrollToBottom();
         }
-        
-        messageDiv.appendChild(messageHeader);
-        messageDiv.appendChild(messageContent);
-        messageWrapper.appendChild(avatar);
-        messageWrapper.appendChild(messageDiv);
-        messagesDiv.appendChild(messageWrapper);
-        
-        scrollToBottom();
-        saveChatHistory();
     }
     
     function showTypingIndicator() {
@@ -1042,24 +1073,78 @@
                 })
             });
             
-            const data = await response.json();
-            
-            if (data.success) {
-                addMessage(data.output, false);
-            } else {
-                addMessage(`❌ خطا: ${data.error || 'خطای نامشخص'}`, false);
+            // بررسی وضعیت HTTP response
+            if (!response.ok) {
+                // اگر response غیر 200 است، سعی می‌کنیم JSON را parse کنیم
+                let errorData;
+                try {
+                    errorData = await response.json();
+                } catch (e) {
+                    // اگر JSON parse نشد، از متن response استفاده می‌کنیم
+                    const text = await response.text();
+                    throw new Error(`خطای HTTP ${response.status}: ${text || 'خطای نامشخص'}`);
+                }
+                
+                // اگر JSON parse شد، از آن استفاده می‌کنیم
+                const errorMessage = errorData.error || errorData.message || `خطای HTTP ${response.status}`;
+                addMessage(`❌ خطا: ${errorMessage}`, false);
                 showToast('خطا در دریافت پاسخ', 'error');
+                return;
+            }
+            
+            // Parse کردن JSON response
+            let data;
+            try {
+                data = await response.json();
+            } catch (e) {
+                // اگر JSON parse نشد
+                const text = await response.text();
+                console.error('خطا در parse کردن JSON:', text);
+                throw new Error('پاسخ سرور نامعتبر است');
+            }
+            
+            // بررسی ساختار response
+            if (data && typeof data === 'object') {
+                if (data.success) {
+                    const output = data.output || 'پاسخ دریافت نشد.';
+                    console.log('✅ پاسخ موفق دریافت شد:', output.substring(0, 100) + '...');
+                    addMessage(output, false);
+                    // بعد از نمایش پیام موفق، return می‌کنیم تا catch block اجرا نشود
+                    return;
+                } else {
+                    const errorMessage = data.error || data.message || 'خطای نامشخص';
+                    console.error('❌ خطا از سرور:', errorMessage);
+                    addMessage(`❌ خطا: ${errorMessage}`, false);
+                    showToast('خطا در دریافت پاسخ', 'error');
+                    return;
+                }
+            } else {
+                // اگر response ساختار نامعتبری دارد
+                console.error('❌ ساختار response نامعتبر:', data);
+                addMessage('❌ خطا: ساختار پاسخ سرور نامعتبر است', false);
+                showToast('خطا در دریافت پاسخ', 'error');
+                return;
             }
         } catch (error) {
-            addMessage('❌ خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید.', false);
-            showToast('خطا در ارتباط با سرور', 'error');
+            // فقط در صورت خطای واقعی شبکه یا parse، پیام خطا نمایش بده
             console.error('Error:', error);
+            const errorMessage = error.message || 'خطا در ارتباط با سرور';
+            
+            // بررسی اینکه آیا این یک خطای واقعی شبکه است یا خطای دیگر
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                addMessage('❌ خطا در ارتباط با سرور. لطفاً اتصال اینترنت خود را بررسی کنید.', false);
+                showToast('خطا در ارتباط با سرور', 'error');
+            } else {
+                // برای خطاهای دیگر، پیام دقیق‌تر نمایش بده
+                addMessage(`❌ خطا: ${errorMessage}`, false);
+                showToast('خطا در پردازش درخواست', 'error');
+            }
         } finally {
             setLoading(false);
         }
     }
     
-    function clearChat() {
+    async function clearChat() {
         if (confirm('آیا مطمئن هستید که می‌خواهید تاریخچه چت را پاک کنید؟')) {
             // نگه داشتن پیام خوش‌آمدگویی
             const welcomeMessage = messagesDiv.querySelector('.message-wrapper:first-child');
@@ -1068,7 +1153,28 @@
                 messagesDiv.appendChild(welcomeMessage);
             }
             localStorage.removeItem(STORAGE_KEY);
-            showToast('تاریخچه چت پاک شد', 'success');
+            
+            // پاک کردن تاریخچه از session در backend
+            try {
+                const response = await fetch('{% url "assistant:clear_chat_history" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    credentials: 'include'
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    showToast('تاریخچه چت پاک شد', 'success');
+                } else {
+                    showToast('خطا در پاک کردن تاریخچه', 'error');
+                }
+            } catch (error) {
+                console.error('Error clearing chat history:', error);
+                showToast('تاریخچه محلی پاک شد', 'success');
+            }
         }
     }
     
@@ -1112,14 +1218,26 @@
     }
     
     function saveChatHistory() {
-        const messages = Array.from(messagesDiv.querySelectorAll('.message-wrapper')).slice(1).map(wrapper => {
-            const message = wrapper.querySelector('.message');
-            const content = wrapper.querySelector('.message-content').textContent;
-            const isUser = message.classList.contains('user-message');
-            return { text: content, isUser };
-        });
-        
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+        try {
+            const messages = Array.from(messagesDiv.querySelectorAll('.message-wrapper')).slice(1).map(wrapper => {
+                const message = wrapper.querySelector('.message');
+                const contentElement = wrapper.querySelector('.message-content');
+                
+                // بررسی اینکه آیا element ها وجود دارند
+                if (!message || !contentElement) {
+                    return null; // این پیام را نادیده بگیر
+                }
+                
+                const content = contentElement.textContent || '';
+                const isUser = message.classList.contains('user-message');
+                return { text: content, isUser };
+            }).filter(msg => msg !== null); // حذف پیام‌های null
+            
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+        } catch (error) {
+            console.error('خطا در ذخیره تاریخچه:', error);
+            // خطا را نادیده می‌گیریم چون ذخیره تاریخچه اختیاری است
+        }
     }
     
     function loadChatHistory() {

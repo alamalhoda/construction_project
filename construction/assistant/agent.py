@@ -6,6 +6,7 @@ AI Agent اصلی برای دستیار هوشمند
 import logging
 import inspect
 from typing import Optional, Dict, Any, Callable
+from django.conf import settings
 from langchain.agents import create_agent
 from langchain.tools import tool
 from langchain_core.tools import BaseTool, StructuredTool
@@ -504,17 +505,31 @@ class ConstructionAssistantAgent:
         
         return agent_graph
     
-    def invoke(self, message: str) -> Dict[str, Any]:
+    def invoke(self, message: str, chat_history: list = None) -> Dict[str, Any]:
         """
-        اجرای Agent با پیام کاربر
+        اجرای Agent با پیام کاربر و تاریخچه چت
         
         Args:
             message: پیام کاربر
+            chat_history: لیست تاریخچه چت (اختیاری) - فرمت: [{'role': 'user'|'assistant', 'content': '...'}, ...]
         
         Returns:
             نتیجه اجرای Agent
         """
         try:
+            # تبدیل تاریخچه به فرمت LangChain messages
+            from langchain_core.messages import HumanMessage, AIMessage
+            
+            messages = []
+            
+            # اگر تاریخچه وجود دارد، آن را اضافه کن
+            if chat_history:
+                for item in chat_history:
+                    if item.get('role') == 'user':
+                        messages.append(HumanMessage(content=item.get('content', '')))
+                    elif item.get('role') == 'assistant':
+                        messages.append(AIMessage(content=item.get('content', '')))
+            
             # اگر RAG فعال است و سوال درباره API است، از RAG استفاده کن
             if self.use_rag and self.rag_pipeline:
                 # بررسی اینکه آیا سوال درباره API است
@@ -529,6 +544,9 @@ class ConstructionAssistantAgent:
                             rag_context += f"- {doc.page_content[:200]}...\n"
                         message = message + rag_context
             
+            # اضافه کردن پیام فعلی کاربر
+            messages.append(HumanMessage(content=message))
+            
             # دریافت پروژه جاری
             current_project = None
             if self.request:
@@ -538,13 +556,16 @@ class ConstructionAssistantAgent:
             
             # اجرای Agent با API جدید
             # در langchain 1.0، agent_graph یک StateGraph است که با messages invoke می‌شود
-            from langchain_core.messages import HumanMessage
             
             logger.info("🔄 در حال پردازش درخواست...")
+            if chat_history:
+                logger.info(f"📜 تاریخچه چت: {len(chat_history)} پیام قبلی")
+                print(f"📜 تاریخچه چت: {len(chat_history)} پیام قبلی")
             print("🔄 در حال پردازش درخواست...")
             
+            # استفاده از messages به جای فقط یک HumanMessage
             result = self.agent_graph.invoke({
-                "messages": [HumanMessage(content=message)]
+                "messages": messages
             })
             
             # لاگ کردن استفاده از tools
@@ -577,11 +598,32 @@ class ConstructionAssistantAgent:
             # در API جدید، پاسخ در messages آخرین AI message است
             output = ""
             if result.get("messages"):
-                last_message = result["messages"][-1]
-                if hasattr(last_message, 'content'):
-                    output = last_message.content
-                elif isinstance(last_message, dict) and 'content' in last_message:
-                    output = last_message['content']
+                # پیدا کردن آخرین AI message (پاسخ جدید)
+                # باید از انتها به ابتدا جستجو کنیم تا آخرین پاسخ را پیدا کنیم
+                for msg in reversed(result["messages"]):
+                    # بررسی اینکه آیا این یک AIMessage است
+                    if isinstance(msg, AIMessage):
+                        if hasattr(msg, 'content'):
+                            output = msg.content
+                            break
+                    # یا اینکه یک dict با type='ai' است
+                    elif isinstance(msg, dict):
+                        if msg.get('type') == 'ai' and 'content' in msg:
+                            output = msg.get('content', '')
+                            break
+                        elif 'content' in msg:
+                            # اگر type مشخص نیست اما content دارد، بررسی می‌کنیم
+                            # فقط اگر از قبل AIMessage نبوده باشد
+                            if not output:
+                                output = msg.get('content', '')
+                
+                # اگر output خالی است، از آخرین message استفاده کن
+                if not output:
+                    last_message = result["messages"][-1]
+                    if hasattr(last_message, 'content'):
+                        output = last_message.content
+                    elif isinstance(last_message, dict) and 'content' in last_message:
+                        output = last_message['content']
             
             # نمایش پاسخ هوش مصنوعی در کنسول
             logger.info("🤖 پاسخ هوش مصنوعی:")
@@ -599,22 +641,44 @@ class ConstructionAssistantAgent:
         except Exception as e:
             import traceback
             error_traceback = traceback.format_exc()
-            error_message = f"❌ خطا در پردازش درخواست: {str(e)}"
-            # نمایش خطا در کنسول
-            logger.error("❌ خطا در پردازش درخواست:")
-            logger.error(str(e))
-            logger.error("Traceback:")
-            logger.error(error_traceback)
+            error_str = str(e)
+            
+            # تشخیص نوع خطا و نمایش پیام مناسب
+            if "429" in error_str or "ResourceExhausted" in error_str or "rate limit" in error_str.lower():
+                error_message = "⚠️ محدودیت نرخ درخواست: سرویس Google Gemini در حال حاضر شلوغ است. لطفاً چند لحظه صبر کنید و دوباره تلاش کنید."
+                logger.warning("⚠️ Rate Limit Error (429):")
+                logger.warning(error_str)
+            elif "timeout" in error_str.lower() or "timed out" in error_str.lower():
+                error_message = "⏱️ زمان انتظار به پایان رسید. لطفاً دوباره تلاش کنید."
+                logger.error("⏱️ Timeout Error:")
+                logger.error(error_str)
+            elif "401" in error_str or "Unauthorized" in error_str or "Invalid API key" in error_str:
+                error_message = "🔑 خطا در احراز هویت: API key نامعتبر است. لطفاً تنظیمات را بررسی کنید."
+                logger.error("🔑 Authentication Error:")
+                logger.error(error_str)
+            else:
+                error_message = f"❌ خطا در پردازش درخواست: {error_str}"
+                logger.error("❌ خطا در پردازش درخواست:")
+                logger.error(error_str)
+            
+            # نمایش traceback فقط در حالت debug
+            if settings.DEBUG:
+                logger.error("Traceback:")
+                logger.error(error_traceback)
+                print("❌ خطا در پردازش درخواست:")
+                print(error_str)
+                print("Traceback:")
+                print(error_traceback)
+            else:
+                print(f"❌ خطا: {error_str}")
+            
             logger.error("=" * 80)
-            print("❌ خطا در پردازش درخواست:")
-            print(str(e))
-            print("Traceback:")
-            print(error_traceback)
             print("=" * 80)
+            
             return {
                 "output": error_message,
                 "success": False,
-                "error": str(e)
+                "error": error_str
             }
     
     def chat(self, message: str) -> str:
