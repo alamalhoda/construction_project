@@ -343,6 +343,12 @@ elif provider_type == 'openrouter':
         'api_key': os.getenv('OPENROUTER_API_KEY'),
         'model': os.getenv('OPENROUTER_MODEL', 'google/gemini-2.0-flash-exp:free'),
     }
+elif provider_type == 'local':
+    # برای مدل‌های محلی (Ollama)
+    AI_ASSISTANT_PROVIDER_CONFIG = {
+        'base_url': os.getenv('LOCAL_MODEL_URL', 'http://localhost:11434'),
+        'model': os.getenv('LOCAL_MODEL', 'llama2'),
+    }
 elif provider_type == 'openai':
     # برای OpenAI
     AI_ASSISTANT_PROVIDER_CONFIG = {

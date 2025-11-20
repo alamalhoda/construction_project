@@ -70,6 +70,14 @@ class ConstructionAssistantAgent:
                 if not provider_config.get('model'):
                     env_model = os.getenv('OPENROUTER_MODEL', 'google/gemini-2.0-flash-exp:free')
                     provider_config['model'] = env_model
+            elif provider_type.lower() == 'local':
+                # برای مدل‌های محلی (Ollama)
+                if not provider_config.get('base_url'):
+                    env_base_url = os.getenv('LOCAL_MODEL_URL', 'http://localhost:11434')
+                    provider_config['base_url'] = env_base_url
+                if not provider_config.get('model'):
+                    env_model = os.getenv('LOCAL_MODEL', 'llama2')
+                    provider_config['model'] = env_model
             elif provider_type.lower() == 'gemini' or provider_type.lower() == 'google':
                 # برای Google Gemini هم همین کار را می‌کنیم
                 if not provider_config.get('api_key'):
