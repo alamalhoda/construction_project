@@ -11,7 +11,7 @@
     source env/bin/activate
     python3 construction/assistant/tests/test_agent_tools.py
     یا
-    python3 manage.py test construction.assistant.tests.test_agent_tools
+    python3 manage.py test assistant.tests.test_agent_tools
 """
 
 import os
@@ -30,8 +30,8 @@ from django.contrib.auth.models import User
 from django.contrib.sessions.middleware import SessionMiddleware
 
 from construction.models import Project, Expense, Period, Investor, Transaction
-from construction.assistant.agent import ConstructionAssistantAgent
-from construction.assistant.generated import generated_tools_from_schema
+from assistant.agent import ConstructionAssistantAgent
+from assistant.generated import generated_tools_from_schema
 from langchain_core.tools import BaseTool
 
 

@@ -13,8 +13,8 @@ from datetime import datetime
 load_dotenv()
 
 # اضافه کردن مسیر پروژه به sys.path
-# از construction/assistant/scripts/ به ریشه پروژه می‌رویم
-project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+# از assistant/scripts/ به ریشه پروژه می‌رویم
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, project_root)
 
 # تنظیم Django settings
@@ -31,7 +31,7 @@ from django.test import RequestFactory
 from django.contrib.auth.models import User
 from django.contrib.sessions.middleware import SessionMiddleware
 from construction.models import Project, Expense, Period, Investor, Transaction
-from construction.assistant.agent import ConstructionAssistantAgent
+from assistant.agent import ConstructionAssistantAgent
 
 
 class Colors:

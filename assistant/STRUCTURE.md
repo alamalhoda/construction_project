@@ -1,11 +1,11 @@
 # ساختار پوشه Assistant
 
-این سند ساختار پوشه `construction/assistant/` را توضیح می‌دهد.
+این سند ساختار پوشه `assistant/` را توضیح می‌دهد.
 
 ## 📁 ساختار کلی
 
 ```
-construction/assistant/
+assistant/
 ├── __init__.py                 # ماژول اصلی
 ├── agent.py                    # کلاس اصلی Agent
 ├── llm_providers.py            # پشتیبانی از چند LLM Provider
@@ -105,29 +105,29 @@ Generator های Tools که برای تولید فایل‌های `generated/` �
 
 ```bash
 # تولید از OpenAPI Schema
-python construction/assistant/generators/schema_tool_generator.py
+python assistant/generators/schema_tool_generator.py
 
 # تولید از Models
-python construction/assistant/generators/model_tool_generator.py
+python assistant/generators/model_tool_generator.py
 ```
 
 ### اجرای تست‌ها
 
 ```bash
 # تست Agent
-python construction/assistant/scripts/test_agent_with_llm.py
+python assistant/scripts/test_agent_with_llm.py
 
 # تست Provider ها
-python construction/assistant/scripts/test_llm_providers.py
+python assistant/scripts/test_llm_providers.py
 
 # تست دسترسی به مدل‌ها
-python construction/assistant/scripts/test_all_providers.py
+python assistant/scripts/test_all_providers.py
 ```
 
 ### Debug Tools
 
 ```bash
-python construction/assistant/scripts/debug_tools.py
+python assistant/scripts/debug_tools.py
 ```
 
 ## 📚 مستندات بیشتر

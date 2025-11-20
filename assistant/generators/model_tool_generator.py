@@ -854,7 +854,7 @@ def main():
     )
     
     if not args.output:
-        args.output = str(project_root / 'construction' / 'assistant' / 'generated' / 'generated_tools_from_models.py')
+        args.output = str(project_root / 'assistant' / 'generated' / 'generated_tools_from_models.py')
     
     print("🔧 در حال تولید Tools از ViewSets, Serializers و Models...")
     if viewset_classes:

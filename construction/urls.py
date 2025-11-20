@@ -111,7 +111,7 @@ urlpatterns = (
     path("api/active-project/set/", views.set_active_project_api, name="construction_set_active_project_api"),
     
     # AI Assistant URLs
-    path("assistant/", include('construction.assistant.urls')),
+    path("assistant/", include('assistant.urls')),
 
 
 )

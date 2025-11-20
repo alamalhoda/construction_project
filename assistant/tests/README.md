@@ -12,7 +12,7 @@
 
 ```bash
 source env/bin/activate
-python3 manage.py test construction.assistant.tests.test_agent_tools --verbosity=2
+python3 manage.py test assistant.tests.test_agent_tools --verbosity=2
 ```
 
 ### روش 2: اجرای مستقیم فایل

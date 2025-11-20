@@ -10,7 +10,7 @@
 **استفاده:**
 ```bash
 source env/bin/activate
-python3 construction/assistant/scripts/test_agent_with_llm.py
+python3 assistant/scripts/test_agent_with_llm.py
 ```
 
 ### 2. `test_llm_providers.py`
@@ -19,7 +19,7 @@ python3 construction/assistant/scripts/test_agent_with_llm.py
 **استفاده:**
 ```bash
 source env/bin/activate
-python3 construction/assistant/scripts/test_llm_providers.py
+python3 assistant/scripts/test_llm_providers.py
 ```
 
 ### 3. `test_all_providers.py`
@@ -28,13 +28,13 @@ python3 construction/assistant/scripts/test_llm_providers.py
 **استفاده:**
 ```bash
 source env/bin/activate
-python3 construction/assistant/scripts/test_all_providers.py
+python3 assistant/scripts/test_all_providers.py
 ```
 
 ## 📚 مستندات
 
 برای اطلاعات بیشتر درباره تست دسترسی به مدل‌های مختلف، به فایل زیر مراجعه کنید:
-- `construction/assistant/docs/TEST_PROVIDERS_README.md`
+- `assistant/docs/TEST_PROVIDERS_README.md`
 
 ## ⚙️ پیش‌نیازها
 

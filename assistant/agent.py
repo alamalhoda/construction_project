@@ -10,8 +10,8 @@ from django.conf import settings
 from langchain.agents import create_agent
 from langchain.tools import tool
 from langchain_core.tools import BaseTool, StructuredTool
-from construction.assistant.llm_providers import LLMProviderFactory
-from construction.assistant.tools import (
+from assistant.llm_providers import LLMProviderFactory
+from assistant.tools import (
     create_expense,
     get_expense,
     list_expenses,
@@ -24,7 +24,7 @@ from construction.assistant.tools import (
     search_expenses
 )
 # Import تمام ابزارهای تولید شده از schema
-from construction.assistant.generated import generated_tools_from_schema
+from assistant.generated import generated_tools_from_schema
 from construction.project_manager import ProjectManager
 
 logger = logging.getLogger(__name__)
@@ -105,7 +105,7 @@ class ConstructionAssistantAgent:
         if self.use_rag:
             print("⚠️  RAG is enabled. This may try to use OpenAI embeddings.")
             try:
-                from construction.assistant.rag import get_rag_pipeline
+                from assistant.rag import get_rag_pipeline
                 self.rag_pipeline = get_rag_pipeline()
                 # بررسی اینکه آیا retriever در دسترس است
                 if self.rag_pipeline:

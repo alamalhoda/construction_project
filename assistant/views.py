@@ -10,7 +10,7 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
-from construction.assistant.agent import create_assistant_agent
+from assistant.agent import create_assistant_agent
 
 logger = logging.getLogger(__name__)
 

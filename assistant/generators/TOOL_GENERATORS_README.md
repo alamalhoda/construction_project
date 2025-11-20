@@ -200,11 +200,11 @@ python model_tool_generator.py --output generated_tools_from_models.py
 
 ### Schema Generator:
 - مسیر پیش‌فرض schema: `schema.json` در root پروژه
-- مسیر پیش‌فرض خروجی: `construction/assistant/generated/generated_tools_from_schema.py`
+- مسیر پیش‌فرض خروجی: `assistant/generated/generated_tools_from_schema.py`
 
 ### Model Generator:
 - ViewSets مورد استفاده: لیست در `generate_all_tools()`
-- مسیر پیش‌فرض خروجی: `construction/assistant/generated/generated_tools_from_models.py`
+- مسیر پیش‌فرض خروجی: `assistant/generated/generated_tools_from_models.py`
 
 ---
 

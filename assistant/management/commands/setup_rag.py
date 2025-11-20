@@ -3,7 +3,7 @@ Management command برای راه‌اندازی RAG pipeline
 """
 
 from django.core.management.base import BaseCommand
-from construction.assistant.rag import RAGPipeline
+from assistant.rag import RAGPipeline
 
 
 class Command(BaseCommand):

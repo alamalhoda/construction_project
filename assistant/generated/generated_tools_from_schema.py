@@ -79,7 +79,7 @@ def expense_list(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -167,7 +167,7 @@ def expense_create(project: int, expense_type: str, amount: str, period: int, de
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -249,7 +249,7 @@ def expense_retrieve(id: int, request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -338,7 +338,7 @@ def expense_update(id: int, project: int, expense_type: str, amount: str, period
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -436,7 +436,7 @@ def expense_partial_update(id: int, project: Optional[int] = None, expense_type:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -528,7 +528,7 @@ def expense_destroy(id: int, request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -625,7 +625,7 @@ def expense_dashboard_data_retrieve(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -679,7 +679,7 @@ def expense_get_expense_details_retrieve(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -733,7 +733,7 @@ def expense_total_expenses_retrieve(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -839,7 +839,7 @@ def expense_update_expense_create(project: int, expense_type: str, amount: str, 
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -902,7 +902,7 @@ def expense_with_periods_retrieve(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -962,7 +962,7 @@ def interestrate_list(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -1028,7 +1028,7 @@ def interestrate_create(rate: str, effective_date: str, project: Optional[int] =
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -1096,7 +1096,7 @@ def interestrate_retrieve(id: int, request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -1163,7 +1163,7 @@ def interestrate_update(id: int, rate: str, effective_date: str, project: Option
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -1241,7 +1241,7 @@ def interestrate_partial_update(id: int, project: Optional[int] = None, rate: Op
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -1312,7 +1312,7 @@ def interestrate_destroy(id: int, request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -1369,7 +1369,7 @@ def interestrate_current_retrieve(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -1429,7 +1429,7 @@ def investor_list(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -1497,7 +1497,7 @@ def investor_create(project: int, first_name: str, last_name: str, phone: str, e
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -1584,7 +1584,7 @@ def investor_retrieve(id: int, request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -1653,7 +1653,7 @@ def investor_update(id: int, project: int, first_name: str, last_name: str, phon
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -1737,7 +1737,7 @@ def investor_partial_update(id: int, project: Optional[int] = None, first_name: 
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -1812,7 +1812,7 @@ def investor_destroy(id: int, request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -1912,7 +1912,7 @@ def investor_detailed_statistics_retrieve(id: int, request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -1973,7 +1973,7 @@ def investor_cumulative_capital_and_unit_cost_chart_retrieve(id: int, request=No
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -2032,7 +2032,7 @@ def investor_ownership_retrieve(id: int, request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -2089,7 +2089,7 @@ def investor_ratios_retrieve(id: int, request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -2149,7 +2149,7 @@ def investor_all_investors_summary_retrieve(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -2206,7 +2206,7 @@ def investor_participation_stats_retrieve(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -2313,7 +2313,7 @@ def investor_summary_retrieve(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -2370,7 +2370,7 @@ def investor_summary_ssot_retrieve(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -2430,7 +2430,7 @@ def period_list(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -2500,7 +2500,7 @@ def period_create(label: str, year: int, month_number: int, month_name: str, wei
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -2591,7 +2591,7 @@ def period_retrieve(id: int, request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -2662,7 +2662,7 @@ def period_update(id: int, label: str, year: int, month_number: int, month_name:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -2752,7 +2752,7 @@ def period_partial_update(id: int, label: Optional[str] = None, year: Optional[i
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -2831,7 +2831,7 @@ def period_destroy(id: int, request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -2888,7 +2888,7 @@ def period_chart_data_retrieve(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -2998,7 +2998,7 @@ def period_summary_retrieve(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -3055,7 +3055,7 @@ def pettycashtransaction_list(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -3125,7 +3125,7 @@ def pettycashtransaction_create(expense_type: str, transaction_type: str, amount
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -3190,7 +3190,7 @@ def pettycashtransaction_retrieve(id: int, request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -3261,7 +3261,7 @@ def pettycashtransaction_update(id: int, expense_type: str, transaction_type: st
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -3343,7 +3343,7 @@ def pettycashtransaction_partial_update(id: int, expense_type: Optional[str] = N
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -3411,7 +3411,7 @@ def pettycashtransaction_destroy(id: int, request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -3511,7 +3511,7 @@ def pettycashtransaction_balance_detail_retrieve(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -3565,7 +3565,7 @@ def pettycashtransaction_balance_trend_retrieve(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -3619,7 +3619,7 @@ def pettycashtransaction_balances_retrieve(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -3673,7 +3673,7 @@ def pettycashtransaction_detailed_report_retrieve(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -3727,7 +3727,7 @@ def pettycashtransaction_period_balance_retrieve(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -3784,7 +3784,7 @@ def project_list(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -3852,7 +3852,7 @@ def project_create(name: str, start_date_shamsi: str, end_date_shamsi: str, star
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -3927,7 +3927,7 @@ def project_retrieve(id: int, request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -3996,7 +3996,7 @@ def project_update(id: int, name: str, start_date_shamsi: str, end_date_shamsi: 
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -4086,7 +4086,7 @@ def project_partial_update(id: int, name: Optional[str] = None, start_date_shams
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -4164,7 +4164,7 @@ def project_destroy(id: int, request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -4218,7 +4218,7 @@ def project_active_retrieve(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -4327,7 +4327,7 @@ def project_comprehensive_analysis_retrieve(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -4381,7 +4381,7 @@ def project_cost_metrics_retrieve(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -4435,7 +4435,7 @@ def project_current_retrieve(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -4528,7 +4528,7 @@ def project_profit_metrics_retrieve(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -4582,7 +4582,7 @@ def project_statistics_detailed_retrieve(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -4636,7 +4636,7 @@ def project_timeline_retrieve(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -4704,7 +4704,7 @@ def project_set_active_create(name: str, start_date_shamsi: str, end_date_shamsi
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -4779,7 +4779,7 @@ def project_statistics_retrieve(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -4847,7 +4847,7 @@ def project_switch_create(name: str, start_date_shamsi: str, end_date_shamsi: st
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -4925,7 +4925,7 @@ def sale_list(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -4986,7 +4986,7 @@ def sale_create(project: int, period: int, amount: str, description: Optional[st
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -5047,7 +5047,7 @@ def sale_retrieve(id: int, request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -5109,7 +5109,7 @@ def sale_update(id: int, project: int, period: int, amount: str, description: Op
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -5178,7 +5178,7 @@ def sale_partial_update(id: int, project: Optional[int] = None, period: Optional
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -5242,7 +5242,7 @@ def sale_destroy(id: int, request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -5296,7 +5296,7 @@ def sale_total_sales_retrieve(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -5362,7 +5362,7 @@ def transaction_list(investor: Optional[int] = None, period: Optional[int] = Non
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -5438,7 +5438,7 @@ def transaction_create(amount: str, transaction_type: str, date_shamsi_input: Op
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -5528,7 +5528,7 @@ def transaction_retrieve(id: int, request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -5598,7 +5598,7 @@ def transaction_update(id: int, amount: str, transaction_type: str, date_shamsi_
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -5685,7 +5685,7 @@ def transaction_partial_update(id: int, date_shamsi_input: Optional[str] = None,
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -5762,7 +5762,7 @@ def transaction_destroy(id: int, request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -5819,7 +5819,7 @@ def transaction_detailed_statistics_retrieve(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -5888,7 +5888,7 @@ def transaction_recalculate_construction_contractor_create(amount: str, transact
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -5974,7 +5974,7 @@ def transaction_recalculate_profits_create(amount: str, transaction_type: str, d
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -6086,7 +6086,7 @@ def transaction_statistics_retrieve(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -6146,7 +6146,7 @@ def unit_list(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -6211,7 +6211,7 @@ def unit_create(name: str, area: str, price_per_meter: str, total_price: str, pr
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -6293,7 +6293,7 @@ def unit_retrieve(id: int, request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -6359,7 +6359,7 @@ def unit_update(id: int, name: str, area: str, price_per_meter: str, total_price
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -6434,7 +6434,7 @@ def unit_partial_update(id: int, name: Optional[str] = None, area: Optional[str]
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -6503,7 +6503,7 @@ def unit_destroy(id: int, request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -6560,7 +6560,7 @@ def unit_statistics_retrieve(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -6621,7 +6621,7 @@ def unitspecificexpense_list(project: Optional[int] = None, unit: Optional[int] 
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -6692,7 +6692,7 @@ def unitspecificexpense_create(title: str, amount: str, project: Optional[int] =
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -6764,7 +6764,7 @@ def unitspecificexpense_retrieve(id: int, request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -6833,7 +6833,7 @@ def unitspecificexpense_update(id: int, title: str, amount: str, project: Option
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -6917,7 +6917,7 @@ def unitspecificexpense_partial_update(id: int, project: Optional[int] = None, p
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -6992,7 +6992,7 @@ def unitspecificexpense_destroy(id: int, request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -7055,7 +7055,7 @@ def auth_change_password_create(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -7111,7 +7111,7 @@ def auth_csrf_retrieve(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -7171,7 +7171,7 @@ def auth_login_create(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -7231,7 +7231,7 @@ def auth_logout_create(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -7291,7 +7291,7 @@ def auth_register_create(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -7347,7 +7347,7 @@ def auth_user_retrieve(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -7403,7 +7403,7 @@ def comprehensive_analysis_retrieve(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -7462,7 +7462,7 @@ def status_retrieve(request=None) -> str:
     """
     try:
         # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,

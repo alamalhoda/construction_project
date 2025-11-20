@@ -18,8 +18,8 @@ import time
 load_dotenv()
 
 # اضافه کردن مسیر پروژه به sys.path برای import کردن ماژول‌ها
-# از construction/assistant/scripts/ به ریشه پروژه می‌رویم
-project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+# از assistant/scripts/ به ریشه پروژه می‌رویم
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, project_root)
 
 # تنظیم Django settings
@@ -32,7 +32,7 @@ except Exception as e:
     print(f"⚠️  هشدار: نتوانست Django را راه‌اندازی کنم: {e}")
     print("   برخی تست‌ها ممکن است کار نکنند.")
 
-from construction.assistant.llm_providers import LLMProviderFactory
+from assistant.llm_providers import LLMProviderFactory
 
 
 class Colors:

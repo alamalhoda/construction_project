@@ -764,7 +764,7 @@ from construction.project_manager import ProjectManager
         
         if not os.path.exists(schema_path):
             print(f"⚠️  فایل schema در {schema_path} یافت نشد. در حال تولید...")
-            from construction.assistant.rag import RAGPipeline
+            from assistant.rag import RAGPipeline
             rag = RAGPipeline()
             rag.generate_schema()
             schema_path = rag.schema_path

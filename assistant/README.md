@@ -59,7 +59,7 @@ AI_ASSISTANT_PROVIDER=openai  # openai, anthropic, gemini, openrouter, huggingfa
 INSTALLED_APPS = [
     # ...
     'drf_spectacular',
-    'construction.assistant',
+    'assistant',
 ]
 
 REST_FRAMEWORK = {
@@ -85,7 +85,7 @@ http://localhost:8000/assistant/chat/
 ### 2. استفاده از API
 
 ```python
-from construction.assistant.agent import create_assistant_agent
+from assistant.agent import create_assistant_agent
 
 # ایجاد Agent
 agent = create_assistant_agent(request=request)
@@ -98,7 +98,7 @@ print(result['output'])
 ### 3. استفاده از MCP Server
 
 ```python
-from construction.assistant.mcp_server import create_mcp_server
+from assistant.mcp_server import create_mcp_server
 
 # ایجاد MCP Server
 server = create_mcp_server(project_id=1)
@@ -123,7 +123,7 @@ asyncio.run(server.run())
 RAG Pipeline برای یادگیری API و مستندات استفاده می‌شود:
 
 ```python
-from construction.assistant.rag import get_rag_pipeline
+from assistant.rag import get_rag_pipeline
 
 # ایجاد RAG Pipeline
 rag = get_rag_pipeline()
@@ -200,7 +200,7 @@ Assistant: 📅 لیست دوره‌های پروژه:
 ## تست
 
 ```bash
-python manage.py test construction.assistant
+python manage.py test assistant
 ```
 
 ## مستندات بیشتر

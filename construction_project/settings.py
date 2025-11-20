@@ -109,7 +109,7 @@ INSTALLED_APPS = [
     'drf_spectacular',  # برای تولید OpenAPI schema
 
     'construction.apps.ConstructionConfig',  # استفاده از apps.py
-    'construction.assistant',  # AI Assistant app
+    'assistant',  # AI Assistant app
     'dashboard',
     'backup',
     'django_extensions',

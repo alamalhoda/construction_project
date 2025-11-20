@@ -75,7 +75,7 @@ class SchemaToolGenerator:
             except Exception as e:
                 # Fallback: تلاش برای استفاده از RAGPipeline (اگر در این پروژه موجود باشد)
                 try:
-                    from construction.assistant.rag import RAGPipeline
+                    from assistant.rag import RAGPipeline
                     rag = RAGPipeline()
                     rag.generate_schema()
                     self.schema_path = rag.schema_path
@@ -558,7 +558,7 @@ class SchemaToolGenerator:
         # ساخت کد برای فراخوانی ViewSet
         # پیدا کردن ViewSet class از operation_id یا path
         viewset_class_code = f'''        # پیدا کردن ViewSet class
-        from construction.assistant.viewset_helper import (
+        from assistant.viewset_helper import (
             get_viewset_class_from_operation_id,
             get_viewset_class_from_path,
             call_viewset_action,
@@ -762,7 +762,7 @@ def main():
     generator = SchemaToolGenerator(schema_path=args.schema)
     
     if not args.output:
-        args.output = str(project_root / 'construction' / 'assistant' / 'generated' / 'generated_tools_from_schema.py')
+        args.output = str(project_root / 'assistant' / 'generated' / 'generated_tools_from_schema.py')
     
     print("🔧 در حال تولید Tools از OpenAPI Schema...")
     print("   ✅ استفاده از schema کامل drf-spectacular")

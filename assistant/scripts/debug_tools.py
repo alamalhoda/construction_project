@@ -7,15 +7,15 @@ import sys
 import django
 
 # اضافه کردن مسیر پروژه به Python path
-# از construction/assistant/scripts/ به ریشه پروژه می‌رویم
-project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+# از assistant/scripts/ به ریشه پروژه می‌رویم
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, project_root)
 
 # تنظیم Django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'construction_project.settings')
 django.setup()
 
-from construction.assistant.agent import ConstructionAssistantAgent
+from assistant.agent import ConstructionAssistantAgent
 from langchain.tools import tool
 import json
 
