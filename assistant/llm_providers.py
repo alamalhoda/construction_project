@@ -303,7 +303,7 @@ class OpenRouterProvider(LLMProvider):
             model: نام مدل در OpenRouter (مثلاً 'openai/gpt-4', 'anthropic/claude-3-sonnet', 'google/gemini-pro')
         """
         self.api_key = api_key or os.getenv('OPENROUTER_API_KEY')
-        self.model = model or os.getenv('OPENROUTER_MODEL', 'openai/gpt-4')
+        self.model = model or os.getenv('OPENROUTER_MODEL', 'deepseek/deepseek-chat:free')
         self.base_url = "https://openrouter.ai/api/v1"
         
         if not self.api_key:
@@ -457,7 +457,12 @@ class LLMProviderFactory:
             LLMProvider instance
         """
         import os
-        provider_type = getattr(settings, 'AI_ASSISTANT_PROVIDER', 'openai').lower()
+        provider_type_raw = getattr(settings, 'AI_ASSISTANT_PROVIDER', 'openai')
+        # پاک کردن کامنت‌ها از provider_type (اگر وجود داشته باشد)
+        if provider_type_raw:
+            provider_type = str(provider_type_raw).split('#')[0].strip().lower()
+        else:
+            provider_type = 'openai'
         provider_config = getattr(settings, 'AI_ASSISTANT_PROVIDER_CONFIG', {})
         
         # اگر api_key در config وجود ندارد یا None است، از متغیر محیطی استفاده می‌کنیم

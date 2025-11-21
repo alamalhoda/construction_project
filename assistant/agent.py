@@ -50,51 +50,73 @@ class ConstructionAssistantAgent:
         if provider_type:
             from django.conf import settings
             import os
+            # پاک کردن کامنت‌ها از provider_type (اگر وجود داشته باشد)
+            if provider_type:
+                provider_type = str(provider_type).split('#')[0].strip()
             provider_config = getattr(settings, 'AI_ASSISTANT_PROVIDER_CONFIG', {})
             print(f"🔧 Provider: {provider_type}")
             
-            # اگر api_key در config وجود ندارد یا None است، از متغیر محیطی استفاده می‌کنیم
-            if provider_type.lower() == 'openai' and (not provider_config.get('api_key')):
+            # همیشه از متغیر محیطی استفاده می‌کنیم تا از cache جلوگیری کنیم
+            if provider_type.lower() == 'openai':
+                # برای OpenAI
                 env_api_key = os.getenv('OPENAI_API_KEY')
-                provider_config['api_key'] = env_api_key
-            elif provider_type.lower() == 'openai':
-                # اگر api_key در config وجود دارد اما None است، از متغیر محیطی استفاده می‌کنیم
-                if not provider_config.get('api_key'):
-                    env_api_key = os.getenv('OPENAI_API_KEY')
+                if env_api_key:
                     provider_config['api_key'] = env_api_key
-            elif provider_type.lower() == 'openrouter':
-                # برای OpenRouter هم همین کار را می‌کنیم
-                if not provider_config.get('api_key'):
-                    env_api_key = os.getenv('OPENROUTER_API_KEY')
-                    provider_config['api_key'] = env_api_key
-                if not provider_config.get('model'):
-                    env_model = os.getenv('OPENROUTER_MODEL', 'google/gemini-2.0-flash-exp:free')
+                env_model = os.getenv('OPENAI_MODEL', 'gpt-4')
+                if env_model:
+                    env_model = str(env_model).split('#')[0].strip()
                     provider_config['model'] = env_model
+            elif provider_type.lower() == 'openrouter':
+                # برای OpenRouter
+                env_api_key = os.getenv('OPENROUTER_API_KEY')
+                if env_api_key:
+                    provider_config['api_key'] = env_api_key
+                env_model = os.getenv('OPENROUTER_MODEL', 'deepseek/deepseek-chat:free')
+                if env_model:
+                    env_model = str(env_model).split('#')[0].strip()
+                    provider_config['model'] = env_model
+            elif provider_type.lower() == 'huggingface':
+                # برای Hugging Face
+                env_api_key = os.getenv('HUGGINGFACE_API_KEY')
+                if env_api_key:
+                    provider_config['api_key'] = env_api_key
+                env_model_id = os.getenv('HUGGINGFACE_MODEL_ID', 'mistralai/Mistral-7B-Instruct-v0.2')
+                if env_model_id:
+                    env_model_id = str(env_model_id).split('#')[0].strip()
+                    provider_config['model_id'] = env_model_id
+                env_endpoint = os.getenv('HUGGINGFACE_ENDPOINT')
+                if env_endpoint:
+                    env_endpoint = str(env_endpoint).split('#')[0].strip()
+                    provider_config['endpoint'] = env_endpoint
             elif provider_type.lower() == 'local':
                 # برای مدل‌های محلی (Ollama)
-                if not provider_config.get('base_url'):
-                    env_base_url = os.getenv('LOCAL_MODEL_URL', 'http://localhost:11434')
+                env_base_url = os.getenv('LOCAL_MODEL_URL', 'http://localhost:11434')
+                if env_base_url:
+                    env_base_url = str(env_base_url).split('#')[0].strip()
                     provider_config['base_url'] = env_base_url
-                if not provider_config.get('model'):
-                    env_model = os.getenv('LOCAL_MODEL', 'llama2')
+                env_model = os.getenv('LOCAL_MODEL', 'llama2')
+                if env_model:
+                    env_model = str(env_model).split('#')[0].strip()
+                    provider_config['model'] = env_model
+            elif provider_type.lower() == 'anthropic':
+                # برای Anthropic Claude
+                env_api_key = os.getenv('ANTHROPIC_API_KEY')
+                if env_api_key:
+                    provider_config['api_key'] = env_api_key
+                env_model = os.getenv('ANTHROPIC_MODEL', 'claude-3-sonnet-20240229')
+                if env_model:
+                    env_model = str(env_model).split('#')[0].strip()
                     provider_config['model'] = env_model
             elif provider_type.lower() == 'gemini' or provider_type.lower() == 'google':
-                # برای Google Gemini هم همین کار را می‌کنیم
-                if not provider_config.get('api_key'):
-                    env_api_key = os.getenv('GOOGLE_API_KEY') or os.getenv('GEMINI_API_KEY')
+                # برای Google Gemini
+                env_api_key = os.getenv('GOOGLE_API_KEY') or os.getenv('GEMINI_API_KEY')
+                if env_api_key:
                     provider_config['api_key'] = env_api_key
-                if not provider_config.get('model'):
-                    env_model = os.getenv('GEMINI_MODEL', 'gemini-2.0-flash')
-                    # پاک کردن کامنت‌ها از نام مدل (اگر وجود داشته باشد)
-                    if env_model:
-                        env_model = str(env_model).split('#')[0].strip()
+                env_model = os.getenv('GEMINI_MODEL', 'gemini-2.0-flash')
+                # پاک کردن کامنت‌ها از نام مدل (اگر وجود داشته باشد)
+                if env_model:
+                    env_model = str(env_model).split('#')[0].strip()
                     provider_config['model'] = env_model
-                else:
-                    # پاک کردن کامنت‌ها از نام مدل موجود در config
-                    model_value = provider_config.get('model')
-                    if model_value:
-                        cleaned_model = str(model_value).split('#')[0].strip()
-                        provider_config['model'] = cleaned_model
             
             if provider_config.get('model'):
                 print(f"🔧 Model: {provider_config.get('model')}")
@@ -504,8 +526,9 @@ class ConstructionAssistantAgent:
 - خروجی (withdrawal)
 """
         
-        # استفاده از API جدید create_agent
+        # استفاده از API جدید create_agent برای همه مدل‌ها
         # این API یک StateGraph برمی‌گرداند که می‌تواند مستقیماً invoke شود
+        # در نسخه جدید langchain (1.0+)، AgentExecutor و create_react_agent حذف شده‌اند
         agent_graph = create_agent(
             model=self.llm,
             tools=self.tools,
@@ -636,6 +659,8 @@ class ConstructionAssistantAgent:
             
             for attempt in range(max_retries):
                 try:
+                    # در نسخه جدید langchain، همه agent ها StateGraph هستند
+                    # StateGraph از messages استفاده می‌کند
                     result = self.agent_graph.invoke({
                         "messages": messages
                     })
@@ -702,11 +727,12 @@ class ConstructionAssistantAgent:
                     print(f"📊 مجموع ابزارهای استفاده شده: {tool_usage_count}")
             
             # استخراج پاسخ از نتیجه
-            # در API جدید، پاسخ در messages آخرین AI message است
+            # در نسخه جدید langchain، همه agent ها StateGraph هستند و از messages استفاده می‌کنند
             output = ""
+            
+            # پیدا کردن آخرین AI message (پاسخ جدید)
+            # باید از انتها به ابتدا جستجو کنیم تا آخرین پاسخ را پیدا کنیم
             if result.get("messages"):
-                # پیدا کردن آخرین AI message (پاسخ جدید)
-                # باید از انتها به ابتدا جستجو کنیم تا آخرین پاسخ را پیدا کنیم
                 for msg in reversed(result["messages"]):
                     # بررسی اینکه آیا این یک AIMessage است
                     if isinstance(msg, AIMessage):
@@ -731,6 +757,9 @@ class ConstructionAssistantAgent:
                         output = last_message.content
                     elif isinstance(last_message, dict) and 'content' in last_message:
                         output = last_message['content']
+            elif result.get("output"):
+                # اگر output مستقیماً در result وجود دارد (fallback)
+                output = result.get("output", "")
             
             # نمایش پاسخ هوش مصنوعی در کنسول
             logger.info("🤖 پاسخ هوش مصنوعی:")

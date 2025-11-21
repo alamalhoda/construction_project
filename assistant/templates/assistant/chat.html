@@ -1048,6 +1048,12 @@
     const sendButtonIcon = document.getElementById('sendButtonIcon');
     const STORAGE_KEY = 'chat_history';
     
+    // متغیرهای بهینه‌سازی عملکرد
+    let reprocessScheduled = false;
+    let saveHistoryTimeout = null;
+    let processedMessages = new Set(); // برای جلوگیری از پردازش مجدد پیام‌ها
+    let markedCheckInterval = null;
+    
     // تنظیم زمان پیام خوش‌آمدگویی
     document.addEventListener('DOMContentLoaded', function() {
         const welcomeTime = document.getElementById('welcome-time');
@@ -1058,13 +1064,6 @@
         // لود کردن تاریخچه (بعد از لود شدن marked.js)
         loadChatHistory();
         autoResizeTextarea();
-        
-        // پردازش مجدد پیام‌های موجود بعد از لود شدن marked.js
-        setTimeout(() => {
-            if (markedReady) {
-                reprocessExistingMessages();
-            }
-        }, 1000);
     });
     
     // تابع برای دریافت زمان فعلی
@@ -1103,81 +1102,128 @@
         return false;
     }
     
-    // تلاش برای initialize کردن marked.js
-    if (!checkMarkedReady()) {
-        // اگر marked.js هنوز لود نشده، منتظر بمان
-        const checkInterval = setInterval(() => {
-            if (checkMarkedReady()) {
-                clearInterval(checkInterval);
-                // بعد از لود شدن marked.js، پیام‌های موجود را دوباره پردازش کن
-                setTimeout(() => {
-                    reprocessExistingMessages();
-                }, 500);
-            }
-        }, 100);
+    // تابع بهینه‌سازی شده برای پردازش مجدد با debounce
+    function scheduleReprocess() {
+        if (reprocessScheduled) return;
+        reprocessScheduled = true;
         
-        // timeout برای جلوگیری از انتظار بی‌نهایت
-        setTimeout(() => {
-            clearInterval(checkInterval);
-            // حتی اگر marked.js لود نشد، سعی کن پیام‌ها را پردازش کن
-            setTimeout(() => {
-                reprocessExistingMessages();
-            }, 500);
-        }, 5000);
-    } else {
-        // اگر marked.js از ابتدا آماده بود، بعد از کمی تاخیر پردازش مجدد را انجام بده
-        setTimeout(() => {
+        requestAnimationFrame(() => {
             reprocessExistingMessages();
-        }, 1000);
+            reprocessScheduled = false;
+        });
     }
     
-    // تابع برای پردازش مجدد پیام‌های موجود در صفحه
+    // تلاش برای initialize کردن marked.js (بهینه‌سازی شده)
+    if (!checkMarkedReady()) {
+        // اگر marked.js هنوز لود نشده، منتظر بمان
+        let checkCount = 0;
+        const maxChecks = 50; // حداکثر 5 ثانیه (50 * 100ms)
+        
+        markedCheckInterval = setInterval(() => {
+            checkCount++;
+            if (checkMarkedReady()) {
+                clearInterval(markedCheckInterval);
+                markedCheckInterval = null;
+                // بعد از لود شدن marked.js، پیام‌های موجود را دوباره پردازش کن
+                scheduleReprocess();
+            } else if (checkCount >= maxChecks) {
+                clearInterval(markedCheckInterval);
+                markedCheckInterval = null;
+                // حتی اگر marked.js لود نشد، سعی کن پیام‌ها را پردازش کن
+                scheduleReprocess();
+            }
+        }, 100);
+    } else {
+        // اگر marked.js از ابتدا آماده بود، بعد از کمی تاخیر پردازش مجدد را انجام بده
+        scheduleReprocess();
+    }
+    
+    // تابع بهینه‌سازی شده برای پردازش مجدد پیام‌های موجود در صفحه
     function reprocessExistingMessages() {
         const messageWrappers = messagesDiv.querySelectorAll('.message-wrapper:not(.user-wrapper)');
-        messageWrappers.forEach(wrapper => {
-            const contentElement = wrapper.querySelector('.message-content');
-            if (!contentElement) return;
+        const fragment = document.createDocumentFragment();
+        let processedCount = 0;
+        const maxProcessPerFrame = 5; // پردازش حداکثر 5 پیام در هر فریم
+        
+        function processBatch(startIndex) {
+            const endIndex = Math.min(startIndex + maxProcessPerFrame, messageWrappers.length);
             
-            // گرفتن متن خام از data-raw-text اگر موجود باشد، در غیر این صورت از textContent
-            const rawText = contentElement.getAttribute('data-raw-text');
-            const text = rawText || contentElement.textContent || '';
-            
-            // بررسی اینکه آیا پیام شامل Markdown است یا نه
-            const hasMarkdown = text.includes('|') || text.includes('**') || text.includes('*') || text.includes('`') || text.includes('#') || text.includes('-');
-            
-            // بررسی اینکه آیا پیام قبلاً به درستی پردازش شده است (دارای جدول است)
-            const hasTable = contentElement.querySelector('table');
-            
-            // اگر Markdown دارد (مخصوصاً جداول)، باید دوباره پردازش شود
-            if (hasMarkdown) {
-                // همیشه دوباره پردازش کن اگر شامل جداول است
-                if (text.includes('|')) {
-                    // پردازش مجدد با Markdown
-                    try {
-                        const formattedHtml = formatMessage(text);
-                        if (formattedHtml) {
-                            // ذخیره متن خام در data attribute
-                            contentElement.setAttribute('data-raw-text', text);
-                            contentElement.innerHTML = formattedHtml;
+            for (let i = startIndex; i < endIndex; i++) {
+                const wrapper = messageWrappers[i];
+                const contentElement = wrapper.querySelector('.message-content');
+                if (!contentElement) continue;
+                
+                // ایجاد شناسه یکتا برای پیام
+                const messageId = contentElement.getAttribute('data-message-id') || 
+                                 `msg-${Date.now()}-${Math.random()}`;
+                
+                // اگر این پیام قبلاً پردازش شده، نادیده بگیر
+                if (processedMessages.has(messageId)) continue;
+                
+                // گرفتن متن خام از data-raw-text اگر موجود باشد
+                const rawText = contentElement.getAttribute('data-raw-text');
+                const text = rawText || contentElement.textContent || '';
+                
+                if (!text.trim()) continue;
+                
+                // بررسی اینکه آیا پیام شامل Markdown است یا نه (بهینه‌سازی شده)
+                const hasTable = text.includes('|');
+                const hasMarkdown = hasTable || text.includes('**') || text.includes('`') || text.includes('#');
+                
+                // اگر Markdown دارد و قبلاً پردازش نشده، پردازش کن
+                if (hasMarkdown) {
+                    const existingTable = contentElement.querySelector('table');
+                    
+                    // فقط اگر جدول ندارد یا متن خام تغییر کرده، پردازش کن
+                    if (hasTable && !existingTable) {
+                        try {
+                            const formattedHtml = formatMessage(text);
+                            if (formattedHtml && formattedHtml !== contentElement.innerHTML) {
+                                contentElement.setAttribute('data-raw-text', text);
+                                contentElement.setAttribute('data-message-id', messageId);
+                                contentElement.innerHTML = formattedHtml;
+                                processedMessages.add(messageId);
+                                processedCount++;
+                            }
+                        } catch (error) {
+                            console.error('خطا در پردازش مجدد پیام:', error);
                         }
-                    } catch (error) {
-                        console.error('خطا در پردازش مجدد پیام:', error);
-                    }
-                } else if (!hasTable) {
-                    // اگر Markdown دارد اما جدول ندارد، دوباره پردازش کن
-                    try {
-                        const formattedHtml = formatMessage(text);
-                        if (formattedHtml) {
-                            // ذخیره متن خام در data attribute
-                            contentElement.setAttribute('data-raw-text', text);
-                            contentElement.innerHTML = formattedHtml;
+                    } else if (!hasTable && !existingTable) {
+                        // برای Markdown غیر از جدول، فقط یک بار پردازش کن
+                        try {
+                            const formattedHtml = formatMessage(text);
+                            if (formattedHtml && formattedHtml !== contentElement.innerHTML) {
+                                contentElement.setAttribute('data-raw-text', text);
+                                contentElement.setAttribute('data-message-id', messageId);
+                                contentElement.innerHTML = formattedHtml;
+                                processedMessages.add(messageId);
+                                processedCount++;
+                            }
+                        } catch (error) {
+                            console.error('خطا در پردازش مجدد پیام:', error);
                         }
-                    } catch (error) {
-                        console.error('خطا در پردازش مجدد پیام:', error);
+                    } else {
+                        // اگر قبلاً پردازش شده، فقط ID را اضافه کن
+                        contentElement.setAttribute('data-message-id', messageId);
+                        processedMessages.add(messageId);
                     }
+                } else {
+                    // برای پیام‌های بدون Markdown، فقط ID را اضافه کن
+                    contentElement.setAttribute('data-message-id', messageId);
+                    processedMessages.add(messageId);
                 }
             }
-        });
+            
+            // اگر پیام‌های بیشتری برای پردازش وجود دارد، در فریم بعدی ادامه بده
+            if (endIndex < messageWrappers.length) {
+                requestAnimationFrame(() => processBatch(endIndex));
+            }
+        }
+        
+        // شروع پردازش دسته‌ای
+        if (messageWrappers.length > 0) {
+            processBatch(0);
+        }
     }
     
     // تابع برای پردازش جداول Markdown (fallback)
@@ -1463,9 +1509,33 @@
             // ذخیره متن خام در data attribute برای استفاده در saveChatHistory
             messageContent.setAttribute('data-raw-text', text);
             
+            // ایجاد شناسه یکتا برای پیام
+            const messageId = `msg-${Date.now()}-${Math.random()}`;
+            messageContent.setAttribute('data-message-id', messageId);
+            
             // استفاده از try-catch برای formatMessage
             try {
-                messageContent.innerHTML = isUser ? escapeHtml(text) : formatMessage(text);
+                if (isUser) {
+                    messageContent.innerHTML = escapeHtml(text);
+                } else {
+                    // پردازش Markdown با استفاده از requestAnimationFrame برای پیام‌های بزرگ
+                    if (text.length > 1000) {
+                        messageContent.innerHTML = '<div style="opacity: 0.5;">در حال پردازش...</div>';
+                        requestAnimationFrame(() => {
+                            try {
+                                const formattedHtml = formatMessage(text);
+                                messageContent.innerHTML = formattedHtml;
+                                processedMessages.add(messageId);
+                            } catch (error) {
+                                console.error('خطا در format کردن پیام:', error);
+                                messageContent.innerHTML = escapeHtml(text);
+                            }
+                        });
+                    } else {
+                        messageContent.innerHTML = formatMessage(text);
+                        processedMessages.add(messageId);
+                    }
+                }
             } catch (formatError) {
                 console.error('خطا در format کردن پیام:', formatError);
                 // در صورت خطا، از escapeHtml استفاده می‌کنیم
@@ -1655,6 +1725,28 @@
     
     async function clearChat() {
         if (confirm('آیا مطمئن هستید که می‌خواهید تاریخچه چت را پاک کنید؟')) {
+            // پاک کردن intervalها و timeoutها
+            if (markedCheckInterval) {
+                clearInterval(markedCheckInterval);
+                markedCheckInterval = null;
+            }
+            if (saveHistoryTimeout) {
+                clearTimeout(saveHistoryTimeout);
+                saveHistoryTimeout = null;
+            }
+            if (scrollTimeout) {
+                cancelAnimationFrame(scrollTimeout);
+                scrollTimeout = null;
+            }
+            if (resizeTimeout) {
+                cancelAnimationFrame(resizeTimeout);
+                resizeTimeout = null;
+            }
+            
+            // پاک کردن cache پردازش شده
+            processedMessages.clear();
+            reprocessScheduled = false;
+            
             // نگه داشتن پیام خوش‌آمدگویی
             const welcomeMessage = messagesDiv.querySelector('.message-wrapper:first-child');
             messagesDiv.innerHTML = '';
@@ -1720,35 +1812,60 @@
         }, 3000);
     }
     
+    // تابع بهینه‌سازی شده برای اسکرول
+    let scrollTimeout = null;
     function scrollToBottom() {
-        setTimeout(() => {
+        // استفاده از requestAnimationFrame برای اسکرول نرم
+        if (scrollTimeout) {
+            cancelAnimationFrame(scrollTimeout);
+        }
+        scrollTimeout = requestAnimationFrame(() => {
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
-        }, 100);
+            scrollTimeout = null;
+        });
     }
     
+    // تابع بهینه‌سازی شده برای ذخیره تاریخچه با debounce
     function saveChatHistory() {
-        try {
-            const messages = Array.from(messagesDiv.querySelectorAll('.message-wrapper')).slice(1).map(wrapper => {
-                const message = wrapper.querySelector('.message');
-                const contentElement = wrapper.querySelector('.message-content');
-                
-                // بررسی اینکه آیا element ها وجود دارند
-                if (!message || !contentElement) {
-                    return null; // این پیام را نادیده بگیر
-                }
-                
-                // استفاده از data-raw-text اگر موجود باشد (متن خام)، در غیر این صورت از textContent
-                const rawText = contentElement.getAttribute('data-raw-text');
-                const content = rawText || contentElement.textContent || '';
-                const isUser = message.classList.contains('user-message');
-                return { text: content, isUser };
-            }).filter(msg => msg !== null); // حذف پیام‌های null
-            
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
-        } catch (error) {
-            console.error('خطا در ذخیره تاریخچه:', error);
-            // خطا را نادیده می‌گیریم چون ذخیره تاریخچه اختیاری است
+        // پاک کردن timeout قبلی
+        if (saveHistoryTimeout) {
+            clearTimeout(saveHistoryTimeout);
         }
+        
+        // ذخیره با تاخیر 500ms (debounce)
+        saveHistoryTimeout = setTimeout(() => {
+            try {
+                const messages = Array.from(messagesDiv.querySelectorAll('.message-wrapper')).slice(1).map(wrapper => {
+                    const message = wrapper.querySelector('.message');
+                    const contentElement = wrapper.querySelector('.message-content');
+                    
+                    // بررسی اینکه آیا element ها وجود دارند
+                    if (!message || !contentElement) {
+                        return null; // این پیام را نادیده بگیر
+                    }
+                    
+                    // استفاده از data-raw-text اگر موجود باشد (متن خام)، در غیر این صورت از textContent
+                    const rawText = contentElement.getAttribute('data-raw-text');
+                    const content = rawText || contentElement.textContent || '';
+                    const isUser = message.classList.contains('user-message');
+                    return { text: content, isUser };
+                }).filter(msg => msg !== null); // حذف پیام‌های null
+                
+                // فقط اگر پیام جدیدی وجود دارد، ذخیره کن
+                const currentHistory = localStorage.getItem(STORAGE_KEY);
+                const currentMessages = currentHistory ? JSON.parse(currentHistory) : [];
+                
+                // مقایسه تعداد پیام‌ها برای جلوگیری از ذخیره غیرضروری
+                if (messages.length !== currentMessages.length || 
+                    JSON.stringify(messages) !== JSON.stringify(currentMessages)) {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+                }
+            } catch (error) {
+                console.error('خطا در ذخیره تاریخچه:', error);
+                // خطا را نادیده می‌گیریم چون ذخیره تاریخچه اختیاری است
+            }
+            saveHistoryTimeout = null;
+        }, 500);
     }
     
     function loadChatHistory() {
@@ -1757,15 +1874,29 @@
             if (saved) {
                 const messages = JSON.parse(saved);
                 
-                // تابع برای لود کردن پیام‌ها
+                // تابع برای لود کردن پیام‌ها به صورت دسته‌ای
                 const loadMessages = () => {
-                messages.forEach(msg => {
-                    addMessage(msg.text, msg.isUser);
-                });
-                    // بعد از لود شدن پیام‌ها، پردازش مجدد را انجام بده
-                    setTimeout(() => {
-                        reprocessExistingMessages();
-                    }, 500);
+                    let index = 0;
+                    const batchSize = 3; // لود 3 پیام در هر فریم
+                    
+                    function loadBatch() {
+                        const endIndex = Math.min(index + batchSize, messages.length);
+                        
+                        for (let i = index; i < endIndex; i++) {
+                            addMessage(messages[i].text, messages[i].isUser);
+                        }
+                        
+                        index = endIndex;
+                        
+                        if (index < messages.length) {
+                            requestAnimationFrame(loadBatch);
+                        } else {
+                            // بعد از لود شدن تمام پیام‌ها، پردازش مجدد را انجام بده
+                            scheduleReprocess();
+                        }
+                    }
+                    
+                    loadBatch();
                 };
                 
                 // اگر marked.js آماده است، پیام‌ها را لود کن
@@ -1773,20 +1904,20 @@
                     loadMessages();
                 } else {
                     // اگر marked.js آماده نیست، منتظر بمان
+                    let checkCount = 0;
+                    const maxChecks = 50;
+                    
                     const loadInterval = setInterval(() => {
+                        checkCount++;
                         if (markedReady) {
                             clearInterval(loadInterval);
                             loadMessages();
+                        } else if (checkCount >= maxChecks) {
+                            clearInterval(loadInterval);
+                            // حتی اگر marked.js لود نشد، پیام‌ها را نمایش بده
+                            loadMessages();
                         }
                     }, 100);
-                    
-                    // timeout برای جلوگیری از انتظار بی‌نهایت (اما حداقل 5 ثانیه صبر کن)
-                    setTimeout(() => {
-                        clearInterval(loadInterval);
-                        // حتی اگر marked.js لود نشد، پیام‌ها را نمایش بده
-                        // formatMessage خودش fallback دارد
-                        loadMessages();
-                    }, 5000);
                 }
             }
         } catch (error) {
@@ -1794,9 +1925,17 @@
         }
     }
     
+    // تابع بهینه‌سازی شده برای تغییر اندازه textarea با debounce
+    let resizeTimeout = null;
     function autoResizeTextarea() {
-        messageInput.style.height = 'auto';
-        messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
+        if (resizeTimeout) {
+            cancelAnimationFrame(resizeTimeout);
+        }
+        resizeTimeout = requestAnimationFrame(() => {
+            messageInput.style.height = 'auto';
+            messageInput.style.height = Math.min(messageInput.scrollHeight, 200) + 'px';
+            resizeTimeout = null;
+        });
     }
     
     function getCookie(name) {

@@ -321,9 +321,14 @@ REST_FRAMEWORK = {
 }
 
 # AI Assistant Settings
-AI_ASSISTANT_PROVIDER = os.getenv('AI_ASSISTANT_PROVIDER', 'openai')  # 'openai', 'anthropic', 'huggingface', 'gemini', 'openrouter', 'local'
+ai_assistant_provider_raw = os.getenv('AI_ASSISTANT_PROVIDER', 'openai')
+# پاک کردن کامنت‌ها از provider (اگر وجود داشته باشد)
+if ai_assistant_provider_raw:
+    AI_ASSISTANT_PROVIDER = str(ai_assistant_provider_raw).split('#')[0].strip()
+else:
+    AI_ASSISTANT_PROVIDER = 'openai'
 # تنظیمات Provider بر اساس نوع provider انتخاب شده
-provider_type = os.getenv('AI_ASSISTANT_PROVIDER', 'openai').lower()
+provider_type = AI_ASSISTANT_PROVIDER.lower()
 
 if provider_type == 'gemini' or provider_type == 'google':
     # برای Google Gemini
@@ -339,9 +344,22 @@ if provider_type == 'gemini' or provider_type == 'google':
     }
 elif provider_type == 'openrouter':
     # برای OpenRouter
+    openrouter_model_raw = os.getenv('OPENROUTER_MODEL', 'deepseek/deepseek-chat:free')
+    # پاک کردن کامنت‌ها از نام مدل (اگر وجود داشته باشد)
+    if openrouter_model_raw:
+        openrouter_model = str(openrouter_model_raw).split('#')[0].strip()
+    else:
+        openrouter_model = 'deepseek/deepseek-chat:free'
     AI_ASSISTANT_PROVIDER_CONFIG = {
         'api_key': os.getenv('OPENROUTER_API_KEY'),
-        'model': os.getenv('OPENROUTER_MODEL', 'google/gemini-2.0-flash-exp:free'),
+        'model': openrouter_model,
+    }
+elif provider_type == 'huggingface':
+    # برای Hugging Face
+    AI_ASSISTANT_PROVIDER_CONFIG = {
+        'model_id': os.getenv('HUGGINGFACE_MODEL_ID', 'mistralai/Mistral-7B-Instruct-v0.2'),
+        'api_key': os.getenv('HUGGINGFACE_API_KEY'),
+        'endpoint': os.getenv('HUGGINGFACE_ENDPOINT'),
     }
 elif provider_type == 'local':
     # برای مدل‌های محلی (Ollama)

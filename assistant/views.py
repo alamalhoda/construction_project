@@ -60,19 +60,58 @@ def chat_api(request):
         # همیشه از تنظیمات استفاده می‌کنیم (نه از request) تا مطمئن شویم که از کلید API صحیح استفاده می‌کنیم
         import os
         from dotenv import load_dotenv
-        load_dotenv()  # اطمینان از لود شدن .env
+        
+        # استفاده از override=True تا مطمئن شویم که .env اصلی override می‌کند
+        # و مشخص کردن مسیر دقیق .env برای جلوگیری از خواندن فایل‌های دیگر
+        env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), '.env')
+        # پاک کردن environment variable قبل از load_dotenv تا مطمئن شویم از .env خوانده می‌شود
+        # (اگر از جای دیگری تنظیم شده باشد، پاک می‌شود)
+        if 'AI_ASSISTANT_PROVIDER' in os.environ:
+            del os.environ['AI_ASSISTANT_PROVIDER']
+        # حالا load_dotenv را صدا می‌زنیم تا از .env بخواند
+        load_dotenv(dotenv_path=env_path, override=True)  # اطمینان از لود شدن .env اصلی
         
         # خواندن مستقیم از .env برای اطمینان
-        provider_type_from_env = os.getenv('AI_ASSISTANT_PROVIDER', 'openai')
+        provider_type_from_env_raw = os.getenv('AI_ASSISTANT_PROVIDER')
+        if not provider_type_from_env_raw:
+            # اگر از .env خوانده نشد، از settings استفاده می‌کنیم
+            provider_type_from_env_raw = getattr(settings, 'AI_ASSISTANT_PROVIDER', 'openai')
+        # پاک کردن کامنت‌ها از provider_type (اگر وجود داشته باشد)
+        if provider_type_from_env_raw:
+            provider_type_from_env = str(provider_type_from_env_raw).split('#')[0].strip()
+        else:
+            provider_type_from_env = 'openai'
         provider_type_from_settings = getattr(settings, 'AI_ASSISTANT_PROVIDER', 'openai')
         
+        # Debug: نمایش مقادیر خوانده شده
+        print(f"🔍 Debug - env_path: {repr(env_path)}")
+        print(f"🔍 Debug - file exists: {os.path.exists(env_path)}")
+        print(f"🔍 Debug - provider_type_from_env_raw: {repr(provider_type_from_env_raw)}")
+        print(f"🔍 Debug - provider_type_from_env: {repr(provider_type_from_env)}")
+        print(f"🔍 Debug - provider_type_from_settings: {repr(provider_type_from_settings)}")
+        print(f"🔍 Debug - os.environ.get('AI_ASSISTANT_PROVIDER'): {repr(os.environ.get('AI_ASSISTANT_PROVIDER'))}")
+        
+        # اگر از .env خوانده نشد، از settings استفاده می‌کنیم
+        if not provider_type_from_env_raw or provider_type_from_env_raw == 'openai':
+            print(f"⚠️  Warning: Could not read from .env, using settings: {provider_type_from_settings}")
+            provider_type_from_env = provider_type_from_settings
+        
         # استفاده از مقدار .env (اولویت اول)
-        provider_type = provider_type_from_env
+        # اما اگر از .env خوانده نشد یا مقدار پیش‌فرض بود، از settings استفاده می‌کنیم
+        if provider_type_from_env and provider_type_from_env != 'openai':
+            provider_type = provider_type_from_env
+        elif provider_type_from_settings:
+            provider_type = provider_type_from_settings
+            print(f"ℹ️  Using provider from settings: {provider_type}")
+        else:
+            provider_type = 'openai'
         
         # اگر provider_type از request آمده، لاگ می‌کنیم اما از تنظیمات استفاده می‌کنیم
         provider_type_from_request = data.get('provider_type')
-        if provider_type_from_request and provider_type_from_request.lower() != provider_type.lower():
-            print(f"⚠️  Warning: Provider type from request ({provider_type_from_request}) ignored, using {provider_type} from .env")
+        if provider_type_from_request:
+            print(f"🔍 Debug - provider_type_from_request: {repr(provider_type_from_request)}")
+            if provider_type_from_request.lower() != provider_type.lower():
+                print(f"⚠️  Warning: Provider type from request ({provider_type_from_request}) ignored, using {provider_type} from .env")
         
         print(f"🔧 Using provider: {provider_type}")
         
