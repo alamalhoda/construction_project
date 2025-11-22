@@ -20,6 +20,9 @@
     <!-- Custom Persian Calendar CSS -->
     <link rel="stylesheet" href="{% static 'construction/css/persian-calendar.css' %}">
     
+    <!-- Project Switcher CSS -->
+    <link rel="stylesheet" href="{% static 'css/project-switcher.css' %}">
+    
     <!-- Custom CSS for RTL support -->
     <style>
         body {
@@ -61,7 +64,7 @@
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown">
                             <i class="fas fa-cogs"></i> مدیریت
                         </a>
-                        <div class="dropdown-menu">
+                        <div class="dropdown-menu" style="direction: rtl;text-align: right;">
                             <a class="dropdown-item" href="{% url 'construction_Project_list' %}">
                                 <i class="fas fa-project-diagram"></i> پروژه‌ها
                             </a>
@@ -73,6 +76,9 @@
                             </a>
                             <a class="dropdown-item" href="{% url 'construction_Unit_list' %}">
                                 <i class="fas fa-building"></i> واحدها
+                            </a>                            
+                            <a class="dropdown-item" href="{% url 'construction_UnitSpecificExpense_list' %}" style="background-color: greenyellow;">
+                                <i class="fas fa-file-invoice-dollar"></i> هزینه‌های اختصاصی واحد
                             </a>
                             <a class="dropdown-item" href="{% url 'construction_Period_list' %}">
                                 <i class="fas fa-calendar-alt"></i> دوره‌ها
@@ -86,9 +92,15 @@
                             <a class="dropdown-item" href="{% url 'construction_InterestRate_list' %}">
                                 <i class="fas fa-percentage"></i> نرخ‌های سود
                             </a>
+                            <a class="dropdown-item" href="{% url 'construction_PettyCashTransaction_list' %}" style="background-color: greenyellow;">
+                                <i class="fas fa-money-bill"></i> حسابداری تنخواه
+                            </a>
                         </div>
                     </li>
                 </ul>
+                
+                <!-- Project Switcher -->
+                {% include 'components/project_switcher.html' %}
                 
                 <ul class="navbar-nav">
                     <li class="nav-item">
@@ -134,6 +146,9 @@
     
     <!-- Amount Formatter JavaScript -->
     <script src="{% static 'js/amount-formatter.js' %}"></script>
+    
+    <!-- Project Switcher JavaScript -->
+    <script src="{% static 'js/project-switcher.js' %}"></script>
     
     <!-- Initialize Persian Date Picker -->
     <script>

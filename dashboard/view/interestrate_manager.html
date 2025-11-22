@@ -14,6 +14,9 @@
     <!-- Persian Date Picker -->
     <link href="https://cdn.jsdelivr.net/npm/persian-datepicker@1.2.0/dist/css/persian-datepicker.min.css" rel="stylesheet">
     
+    <!-- Project Switcher CSS -->
+    <link rel="stylesheet" href="/static/css/project-switcher.css">
+    
     <style>
         :root {
             --primary-color: #667eea;
@@ -134,6 +137,14 @@
 
         .unified-header .nav-link i {
             font-size: 1.1rem;
+        }
+
+        /* Project Switcher در unified-header */
+        .unified-header .project-switcher-container {
+            position: absolute;
+            top: 20px;
+            /* left: 20px; */
+            z-index: 10;
         }
 
         .main-container {
@@ -1189,10 +1200,18 @@
         <div class="dashboard-container">
         <!-- Unified Header Section -->
         <div class="unified-header">
+            <!-- Project Switcher در گوشه بالا-چپ -->
+            <div class="project-switcher-container">
+                <!-- Project Switcher will be rendered here by JavaScript -->
+                <div id="projectSwitcherContainer"></div>
+            </div>
+            
             <div class="unified-header-content">
                 <h1>
                     <i class="fas fa-percentage"></i>
                     مدیریت  سود
+                    <!-- Project Badge will be rendered here by JavaScript -->
+                    <span id="currentProjectBadge" style="display: none; font-size: 0.6em; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; margin-right: 15px; display: inline-flex; align-items: center; gap: 8px;"></span>
                 </h1>
                 <p class="subtitle">مشاهده و مدیریت سودهای مشارکت پروژه</p>
                 <div class="navigation-links">
@@ -1218,6 +1237,15 @@
                     </a>
                 </div>
             </div>
+        </div>
+        
+        <!-- هشدار برای پروژه فعال نبودن (will be shown/hidden by JavaScript) -->
+        <div id="noProjectWarning" style="display: none; margin: 20px; padding: 20px; border-radius: 10px; background: #fff3cd; border: 2px solid #ffc107; color: #856404;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>هشدار:</strong> هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید.
+            <a href="/construction/Project/" class="btn btn-primary btn-sm" style="margin-right: 10px;">
+                <i class="fas fa-project-diagram"></i> مدیریت پروژه‌ها
+            </a>
         </div>
 
         <!-- Current Rate Display -->
@@ -1464,7 +1492,7 @@
                     (<a href="/construction/Project/">ویرایش ضریب اصلاحی</a>)
                 </span>
                 <br> <span style="color:black;font-size:1.2rem;"></span>
-ایش
+
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                     <button type="button" class="btn-add" data-bs-toggle="modal" data-bs-target="#addRateModal">
                         <i class="fas fa-plus"></i>
@@ -1620,14 +1648,130 @@
         // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
             initializeDatePickers();
+            initializeTooltips();
+            initializeCSRFToken();
+            initializeModalEvents();
+            
+            // منتظر بارگذاری پروژه بمانیم و سپس داده‌ها را بارگذاری کنیم
+            waitForProjectAndLoadData();
+        });
+
+        // متغیر global برای نگهداری interval
+        let projectCheckInterval = null;
+
+        // منتظر بارگذاری پروژه بمانیم و سپس داده‌ها را بارگذاری کنیم
+        async function waitForProjectAndLoadData() {
+            let attempts = 0;
+            const maxAttempts = 50; // حداکثر 50 تلاش (5 ثانیه با فاصله 100ms)
+            let projectLoaded = false;
+            
+            // بررسی اولیه سریع‌تر
+            try {
+                const hasProject = await checkActiveProject();
+                if (hasProject) {
+                    projectLoaded = true;
+                    loadAllData();
+                    return; // اگر پروژه پیدا شد، دیگر نیازی به بررسی مکرر نیست
+                }
+            } catch (error) {
+                console.error('Error in initial project check:', error);
+            }
+            
+            // اگر در بررسی اولیه پروژه پیدا نشد، بررسی مکرر انجام دهیم
+            // پاک کردن interval قبلی در صورت وجود
+            if (projectCheckInterval) {
+                clearInterval(projectCheckInterval);
+                projectCheckInterval = null;
+            }
+            
+            projectCheckInterval = setInterval(async function() {
+                attempts++;
+                
+                try {
+                    const hasProject = await checkActiveProject();
+                    
+                    if (hasProject) {
+                        // پروژه فعال وجود دارد
+                        if (projectCheckInterval) {
+                            clearInterval(projectCheckInterval);
+                            projectCheckInterval = null;
+                        }
+                        if (!projectLoaded) {
+                            projectLoaded = true;
+                            loadAllData();
+                        }
+                    } else if (attempts >= maxAttempts) {
+                        // حداکثر تلاش‌ها انجام شد و پروژه فعالی یافت نشد
+                        if (projectCheckInterval) {
+                            clearInterval(projectCheckInterval);
+                            projectCheckInterval = null;
+                        }
+                        if (!projectLoaded) {
+                            showNoProjectWarning();
+                            hideAllContent();
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error checking project:', error);
+                    // در صورت خطا، ادامه می‌دهیم
+                    if (attempts >= maxAttempts) {
+                        if (projectCheckInterval) {
+                            clearInterval(projectCheckInterval);
+                            projectCheckInterval = null;
+                        }
+                        if (!projectLoaded) {
+                            showNoProjectWarning();
+                            hideAllContent();
+                        }
+                    }
+                }
+            }, 100); // هر 100 میلی‌ثانیه بررسی کنیم
+        }
+
+        // بررسی وجود پروژه فعال
+        async function checkActiveProject() {
+            try {
+                const response = await fetch(`${API_BASE}Project/current/`);
+                if (response.ok) {
+                    const project = await response.json();
+                    return project && project.id !== null && project.id !== undefined;
+                } else {
+                    return false;
+                }
+            } catch (error) {
+                console.error('Error checking active project:', error);
+                return false;
+            }
+        }
+
+        // نمایش هشدار نبود پروژه
+        function showNoProjectWarning() {
+            const warningDiv = document.getElementById('noProjectWarning');
+            if (warningDiv) {
+                warningDiv.style.display = 'block';
+            }
+        }
+
+        // مخفی کردن تمام محتوا
+        function hideAllContent() {
+            const currentRateCard = document.getElementById('currentRateCard');
+            const financialSummaryCards = document.getElementById('financialSummaryCards');
+            const projectStatsCards = document.getElementById('projectStatsCards');
+            const mainContent = document.querySelector('.main-content');
+            
+            if (currentRateCard) currentRateCard.style.display = 'none';
+            if (financialSummaryCards) financialSummaryCards.style.display = 'none';
+            if (projectStatsCards) projectStatsCards.style.display = 'none';
+            if (mainContent) mainContent.style.display = 'none';
+        }
+
+        // بارگذاری تمام داده‌ها
+        function loadAllData() {
             loadRates();
             loadCurrentRate();
             loadFinancialSummary();
             loadProjectStatistics();
-            initializeTooltips();
-            initializeCSRFToken();
-            initializeModalEvents();
-        });
+        }
 
         // Initialize Persian date pickers
         function initializeDatePickers() {
@@ -1678,6 +1822,18 @@
 
         // Submit rate form
         async function submitRateForm() {
+            // بررسی وجود پروژه فعال قبل از ثبت
+            const hasProject = await checkActiveProject();
+            if (!hasProject) {
+                showAlert('هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید.', 'danger');
+                // بستن modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addRateModal'));
+                if (modal) {
+                    modal.hide();
+                }
+                return;
+            }
+
             const form = document.getElementById('addRateForm');
             const formData = new FormData(form);
             const data = Object.fromEntries(formData.entries());
@@ -1733,9 +1889,11 @@
                     modal.hide();
                     // Reset form
                     form.reset();
-                    // Reload data
+                    // Reload all data
                     loadRates();
                     loadCurrentRate();
+                    loadFinancialSummary();
+                    loadProjectStatistics();
                     
                     // نمایش modal محاسبه مجدد سود پس از ذخیره نرخ جدید
                     setTimeout(() => {
@@ -1744,6 +1902,17 @@
                 } else {
                     const errorData = await response.json();
                     console.error('Error response:', errorData);
+                    
+                    // اگر خطا به دلیل نبود پروژه فعال باشد
+                    if (response.status === 400 || response.status === 404) {
+                        if (errorData.detail && (errorData.detail.includes('project') || errorData.detail.includes('پروژه'))) {
+                            showAlert('هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید.', 'danger');
+                            showNoProjectWarning();
+                            hideAllContent();
+                            return;
+                        }
+                    }
+                    
                     showAlert('خطا در افزودن نرخ سود: ' + (errorData.detail || JSON.stringify(errorData)), 'danger');
                 }
             } catch (error) {
@@ -1754,6 +1923,13 @@
 
         // Load all rates
         async function loadRates() {
+            // بررسی وجود پروژه فعال قبل از بارگذاری
+            const hasProject = await checkActiveProject();
+            if (!hasProject) {
+                console.warn('No active project, skipping rates load');
+                return;
+            }
+
             showLoading(true);
             
             try {
@@ -1763,6 +1939,15 @@
                     rates = await response.json();
                     displayRates();
                 } else {
+                    // اگر خطای 404 یا 400 باشد، ممکن است به دلیل نبود پروژه فعال باشد
+                    if (response.status === 404 || response.status === 400) {
+                        const errorData = await response.json().catch(() => ({}));
+                        if (errorData.detail && errorData.detail.includes('project')) {
+                            showNoProjectWarning();
+                            hideAllContent();
+                            return;
+                        }
+                    }
                     showAlert('خطا در بارگذاری نرخ‌های سود', 'danger');
                 }
             } catch (error) {
@@ -1775,6 +1960,14 @@
 
         // Load current active rate
         async function loadCurrentRate() {
+            // بررسی وجود پروژه فعال قبل از بارگذاری
+            const hasProject = await checkActiveProject();
+            if (!hasProject) {
+                console.warn('No active project, skipping current rate load');
+                document.getElementById('currentRateCard').style.display = 'none';
+                return;
+            }
+
             try {
                 const response = await fetch(`${API_BASE}InterestRate/current/`);
                 if (response.ok) {
@@ -1801,12 +1994,24 @@
 
         // Load financial summary data - استفاده از API جدید
         async function loadFinancialSummary() {
+            // بررسی وجود پروژه فعال قبل از بارگذاری
+            const hasProject = await checkActiveProject();
+            if (!hasProject) {
+                console.warn('No active project, skipping financial summary load');
+                return;
+            }
+
             try {
                 // استفاده از سرویس محاسبات مالی جدید
                 const costMetrics = await window.financialService.getCostMetrics();
                 
                 if (costMetrics.error) {
                     console.error('خطا در دریافت متریک‌های هزینه:', costMetrics.error);
+                    // اگر خطا به دلیل نبود پروژه فعال باشد، هشدار نمایش دهیم
+                    if (costMetrics.error.includes('project') || costMetrics.error.includes('پروژه')) {
+                        showNoProjectWarning();
+                        hideAllContent();
+                    }
                     return;
                 }
 
@@ -1897,6 +2102,13 @@
 
         // Load project statistics
         async function loadProjectStatistics() {
+            // بررسی وجود پروژه فعال قبل از بارگذاری
+            const hasProject = await checkActiveProject();
+            if (!hasProject) {
+                console.warn('No active project, skipping project statistics load');
+                return;
+            }
+
             try {
                 // Load project statistics (includes both project data and units statistics)
                 const response = await fetch(`${API_BASE}Project/statistics/`);
@@ -1908,6 +2120,15 @@
                     displayProjectStatistics(data);
                 } else {
                     console.error('Error loading project statistics');
+                    // اگر خطای 404 یا 400 باشد، ممکن است به دلیل نبود پروژه فعال باشد
+                    if (response.status === 404 || response.status === 400) {
+                        const errorData = await response.json().catch(() => ({}));
+                        if (errorData.detail && errorData.detail.includes('project')) {
+                            showNoProjectWarning();
+                            hideAllContent();
+                            return;
+                        }
+                    }
                 }
 
             } catch (error) {
@@ -2015,10 +2236,8 @@
             const totalProfitPercentageEl = document.getElementById('totalProfitPercentage');
             if (totalProfitPercentageEl) totalProfitPercentageEl.textContent = formatPercentage(totalProfitPercentage);
             
-            // Calculate average construction period
-            calculateAverageConstructionPeriod();
-            
             // محاسبه متریک‌های سود با استفاده از API جدید
+            // این API تمام متریک‌ها شامل دوره متوسط ساخت، درصد سود سالانه، ماهانه و روزانه را از سرور می‌گیرد
             loadProfitMetrics();
 
             console.log('Cost and Value Calculations:', {
@@ -2494,7 +2713,15 @@
         }
 
         // Recalculate profits function
-        function recalculateProfits() {
+        async function recalculateProfits() {
+            // بررسی وجود پروژه فعال قبل از محاسبه مجدد
+            const hasProject = await checkActiveProject();
+            if (!hasProject) {
+                showAlert('هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید.', 'danger');
+                closeRecalculateModal();
+                return;
+            }
+
             // نمایش loading بر روی دکمه
             const recalculateBtn = document.querySelector('#recalculateModal .btn-danger');
             const originalBtnHtml = recalculateBtn.innerHTML;
@@ -2510,6 +2737,15 @@
             })
             .then(response => {
                 if (!response.ok) {
+                    // اگر خطای 400 یا 404 باشد، ممکن است به دلیل نبود پروژه فعال باشد
+                    if (response.status === 400 || response.status === 404) {
+                        return response.json().then(errorData => {
+                            if (errorData.detail && (errorData.detail.includes('project') || errorData.detail.includes('پروژه'))) {
+                                throw new Error('هیچ پروژه فعالی یافت نشد');
+                            }
+                            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+                        });
+                    }
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 return response.json();
@@ -2551,7 +2787,15 @@
             .catch(error => {
                 console.error('Error recalculating profits:', error);
                 closeRecalculateModal();
-                showError('خطا در محاسبه مجدد سود مشارکتها: ' + error.message);
+                
+                // اگر خطا به دلیل نبود پروژه فعال باشد
+                if (error.message && error.message.includes('پروژه')) {
+                    showError('هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید.');
+                    showNoProjectWarning();
+                    hideAllContent();
+                } else {
+                    showError('خطا در محاسبه مجدد سود مشارکتها: ' + error.message);
+                }
             })
             .finally(() => {
                 // بازگرداندن دکمه به حالت اولیه
@@ -2573,6 +2817,18 @@
 
         // Fill add rate form with current data
         async function fillAddRateForm() {
+            // بررسی وجود پروژه فعال قبل از پر کردن فرم
+            const hasProject = await checkActiveProject();
+            if (!hasProject) {
+                showAlert('هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید.', 'danger');
+                // بستن modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addRateModal'));
+                if (modal) {
+                    modal.hide();
+                }
+                return;
+            }
+
             try {
                 // Get calculated daily profit percentage from server
                 const dailyProfitPercentage = await getDailyProfitPercentageFromServer();
@@ -2677,5 +2933,8 @@
             }
         }
     </script>
+    
+    <!-- Project Switcher JavaScript -->
+    <script src="/static/js/project-switcher.js"></script>
 </body>
 </html>

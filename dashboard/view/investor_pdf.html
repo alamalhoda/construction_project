@@ -517,6 +517,25 @@
             border-bottom: 3px solid var(--profit-color);
         }
 
+        /* استایل‌های ویژه برای لیست هزینه‌های اختصاصی واحد */
+        #unitSpecificExpensesSection .section-title {
+            color: var(--expense-color);
+            border-bottom: 2px solid var(--expense-color);
+        }
+
+        #unitSpecificExpensesSection .transactions-table th {
+            background: linear-gradient(135deg, var(--expense-color), #c82333);
+            color: white;
+        }
+
+        #unitSpecificExpensesSection .transactions-table tbody tr {
+            border-left: 3px solid var(--expense-color-light);
+        }
+
+        #unitSpecificExpensesSection .transactions-table tbody tr:hover {
+            background: var(--expense-color-light);
+        }
+
         /* Action Buttons */
         .action-buttons {
             display: flex;
@@ -701,6 +720,13 @@
                 print-color-adjust: exact;
             }
 
+            /* حفظ رنگ‌های لیست هزینه‌های اختصاصی واحد در چاپ */
+            #unitSpecificExpensesSection .section-title,
+            #unitSpecificExpensesSection .transactions-table th {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
             /* استایل هدر جدول */
             .transactions-table thead {
                 display: table-header-group;
@@ -782,6 +808,7 @@
         <!-- Report Header -->
         <div class="report-header">
             <h1><i class="fas fa-file-invoice-dollar"></i> گزارش مالی مشارکت کننده</h1>
+
             <div class="date" id="projectNameDisplay" style="display: none; margin-bottom: 5px; color: var(--primary-color); font-weight: bold;">
                 پروژه: <span id="projectName"></span>
             </div>
@@ -1097,6 +1124,10 @@
                         <h4 id="currentUnitCost">-</h4>
                         <p>هزینه فعلی واحد (تومان)</p>
                     </div>
+                    <div class="stat-card" style="border: 2px solid var(--expense-color); background: linear-gradient(135deg, var(--expense-color-light), rgba(220, 53, 69, 0.05));">
+                        <h4 id="unitSpecificExpenseTotal">-</h4>
+                        <p>هزینه اختصاصی واحد (تومان)</p>
+                    </div>
                 </div>
                 <!-- حالت سرمایه‌گذار: فقط مالکیت محاسبه شده و ارزش متری ساختمان -->
                 <div class="stats-grid" data-variant="investor">
@@ -1148,6 +1179,28 @@
                         <canvas id="activityDistributionChart"></canvas>
                     </div>
                 </div>
+            </div>
+
+            <!-- Unit Specific Expenses Section -->
+            <div class="transactions-section" id="unitSpecificExpensesSection" style="display: none;">
+                <h3 class="section-title">
+                    <i class="fas fa-receipt"></i>
+                    لیست هزینه‌های اختصاصی واحد
+                </h3>
+                <table class="transactions-table">
+                    <thead>
+                        <tr>
+                            <th>ردیف</th>
+                            <th>تاریخ</th>
+                            <th>عنوان</th>
+                            <th>مبلغ (تومان)</th>
+                            <th>توضیحات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="unitSpecificExpensesTableBody">
+                        <!-- Unit specific expenses will be loaded here -->
+                    </tbody>
+                </table>
             </div>
 
             <!-- Transactions Section -->
@@ -1232,6 +1285,34 @@
         // Fetch project name and description
         async function fetchProjectName() {
             try {
+                // ابتدا سعی می‌کنیم پروژه جاری را از API بگیریم
+                try {
+                    const currentResponse = await fetch('/api/v1/Project/current/');
+                    if (currentResponse.ok) {
+                        const currentProject = await currentResponse.json();
+                        if (currentProject && currentProject.name) {
+                            projectName = currentProject.name;
+                            document.getElementById('projectName').textContent = projectName;
+                            document.getElementById('projectNameDisplay').style.display = 'block';
+                            console.log('✅ نام پروژه جاری دریافت شد:', projectName);
+                            
+                            // نمایش توضیحات پروژه
+                            const projectDescriptionEl = document.getElementById('projectDescription');
+                            const projectDescriptionSection = document.getElementById('projectDescriptionSection');
+                            if (projectDescriptionEl && projectDescriptionSection && currentProject.description && currentProject.description.trim()) {
+                                projectDescriptionEl.textContent = currentProject.description;
+                                projectDescriptionSection.style.display = 'block';
+                            } else if (projectDescriptionSection) {
+                                projectDescriptionSection.style.display = 'none';
+                            }
+                            return;
+                        }
+                    }
+                } catch (err) {
+                    console.warn('خطا در دریافت پروژه جاری:', err);
+                }
+                
+                // اگر پروژه جاری پیدا نشد، از لیست پروژه‌ها استفاده می‌کنیم (fallback)
                 const response = await fetch('/api/v1/Project/');
                 if (response.ok) {
                     const projectsData = await response.json();
@@ -1240,7 +1321,7 @@
                         projectName = projects[0].name;
                         document.getElementById('projectName').textContent = projectName;
                         document.getElementById('projectNameDisplay').style.display = 'block';
-                        console.log('نام پروژه دریافت شد:', projectName);
+                        console.log('⚠️ نام پروژه از لیست پروژه‌ها دریافت شد:', projectName);
                         
                         // نمایش توضیحات پروژه
                         const projectDescriptionEl = document.getElementById('projectDescription');
@@ -1709,6 +1790,9 @@
 
                 // بارگذاری داده‌های دوره فعلی (هزینه خالص فعلی و مانده صندوق فعلی)
                 loadCurrentPeriodData();
+                
+                // بارگذاری هزینه‌های اختصاصی واحد
+                await loadUnitSpecificExpenses(investorId, investor.units);
 
                 // Show main content
                 document.getElementById('loadingState').style.display = 'none';
@@ -2117,6 +2201,75 @@
                 });
             } catch (error) {
                 console.error('خطا در بارگذاری داده‌های نمودار ترند:', error);
+            }
+        }
+        
+        // تابع بارگذاری هزینه‌های اختصاصی واحد
+        async function loadUnitSpecificExpenses(investorId, units) {
+            try {
+                if (!units || units.length === 0) {
+                    document.getElementById('unitSpecificExpenseTotal').textContent = '0';
+                    return;
+                }
+                
+                // دریافت هزینه‌های اختصاصی برای همه واحدهای سرمایه‌گذار
+                let totalExpense = 0;
+                let allExpenses = [];
+                
+                for (const unit of units) {
+                    const expenseResponse = await fetch(`/api/v1/UnitSpecificExpense/?unit=${unit.id}`);
+                    if (expenseResponse.ok) {
+                        const expensesData = await expenseResponse.json();
+                        const expenses = Array.isArray(expensesData) ? expensesData : (expensesData.results || []);
+                        const unitTotal = expenses.reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0);
+                        totalExpense += unitTotal;
+                        
+                        // اضافه کردن هزینه‌ها به لیست کامل
+                        expenses.forEach(exp => {
+                            allExpenses.push({
+                                ...exp,
+                                unitName: unit.name
+                            });
+                        });
+                    }
+                }
+                
+                // نمایش مجموع هزینه‌های اختصاصی
+                document.getElementById('unitSpecificExpenseTotal').textContent = formatNumber(totalExpense);
+                
+                // نمایش لیست هزینه‌های اختصاصی
+                const tableBody = document.getElementById('unitSpecificExpensesTableBody');
+                const section = document.getElementById('unitSpecificExpensesSection');
+                
+                if (allExpenses.length === 0) {
+                    if (section) section.style.display = 'none';
+                } else {
+                    if (section) section.style.display = 'block';
+                    // مرتب‌سازی بر اساس تاریخ
+                    allExpenses.sort((a, b) => {
+                        const dateA = a.date_shamsi || '';
+                        const dateB = b.date_shamsi || '';
+                        return dateB.localeCompare(dateA);
+                    });
+                    
+                    if (tableBody) {
+                        tableBody.innerHTML = allExpenses.map((exp, index) => `
+                            <tr>
+                                <td>${index + 1}</td>
+                                <td>${exp.date_shamsi || '-'}</td>
+                                <td>${exp.title || '-'}</td>
+                                <td>${formatNumber(Math.abs(exp.amount || 0))}</td>
+                                <td>${exp.description || '-'}</td>
+                            </tr>
+                        `).join('');
+                    }
+                }
+            } catch (error) {
+                console.error('خطا در بارگذاری هزینه‌های اختصاصی واحد:', error);
+                const totalEl = document.getElementById('unitSpecificExpenseTotal');
+                if (totalEl) totalEl.textContent = '0';
+                const section = document.getElementById('unitSpecificExpensesSection');
+                if (section) section.style.display = 'none';
             }
         }
     </script>

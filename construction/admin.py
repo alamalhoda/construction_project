@@ -119,7 +119,6 @@ class ProjectAdmin(admin.ModelAdmin):
     form = ProjectAdminForm
     list_display = [
         "name",
-        "is_active",
         "start_date_shamsi",
         "end_date_shamsi",
         "total_infrastructure",
@@ -128,7 +127,6 @@ class ProjectAdmin(admin.ModelAdmin):
         "updated_at",
     ]
     list_filter = [
-        "is_active",
         "created_at",
         "updated_at",
     ]
@@ -140,21 +138,6 @@ class ProjectAdmin(admin.ModelAdmin):
         "created_at",
         "updated_at",
     ]
-    actions = ['set_as_active_project']
-    
-    def set_as_active_project(self, request, queryset):
-        """تنظیم پروژه انتخاب شده به عنوان پروژه فعال"""
-        if queryset.count() != 1:
-            self.message_user(request, "لطفاً فقط یک پروژه را انتخاب کنید.", level='ERROR')
-            return
-        
-        project = queryset.first()
-        project.is_active = True
-        project.save()
-        
-        self.message_user(request, f"پروژه '{project.name}' به عنوان پروژه فعال تنظیم شد.")
-    
-    set_as_active_project.short_description = "تنظیم به عنوان پروژه فعال"
 
 
 class TransactionAdminForm(forms.ModelForm):
@@ -219,6 +202,13 @@ class UnitAdmin(admin.ModelAdmin):
     ]
     list_filter = [
         "project",
+        "created_at",
+    ]
+    search_fields = [
+        "name",
+        "project__name",
+    ]
+    readonly_fields = [
         "created_at",
     ]
     search_fields = [
@@ -297,6 +287,174 @@ class SaleAdmin(admin.ModelAdmin):
     ]
 
 
+class UnitSpecificExpenseAdminForm(forms.ModelForm):
+
+    class Meta:
+        model = models.UnitSpecificExpense
+        fields = "__all__"
+
+
+class UnitSpecificExpenseAdmin(admin.ModelAdmin):
+    form = UnitSpecificExpenseAdminForm
+    list_display = [
+        "project",
+        "unit",
+        "title",
+        "date_shamsi",
+        "amount",
+        "created_at",
+    ]
+    list_filter = [
+        "project",
+        "unit",
+        "created_at",
+    ]
+    search_fields = [
+        "title",
+        "description",
+        "unit__name",
+    ]
+    readonly_fields = [
+        "created_at",
+        "updated_at",
+    ]
+
+
+class InterestRateAdminForm(forms.ModelForm):
+
+    class Meta:
+        model = models.InterestRate
+        fields = "__all__"
+
+
+class InterestRateAdmin(admin.ModelAdmin):
+    form = InterestRateAdminForm
+    list_display = [
+        "project",
+        "rate",
+        "effective_date",
+        "effective_date_gregorian",
+        "is_active",
+        "description",
+        "created_at",
+        "updated_at",
+    ]
+    list_filter = [
+        "project",
+        "is_active",
+        "effective_date",
+        "created_at",
+        "updated_at",
+    ]
+    search_fields = [
+        "description",
+    ]
+    readonly_fields = [
+        "created_at",
+        "updated_at",
+    ]
+    ordering = ['-effective_date']
+
+
+class SaleAdminForm(forms.ModelForm):
+
+    class Meta:
+        model = models.Sale
+        fields = "__all__"
+
+
+class SaleAdmin(admin.ModelAdmin):
+    form = SaleAdminForm
+    list_display = [
+        "project",
+        "period",
+        "amount",
+        "description",
+        "created_at",
+    ]
+    list_filter = [
+        "project",
+        "period",
+        "created_at",
+    ]
+    search_fields = [
+        "description",
+        "project__name",
+        "period__label",
+    ]
+    readonly_fields = [
+        "created_at",
+    ]
+
+
+class UnitSpecificExpenseAdminForm(forms.ModelForm):
+
+    class Meta:
+        model = models.UnitSpecificExpense
+        fields = "__all__"
+
+
+class UnitSpecificExpenseAdmin(admin.ModelAdmin):
+    form = UnitSpecificExpenseAdminForm
+    list_display = [
+        "project",
+        "unit",
+        "title",
+        "date_shamsi",
+        "amount",
+        "created_at",
+    ]
+    list_filter = [
+        "project",
+        "unit",
+        "created_at",
+    ]
+    search_fields = [
+        "title",
+        "description",
+        "unit__name",
+    ]
+    readonly_fields = [
+        "created_at",
+        "updated_at",
+    ]
+
+
+class PettyCashTransactionAdminForm(forms.ModelForm):
+    class Meta:
+        model = models.PettyCashTransaction
+        fields = "__all__"
+
+class PettyCashTransactionAdmin(admin.ModelAdmin):
+    form = PettyCashTransactionAdminForm
+    list_display = [
+        "project",
+        "expense_type",
+        "transaction_type",
+        "amount",
+        "date_shamsi",
+        "receipt_number",
+        "created_at",
+    ]
+    list_filter = [
+        "expense_type",
+        "transaction_type",
+        "project",
+        "date_gregorian",
+    ]
+    search_fields = [
+        "description",
+        "receipt_number",
+        "project__name",
+    ]
+    readonly_fields = [
+        "created_at",
+        "updated_at",
+        "date_gregorian",
+    ]
+    date_hierarchy = "date_gregorian"
+
+
 admin.site.register(models.Expense, ExpenseAdmin)
 admin.site.register(models.Investor, InvestorAdmin)
 admin.site.register(models.InterestRate, InterestRateAdmin)
@@ -305,4 +463,6 @@ admin.site.register(models.Project, ProjectAdmin)
 admin.site.register(models.Sale, SaleAdmin)
 admin.site.register(models.Transaction, TransactionAdmin)
 admin.site.register(models.Unit, UnitAdmin)
+admin.site.register(models.UnitSpecificExpense, UnitSpecificExpenseAdmin)
+admin.site.register(models.PettyCashTransaction, PettyCashTransactionAdmin)
 admin.site.register(models.UserProfile)

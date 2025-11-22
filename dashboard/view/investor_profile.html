@@ -17,6 +17,9 @@
     <!-- Financial Calculations Service -->
     <script src="/static/js/financial-calculations.js"></script>
     
+    <!-- Project Switcher CSS -->
+    <link rel="stylesheet" href="/static/css/project-switcher.css">
+    
     <style>
         /* CSS Variables for Theme System */
         :root {
@@ -237,6 +240,32 @@
 
         .unified-header .nav-link i {
             font-size: 1.1rem;
+        }
+        
+        /* Project Switcher در unified-header */
+        .unified-header .project-switcher-container {
+            position: absolute;
+            top: 20px;
+            /* left: 20px; */
+            z-index: 10;
+        }
+        
+        .unified-header .project-switcher .current-project-display {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .unified-header .project-switcher .current-project-display:hover {
+            background: rgba(255, 255, 255, 0.35);
+        }
+        
+        /* Badge پروژه فعلی در عنوان */
+        .current-project-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 400;
         }
 
         /* Legacy header styles for backward compatibility */
@@ -1038,10 +1067,18 @@
     <div class="main-container">
         <div class="container">
         <div class="unified-header">
+            <!-- Project Switcher در گوشه بالا-چپ -->
+            <div class="project-switcher-container">
+                <!-- Project Switcher will be rendered here by JavaScript -->
+                <div id="projectSwitcherContainer"></div>
+            </div>
+            
             <div class="unified-header-content">
                 <h1>
                     <i class="fas fa-user-tie"></i>
                     پروفایل مالی مشارکت کننده
+                    <!-- Project Badge will be rendered here by JavaScript -->
+                    <span id="currentProjectBadge" style="display: none; font-size: 0.6em; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; margin-right: 15px; display: inline-flex; align-items: center; gap: 8px;"></span>
                 </h1>
                 <p class="subtitle">نمایش جامع وضعیت مالی </p>
                 <div class="navigation-links">
@@ -1067,6 +1104,15 @@
                     </a>
                 </div>
             </div>
+        </div>
+        
+        <!-- هشدار برای پروژه فعال نبودن (will be shown/hidden by JavaScript) -->
+        <div id="noProjectWarning" style="display: none; margin: 20px; padding: 20px; border-radius: 10px; background: #fff3cd; border: 2px solid #ffc107; color: #856404;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>هشدار:</strong> هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید.
+            <a href="/construction/Project/" class="btn btn-primary btn-sm" style="margin-right: 10px;">
+                <i class="fas fa-project-diagram"></i> مدیریت پروژه‌ها
+            </a>
         </div>
 
         <!-- Theme Toggle Button (moved outside header) -->
@@ -1247,6 +1293,10 @@
                         <h4 id="currentUnitCost">-</h4>
                         <p>هزینه فعلی واحد (تومان)</p>
                     </div>
+                    <div class="stat-card" style="border: 2px solid var(--expense-color); background: linear-gradient(135deg, var(--expense-color-light), rgba(220, 53, 69, 0.05));">
+                        <h4 id="unitSpecificExpenseTotal">-</h4>
+                        <p>هزینه اختصاصی واحد (تومان)</p>
+                    </div>
                 </div>
 
                 <!-- حالت سرمایه‌گذار: فقط نمایش مالکیت محاسبه‌شده -->
@@ -1400,13 +1450,39 @@
         // تابع دریافت نام پروژه و توضیحات از API
         async function fetchProjectName() {
             try {
+                // ابتدا سعی می‌کنیم پروژه جاری را از API بگیریم
+                try {
+                    const currentResponse = await fetch('/api/v1/Project/current/');
+                    if (currentResponse.ok) {
+                        const currentProject = await currentResponse.json();
+                        if (currentProject && currentProject.name) {
+                            projectName = currentProject.name;
+                            console.log('✅ نام پروژه جاری دریافت شد:', projectName);
+                            
+                            // نمایش توضیحات پروژه
+                            const projectDescriptionEl = document.getElementById('projectDescription');
+                            const projectDescriptionSection = document.getElementById('projectDescriptionSection');
+                            if (projectDescriptionEl && projectDescriptionSection && currentProject.description && currentProject.description.trim()) {
+                                projectDescriptionEl.textContent = currentProject.description;
+                                projectDescriptionSection.style.display = 'block';
+                            } else if (projectDescriptionSection) {
+                                projectDescriptionSection.style.display = 'none';
+                            }
+                            return;
+                        }
+                    }
+                } catch (err) {
+                    console.warn('خطا در دریافت پروژه جاری:', err);
+                }
+                
+                // اگر پروژه جاری پیدا نشد، از لیست پروژه‌ها استفاده می‌کنیم (fallback)
                 const response = await fetch('/api/v1/Project/');
                 if (response.ok) {
                     const projectsData = await response.json();
                     const projects = Array.isArray(projectsData) ? projectsData : (projectsData.results || []);
                     if (projects.length > 0) {
                         projectName = projects[0].name || '';
-                        console.log('نام پروژه دریافت شد:', projectName);
+                        console.log('⚠️ نام پروژه از لیست پروژه‌ها دریافت شد:', projectName);
                         
                         // نمایش توضیحات پروژه
                         const projectDescriptionEl = document.getElementById('projectDescription');
@@ -1978,6 +2054,47 @@
             
             // دریافت محاسبات از سرور
             await updateInvestorStatsFromServer(investorId, investorId);
+            
+            // دریافت هزینه‌های اختصاصی واحد
+            await loadUnitSpecificExpenses(investorId);
+        }
+        
+        // تابع بارگذاری هزینه‌های اختصاصی واحد
+        async function loadUnitSpecificExpenses(investorId) {
+            try {
+                // دریافت اطلاعات سرمایه‌گذار برای دسترسی به واحدها
+                const investorResponse = await fetch(`/api/v1/Investor/${investorId}/`);
+                if (!investorResponse.ok) {
+                    console.warn('خطا در دریافت اطلاعات سرمایه‌گذار برای هزینه‌های اختصاصی واحد');
+                    document.getElementById('unitSpecificExpenseTotal').textContent = '0';
+                    return;
+                }
+                
+                const investorData = await investorResponse.json();
+                
+                if (!investorData.units || investorData.units.length === 0) {
+                    document.getElementById('unitSpecificExpenseTotal').textContent = '0';
+                    return;
+                }
+                
+                // دریافت هزینه‌های اختصاصی برای همه واحدهای سرمایه‌گذار
+                let totalExpense = 0;
+                for (const unit of investorData.units) {
+                    const expenseResponse = await fetch(`/api/v1/UnitSpecificExpense/?unit=${unit.id}`);
+                    if (expenseResponse.ok) {
+                        const expensesData = await expenseResponse.json();
+                        const expenses = Array.isArray(expensesData) ? expensesData : (expensesData.results || []);
+                        const unitTotal = expenses.reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0);
+                        totalExpense += unitTotal;
+                    }
+                }
+                
+                // نمایش مجموع هزینه‌های اختصاصی
+                document.getElementById('unitSpecificExpenseTotal').textContent = formatNumberWithCommas(totalExpense);
+            } catch (error) {
+                console.error('خطا در بارگذاری هزینه‌های اختصاصی واحد:', error);
+                document.getElementById('unitSpecificExpenseTotal').textContent = '0';
+            }
         }
         
         // تابع کمکی برای به‌روزرسانی UI با اطلاعات مشارکت‌کننده
@@ -2526,5 +2643,8 @@
             showVariant('owner');
         });
     </script>
+    
+    <!-- Project Switcher JavaScript -->
+    <script src="/static/js/project-switcher.js"></script>
 </body>
 </html>

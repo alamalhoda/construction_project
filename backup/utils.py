@@ -33,9 +33,12 @@ def create_backup_directory():
     return backup_path, timestamp
 
 
-def get_database_stats():
+def get_database_stats(project_id=None):
     """
     دریافت آمار داده‌های موجود در دیتابیس
+    
+    Args:
+        project_id: شناسه پروژه برای فیلتر کردن داده‌ها (اختیاری)
     """
     try:
         Project = apps.get_model('construction', 'Project')
@@ -54,23 +57,33 @@ def get_database_stats():
         BackupRecord = apps.get_model('backup', 'BackupRecord')
         BackupSettings = apps.get_model('backup', 'BackupSettings')
         
+        # فیلتر بر اساس پروژه - برای مدل Project باید از id استفاده کنیم
+        project_filter = {}
+        if project_id:
+            project_filter['id'] = project_id
+        
+        # فیلتر برای مدل‌هایی که project دارند - باید از project_id استفاده کنیم
+        project_related_filter = {}
+        if project_id:
+            project_related_filter['project_id'] = project_id
+        
         stats = {
-            # مدل‌های construction
-            'projects': Project.objects.count(),
-            'investors': Investor.objects.count(),
-            'periods': Period.objects.count(),
-            'transactions': Transaction.objects.count(),
-            'units': Unit.objects.count(),
-            'interest_rates': InterestRate.objects.count(),
-            'expenses': Expense.objects.count(),
-            'sales': Sale.objects.count(),
-            'user_profiles': UserProfile.objects.count(),
+            # مدل‌های construction - فیلتر بر اساس پروژه
+            'projects': Project.objects.filter(**project_filter).count() if project_id else Project.objects.count(),
+            'investors': Investor.objects.filter(**project_related_filter).count() if project_id else Investor.objects.count(),
+            'periods': Period.objects.filter(**project_related_filter).count() if project_id else Period.objects.count(),
+            'transactions': Transaction.objects.filter(**project_related_filter).count() if project_id else Transaction.objects.count(),
+            'units': Unit.objects.filter(**project_related_filter).count() if project_id else Unit.objects.count(),
+            'interest_rates': InterestRate.objects.filter(**project_related_filter).count() if project_id else InterestRate.objects.count(),
+            'expenses': Expense.objects.filter(**project_related_filter).count() if project_id else Expense.objects.count(),
+            'sales': Sale.objects.filter(**project_related_filter).count() if project_id else Sale.objects.count(),
+            'user_profiles': UserProfile.objects.count(),  # user profiles معمولاً به پروژه مربوط نیستند
             
-            # مدل‌های Django داخلی
+            # مدل‌های Django داخلی - همیشه همه
             'users': User.objects.count(),
             'groups': Group.objects.count(),
             
-            # مدل‌های backup
+            # مدل‌های backup - همیشه همه
             'backup_records': BackupRecord.objects.count(),
             'backup_settings': BackupSettings.objects.count(),
         }

@@ -14,11 +14,6 @@ class Project(models.Model):
     end_date_shamsi = jmodels.jDateField(verbose_name="تاریخ پایان (شمسی)")
     start_date_gregorian = models.DateField(verbose_name="تاریخ شروع (میلادی)")
     end_date_gregorian = models.DateField(verbose_name="تاریخ پایان (میلادی)")
-    is_active = models.BooleanField(
-        default=False, 
-        verbose_name="پروژه فعال",
-        help_text="آیا این پروژه در حال حاضر فعال است؟ (فقط یک پروژه می‌تواند فعال باشد)"
-    )
     total_infrastructure = models.DecimalField(
         max_digits=15,
         decimal_places=2,
@@ -41,6 +36,18 @@ class Project(models.Model):
         help_text="درصد پیمان ساخت از مجموع سایر هزینه‌ها (به صورت اعشاری، مثلاً 0.100 برای 10%)"
     )
     description = models.TextField(blank=True, null=True, verbose_name="توضیحات", help_text="توضیحات اضافی درباره پروژه")
+    color = models.CharField(
+        max_length=7,
+        default='#667eea',
+        verbose_name="رنگ پروژه",
+        help_text="رنگ نمایش پروژه (فرمت HEX)"
+    )
+    icon = models.CharField(
+        max_length=50,
+        default='fa-building',
+        verbose_name="آیکون پروژه",
+        help_text="نام کلاس آیکون Font Awesome (مثال: fa-building)"
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="تاریخ به‌روزرسانی")
 
@@ -58,50 +65,7 @@ class Project(models.Model):
         return reverse('construction_Project_update', kwargs={'pk': self.pk})
     
     def save(self, *args, **kwargs):
-        # اگر این پروژه فعال شود، همه پروژه‌های دیگر را غیرفعال کن
-        if self.is_active:
-            Project.objects.filter(is_active=True).exclude(pk=self.pk).update(is_active=False)
-        
         super().save(*args, **kwargs)
-    
-    @classmethod
-    def get_active_project(cls):
-        """دریافت پروژه فعال (فقط یک پروژه می‌تواند فعال باشد)"""
-        try:
-            return cls.objects.filter(is_active=True).first()
-        except cls.DoesNotExist:
-            return None
-    
-    @classmethod
-    def set_active_project(cls, project_id):
-        """تنظیم پروژه فعال (همه پروژه‌های دیگر غیرفعال می‌شوند)"""
-        # غیرفعال کردن همه پروژه‌ها
-        cls.objects.filter(is_active=True).update(is_active=False)
-        
-        # فعال کردن پروژه انتخاب شده
-        try:
-            project = cls.objects.get(pk=project_id)
-            project.is_active = True
-            project.save()
-            return project
-        except cls.DoesNotExist:
-            return None
-    
-    @classmethod
-    def get_default_project(cls):
-        """دریافت پروژه پیش‌فرض (پروژه فعال یا اولین پروژه)"""
-        # ابتدا پروژه فعال را جستجو کن
-        active_project = cls.objects.filter(is_active=True).first()
-        if active_project:
-            return active_project.id
-        
-        # اگر پروژه فعالی نبود، اولین پروژه را برگردان
-        first_project = cls.objects.first()
-        if first_project:
-            return first_project.id
-        
-        # اگر هیچ پروژه‌ای نبود، None برگردان (برای migration)
-        return None
     
 
 
@@ -315,10 +279,10 @@ class InterestRate(models.Model):
         super().save(*args, **kwargs)
 
     @classmethod
-    def get_current_rate(cls, project=None):
+    def get_current_rate(cls, project):
         """دریافت نرخ سود فعلی برای پروژه"""
         if not project:
-            project = Project.get_active_project()
+            raise ValueError("پارامتر project الزامی است")
         
         try:
             return cls.objects.filter(is_active=True, project=project).first()
@@ -326,10 +290,10 @@ class InterestRate(models.Model):
             return None
 
     @classmethod
-    def get_rate_for_date(cls, date, project=None):
+    def get_rate_for_date(cls, date, project):
         """دریافت نرخ سود برای تاریخ و پروژه مشخص"""
         if not project:
-            project = Project.get_active_project()
+            raise ValueError("پارامتر project الزامی است")
         
         try:
             return cls.objects.filter(
@@ -568,12 +532,16 @@ class Transaction(models.Model):
         
         برای آورده: سود مثبت
         برای خروج از سرمایه: سود منفی
+        
+        Args:
+            interest_rate: نرخ سود (اگر None باشد، از نرخ فعال پروژه این تراکنش استفاده می‌شود)
         """
         if self.transaction_type not in ['principal_deposit', 'loan_deposit', 'principal_withdrawal']:
             return Decimal('0')
         
         if not interest_rate:
-            interest_rate = InterestRate.get_current_rate()
+            # استفاده از نرخ سود فعال پروژه این تراکنش
+            interest_rate = InterestRate.get_current_rate(project=self.project)
         
         if not interest_rate:
             return Decimal('0')
@@ -587,18 +555,26 @@ class Transaction(models.Model):
         return profit.quantize(Decimal('0.01'))  # گرد کردن به 2 رقم اعشار
 
     @classmethod
-    def calculate_all_profits(cls, interest_rate=None):
+    def calculate_all_profits(cls, project, interest_rate=None):
         """
         محاسبه سود برای همه آورده‌ها
+        
+        Args:
+            project: پروژه (الزامی)
+            interest_rate: نرخ سود (در صورت None، از نرخ فعال پروژه استفاده می‌شود)
         """
+        if not project:
+            raise ValueError("پارامتر project الزامی است")
+        
         if not interest_rate:
-            interest_rate = InterestRate.get_current_rate()
+            interest_rate = InterestRate.get_current_rate(project=project)
         
         if not interest_rate:
             return []
         
-        # دریافت همه تراکنش‌های سرمایه (آورده و خروج)
+        # دریافت همه تراکنش‌های سرمایه (آورده و خروج) برای پروژه مشخص
         capital_transactions = cls.objects.filter(
+            project=project,
             transaction_type__in=['principal_deposit', 'loan_deposit', 'principal_withdrawal'],
             day_remaining__gt=0
         )
@@ -630,18 +606,26 @@ class Transaction(models.Model):
         return profit_transactions
 
     @classmethod
-    def recalculate_profits_with_new_rate(cls, new_interest_rate):
+    def recalculate_profits_with_new_rate(cls, new_interest_rate, project):
         """
         محاسبه مجدد سودها با نرخ جدید
+        
+        Args:
+            new_interest_rate: نرخ سود جدید (InterestRate instance)
+            project: پروژه (الزامی)
         """
-        # حذف سودهای قبلی که توسط سیستم تولید شده‌اند
+        if not project:
+            raise ValueError("پارامتر project الزامی است")
+        
+        # حذف سودهای قبلی که توسط سیستم تولید شده‌اند برای پروژه
         cls.objects.filter(
+            project=project,
             transaction_type='profit_accrual',
             is_system_generated=True
         ).delete()
         
-        # محاسبه سودهای جدید
-        new_profit_transactions = cls.calculate_all_profits(new_interest_rate)
+        # محاسبه سودهای جدید برای پروژه
+        new_profit_transactions = cls.calculate_all_profits(project=project, interest_rate=new_interest_rate)
         
         # ذخیره سودهای جدید
         for profit_transaction in new_profit_transactions:
@@ -650,22 +634,30 @@ class Transaction(models.Model):
         return len(new_profit_transactions)
     
     @classmethod
-    def delete_all_profit_transactions(cls):
+    def delete_all_profit_transactions(cls, project):
         """
-        حذف همه رکوردهای سود (اعم از سیستم‌ی و دستی)
+        حذف همه رکوردهای سود (اعم از سیستم‌ی و دستی) برای پروژه مشخص
+        
+        Args:
+            project: پروژه (الزامی)
         """
+        if not project:
+            raise ValueError("پارامتر project الزامی است")
+        
         deleted_count = cls.objects.filter(
+            project=project,
             transaction_type='profit_accrual'
         ).count()
         
         cls.objects.filter(
+            project=project,
             transaction_type='profit_accrual'
         ).delete()
         
         return deleted_count
     
     @classmethod
-    def recalculate_all_profits_with_new_rate(cls, new_interest_rate):
+    def recalculate_all_profits_with_new_rate(cls, new_interest_rate, project):
         """
         سناریوی کامل: حذف همه سودهای قبلی و محاسبه مجدد با نرخ جدید
         
@@ -675,16 +667,20 @@ class Transaction(models.Model):
         3. سودهای جدید را ذخیره می‌کند
         
         Args:
-            new_interest_rate (Decimal): نرخ سود جدید
+            new_interest_rate: نرخ سود جدید (InterestRate instance)
+            project: پروژه (الزامی)
             
         Returns:
             dict: شامل تعداد رکوردهای حذف شده و تعداد رکوردهای جدید
         """
-        # مرحله 1: حذف همه رکوردهای سود قبلی
-        deleted_count = cls.delete_all_profit_transactions()
+        if not project:
+            raise ValueError("پارامتر project الزامی است")
         
-        # مرحله 2: محاسبه سودهای جدید با نرخ جدید
-        new_profit_transactions = cls.calculate_all_profits(new_interest_rate)
+        # مرحله 1: حذف همه رکوردهای سود قبلی برای پروژه
+        deleted_count = cls.delete_all_profit_transactions(project=project)
+        
+        # مرحله 2: محاسبه سودهای جدید با نرخ جدید برای پروژه
+        new_profit_transactions = cls.calculate_all_profits(project=project, interest_rate=new_interest_rate)
         
         # مرحله 3: ذخیره سودهای جدید
         for profit_transaction in new_profit_transactions:
@@ -918,6 +914,53 @@ class Sale(models.Model):
     def get_absolute_url(self):
         return reverse('construction_Sale_detail', kwargs={'pk': self.pk})
 
+class UnitSpecificExpense(models.Model):
+    """
+    مدل هزینه‌های اختصاصی هر واحد
+    هزینه‌هایی که مالک واحد برای واحد خودش انجام می‌دهد
+    """
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, verbose_name="پروژه")
+    unit = models.ForeignKey(Unit, on_delete=models.CASCADE, verbose_name="واحد")
+    title = models.CharField(max_length=200, verbose_name="عنوان")
+    date_shamsi = jmodels.jDateField(verbose_name="تاریخ (شمسی)")
+    date_gregorian = models.DateField(verbose_name="تاریخ (میلادی)")
+    amount = models.DecimalField(max_digits=20, decimal_places=2, verbose_name="مبلغ")
+    description = models.TextField(blank=True, null=True, verbose_name="توضیحات")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="تاریخ به‌روزرسانی")
+
+    class Meta:
+        verbose_name = "هزینه اختصاصی واحد"
+        verbose_name_plural = "هزینه‌های اختصاصی واحد"
+        ordering = ['-date_shamsi', '-created_at']
+
+    def __str__(self):
+        return f"{self.unit.name} - {self.title} - {self.amount}"
+    
+    def get_absolute_url(self):
+        return reverse('construction_UnitSpecificExpense_detail', kwargs={'pk': self.pk})
+    
+    def get_update_url(self):
+        return reverse('construction_UnitSpecificExpense_update', kwargs={'pk': self.pk})
+    
+    def save(self, *args, **kwargs):
+        # تبدیل تاریخ شمسی به میلادی
+        if self.date_shamsi and not self.date_gregorian:
+            import jdatetime
+            try:
+                # تبدیل تاریخ شمسی به میلادی
+                jdate = jdatetime.date(
+                    self.date_shamsi.year,
+                    self.date_shamsi.month,
+                    self.date_shamsi.day
+                )
+                self.date_gregorian = jdate.togregorian()
+            except Exception as e:
+                # در صورت خطا، تاریخ میلادی را تنظیم نکن
+                pass
+        
+        super().save(*args, **kwargs)
+
 class UserProfile(models.Model):
     """
     مدل پروفایل کاربر برای مدیریت نقش‌ها و دسترسی‌ها
@@ -1005,3 +1048,309 @@ class UserProfile(models.Model):
                 'dashboard',
                 'profile'
             ]
+
+
+class PettyCashTransactionManager(models.Manager):
+    """مرجع واحد برای محاسبه موجودی و آمار تنخواه"""
+  
+    def get_balance(self, project: Project, expense_type: str):
+        """
+        محاسبه وضعیت مالی عامل اجرایی
+        وضعیت = مجموع دریافت‌ها - مجموع هزینه‌ها - مجموع عودت‌ها
+      
+        مقدار مثبت: عامل اجرایی بدهکار (باید به صندوق برگرداند)
+        مقدار منفی: عامل اجرایی بستانکار (طلبکار) - صندوق باید به او بدهد
+        """
+        from django.db.models import Sum, Q
+        from decimal import Decimal
+      
+        # مجموع دریافت‌ها
+        total_receipts = self.get_queryset().filter(
+            project=project,
+            expense_type=expense_type,
+            transaction_type='receipt'
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+      
+        # مجموع عودت‌ها
+        total_returns = self.get_queryset().filter(
+            project=project,
+            expense_type=expense_type,
+            transaction_type='return'
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+      
+        # مجموع هزینه‌ها از Expense
+        total_expenses = Expense.objects.filter(
+            project=project,
+            expense_type=expense_type
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+      
+        # محاسبه وضعیت مالی
+        balance = total_receipts - total_expenses - total_returns
+      
+        return float(balance)
+  
+    def get_total_receipts(self, project: Project, expense_type: str):
+        """مجموع تنخواه‌های دریافتی"""
+        from django.db.models import Sum
+      
+        total = self.get_queryset().filter(
+            project=project,
+            expense_type=expense_type,
+            transaction_type='receipt'
+        ).aggregate(total=Sum('amount'))['total'] or 0
+      
+        return float(total)
+  
+    def get_total_returns(self, project: Project, expense_type: str):
+        """مجموع عودت‌های تنخواه"""
+        from django.db.models import Sum
+      
+        total = self.get_queryset().filter(
+            project=project,
+            expense_type=expense_type,
+            transaction_type='return'
+        ).aggregate(total=Sum('amount'))['total'] or 0
+      
+        return float(total)
+  
+    def get_total_expenses(self, project: Project, expense_type: str):
+        """مجموع هزینه‌های ثبت شده (از Expense)"""
+        from django.db.models import Sum
+      
+        total = Expense.objects.filter(
+            project=project,
+            expense_type=expense_type
+        ).aggregate(total=Sum('amount'))['total'] or 0
+      
+        return float(total)
+  
+    def get_balance_by_period(self, project: Project, expense_type: str, period: Period):
+        """
+        وضعیت مالی عامل اجرایی تا پایان یک دوره خاص
+        """
+        from django.db.models import Sum, Q
+        from decimal import Decimal
+      
+        # دریافت‌های قبل از پایان دوره (بر اساس تاریخ میلادی)
+        total_receipts = self.get_queryset().filter(
+            project=project,
+            expense_type=expense_type,
+            transaction_type='receipt',
+            date_gregorian__lte=period.end_date_gregorian
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+      
+        # عودت‌های قبل از پایان دوره (بر اساس تاریخ میلادی)
+        total_returns = self.get_queryset().filter(
+            project=project,
+            expense_type=expense_type,
+            transaction_type='return',
+            date_gregorian__lte=period.end_date_gregorian
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+      
+        # هزینه‌های قبل از پایان دوره (بر اساس تاریخ میلادی یا period)
+        # هزینه‌هایی که period دارند: فقط دوره‌های قبل یا شامل این دوره
+        # استفاده از Q object برای مقایسه صحیح سال و ماه
+        from django.db.models import Q
+        
+        expenses_with_period = Expense.objects.filter(
+            project=project,
+            expense_type=expense_type,
+            period__isnull=False
+        ).filter(
+            Q(period__year__lt=period.year) |
+            Q(period__year=period.year, period__month_number__lte=period.month_number)
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        
+        # هزینه‌های بدون period که قبل از پایان این دوره ایجاد شده‌اند
+        # استفاده از created_at برای هزینه‌های بدون period
+        expenses_without_period = Expense.objects.filter(
+            project=project,
+            expense_type=expense_type,
+            period__isnull=True,
+            created_at__date__lte=period.end_date_gregorian
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        
+        total_expenses = expenses_with_period + expenses_without_period
+      
+        balance = total_receipts - total_expenses - total_returns
+        return float(balance)
+  
+    def get_all_balances(self, project: Project):
+        """وضعیت مالی همه عوامل اجرایی"""
+        balances = {}
+        for expense_type, label in Expense.EXPENSE_TYPES:
+            # فیلتر کردن construction_contractor و other
+            if expense_type not in ['construction_contractor', 'other']:
+                balances[expense_type] = {
+                    'label': label,
+                    'balance': self.get_balance(project, expense_type),
+                    'total_receipts': self.get_total_receipts(project, expense_type),
+                    'total_expenses': self.get_total_expenses(project, expense_type),
+                    'total_returns': self.get_total_returns(project, expense_type),
+                }
+        return balances
+  
+    def get_period_balance_trend(self, project: Project, expense_type: str, start_period: Period = None, end_period: Period = None):
+        """
+        ترند زمانی وضعیت مالی عامل اجرایی با جزئیات کامل
+        شامل: دریافت‌ها، عودت‌ها، هزینه‌ها، مانده دوره‌ای و تجمعی
+        """
+        from django.db.models import Sum, Q
+        from decimal import Decimal
+      
+        periods = Period.objects.filter(project=project).order_by('year', 'month_number')
+      
+        if start_period:
+            periods = periods.filter(
+                Q(year__gt=start_period.year) |
+                Q(year=start_period.year, month_number__gte=start_period.month_number)
+            )
+      
+        if end_period:
+            periods = periods.filter(
+                Q(year__lt=end_period.year) |
+                Q(year=end_period.year, month_number__lte=end_period.month_number)
+            )
+      
+        trend_data = []
+        cumulative_balance = Decimal('0')  # مانده تجمعی کلی
+        
+        for period in periods:
+            # دریافت‌های دوره‌ای (همان دوره)
+            period_receipts = self.get_queryset().filter(
+                project=project,
+                expense_type=expense_type,
+                transaction_type='receipt',
+                date_gregorian__gte=period.start_date_gregorian,
+                date_gregorian__lte=period.end_date_gregorian
+            ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+            
+            # عودت‌های دوره‌ای (همان دوره)
+            period_returns = self.get_queryset().filter(
+                project=project,
+                expense_type=expense_type,
+                transaction_type='return',
+                date_gregorian__gte=period.start_date_gregorian,
+                date_gregorian__lte=period.end_date_gregorian
+            ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+            
+            # هزینه‌های دوره‌ای (همان دوره)
+            period_expenses = Expense.objects.filter(
+                project=project,
+                expense_type=expense_type,
+                period=period
+            ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+            
+            # مانده دوره‌ای (receipts - expenses - returns)
+            period_balance = period_receipts - period_expenses - period_returns
+            
+            # مانده تجمعی تا این دوره (از ابتدا تا پایان این دوره)
+            cumulative_balance = self.get_balance_by_period(project, expense_type, period)
+            
+            trend_data.append({
+                'period_id': period.id,
+                'period_label': period.label,
+                'year': period.year,
+                'month_number': period.month_number,
+                'period_receipts': float(period_receipts),      # تنخواه دریافتی دوره
+                'period_returns': float(period_returns),        # عودت تنخواه دوره
+                'period_expenses': float(period_expenses),      # هزینه دوره
+                'period_balance': float(period_balance),        # مانده ماهانه (دوره‌ای)
+                'cumulative_balance': float(cumulative_balance), # مانده تجمعی کلی (تا پایان این دوره)
+                'balance': float(cumulative_balance),            # برای سازگاری با کد قبلی
+            })
+      
+        return trend_data
+
+
+class PettyCashTransaction(models.Model):
+    """
+    تراکنش‌های تنخواه عوامل اجرایی
+    Single Source of Truth برای همه اطلاعات تنخواه
+    """
+    TRANSACTION_TYPES = [
+        ('receipt', 'دریافت تنخواه'),      # از صندوق به عامل اجرایی
+        ('return', 'عودت تنخواه'),         # از عامل اجرایی به صندوق
+        # توجه: هزینه‌ها در Expense ثبت می‌شوند، نه اینجا
+    ]
+  
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, verbose_name="پروژه")
+    expense_type = models.CharField(
+        max_length=30, 
+        choices=Expense.EXPENSE_TYPES,
+        verbose_name="عامل اجرایی",
+        help_text="نوع هزینه که به عنوان عامل اجرایی استفاده می‌شود"
+    )
+    transaction_type = models.CharField(
+        max_length=20, 
+        choices=TRANSACTION_TYPES,
+        verbose_name="نوع تراکنش"
+    )
+    amount = models.DecimalField(
+        max_digits=20, 
+        decimal_places=2,
+        verbose_name="مبلغ",
+        help_text="همیشه مثبت ذخیره می‌شود"
+    )
+    description = models.TextField(
+        blank=True,
+        verbose_name="توضیحات"
+    )
+    receipt_number = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name="شماره فیش/رسید"
+    )
+    date_shamsi = jmodels.jDateField(verbose_name="تاریخ شمسی")
+    date_gregorian = models.DateField(verbose_name="تاریخ میلادی")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+  
+    # Manager سفارشی
+    objects = PettyCashTransactionManager()
+  
+    class Meta:
+        verbose_name = "تراکنش تنخواه"
+        verbose_name_plural = "تراکنش‌های تنخواه"
+        ordering = ['-date_gregorian', '-created_at']
+        indexes = [
+            models.Index(fields=['project', 'expense_type', 'date_gregorian']),
+        ]
+  
+    def __str__(self):
+        type_display = 'دریافت' if self.transaction_type == 'receipt' else 'عودت'
+        return f"{self.get_expense_type_display()} - {type_display} - {self.amount}"
+  
+    def save(self, *args, **kwargs):
+        # تبدیل تاریخ شمسی به میلادی
+        if self.date_shamsi and not self.date_gregorian:
+            from jdatetime import datetime as jdatetime
+            if isinstance(self.date_shamsi, str):
+                jdate = jdatetime.strptime(str(self.date_shamsi), '%Y-%m-%d')
+                self.date_gregorian = jdate.togregorian().date()
+                self.date_shamsi = jdate.date()
+            elif hasattr(self.date_shamsi, 'year'):
+                self.date_gregorian = self.date_shamsi.togregorian()
+      
+        # اطمینان از مثبت بودن مبلغ
+        if self.amount < 0:
+            self.amount = abs(self.amount)
+      
+        super().save(*args, **kwargs)
+  
+    def get_signed_amount(self):
+        """
+        برگرداندن مبلغ با علامت صحیح
+        دریافت: مثبت (+)
+        عودت: منفی (-)
+        """
+        if self.transaction_type == 'receipt':
+            return self.amount
+        else:  # return
+            return -self.amount
+    
+    def get_absolute_url(self):
+        return reverse('construction_PettyCashTransaction_detail', kwargs={'pk': self.pk})
+    
+    def get_update_url(self):
+        return reverse('construction_PettyCashTransaction_update', kwargs={'pk': self.pk})

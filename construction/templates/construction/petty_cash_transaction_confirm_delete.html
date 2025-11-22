@@ -1,0 +1,93 @@
+
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle"></i> تأیید حذف
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-warning"></i>
+                        <strong>هشدار:</strong> این عمل قابل بازگشت نیست!
+                    </div>
+                    
+                    <p class="mb-4">
+                        آیا از حذف تراکنش تنخواه زیر اطمینان دارید؟
+                    </p>
+                    
+                    <div class="transaction-info p-3 bg-light rounded">
+                        <h5>{{ object.get_expense_type_display }}</h5>
+                        <p class="mb-1">
+                            <strong>نوع تراکنش:</strong> 
+                            {% if object.transaction_type == 'receipt' %}
+                                <span class="badge" style="background-color: var(--deposit-color, #2185d0); color: white;">
+                                    دریافت تنخواه
+                                </span>
+                            {% else %}
+                                <span class="badge" style="background-color: var(--withdrawal-color, #db2828); color: white;">
+                                    عودت تنخواه
+                                </span>
+                            {% endif %}
+                        </p>
+                        <p class="mb-1">
+                            <strong>مبلغ:</strong> 
+                            <span class="number-format">
+                                {% if object.transaction_type == 'receipt' %}
+                                    <span style="color: var(--deposit-color, #2185d0);">+{{ object.amount|floatformat:0 }}</span>
+                                {% else %}
+                                    <span style="color: var(--withdrawal-color, #db2828);">-{{ object.amount|floatformat:0 }}</span>
+                                {% endif %}
+                                تومان
+                            </span>
+                        </p>
+                        <p class="mb-1"><strong>تاریخ:</strong> {{ object.date_shamsi }}</p>
+                        {% if object.receipt_number %}
+                            <p class="mb-1"><strong>شماره فیش/رسید:</strong> {{ object.receipt_number }}</p>
+                        {% endif %}
+                        {% if object.description %}
+                            <p class="mb-0"><strong>توضیحات:</strong> {{ object.description }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'construction_PettyCashTransaction_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-right"></i> انصراف
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> حذف تراکنش
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// فرمت اعداد انگلیسی با جداکننده هزارگان
+document.addEventListener('DOMContentLoaded', function() {
+    const numberCells = document.querySelectorAll('.number-format');
+    numberCells.forEach(cell => {
+        const text = cell.textContent;
+        const numberMatch = text.match(/(\d+(?:\.\d+)?)/);
+        if (numberMatch) {
+            const number = parseFloat(numberMatch[1]);
+            const formattedNumber = new Intl.NumberFormat('en-US').format(Math.round(number));
+            cell.textContent = text.replace(numberMatch[1], formattedNumber);
+        }
+    });
+});
+</script>
+
+{% endblock %}
+

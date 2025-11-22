@@ -6,6 +6,8 @@
     <title>داشبورد کاربری</title>
     <link rel="stylesheet" href="/static/fonts/vazir.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Project Switcher CSS -->
+    <link rel="stylesheet" href="/static/css/project-switcher.css">
 <style>
     body {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -17,6 +19,12 @@
         max-width: 1200px;
         margin: 0 auto;
         padding: 20px;
+    }
+    
+    /* Project Switcher */
+    .project-switcher-container {
+        /* text-align: left; */
+        margin-bottom: 20px;
     }
     
     .dashboard-header {
@@ -264,6 +272,62 @@
         text-align: left;
         direction: ltr;
     }
+    
+    /* استایل مخصوص بخش حسابداری تنخواه */
+    .petty-cash-section {
+        grid-column: 1 / -1;
+        margin-top: 4px;
+        padding-top: 4px;
+        position: relative;
+    }
+    
+    .petty-cash-section-border {
+        position: absolute;
+        top: 0;
+        right: 0;
+        left: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #ff9800 0%, #ff5722 100%);
+        border-radius: 3px;
+    }
+    
+    .section-header.petty-cash-header {
+        grid-column: 1 / -1;
+        background: white;
+        border: 2px solid rgba(255, 152, 0, 0.3);
+        margin-bottom: 25px;
+    }
+    
+    .section-header.petty-cash-header h2 {
+        color: #ff6f00;
+        text-shadow: 0 2px 4px rgba(255, 152, 0, 0.2);
+    }
+    
+    .dashboard-card.petty-cash-card {
+        position: relative;
+    }
+    
+    .dashboard-card.petty-cash-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 4px;
+        height: 100%;
+        border-radius: 0 20px 20px 0;
+    }
+    
+    .dashboard-card.petty-cash-card .card-icon {
+        color: #ff9800;
+    }
+    
+    .dashboard-card.petty-cash-card .card-btn {
+        background: linear-gradient(135deg, #ff9800 0%, #ff5722 100%);
+    }
+    
+    .dashboard-card.petty-cash-card .card-btn:hover {
+        box-shadow: 0 8px 25px rgba(255, 152, 0, 0.4);
+    }
 
     @media (max-width: 768px) {
         .dashboard-container {
@@ -300,6 +364,30 @@
 </head>
 <body>
 <div class="dashboard-container">
+        <!-- Project Switcher -->
+        <div class="project-switcher-container">
+            <!-- Project Switcher will be rendered here by JavaScript -->
+            <div id="projectSwitcherContainer"></div>
+        </div>
+        
+        <!-- Project Info Alert (will be shown/hidden by JavaScript) -->
+        <div id="currentProjectInfo" style="display: none; margin-bottom: 20px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); border: 2px solid rgba(102, 126, 234, 0.3); border-radius: 10px; padding: 15px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <i id="currentProjectIcon" class="fas fa-building" style="color: #667eea; font-size: 1.5rem;"></i>
+                <div>
+                    <strong>پروژه فعلی:</strong> <span id="currentProjectName"></span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- هشدار برای پروژه فعال نبودن (will be shown/hidden by JavaScript) -->
+        <div id="noProjectWarning" style="display: none; margin-bottom: 20px; padding: 20px; border-radius: 10px; background: #fff3cd; border: 2px solid #ffc107; color: #856404;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>هشدار:</strong> هیچ پروژه فعالی یافت نشد. لطفاً ابتدا یک پروژه را فعال کنید.
+            <a href="/construction/Project/" class="btn btn-primary btn-sm" style="margin-right: 10px;">
+                <i class="fas fa-project-diagram"></i> مدیریت پروژه‌ها
+            </a>
+        </div>
 
         <div class="welcome-message">
             <h2>سلام {{ user_full_name }}</h2>
@@ -434,12 +522,86 @@
                 </a>
             </div>
             
+            <!-- بخش حسابداری تنخواه -->
+            <div class="petty-cash-section">
+                <div class="petty-cash-section-border"></div>
+                <div class="section-header petty-cash-header">
+                    <h2>💰 حسابداری تنخواه</h2>
+                    <p>مدیریت و گزارش‌گیری از تراکنش‌های تنخواه پروژه</p>
+                </div>
+            </div>
+            
+            <div class="dashboard-card petty-cash-card">
+                <span class="card-icon">💼</span>
+                <h3 class="card-title">داشبورد تنخواه</h3>
+                <p class="card-description">
+                    مشاهده خلاصه و آمار کلی تراکنش‌های تنخواه
+                </p>
+                <a href="/dashboard/petty-cash/" class="card-btn">
+                    داشبورد تنخواه
+                </a>
+            </div>
+            
+            <div class="dashboard-card petty-cash-card">
+                <span class="card-icon">📊</span>
+                <h3 class="card-title">گزارش مانده تنخواه</h3>
+                <p class="card-description">
+                    مشاهده مانده فعلی تنخواه به تفکیک نوع هزینه
+                </p>
+                <a href="/dashboard/petty-cash/balance/" class="card-btn">
+                    گزارش مانده
+                </a>
+            </div>
+            
+            <div class="dashboard-card petty-cash-card">
+                <span class="card-icon">📅</span>
+                <h3 class="card-title">گزارش دوره‌ای تنخواه</h3>
+                <p class="card-description">
+                    گزارش تراکنش‌های تنخواه در بازه زمانی مشخص
+                </p>
+                <a href="/dashboard/petty-cash/period/" class="card-btn">
+                    گزارش دوره‌ای
+                </a>
+            </div>
+            
+            <div class="dashboard-card petty-cash-card">
+                <span class="card-icon">📋</span>
+                <h3 class="card-title">گزارش تفصیلی تنخواه</h3>
+                <p class="card-description">
+                    مشاهده جزئیات کامل تمام تراکنش‌های تنخواه
+                </p>
+                <a href="/dashboard/petty-cash/detail/" class="card-btn">
+                    گزارش تفصیلی
+                </a>
+            </div>
+            
+            <div class="dashboard-card petty-cash-card">
+                <span class="card-icon">💳</span>
+                <h3 class="card-title">مدیریت تراکنش‌های تنخواه</h3>
+                <p class="card-description">
+                    ثبت، ویرایش و حذف تراکنش‌های تنخواه
+                </p>
+                <a href="/construction/PettyCashTransaction/" class="card-btn">
+                    مدیریت تراکنش‌ها
+                </a>
+            </div>
+            
         {% else %}
             <!-- کارت‌های کاربر نهایی -->
             <!-- کارت‌های کاربر نهایی برای مدیر فنی -->
             <div class="section-header">
                 <h2>👥 ابزارهای کاربری</h2>
                 <p>دسترسی به بخش‌های کاربران نهایی</p>
+            </div>
+            <div class="dashboard-card">
+                <span class="card-icon">📋 <!-- <i class="fas fa-project-diagram" style="margin-right: 10px;"></i> --></span>
+                <h3 class="card-title">مدیریت پروژه‌ها</h3>
+                <p class="card-description">
+                    مشاهده، ایجاد و مدیریت پروژه‌های ساختمانی
+                </p>
+                <a href="/construction/Project/" class="card-btn">
+                    مشاهده پروژه‌ها
+                </a>
             </div>
             <div class="dashboard-card">
                 <span class="card-icon">📋 <!-- <i class="fas fa-file-invoice-dollar" style="margin-right: 10px;"></i> --></span>
@@ -548,16 +710,7 @@
                 </a>
             </div>
 
-            <div class="dashboard-card">
-                <span class="card-icon"><i class="fas fa-calculator"></i></span>
-                <h3 class="card-title">حسابداری</h3>
-                <p class="card-description">
-                    مدیریت حسابداری
-                </p>
-                <a href="#" class="card-btn" style="opacity: 0.5; cursor: not-allowed; pointer-events: none;" title="به زودی...">
-                    حسابداری (به زودی)
-                </a>
-            </div>
+            
             
             <div class="dashboard-card">
                 <span class="card-icon"><i class="fas fa-chart-line"></i></span>
@@ -567,6 +720,48 @@
                 </p>
                 <a href="/dashboard/detailed-calculations/" class="card-btn">
                     مشاهده محاسبات
+                </a>
+            </div>
+            
+            <!-- بخش حسابداری تنخواه -->
+            <div class="petty-cash-section">
+                <div class="petty-cash-section-border"></div>
+                <div class="section-header petty-cash-header">
+                    <h2>💰 حسابداری تنخواه</h2>
+                    <p>مدیریت و گزارش‌گیری از تراکنش‌های تنخواه پروژه</p>
+                </div>
+            </div>
+            
+            <div class="dashboard-card petty-cash-card">
+                <span class="card-icon">💼</span>
+                <h3 class="card-title">مدیریت تراکنش‌های تنخواه                </h3>
+                <p class="card-description">
+                    مشاهده خلاصه و آمار کلی تراکنش‌های تنخواه
+                </p>
+                <a href="/dashboard/petty-cash/" class="card-btn">
+                    داشبورد تنخواه
+                </a>
+            </div>
+            
+            <div class="dashboard-card petty-cash-card">
+                <span class="card-icon">📊</span>
+                <h3 class="card-title">گزارش مانده تنخواه</h3>
+                <p class="card-description">
+                    مشاهده مانده فعلی تنخواه به تفکیک نوع هزینه
+                </p>
+                <a href="/dashboard/petty-cash/balance/" class="card-btn">
+                    گزارش مانده
+                </a>
+            </div>
+            
+            <div class="dashboard-card petty-cash-card">
+                <span class="card-icon">📅</span>
+                <h3 class="card-title">گزارش دوره‌ای تنخواه</h3>
+                <p class="card-description">
+                    گزارش تراکنش‌های تنخواه در بازه زمانی مشخص
+                </p>
+                <a href="/dashboard/petty-cash/period/" class="card-btn">
+                    گزارش دوره‌ای
                 </a>
             </div>
         {% endif %}
@@ -640,5 +835,8 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 </script>
+
+<!-- Project Switcher JavaScript -->
+<script src="/static/js/project-switcher.js"></script>
 </body>
 </html>

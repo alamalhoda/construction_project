@@ -1,6 +1,7 @@
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.authentication import SessionAuthentication
 from django.db.models import Sum, Q, Count
 from django.db import connection
 
@@ -9,24 +10,47 @@ from . import models
 from . import calculations
 from .calculations import InvestorCalculations
 from .api_security import APISecurityPermission, ReadOnlyPermission, AdminOnlyPermission
+from .mixins import ProjectFilterMixin
 
 
-class ExpenseViewSet(viewsets.ModelViewSet):
+class CsrfExemptSessionAuthentication(SessionAuthentication):
+    """
+    SessionAuthentication که CSRF را بر اساس محیط (DEBUG/Production) مدیریت می‌کند
+    
+    - در محیط DEBUG: CSRF را نادیده می‌گیرد (برای سهولت توسعه)
+    - در محیط Production: CSRF را اعمال می‌کند (برای امنیت)
+    """
+    def enforce_csrf(self, request):
+        from django.conf import settings
+        
+        # در محیط DEBUG، CSRF را نادیده بگیر
+        if settings.DEBUG:
+            return  # CSRF را نادیده بگیر در development
+        
+        # در محیط Production، CSRF را اعمال کن
+        # اما به جای استفاده از enforce_csrf که ممکن است مشکل ایجاد کند،
+        # از parent class استفاده می‌کنیم که CSRF را به صورت صحیح مدیریت می‌کند
+        return super().enforce_csrf(request)
+
+
+class ExpenseViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
     """ViewSet for the Expense class"""
 
     queryset = models.Expense.objects.all()
     serializer_class = serializers.ExpenseSerializer
+    authentication_classes = [CsrfExemptSessionAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
     @action(detail=False, methods=['get'])
     def with_periods(self, request):
         """دریافت هزینه‌ها با اطلاعات دوره‌ها برای محاسبه دوره متوسط ساخت"""
         try:
-            # دریافت پروژه فعال
-            active_project = models.Project.get_active_project()  # پروژه فعال
+            # دریافت پروژه جاری از session
+            from construction.project_manager import ProjectManager
+            active_project = ProjectManager.get_current_project(request)  # پروژه جاری
             if not active_project:
                 return Response({
-                    'error': 'هیچ پروژه فعالی یافت نشد'
+                    'error': 'هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید.'
                 }, status=400)
 
             # دریافت تمام هزینه‌ها برای پروژه فعال با اطلاعات دوره
@@ -59,18 +83,17 @@ class ExpenseViewSet(viewsets.ModelViewSet):
     def dashboard_data(self, request):
         """دریافت داده‌های لیست هزینه ها"""
         try:
-            # دریافت پروژه فعال
-            active_project = models.Project.get_active_project()  # پروژه فعال
+            # دریافت پروژه جاری از session
+            from construction.project_manager import ProjectManager
+            active_project = ProjectManager.get_current_project(request)  # پروژه جاری
             if not active_project:
                 return Response({
-                    'error': 'هیچ پروژه فعالی یافت نشد'
+                    'error': 'هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید.'
                 }, status=400)
 
             # دریافت تمام دوره‌ها از مرداد 1402 تا مرداد 1405
             periods = models.Period.objects.filter(
-                project=active_project,
-                year__gte=1402,
-                year__lte=1405
+                project=active_project
             ).order_by('year', 'month_number')  # لیست دوره‌ها از سال 1402 تا 1405
 
             # دریافت تمام هزینه‌ها برای پروژه فعال
@@ -179,11 +202,12 @@ class ExpenseViewSet(viewsets.ModelViewSet):
                     'error': 'پارامترهای مورد نیاز ارسال نشده است'
                 }, status=400)
 
-            # دریافت پروژه فعال
-            active_project = models.Project.get_active_project()  # پروژه فعال
+            # دریافت پروژه جاری از session
+            from construction.project_manager import ProjectManager
+            active_project = ProjectManager.get_current_project(request)  # پروژه جاری
             if not active_project:
                 return Response({
-                    'error': 'هیچ پروژه فعالی یافت نشد'
+                    'error': 'هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید.'
                 }, status=400)
 
             # دریافت دوره
@@ -239,11 +263,12 @@ class ExpenseViewSet(viewsets.ModelViewSet):
                     'error': 'پارامترهای مورد نیاز ارسال نشده است'
                 }, status=400)
 
-            # دریافت پروژه فعال
-            active_project = models.Project.get_active_project()  # پروژه فعال
+            # دریافت پروژه جاری از session
+            from construction.project_manager import ProjectManager
+            active_project = ProjectManager.get_current_project(request)  # پروژه جاری
             if not active_project:
                 return Response({
-                    'error': 'هیچ پروژه فعالی یافت نشد'
+                    'error': 'هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید.'
                 }, status=400)
 
             # دریافت دوره
@@ -314,14 +339,15 @@ class ExpenseViewSet(viewsets.ModelViewSet):
                         'error': f'پروژه با شناسه {project_id} یافت نشد'
                     }, status=404)
             else:
-                # اگر project_id مشخص نشده، از پروژه فعال استفاده کن
-                active_project = models.Project.get_active_project()  # پروژه فعال
+                # اگر project_id مشخص نشده، از پروژه جاری استفاده کن
+                from construction.project_manager import ProjectManager
+                active_project = ProjectManager.get_current_project(request)  # پروژه جاری
                 if not active_project:
                     return Response({
-                        'error': 'هیچ پروژه فعالی یافت نشد'
+                        'error': 'هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید.'
                     }, status=404)
-                expenses = models.Expense.objects.filter(project=active_project)  # هزینه‌های پروژه فعال
-                project = active_project  # استفاده از پروژه فعال
+                expenses = models.Expense.objects.filter(project=active_project)  # هزینه‌های پروژه جاری
+                project = active_project  # استفاده از پروژه جاری
             
             # محاسبه مجموع کل هزینه‌ها (مرجع واحد)
             total_amount = models.Expense.objects.project_totals(project)  # مجموع کل هزینه‌های پروژه
@@ -362,7 +388,7 @@ class ExpenseViewSet(viewsets.ModelViewSet):
             }, status=500)
 
 
-class InvestorViewSet(viewsets.ModelViewSet):
+class InvestorViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
     """ViewSet for the Investor class"""
 
     queryset = models.Investor.objects.all()
@@ -381,11 +407,18 @@ class InvestorViewSet(viewsets.ModelViewSet):
                 except Exception:
                     return x
 
-            investors = models.Investor.objects.all()  # لیست تمام سرمایه‌گذاران
+            # فیلتر بر اساس پروژه جاری
+            from construction.project_manager import ProjectManager
+            current_project = ProjectManager.get_current_project(request)
+            if current_project:
+                investors = models.Investor.objects.filter(project=current_project)  # لیست سرمایه‌گذاران پروژه جاری
+            else:
+                investors = models.Investor.objects.all()  # اگر پروژه جاری نبود، همه را برگردان
             results = []  # لیست نتایج
 
             for inv in investors:
-                totals = models.Transaction.objects.totals(project=None, filters={'investor_id': inv.id})  # محاسبه مجموع تراکنش‌های سرمایه‌گذار
+                # استفاده از پروژه جاری برای فیلتر تراکنش‌ها
+                totals = models.Transaction.objects.totals(project=current_project, filters={'investor_id': inv.id})  # محاسبه مجموع تراکنش‌های سرمایه‌گذار
                 deposits = float(totals.get('deposits', 0) or 0)  # مجموع آورده‌ها
                 withdrawals = float(totals.get('withdrawals', 0) or 0)  # مجموع برداشت‌ها (منفی)
                 profits = float(totals.get('profits', 0) or 0)  # مجموع سود
@@ -416,11 +449,20 @@ class InvestorViewSet(viewsets.ModelViewSet):
     def summary_ssot(self, request):
         """خلاصه مالی تمام سرمایه‌گذاران با مرجع واحد (بدون SQL خام)"""
         try:
-            investors = models.Investor.objects.all()  # لیست تمام سرمایه‌گذاران
+            # فیلتر بر اساس پروژه جاری
+            from construction.project_manager import ProjectManager
+            current_project = ProjectManager.get_current_project(request)
+            if not current_project:
+                return Response({
+                    'error': 'هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید.'
+                }, status=400)
+            
+            investors = models.Investor.objects.filter(project=current_project)  # لیست سرمایه‌گذاران پروژه جاری
             results = []  # لیست نتایج
 
             for inv in investors:
-                totals = models.Transaction.objects.totals(project=None, filters={'investor_id': inv.id})  # محاسبه مجموع تراکنش‌های سرمایه‌گذار
+                # استفاده از پروژه جاری برای فیلتر تراکنش‌ها
+                totals = models.Transaction.objects.totals(project=current_project, filters={'investor_id': inv.id})  # محاسبه مجموع تراکنش‌های سرمایه‌گذار
                 deposits = float(totals.get('deposits', 0) or 0)  # مجموع آورده‌ها
                 withdrawals = float(totals.get('withdrawals', 0) or 0)  # مجموع برداشت‌ها (منفی است)
                 profits = float(totals.get('profits', 0) or 0)  # مجموع سود
@@ -458,12 +500,21 @@ class InvestorViewSet(viewsets.ModelViewSet):
     def participation_stats(self, request):
         """دریافت آمار مشارکت کنندگان بر اساس نوع (مالک و سرمایه گذار)"""
         
+        # فیلتر بر اساس پروژه جاری
+        from construction.project_manager import ProjectManager
+        current_project = ProjectManager.get_current_project(request)
+        
+        if current_project:
+            investors_queryset = models.Investor.objects.filter(project=current_project)
+        else:
+            investors_queryset = models.Investor.objects.all()
+        
         # شمارش کل مشارکت کنندگان
-        total_count = models.Investor.objects.count()  # تعداد کل سرمایه‌گذاران
+        total_count = investors_queryset.count()  # تعداد کل سرمایه‌گذاران
         
         # شمارش مشارکت کنندگان بر اساس نوع
-        owner_count = models.Investor.objects.filter(participation_type='owner').count()  # تعداد مالکان
-        investor_count = models.Investor.objects.filter(participation_type='investor').count()  # تعداد سرمایه‌گذاران (غیر مالک)
+        owner_count = investors_queryset.filter(participation_type='owner').count()  # تعداد مالکان
+        investor_count = investors_queryset.filter(participation_type='investor').count()  # تعداد سرمایه‌گذاران (غیر مالک)
         
         return Response({
             'total_count': total_count,
@@ -475,7 +526,18 @@ class InvestorViewSet(viewsets.ModelViewSet):
     def detailed_statistics(self, request, pk=None):
         """دریافت آمار تفصیلی سرمایه‌گذار"""
         try:
-            project_id = request.query_params.get('project_id')  # شناسه پروژه از پارامترهای درخواست
+            # دریافت project_id از query parameter یا از پروژه جاری از session
+            project_id = request.query_params.get('project_id')
+            if not project_id:
+                from construction.project_manager import ProjectManager
+                current_project = ProjectManager.get_current_project(request)
+                if current_project:
+                    project_id = current_project.id
+                else:
+                    return Response({
+                        'error': 'هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید.'
+                    }, status=400)
+            
             stats = calculations.InvestorCalculations.calculate_investor_statistics(pk, project_id)  # محاسبه آمار تفصیلی سرمایه‌گذار
             
             if 'error' in stats:
@@ -492,7 +554,18 @@ class InvestorViewSet(viewsets.ModelViewSet):
     def ratios(self, request, pk=None):
         """دریافت نسبت‌های سرمایه‌گذار"""
         try:
-            project_id = request.query_params.get('project_id')  # شناسه پروژه از پارامترهای درخواست
+            # دریافت project_id از query parameter یا از پروژه جاری از session
+            project_id = request.query_params.get('project_id')
+            if not project_id:
+                from construction.project_manager import ProjectManager
+                current_project = ProjectManager.get_current_project(request)
+                if current_project:
+                    project_id = current_project.id
+                else:
+                    return Response({
+                        'error': 'هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید.'
+                    }, status=400)
+            
             ratios = calculations.InvestorCalculations.calculate_investor_ratios(pk, project_id)  # محاسبه نسبت‌های سرمایه‌گذار
             
             if 'error' in ratios:
@@ -513,7 +586,18 @@ class InvestorViewSet(viewsets.ModelViewSet):
         محاسبه: (آورده + سود) / قیمت هر متر مربع واحد انتخابی
         """
         try:
-            project_id = request.query_params.get('project_id')  # شناسه پروژه از پارامترهای درخواست
+            # دریافت project_id از query parameter یا از پروژه جاری از session
+            project_id = request.query_params.get('project_id')
+            if not project_id:
+                from construction.project_manager import ProjectManager
+                current_project = ProjectManager.get_current_project(request)
+                if current_project:
+                    project_id = current_project.id
+                else:
+                    return Response({
+                        'error': 'هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید.'
+                    }, status=400)
+            
             ownership = calculations.InvestorCalculations.calculate_investor_ownership(pk, project_id)  # محاسبه مالکیت سرمایه‌گذار
             
             if 'error' in ownership:
@@ -536,7 +620,18 @@ class InvestorViewSet(viewsets.ModelViewSet):
         - هزینه واحد به میلیون تومان برای هر دوره
         """
         try:
-            project_id = request.query_params.get('project_id')  # شناسه پروژه از پارامترهای درخواست
+            # دریافت project_id از query parameter یا از پروژه جاری از session
+            project_id = request.query_params.get('project_id')
+            if not project_id:
+                from construction.project_manager import ProjectManager
+                current_project = ProjectManager.get_current_project(request)
+                if current_project:
+                    project_id = current_project.id
+                else:
+                    return Response({
+                        'error': 'هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید.'
+                    }, status=400)
+            
             trend_data = calculations.InvestorCalculations.calculate_investor_trend_chart(pk, project_id)  # محاسبه داده‌های نمودار ترند سرمایه‌گذار
             
             if 'error' in trend_data:
@@ -563,6 +658,16 @@ class InvestorViewSet(viewsets.ModelViewSet):
             # تبدیل project_id به عدد در صورت وجود
             if project_id:
                 project_id = int(project_id)  # تبدیل به عدد صحیح
+            else:
+                # اگر project_id مشخص نشده، از پروژه جاری استفاده کن
+                from construction.project_manager import ProjectManager
+                current_project = ProjectManager.get_current_project(request)
+                if current_project:
+                    project_id = current_project.id
+                else:
+                    return Response({
+                        'error': 'هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید.'
+                    }, status=400)
             
             # استفاده از تابع محاسباتی برای دریافت خلاصه سرمایه‌گذاران
             summary = InvestorCalculations.get_all_investors_summary(project_id)  # دریافت خلاصه تمام سرمایه‌گذاران
@@ -587,6 +692,7 @@ class InvestorViewSet(viewsets.ModelViewSet):
 class ComprehensiveAnalysisViewSet(viewsets.ViewSet):
     """ViewSet for comprehensive project analysis"""
     
+    authentication_classes = [CsrfExemptSessionAuthentication]
     permission_classes = [permissions.IsAuthenticated]
     
     @action(detail=False, methods=['get'])
@@ -595,9 +701,19 @@ class ComprehensiveAnalysisViewSet(viewsets.ViewSet):
         try:
             project_id = request.query_params.get('project_id')  # شناسه پروژه از پارامترهای درخواست
             
-            # تبدیل project_id به عدد در صورت وجود
-            if project_id:
-                project_id = int(project_id)  # تبدیل به عدد صحیح
+            # اگر project_id مشخص نشده، از پروژه جاری استفاده کن
+            if not project_id:
+                from construction.project_manager import ProjectManager
+                current_project = ProjectManager.get_current_project(request)
+                if current_project:
+                    project_id = current_project.id
+                else:
+                    return Response({
+                        'error': 'هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید.'
+                    }, status=400)
+            
+            # تبدیل project_id به عدد
+            project_id = int(project_id)  # تبدیل به عدد صحیح
             
             # استفاده از تابع محاسباتی برای دریافت تحلیل جامع
             from .calculations import ComprehensiveCalculations
@@ -618,7 +734,7 @@ class ComprehensiveAnalysisViewSet(viewsets.ViewSet):
             }, status=500)
 
 
-class PeriodViewSet(viewsets.ModelViewSet):
+class PeriodViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
     """ViewSet for the Period class"""
 
     queryset = models.Period.objects.all().order_by('-year', '-month_number')
@@ -629,11 +745,12 @@ class PeriodViewSet(viewsets.ModelViewSet):
     def chart_data(self, request):
         """دریافت داده‌های دوره‌ای برای نمودارها (سرمایه، هزینه، فروش، مانده صندوق)"""
         try:
-            # دریافت پروژه فعال
-            active_project = models.Project.get_active_project()  # پروژه فعال
+            # دریافت پروژه جاری از session
+            from construction.project_manager import ProjectManager
+            active_project = ProjectManager.get_current_project(request)  # پروژه جاری
             if not active_project:
                 return Response({
-                    'error': 'هیچ پروژه فعالی یافت نشد'
+                    'error': 'هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید.'
                 }, status=400)
 
             # دریافت تمام دوره‌ها مرتب شده
@@ -695,11 +812,12 @@ class PeriodViewSet(viewsets.ModelViewSet):
     def period_summary(self, request):
         """دریافت خلاصه کامل دوره‌ای شامل تمام فاکتورها و مقادیر تجمعی"""
         try:
-            # دریافت پروژه فعال
-            active_project = models.Project.get_active_project()  # پروژه فعال
+            # دریافت پروژه جاری از session
+            from construction.project_manager import ProjectManager
+            active_project = ProjectManager.get_current_project(request)  # پروژه جاری
             if not active_project:
                 return Response({
-                    'error': 'هیچ پروژه فعالی یافت نشد'
+                    'error': 'هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید.'
                 }, status=400)
 
             # دریافت تمام دوره‌ها مرتب شده
@@ -889,26 +1007,29 @@ class ProjectViewSet(viewsets.ModelViewSet):
     queryset = models.Project.objects.all()
     serializer_class = serializers.ProjectSerializer
     permission_classes = [APISecurityPermission]
+    authentication_classes = [CsrfExemptSessionAuthentication]
 
     @action(detail=False, methods=['get'])
     def active(self, request):
-        """دریافت پروژه فعال"""
-        active_project = models.Project.get_active_project()  # پروژه فعال
+        """دریافت پروژه جاری (از session)"""
+        from construction.project_manager import ProjectManager
+        active_project = ProjectManager.get_current_project(request)  # پروژه جاری
         if active_project:
             serializer = self.get_serializer(active_project)  # سریالایزر پروژه
             return Response(serializer.data)
         else:
-            return Response({'error': 'هیچ پروژه فعالی یافت نشد'}, status=404)
+            return Response({'error': 'هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید.'}, status=404)
 
     @action(detail=False, methods=['get'])
     def statistics(self, request):
-        """دریافت آمار کامل پروژه فعال شامل اطلاعات پروژه و آمار واحدها"""
+        """دریافت آمار کامل پروژه جاری شامل اطلاعات پروژه و آمار واحدها"""
         try:
-            # دریافت پروژه فعال
-            active_project = models.Project.get_active_project()  # پروژه فعال
+            # دریافت پروژه جاری از session
+            from construction.project_manager import ProjectManager
+            active_project = ProjectManager.get_current_project(request)  # پروژه جاری
             if not active_project:
                 return Response({
-                    'error': 'هیچ پروژه فعالی یافت نشد'
+                    'error': 'هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید.'
                 }, status=400)
 
             # آمار واحدها برای پروژه فعال (مرجع واحد)
@@ -924,7 +1045,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
                 'end_date_shamsi': str(active_project.end_date_shamsi),  # تاریخ پایان (شمسی)
                 'start_date_gregorian': str(active_project.start_date_gregorian),  # تاریخ شروع (میلادی)
                 'end_date_gregorian': str(active_project.end_date_gregorian),  # تاریخ پایان (میلادی)
-                'is_active': active_project.is_active  # وضعیت فعال بودن پروژه
+                # فیلد is_active حذف شد - مدل Project این فیلد را ندارد
             }
 
             return Response({
@@ -959,16 +1080,59 @@ class ProjectViewSet(viewsets.ModelViewSet):
             return Response({'error': f'خطا در تنظیم پروژه فعال: {str(e)}'}, status=500)
 
     @action(detail=False, methods=['get'])
+    def current(self, request):
+        """دریافت پروژه جاری کاربر از session"""
+        from construction.project_manager import ProjectManager
+        
+        current_project = ProjectManager.get_current_project(request)
+        if current_project:
+            serializer = self.get_serializer(current_project)
+            return Response(serializer.data)
+        else:
+            return Response({'error': 'هیچ پروژه جاری یافت نشد'}, status=404)
+    
+    @action(detail=False, methods=['post'])
+    def switch(self, request):
+        """تغییر پروژه جاری کاربر"""
+        from construction.project_manager import ProjectManager
+        
+        project_id = request.data.get('project_id')
+        if not project_id:
+            return Response({'error': 'project_id الزامی است'}, status=400)
+        
+        try:
+            project = models.Project.objects.get(id=project_id)
+            
+            # تنظیم پروژه در session
+            ProjectManager.set_current_project(request, project_id)
+            
+            return Response({
+                'success': True,
+                'project': {
+                    'id': project.id,
+                    'name': project.name,
+                    'color': project.color or '#667eea',
+                    'icon': project.icon or 'fa-building'
+                },
+                'message': 'پروژه با موفقیت تغییر کرد'
+            })
+        except models.Project.DoesNotExist:
+            return Response({'error': 'پروژه یافت نشد'}, status=404)
+        except Exception as e:
+            return Response({'error': f'خطا در تغییر پروژه: {str(e)}'}, status=500)
+
+    @action(detail=False, methods=['get'])
     def project_timeline(self, request):
         """محاسبه روزهای مانده و گذشته پروژه بر اساس تاریخ امروز"""
         from datetime import date
         
         try:
-            # دریافت پروژه فعال
-            active_project = models.Project.get_active_project()  # پروژه فعال
+            # دریافت پروژه جاری از session
+            from construction.project_manager import ProjectManager
+            active_project = ProjectManager.get_current_project(request)  # پروژه جاری
             if not active_project:
                 return Response({
-                    'error': 'هیچ پروژه فعالی یافت نشد'
+                    'error': 'هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید.'
                 }, status=400)
 
             # تاریخ امروز
@@ -1035,6 +1199,18 @@ class ProjectViewSet(viewsets.ModelViewSet):
         """دریافت تحلیل جامع پروژه شامل تمام محاسبات مالی"""
         try:
             project_id = request.query_params.get('project_id')  # شناسه پروژه از پارامترهای درخواست
+            
+            # اگر project_id مشخص نشده، از پروژه جاری استفاده کن
+            if not project_id:
+                from construction.project_manager import ProjectManager
+                current_project = ProjectManager.get_current_project(request)
+                if current_project:
+                    project_id = current_project.id
+                else:
+                    return Response({
+                        'error': 'هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید.'
+                    }, status=400)
+            
             analysis = calculations.ComprehensiveCalculations.get_comprehensive_project_analysis(project_id)  # دریافت تحلیل جامع پروژه
             
             if 'error' in analysis:
@@ -1052,6 +1228,18 @@ class ProjectViewSet(viewsets.ModelViewSet):
         """دریافت متریک‌های سود (کل، سالانه، ماهانه، روزانه)"""
         try:
             project_id = request.query_params.get('project_id')  # شناسه پروژه از پارامترهای درخواست
+            
+            # اگر project_id مشخص نشده، از پروژه جاری استفاده کن
+            if not project_id:
+                from construction.project_manager import ProjectManager
+                current_project = ProjectManager.get_current_project(request)
+                if current_project:
+                    project_id = current_project.id
+                else:
+                    return Response({
+                        'error': 'هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید.'
+                    }, status=400)
+            
             metrics = calculations.ProfitCalculations.calculate_profit_percentages(project_id)  # محاسبه متریک‌های سود
             
             if 'error' in metrics:
@@ -1069,6 +1257,18 @@ class ProjectViewSet(viewsets.ModelViewSet):
         """دریافت متریک‌های هزینه"""
         try:
             project_id = request.query_params.get('project_id')  # شناسه پروژه از پارامترهای درخواست
+            
+            # اگر project_id مشخص نشده، از پروژه جاری استفاده کن
+            if not project_id:
+                from construction.project_manager import ProjectManager
+                current_project = ProjectManager.get_current_project(request)
+                if current_project:
+                    project_id = current_project.id
+                else:
+                    return Response({
+                        'error': 'هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید.'
+                    }, status=400)
+            
             metrics = calculations.ProjectCalculations.calculate_cost_metrics(project_id)  # محاسبه متریک‌های هزینه
             
             if 'error' in metrics:
@@ -1086,6 +1286,18 @@ class ProjectViewSet(viewsets.ModelViewSet):
         """دریافت آمار تفصیلی پروژه"""
         try:
             project_id = request.query_params.get('project_id')  # شناسه پروژه از پارامترهای درخواست
+            
+            # اگر project_id مشخص نشده، از پروژه جاری استفاده کن
+            if not project_id:
+                from construction.project_manager import ProjectManager
+                current_project = ProjectManager.get_current_project(request)
+                if current_project:
+                    project_id = current_project.id
+                else:
+                    return Response({
+                        'error': 'هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید.'
+                    }, status=400)
+            
             stats = calculations.ProjectCalculations.calculate_project_statistics(project_id)  # محاسبه آمار تفصیلی پروژه
             
             if 'error' in stats:
@@ -1121,10 +1333,11 @@ class ProjectViewSet(viewsets.ModelViewSet):
     #     from django.http import HttpResponse
     #     
     #     try:
-    #         # دریافت پروژه فعال
-    #         project = models.Project.get_active_project()
+    #         # دریافت پروژه جاری از session
+    #         from construction.project_manager import ProjectManager
+    #         project = ProjectManager.get_current_project(request)
     #         if not project:
-    #             return Response({'error': 'هیچ پروژه فعالی یافت نشد'}, status=400)
+    #             return Response({'error': 'هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید.'}, status=400)
     #         
     #         # تولید فایل Excel
     #         excel_service = ExcelExportService(project)
@@ -1180,10 +1393,11 @@ class ProjectViewSet(viewsets.ModelViewSet):
     #     from django.http import HttpResponse
     #     
     #     try:
-    #         # دریافت پروژه فعال
-    #         project = models.Project.get_active_project()
+    #         # دریافت پروژه جاری از session
+    #         from construction.project_manager import ProjectManager
+    #         project = ProjectManager.get_current_project(request)
     #         if not project:
-    #             return Response({'error': 'هیچ پروژه فعالی یافت نشد'}, status=400)
+    #             return Response({'error': 'هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید.'}, status=400)
     #         
     #         # تولید فایل Excel با فرمول
     #         excel_service = ExcelDynamicExportService(project)
@@ -1220,22 +1434,24 @@ class ProjectViewSet(viewsets.ModelViewSet):
     #         }, status=500)
 
 
-class SaleViewSet(viewsets.ModelViewSet):
+class SaleViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
     """ViewSet for the Sale class"""
 
     queryset = models.Sale.objects.all()
     serializer_class = serializers.SaleSerializer
+    authentication_classes = [CsrfExemptSessionAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
     @action(detail=False, methods=['get'])
     def total_sales(self, request):
         """دریافت مجموع فروش‌ها"""
         try:
-            # دریافت پروژه فعال
-            active_project = models.Project.get_active_project()  # پروژه فعال
+            # دریافت پروژه جاری از session
+            from construction.project_manager import ProjectManager
+            active_project = ProjectManager.get_current_project(request)  # پروژه جاری
             if not active_project:
                 return Response({
-                    'error': 'هیچ پروژه فعالی یافت نشد'
+                    'error': 'هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید.'
                 }, status=400)
 
             # محاسبه مجموع فروش‌ها برای پروژه فعال (مرجع واحد)
@@ -1285,7 +1501,7 @@ class SaleViewSet(viewsets.ModelViewSet):
             }, status=500)
 
 
-class TransactionViewSet(viewsets.ModelViewSet):
+class TransactionViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
     """ViewSet for the Transaction class"""
 
     queryset = models.Transaction.objects.all()
@@ -1295,17 +1511,26 @@ class TransactionViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def statistics(self, request):
-        """آمار کلی تراکنش‌ها"""
+        """آمار کلی تراکنش‌ها برای پروژه جاری"""
         from django.db.models import Count, Sum, Q
         
-        # محاسبه آمار کلی
-        total_transactions = models.Transaction.objects.count()  # تعداد کل تراکنش‌ها
-        tx_totals_all = models.Transaction.objects.project_totals(project=None)  # محاسبه مجموع تراکنش‌ها (همه پروژه‌ها)
+        # دریافت پروژه جاری از session
+        from construction.project_manager import ProjectManager
+        current_project = ProjectManager.get_current_project(request)  # پروژه جاری
+        
+        if not current_project:
+            return Response({
+                'error': 'هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید.'
+            }, status=400)
+        
+        # محاسبه آمار کلی برای پروژه جاری
+        total_transactions = models.Transaction.objects.filter(project=current_project).count()  # تعداد کل تراکنش‌های پروژه جاری
+        tx_totals_all = models.Transaction.objects.project_totals(project=current_project)  # محاسبه مجموع تراکنش‌های پروژه جاری
         total_deposits = tx_totals_all['deposits']  # مجموع آورده‌ها
         total_withdrawals = tx_totals_all['withdrawals']  # مجموع برداشت‌ها (منفی)
         total_profits = tx_totals_all['profits']  # مجموع سود
         
-        unique_investors = models.Transaction.objects.values('investor').distinct().count()  # تعداد سرمایه‌گذاران منحصر به فرد
+        unique_investors = models.Transaction.objects.filter(project=current_project).values('investor').distinct().count()  # تعداد سرمایه‌گذاران منحصر به فرد پروژه جاری
         
         # محاسبه مجموع سرمایه (آورده منهای برداشت)
         # total_withdrawals منفی است پس به جای تفریق باید جمع بشه
@@ -1381,17 +1606,25 @@ class TransactionViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'])
     def recalculate_profits(self, request):
-        """محاسبه مجدد سودها با نرخ سود فعال فعلی"""
+        """محاسبه مجدد سودها با نرخ سود فعال فعلی برای پروژه فعال"""
         try:
-            # دریافت نرخ سود فعال فعلی
-            current_rate = models.InterestRate.get_current_rate()  # نرخ سود فعال فعلی
+            # دریافت پروژه جاری از session
+            from construction.project_manager import ProjectManager
+            active_project = ProjectManager.get_current_project(request)  # پروژه جاری
+            if not active_project:
+                return Response({
+                    'error': 'هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید.'
+                }, status=400)
+            
+            # دریافت نرخ سود فعال فعلی برای پروژه فعال
+            current_rate = models.InterestRate.get_current_rate(project=active_project)  # نرخ سود فعال فعلی
             if not current_rate:
                 return Response({
                     'error': 'هیچ نرخ سود فعالی یافت نشد. لطفاً ابتدا نرخ سود را تنظیم کنید.'
                 }, status=400)
             
-            # اجرای عملیات محاسبه مجدد
-            result = models.Transaction.recalculate_all_profits_with_new_rate(current_rate)  # محاسبه مجدد سودها با نرخ فعلی
+            # اجرای عملیات محاسبه مجدد برای پروژه فعال
+            result = models.Transaction.recalculate_all_profits_with_new_rate(current_rate, project=active_project)  # محاسبه مجدد سودها با نرخ فعلی
             
             return Response({
                 'success': True,
@@ -1470,7 +1703,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
     
 
 
-class InterestRateViewSet(viewsets.ModelViewSet):
+class InterestRateViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
     """ViewSet for the InterestRate class"""
 
     queryset = models.InterestRate.objects.all()
@@ -1479,8 +1712,16 @@ class InterestRateViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def current(self, request):
-        """دریافت نرخ سود فعال فعلی"""
-        current_rate = models.InterestRate.get_current_rate()  # نرخ سود فعال فعلی
+        """دریافت نرخ سود فعال فعلی برای پروژه فعال"""
+        # دریافت پروژه جاری از session
+        from construction.project_manager import ProjectManager
+        active_project = ProjectManager.get_current_project(request)  # پروژه جاری
+        if not active_project:
+            return Response({
+                'error': 'هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید.'
+            }, status=400)
+        
+        current_rate = models.InterestRate.get_current_rate(project=active_project)  # نرخ سود فعال فعلی
         if current_rate:
             serializer = self.get_serializer(current_rate)  # سریالایزر نرخ سود
             return Response(serializer.data)
@@ -1488,7 +1729,7 @@ class InterestRateViewSet(viewsets.ModelViewSet):
             return Response({'error': 'هیچ نرخ سود فعالی یافت نشد'}, status=404)
 
 
-class UnitViewSet(viewsets.ModelViewSet):
+class UnitViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
     """ViewSet for the Unit class"""
 
     queryset = models.Unit.objects.all()
@@ -1530,3 +1771,275 @@ class UnitViewSet(viewsets.ModelViewSet):
             'total_price': float(stats['total_price'] or 0),
             'project_breakdown': project_stats
         })
+
+class UnitSpecificExpenseViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
+    """ViewSet for the UnitSpecificExpense class"""
+
+    queryset = models.UnitSpecificExpense.objects.all()
+    serializer_class = serializers.UnitSpecificExpenseSerializer
+    permission_classes = [APISecurityPermission]
+    filterset_fields = ['unit', 'project']
+
+
+class PettyCashTransactionViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
+    """ViewSet برای مدیریت تراکنش‌های تنخواه"""
+  
+    queryset = models.PettyCashTransaction.objects.all()
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = serializers.PettyCashTransactionSerializer
+  
+    @action(detail=False, methods=['get'])
+    def balances(self, request):
+        """دریافت وضعیت مالی همه عوامل اجرایی"""
+        try:
+            from construction.project_manager import ProjectManager
+            active_project = ProjectManager.get_current_project(request)
+            if not active_project:
+                return Response({'error': 'هیچ پروژه فعالی یافت نشد'}, status=400)
+          
+            balances = models.PettyCashTransaction.objects.get_all_balances(active_project)
+            return Response({'success': True, 'data': balances})
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
+  
+    @action(detail=False, methods=['get'])
+    def balance_detail(self, request):
+        """دریافت وضعیت مالی یک عامل اجرایی خاص"""
+        try:
+            expense_type = request.query_params.get('expense_type')
+            if not expense_type:
+                return Response({'error': 'expense_type الزامی است'}, status=400)
+          
+            from construction.project_manager import ProjectManager
+            active_project = ProjectManager.get_current_project(request)
+            if not active_project:
+                return Response({'error': 'هیچ پروژه فعالی یافت نشد'}, status=400)
+          
+            balance = models.PettyCashTransaction.objects.get_balance(active_project, expense_type)
+            total_receipts = models.PettyCashTransaction.objects.get_total_receipts(active_project, expense_type)
+            total_expenses = models.PettyCashTransaction.objects.get_total_expenses(active_project, expense_type)
+            total_returns = models.PettyCashTransaction.objects.get_total_returns(active_project, expense_type)
+          
+            return Response({
+                'success': True,
+                'data': {
+                    'expense_type': expense_type,
+                    'expense_type_label': dict(models.Expense.EXPENSE_TYPES)[expense_type],
+                    'balance': balance,
+                    'total_receipts': total_receipts,
+                    'total_expenses': total_expenses,
+                    'total_returns': total_returns,
+                    'is_creditor': balance < 0,  # بستانکار (طلبکار)
+                    'is_debtor': balance > 0,    # بدهکار
+                }
+            })
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
+  
+    @action(detail=False, methods=['get'])
+    def period_balance(self, request):
+        """دریافت وضعیت مالی عامل اجرایی در یک دوره"""
+        try:
+            expense_type = request.query_params.get('expense_type')
+            period_id = request.query_params.get('period_id')
+          
+            if not all([expense_type, period_id]):
+                return Response({'error': 'expense_type و period_id الزامی است'}, status=400)
+          
+            from construction.project_manager import ProjectManager
+            active_project = ProjectManager.get_current_project(request)
+            if not active_project:
+                return Response({'error': 'هیچ پروژه فعالی یافت نشد'}, status=400)
+          
+            period = models.Period.objects.get(id=period_id, project=active_project)
+            balance = models.PettyCashTransaction.objects.get_balance_by_period(active_project, expense_type, period)
+          
+            return Response({
+                'success': True,
+                'data': {
+                    'period_id': period.id,
+                    'period_label': period.label,
+                    'balance': balance,
+                }
+            })
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
+  
+    @action(detail=False, methods=['get'])
+    def balance_trend(self, request):
+        """ترند زمانی وضعیت مالی عامل اجرایی"""
+        try:
+            expense_type = request.query_params.get('expense_type')
+            if not expense_type:
+                return Response({'error': 'expense_type الزامی است'}, status=400)
+          
+            from construction.project_manager import ProjectManager
+            active_project = ProjectManager.get_current_project(request)
+            if not active_project:
+                return Response({'error': 'هیچ پروژه فعالی یافت نشد'}, status=400)
+          
+            start_period_id = request.query_params.get('start_period_id')
+            end_period_id = request.query_params.get('end_period_id')
+          
+            start_period = None
+            end_period = None
+          
+            if start_period_id:
+                start_period = models.Period.objects.get(id=start_period_id, project=active_project)
+            if end_period_id:
+                end_period = models.Period.objects.get(id=end_period_id, project=active_project)
+          
+            trend = models.PettyCashTransaction.objects.get_period_balance_trend(
+                active_project, expense_type, start_period, end_period
+            )
+          
+            # محاسبه آمار کلی (Single Source of Truth)
+            stats_total_receipts = sum(float(item.get('period_receipts', 0) or 0) for item in trend)
+            stats_total_returns = sum(float(item.get('period_returns', 0) or 0) for item in trend)
+            stats_total_expenses = sum(float(item.get('period_expenses', 0) or 0) for item in trend)
+            total_period_balance = sum(float(item.get('period_balance', 0) or 0) for item in trend)
+            final_balance = float(trend[-1].get('cumulative_balance', trend[-1].get('balance', 0)) or 0) if trend else 0.0
+          
+            return Response({
+                'success': True,
+                'data': trend,
+                'summary': {
+                    'total_receipts': stats_total_receipts,
+                    'total_returns': stats_total_returns,
+                    'total_expenses': stats_total_expenses,
+                    'total_period_balance': total_period_balance,
+                    'final_balance': final_balance
+                }
+            })
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
+    
+    @action(detail=False, methods=['get'])
+    def detailed_report(self, request):
+        """گزارش تفصیلی تراکنش‌های تنخواه با فیلتر و جستجو"""
+        try:
+            from construction.project_manager import ProjectManager
+            active_project = ProjectManager.get_current_project(request)
+            if not active_project:
+                return Response({'error': 'هیچ پروژه فعالی یافت نشد'}, status=400)
+            
+            # دریافت پارامترهای فیلتر
+            expense_type = request.query_params.get('expense_type')
+            transaction_type = request.query_params.get('transaction_type')
+            start_date = request.query_params.get('start_date')
+            end_date = request.query_params.get('end_date')
+            min_amount = request.query_params.get('min_amount')
+            max_amount = request.query_params.get('max_amount')
+            search = request.query_params.get('search')
+            ordering = request.query_params.get('ordering', '-date_gregorian')
+            
+            # QuerySet اولیه
+            queryset = models.PettyCashTransaction.objects.filter(project=active_project)
+            
+            # فیلترها
+            if expense_type:
+                queryset = queryset.filter(expense_type=expense_type)
+            
+            if transaction_type:
+                queryset = queryset.filter(transaction_type=transaction_type)
+            
+            if start_date:
+                queryset = queryset.filter(date_gregorian__gte=start_date)
+            
+            if end_date:
+                queryset = queryset.filter(date_gregorian__lte=end_date)
+            
+            if min_amount:
+                queryset = queryset.filter(amount__gte=min_amount)
+            
+            if max_amount:
+                queryset = queryset.filter(amount__lte=max_amount)
+            
+            # جستجو
+            if search:
+                queryset = queryset.filter(
+                    Q(description__icontains=search) |
+                    Q(receipt_number__icontains=search)
+                )
+            
+            # مرتب‌سازی
+            queryset = queryset.order_by(ordering)
+            
+            # Serialize
+            serializer = serializers.PettyCashTransactionSerializer(queryset, many=True)
+            
+            # محاسبه مجموع‌ها
+            total_receipts = queryset.filter(transaction_type='receipt').aggregate(
+                total=Sum('amount')
+            )['total'] or 0
+            
+            total_returns = queryset.filter(transaction_type='return').aggregate(
+                total=Sum('amount')
+            )['total'] or 0
+            
+            net_amount = float(total_receipts) - float(total_returns)
+            
+            return Response({
+                'success': True,
+                'data': {
+                    'transactions': serializer.data,
+                    'summary': {
+                        'total_receipts': float(total_receipts),
+                        'total_returns': float(total_returns),
+                        'net_amount': net_amount,
+                        'count': queryset.count()
+                    }
+                }
+            })
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
+    
+    @action(detail=False, methods=['get'])
+    def statistics(self, request):
+        """آمار کلی تراکنش‌های تنخواه (Single Source of Truth)"""
+        try:
+            from construction.project_manager import ProjectManager
+            from django.db.models import Sum
+            
+            active_project = ProjectManager.get_current_project(request)
+            if not active_project:
+                return Response({'error': 'هیچ پروژه فعالی یافت نشد'}, status=400)
+            
+            # دریافت فیلترها
+            expense_type = request.query_params.get('expense_type')
+            transaction_type = request.query_params.get('transaction_type')
+            
+            # QuerySet اولیه
+            queryset = models.PettyCashTransaction.objects.filter(project=active_project)
+            
+            # اعمال فیلترها
+            if expense_type:
+                queryset = queryset.filter(expense_type=expense_type)
+            if transaction_type:
+                queryset = queryset.filter(transaction_type=transaction_type)
+            
+            # محاسبه آمار با استفاده از Manager (Single Source of Truth)
+            total_receipts = queryset.filter(transaction_type='receipt').aggregate(
+                total=Sum('amount')
+            )['total'] or 0
+            
+            total_returns = queryset.filter(transaction_type='return').aggregate(
+                total=Sum('amount')
+            )['total'] or 0
+            
+            total_receipts = float(total_receipts)
+            total_returns = float(total_returns)
+            net_amount = total_receipts - total_returns
+            
+            return Response({
+                'success': True,
+                'data': {
+                    'total_receipts': total_receipts,
+                    'total_returns': total_returns,
+                    'net_amount': net_amount,
+                    'count': queryset.count()
+                }
+            })
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
