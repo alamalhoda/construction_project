@@ -211,6 +211,113 @@ class UnitAdmin(admin.ModelAdmin):
     readonly_fields = [
         "created_at",
     ]
+    search_fields = [
+        "name",
+        "project__name",
+    ]
+    readonly_fields = [
+        "created_at",
+    ]
+
+
+class InterestRateAdminForm(forms.ModelForm):
+
+    class Meta:
+        model = models.InterestRate
+        fields = "__all__"
+
+
+class InterestRateAdmin(admin.ModelAdmin):
+    form = InterestRateAdminForm
+    list_display = [
+        "project",
+        "rate",
+        "effective_date",
+        "effective_date_gregorian",
+        "is_active",
+        "description",
+        "created_at",
+        "updated_at",
+    ]
+    list_filter = [
+        "project",
+        "is_active",
+        "effective_date",
+        "created_at",
+        "updated_at",
+    ]
+    search_fields = [
+        "description",
+    ]
+    readonly_fields = [
+        "created_at",
+        "updated_at",
+    ]
+    ordering = ['-effective_date']
+
+
+class SaleAdminForm(forms.ModelForm):
+
+    class Meta:
+        model = models.Sale
+        fields = "__all__"
+
+
+class SaleAdmin(admin.ModelAdmin):
+    form = SaleAdminForm
+    list_display = [
+        "project",
+        "period",
+        "amount",
+        "description",
+        "created_at",
+    ]
+    list_filter = [
+        "project",
+        "period",
+        "created_at",
+    ]
+    search_fields = [
+        "description",
+        "project__name",
+        "period__label",
+    ]
+    readonly_fields = [
+        "created_at",
+    ]
+
+
+class UnitSpecificExpenseAdminForm(forms.ModelForm):
+
+    class Meta:
+        model = models.UnitSpecificExpense
+        fields = "__all__"
+
+
+class UnitSpecificExpenseAdmin(admin.ModelAdmin):
+    form = UnitSpecificExpenseAdminForm
+    list_display = [
+        "project",
+        "unit",
+        "title",
+        "date_shamsi",
+        "amount",
+        "created_at",
+    ]
+    list_filter = [
+        "project",
+        "unit",
+        "created_at",
+    ]
+    search_fields = [
+        "title",
+        "description",
+        "unit__name",
+    ]
+    readonly_fields = [
+        "created_at",
+        "updated_at",
+    ]
 
 
 class InterestRateAdminForm(forms.ModelForm):

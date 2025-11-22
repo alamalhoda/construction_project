@@ -559,3 +559,205 @@ class PettyCashTransactionForm(forms.ModelForm):
             for choice in models.Expense.EXPENSE_TYPES 
             if choice[0] not in ['construction_contractor', 'other']
         ]
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # حذف فیلد project از فرم چون خودکار تنظیم می‌شود
+        if 'project' in self.fields:
+            del self.fields['project']
+    
+    def clean_area(self):
+        """تمیز کردن فیلد area - حذف کاماها و اعتبارسنجی"""
+        area = self.cleaned_data.get('area')
+        if area:
+            # حذف تمام کاراکترهای غیرعددی به جز نقطه و منفی
+            cleaned_area = ''.join(c for c in str(area) if c.isdigit() or c == '.' or c == '-')
+            if not cleaned_area:
+                raise forms.ValidationError("یک عدد وارد کنید.")
+            
+            try:
+                area_decimal = Decimal(cleaned_area)
+            except InvalidOperation:
+                raise forms.ValidationError("یک عدد وارد کنید.")
+            
+            # اعتبارسنجی مقدار
+            if area_decimal <= 0:
+                raise forms.ValidationError("مساحت باید بزرگتر از صفر باشد.")
+            
+            return area_decimal
+        return area
+    
+    def clean_price_per_meter(self):
+        """تمیز کردن فیلد price_per_meter - حذف کاماها و اعتبارسنجی"""
+        price = self.cleaned_data.get('price_per_meter')
+        if price:
+            # حذف تمام کاراکترهای غیرعددی به جز نقطه
+            cleaned_price = ''.join(c for c in str(price) if c.isdigit() or c == '.')
+            if not cleaned_price:
+                raise forms.ValidationError("یک عدد وارد کنید.")
+            
+            try:
+                price_decimal = Decimal(cleaned_price)
+            except InvalidOperation:
+                raise forms.ValidationError("یک عدد وارد کنید.")
+            
+            # اعتبارسنجی مقدار
+            if price_decimal <= 0:
+                raise forms.ValidationError("قیمت هر متر باید بزرگتر از صفر باشد.")
+            
+            return price_decimal
+        return price
+    
+    def clean_total_price(self):
+        """تمیز کردن فیلد total_price - حذف کاماها و اعتبارسنجی"""
+        total_price = self.cleaned_data.get('total_price')
+        if total_price:
+            # حذف تمام کاراکترهای غیرعددی به جز نقطه
+            cleaned_total_price = ''.join(c for c in str(total_price) if c.isdigit() or c == '.')
+            if not cleaned_total_price:
+                raise forms.ValidationError("یک عدد وارد کنید.")
+            
+            try:
+                total_price_decimal = Decimal(cleaned_total_price)
+            except InvalidOperation:
+                raise forms.ValidationError("یک عدد وارد کنید.")
+            
+            # اعتبارسنجی مقدار
+            if total_price_decimal <= 0:
+                raise forms.ValidationError("قیمت کل باید بزرگتر از صفر باشد.")
+            
+            return total_price_decimal
+        return total_price
+
+    # متد save() حذف شده - ProjectFormMixin به صورت خودکار project را تنظیم می‌کند
+
+
+class InterestRateForm(forms.ModelForm):
+    effective_date = CustomJDateField(
+        label="تاریخ اعمال (شمسی)",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'انتخاب تاریخ شمسی...'
+        })
+    )
+    is_active = forms.BooleanField(
+        label="فعال",
+        required=False,
+        help_text="آیا این نرخ در حال حاضر فعال است؟ (فقط یک نرخ می‌تواند فعال باشد)",
+        widget=forms.CheckboxInput(attrs={
+            'class': 'form-check-input'
+        })
+    )
+    
+    class Meta:
+        model = models.InterestRate
+        fields = [
+            "rate",
+            "effective_date",
+            "effective_date_gregorian",
+            "description",
+            "is_active",
+        ]
+        # project فیلد را حذف کردیم تا خودکار از پروژه فعال استفاده شود
+    
+    # متد save() حذف شده - ProjectFormMixin به صورت خودکار project را تنظیم می‌کند
+
+
+class SaleForm(forms.ModelForm):
+    class Meta:
+        model = models.Sale
+        fields = [
+            "period",
+            "amount",
+            "description",
+        ]
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # تنظیم استایل‌ها برای فیلدها
+        self.fields['period'].widget.attrs.update({'class': 'form-control'})
+        self.fields['amount'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'مبلغ فروش/مرجوعی را وارد کنید...'
+        })
+        self.fields['description'].widget.attrs.update({
+            'class': 'form-control',
+            'rows': 3,
+            'placeholder': 'توضیحات فروش/مرجوعی...'
+        })
+    
+    # متد save() حذف شده - ProjectFormMixin به صورت خودکار project را تنظیم می‌کند
+
+class UnitSpecificExpenseForm(forms.ModelForm):
+    date_shamsi = CustomJDateField(
+        label="تاریخ (شمسی)",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'انتخاب تاریخ شمسی...'
+        })
+    )
+    
+    class Meta:
+        model = models.UnitSpecificExpense
+        fields = [
+            "unit",
+            "title",
+            "date_shamsi",
+            "amount",
+            "description",
+        ]
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # تنظیم استایل‌ها برای فیلدها
+        self.fields['unit'].widget.attrs.update({'class': 'form-control'})
+        self.fields['title'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'عنوان هزینه را وارد کنید...'
+        })
+        self.fields['amount'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'مبلغ را وارد کنید...',
+            'oninput': 'formatNumber(this)',
+            'onblur': 'validateNumber(this)'
+        })
+        self.fields['description'].widget.attrs.update({
+            'class': 'form-control',
+            'rows': 3,
+            'placeholder': 'توضیحات هزینه...'
+        })
+        # request بعداً در set_request تنظیم می‌شود
+        self._request = None
+    
+    def set_request(self, request):
+        """تنظیم request برای فیلتر کردن queryset"""
+        self._request = request
+        # فیلتر کردن واحدها بر اساس پروژه جاری
+        if request:
+            current_project = ProjectManager.get_current_project(request)
+            if current_project:
+                self.fields['unit'].queryset = models.Unit.objects.filter(project=current_project)
+    
+    def save(self, commit=True):
+        """ذخیره هزینه اختصاصی واحد با تبدیل خودکار تاریخ شمسی به میلادی"""
+        expense = super().save(commit=False)
+        
+        # تبدیل تاریخ شمسی به میلادی
+        if expense.date_shamsi and not expense.date_gregorian:
+            import jdatetime
+            try:
+                jdate = jdatetime.date(
+                    expense.date_shamsi.year,
+                    expense.date_shamsi.month,
+                    expense.date_shamsi.day
+                )
+                expense.date_gregorian = jdate.togregorian()
+            except Exception as e:
+                pass
+        
+        # نکته: ProjectFormMixin به صورت خودکار project را تنظیم می‌کند
+        
+        if commit:
+            expense.save()
+        
+        return expense
