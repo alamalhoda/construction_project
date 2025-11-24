@@ -57,12 +57,16 @@ class ProjectCalculations(FinancialCalculationService):
         Returns:
             Dict: آمار کامل پروژه
         """
+        logger.info("Calculating project statistics for project_id: %s", project_id)
         if not project_id:
+            logger.warning("calculate_project_statistics called without project_id")
             return {'error': 'شناسه پروژه الزامی است. لطفاً project_id را ارسال کنید.'}
         
         try:
             project = models.Project.objects.get(id=project_id)
+            logger.debug("Project found: %s (id: %s)", project.name, project_id)
         except models.Project.DoesNotExist:
+            logger.error("Project not found: project_id=%s", project_id)
             return {'error': f'پروژه با شناسه {project_id} یافت نشد'}
         
         # آمار واحدها (مرجع واحد)
@@ -159,13 +163,17 @@ class ProjectCalculations(FinancialCalculationService):
         Returns:
             Dict: متریک‌های هزینه
         """
+        logger.info("Calculating profit percentages for project_id: %s", project_id)
         # اگر project_id مشخص نشده، از پروژه فعال استفاده کن
         if project_id:
             try:
                 project = models.Project.objects.get(id=project_id)
+                logger.debug("Project found: %s (id: %s)", project.name, project_id)
             except models.Project.DoesNotExist:
+                logger.error("Project not found in calculate_profit_percentages: project_id=%s", project_id)
                 return {'error': f'پروژه با شناسه {project_id} یافت نشد'}
         else:
+            logger.warning("calculate_profit_percentages called without project_id")
             return {'error': 'شناسه پروژه الزامی است. لطفاً project_id را ارسال کنید.'}
         
         # آمار هزینه‌ها و فروش‌ها
@@ -248,9 +256,12 @@ class ProjectCalculations(FinancialCalculationService):
         if not project_id:
             return {'error': 'شناسه پروژه الزامی است. لطفاً project_id را ارسال کنید.'}
         
+        logger.info("Calculating cost metrics for project_id: %s", project_id)
         try:
             project = models.Project.objects.get(id=project_id)
+            logger.debug("Project found: %s (id: %s)", project.name, project_id)
         except models.Project.DoesNotExist:
+            logger.error("Project not found in calculate_cost_metrics: project_id=%s", project_id)
             return {'error': f'پروژه با شناسه {project_id} یافت نشد'}
         
         # یافتن دوره جاری
@@ -266,7 +277,10 @@ class ProjectCalculations(FinancialCalculationService):
                 year=current_year,
                 month_number=current_month
             ).first()
-        except Exception:
+            if current_period:
+                logger.debug("Current period found: %s", current_period.label)
+        except Exception as e:
+            logger.warning("Error finding current period: %s", e)
             pass
         
         # اگر دوره جاری پیدا نشد، از آخرین دوره استفاده می‌کنیم
@@ -322,12 +336,16 @@ class ProfitCalculations(FinancialCalculationService):
         Returns:
             float: دوره متوسط ساخت (روز)
         """
+        logger.debug("Calculating average construction period for project_id: %s", project_id)
         if not project_id:
+            logger.warning("calculate_average_construction_period called without project_id")
             return 0.0
         
         try:
             project = models.Project.objects.get(id=project_id)
+            logger.debug("Project found: %s (id: %s)", project.name, project_id)
         except models.Project.DoesNotExist:
+            logger.error("Project not found in calculate_average_construction_period: project_id=%s", project_id)
             return 0.0
         
         # دریافت هزینه‌ها با اطلاعات دوره
@@ -483,15 +501,20 @@ class InvestorCalculations(FinancialCalculationService):
         Returns:
             Dict: نسبت‌های سرمایه‌گذار
         """
+        logger.info("Calculating investor ratios for investor_id: %s, project_id: %s", investor_id, project_id)
         if not project_id:
+            logger.warning("calculate_investor_ratios called without project_id")
             return {'error': 'شناسه پروژه الزامی است. لطفاً project_id را ارسال کنید.'}
         
         try:
             project = models.Project.objects.get(id=project_id)
+            logger.debug("Project found: %s (id: %s)", project.name, project_id)
         except models.Project.DoesNotExist:
+            logger.error("Project not found in calculate_investor_ratios: project_id=%s", project_id)
             return {'error': f'پروژه با شناسه {project_id} یافت نشد'}
         
         # آمار سرمایه‌گذار
+        logger.debug("Fetching investor statistics for ratios calculation")
         investor_stats = InvestorCalculations.calculate_investor_statistics(investor_id, project_id)
         
         if 'error' in investor_stats:
@@ -555,21 +578,28 @@ class InvestorCalculations(FinancialCalculationService):
         Returns:
             Dict: اطلاعات مالکیت سرمایه‌گذار
         """
+        logger.info("Calculating investor ownership for investor_id: %s, project_id: %s", investor_id, project_id)
         if not project_id:
+            logger.warning("calculate_investor_ownership called without project_id")
             return {'error': 'شناسه پروژه الزامی است. لطفاً project_id را ارسال کنید.'}
         
         try:
             project = models.Project.objects.get(id=project_id)
+            logger.debug("Project found: %s (id: %s)", project.name, project_id)
         except models.Project.DoesNotExist:
+            logger.error("Project not found in calculate_investor_ownership: project_id=%s", project_id)
             return {'error': f'پروژه با شناسه {project_id} یافت نشد'}
         
         # دریافت سرمایه‌گذار
         try:
             investor = models.Investor.objects.get(id=investor_id)
+            logger.debug("Investor found: %s %s (id: %s)", investor.first_name, investor.last_name, investor_id)
         except models.Investor.DoesNotExist:
+            logger.error("Investor not found in calculate_investor_ownership: investor_id=%s", investor_id)
             return {'error': 'سرمایه‌گذار یافت نشد'}
         
         # آمار مالی سرمایه‌گذار
+        logger.debug("Fetching investor statistics for ownership calculation")
         investor_stats = InvestorCalculations.calculate_investor_statistics(investor_id, project_id)
         
         if 'error' in investor_stats:
@@ -722,13 +752,17 @@ class InvestorCalculations(FinancialCalculationService):
                 - نسبت‌ها (capital_ratio, profit_ratio, profit_index)
                 - اطلاعات مالکیت (متراژ، واحدها، قیمت‌ها)
         """
+        logger.info("Getting all investors summary for project_id: %s", project_id)
         # اگر project_id None باشد، خطا برگردان (باید از API endpoint تنظیم شود)
         if not project_id:
+            logger.warning("get_all_investors_summary called without project_id")
             return []
         
         try:
             project = models.Project.objects.get(id=project_id)
+            logger.debug("Project found: %s (id: %s)", project.name, project_id)
         except models.Project.DoesNotExist:
+            logger.error("Project not found in get_all_investors_summary: project_id=%s", project_id)
             return []
         
         # دریافت سرمایه‌گذاران پروژه جاری (فیلتر بر اساس پروژه)
@@ -936,15 +970,20 @@ class TransactionCalculations(FinancialCalculationService):
         Returns:
             Dict: آمار تراکنش‌ها
         """
+        logger.info("Calculating transaction statistics for project_id: %s", project_id)
         if not project_id:
+            logger.warning("calculate_transaction_statistics called without project_id")
             return {'error': 'شناسه پروژه الزامی است. لطفاً project_id را ارسال کنید.'}
         
         try:
             project = models.Project.objects.get(id=project_id)
+            logger.debug("Project found: %s (id: %s)", project.name, project_id)
         except models.Project.DoesNotExist:
+            logger.error("Project not found in calculate_transaction_statistics: project_id=%s", project_id)
             return {'error': f'پروژه با شناسه {project_id} یافت نشد'}
         
         # محاسبه آمار از مرجع واحد
+        logger.debug("Calculating transaction totals with filters: %s", filters)
         totals = models.Transaction.objects.totals(project, filters or {})  # محاسبه مجموع تراکنش‌ها
         
         total_deposits = float(totals['deposits'] or 0)  # مجموع آورده‌ها
@@ -979,16 +1018,21 @@ class ComprehensiveCalculations(FinancialCalculationService):
         Returns:
             Dict: تحلیل جامع پروژه
         """
+        logger.info("Getting comprehensive project analysis for project_id: %s", project_id)
         # project_id باید از API endpoint تنظیم شود (از پروژه جاری از session)
         if not project_id:
+            logger.warning("get_comprehensive_project_analysis called without project_id")
             return {'error': 'شناسه پروژه الزامی است'}
         
         try:
             project = models.Project.objects.get(id=project_id)
+            logger.debug("Project found: %s (id: %s)", project.name, project_id)
         except models.Project.DoesNotExist:
+            logger.error("Project not found in get_comprehensive_project_analysis: project_id=%s", project_id)
             return {'error': 'پروژه یافت نشد'}
         
         # جمع‌آوری تمام آمار
+        logger.debug("Collecting all project statistics and metrics")
         project_stats = ProjectCalculations.calculate_project_statistics(project_id)  # آمار کلی پروژه
         cost_metrics = ProjectCalculations.calculate_cost_metrics(project_id)  # معیارهای هزینه
         profit_percentages = ProfitCalculations.calculate_profit_percentages(project_id)  # درصدهای سود
