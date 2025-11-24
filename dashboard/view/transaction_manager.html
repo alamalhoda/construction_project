@@ -1322,7 +1322,7 @@
         }
 
         // Initialize on page load
-        $(document).ready(function() {
+        $(document).ready(async function() {
             console.log('Document ready');
             console.log('addNewTransaction function exists:', typeof addNewTransaction);
             
@@ -1332,7 +1332,7 @@
             // Ensure loading is hidden initially
             showLoading(false);
             
-            loadInitialData();
+            await loadInitialData();
             
             // Add event listener for save button
             $(document).on('click', '#saveTransactionBtn', function(e) {
@@ -1429,7 +1429,7 @@
             console.log('Dropdowns initialized with fullTextSearch enabled');
         }
         
-        function loadInitialData() {
+        async function loadInitialData() {
             showLoading(true);
             hideError();
             
@@ -1559,11 +1559,28 @@
             });
         }
         
-        function fetchData(endpoint) {
+        async function fetchData(endpoint) {
             const url = API_BASE + endpoint;
             console.log(`Fetching data from: ${url}`);
             
-            return fetch(url)
+            // دریافت CSRF token
+            const csrfToken = await getCSRFToken();
+            
+            // آماده‌سازی headers
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+            
+            // اضافه کردن CSRF token اگر موجود بود
+            if (csrfToken) {
+                headers['X-CSRFToken'] = csrfToken;
+            }
+            
+            return fetch(url, {
+                method: 'GET',
+                headers: headers,
+                credentials: 'include'
+            })
                 .then(response => {
                     console.log(`Response from ${url}:`, {
                         status: response.status,
@@ -2092,12 +2109,12 @@
             }
         }
         
-        function refreshData() {
+        async function refreshData() {
             // Show loading
             showLoading(true);
             
             // Reload data
-            loadInitialData();
+            await loadInitialData();
             
             // Show success message
             setTimeout(() => {
@@ -2935,7 +2952,7 @@
         };
         
         // Make function globally accessible
-        window.addNewTransaction = function() {
+        window.addNewTransaction = async function() {
             console.log('addNewTransaction function called');
             
             // Prevent double submission
@@ -3045,6 +3062,14 @@
             
             console.log('Validation passed, starting API call...');
             
+            // دریافت CSRF token
+            const csrfToken = await getCSRFToken();
+            if (!csrfToken) {
+                showError('خطا: CSRF Token یافت نشد. لطفاً صفحه را رفرش کنید.');
+                saveBtn.removeClass('loading');
+                return;
+            }
+            
             // Show loading state
             const saveButton = document.querySelector('#addTransactionModal .ui.primary.button');
             const originalText = saveButton.innerHTML;
@@ -3059,7 +3084,7 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': getCSRFToken()
+                    'X-CSRFToken': csrfToken
                 },
                 body: JSON.stringify(formData)
             })
@@ -3231,7 +3256,7 @@
         }
         */
         
-        function updateTransaction() {
+        async function updateTransaction() {
             const id = document.getElementById('editTransactionId').value;
             
             // Get and clean the amount value - remove all non-digit characters including Persian digits and commas
@@ -3277,12 +3302,19 @@
                 return;
             }
             
+            // دریافت CSRF token
+            const csrfToken = await getCSRFToken();
+            if (!csrfToken) {
+                showError('خطا: CSRF Token یافت نشد. لطفاً صفحه را رفرش کنید.');
+                return;
+            }
+            
             // Send to API
             fetch(API_BASE + ENDPOINTS.transactions + id + '/', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': getCSRFToken()
+                    'X-CSRFToken': csrfToken
                 },
                 body: JSON.stringify(formData)
             })
@@ -3310,15 +3342,22 @@
             });
         }
         
-        function deleteTransaction(id) {
+        async function deleteTransaction(id) {
             if (!confirm('آیا از حذف این تراکنش اطمینان دارید؟')) {
+                return;
+            }
+            
+            // دریافت CSRF token
+            const csrfToken = await getCSRFToken();
+            if (!csrfToken) {
+                showError('خطا: CSRF Token یافت نشد. لطفاً صفحه را رفرش کنید.');
                 return;
             }
             
             fetch(API_BASE + ENDPOINTS.transactions + id + '/', {
                 method: 'DELETE',
                 headers: {
-                    'X-CSRFToken': getCSRFToken()
+                    'X-CSRFToken': csrfToken
                 }
             })
             .then(response => {
@@ -3423,34 +3462,65 @@
             return cookieValue;
         }
         
-        // تابع بهبود یافته برای دریافت CSRF token
-        function getCSRFToken() {
-            // ابتدا از window.csrfToken دریافت کن (از سرور)
-            let token = window.csrfToken;
-            
-            // اگر از window دریافت نشد، از cookie دریافت کن
-            if (!token) {
-                token = getCookie('csrftoken');
+        // متغیر global برای CSRF token
+        let csrfToken = null;
+        // Promise برای جلوگیری از race condition در دریافت همزمان
+        let csrfTokenPromise = null;
+
+        // تابع دریافت CSRF token (بهبود یافته با Promise-based locking)
+        async function getCSRFToken() {
+            // اگر قبلاً دریافت شده، آن را برگردان
+            if (csrfToken) {
+                return csrfToken;
             }
             
-            // اگر از cookie دریافت نشد، از meta tag دریافت کن
-            if (!token) {
-                const metaTag = document.querySelector('meta[name="csrf-token"]');
-                if (metaTag) {
-                    token = metaTag.getAttribute('content');
+            // اگر یک Promise در حال انجام است، منتظر آن بمان
+            if (csrfTokenPromise) {
+                return await csrfTokenPromise;
+            }
+            
+            // ایجاد Promise جدید برای دریافت token
+            csrfTokenPromise = (async () => {
+                try {
+                    // ابتدا از window.csrfToken بررسی کن (از سرور)
+                    if (window.csrfToken) {
+                        csrfToken = window.csrfToken;
+                        return csrfToken;
+                    }
+                    
+                    // سپس از cookie بررسی کن
+                    const cookieToken = getCookie('csrftoken');
+                    if (cookieToken) {
+                        csrfToken = cookieToken;
+                        return csrfToken;
+                    }
+                    
+                    // اگر هیچکدام موجود نبود، از API endpoint دریافت کن
+                    const response = await fetch('/api/v1/auth/csrf/', {
+                        method: 'GET',
+                        credentials: 'include'
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.csrf_token) {
+                            csrfToken = data.csrf_token;
+                            return csrfToken;
+                        }
+                    }
+                    
+                    return null;
+                } catch (error) {
+                    console.error('خطا در دریافت CSRF token:', error);
+                    return null;
+                } finally {
+                    // پاک کردن Promise بعد از اتمام (برای امکان retry در صورت خطا)
+                    csrfTokenPromise = null;
                 }
-            }
+            })();
             
-            // اگر هنوز دریافت نشد، از Django template tag دریافت کن
-            if (!token) {
-                const csrfInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
-                if (csrfInput) {
-                    token = csrfInput.value;
-                }
-            }
-            
-            console.log('CSRF Token found:', token ? 'Yes' : 'No', token ? `Length: ${token.length}` : '');
-            return token;
+            // منتظر ماندن برای نتیجه Promise
+            return await csrfTokenPromise;
         }
     </script>
     

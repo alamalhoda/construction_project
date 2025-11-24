@@ -587,16 +587,80 @@
             return cookieValue;
         }
 
+        // متغیر global برای CSRF token
+        let csrfToken = null;
+        // Promise برای جلوگیری از race condition در دریافت همزمان
+        let csrfTokenPromise = null;
+
+        // تابع دریافت CSRF token (بهبود یافته با Promise-based locking)
+        async function getCSRFToken() {
+            // اگر قبلاً دریافت شده، آن را برگردان
+            if (csrfToken) {
+                return csrfToken;
+            }
+            
+            // اگر یک Promise در حال انجام است، منتظر آن بمان
+            if (csrfTokenPromise) {
+                return await csrfTokenPromise;
+            }
+            
+            // ایجاد Promise جدید برای دریافت token
+            csrfTokenPromise = (async () => {
+                try {
+                    // ابتدا از window.csrfToken بررسی کن (از سرور)
+                    if (window.csrfToken) {
+                        csrfToken = window.csrfToken;
+                        return csrfToken;
+                    }
+                    
+                    // سپس از cookie بررسی کن
+                    const cookieToken = getCookie('csrftoken');
+                    if (cookieToken) {
+                        csrfToken = cookieToken;
+                        return csrfToken;
+                    }
+                    
+                    // اگر هیچکدام موجود نبود، از API endpoint دریافت کن
+                    const response = await fetch('/api/v1/auth/csrf/', {
+                        method: 'GET',
+                        credentials: 'include'
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.csrf_token) {
+                            csrfToken = data.csrf_token;
+                            return csrfToken;
+                        }
+                    }
+                    
+                    return null;
+                } catch (error) {
+                    console.error('خطا در دریافت CSRF token:', error);
+                    return null;
+                } finally {
+                    // پاک کردن Promise بعد از اتمام (برای امکان retry در صورت خطا)
+                    csrfTokenPromise = null;
+                }
+            })();
+            
+            // منتظر ماندن برای نتیجه Promise
+            return await csrfTokenPromise;
+        }
+
         function formatNumber(num) {
             return new Intl.NumberFormat('en-US').format(Math.round(num));
         }
 
         async function loadInitialData() {
             try {
+                // دریافت CSRF token
+                const csrfToken = await getCSRFToken();
+                
                 // Load current project
                 try {
                     const currentProjectResponse = await fetch(`${API_BASE}Project/current/`, {
-                        headers: {'X-CSRFToken': getCookie('csrftoken') || ''}
+                        headers: {'X-CSRFToken': csrfToken || ''}
                     });
                     if (currentProjectResponse.ok) {
                         const currentProject = await currentProjectResponse.json();
@@ -652,8 +716,11 @@
 
                 const url = `${API_BASE}PettyCashTransaction/balance_trend/?expense_type=${expenseType}`;
 
+                // دریافت CSRF token
+                const csrfToken = await getCSRFToken();
+
                 const response = await fetch(url, {
-                    headers: {'X-CSRFToken': getCookie('csrftoken') || ''}
+                    headers: {'X-CSRFToken': csrfToken || ''}
                 });
 
                 const result = await response.json();
@@ -1083,8 +1150,8 @@
             `;
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            loadInitialData();
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadInitialData();
         });
     </script>
     

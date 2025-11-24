@@ -729,8 +729,65 @@
             return cookieValue;
         }
 
-        function getCSRFToken() {
-            return getCookie('csrftoken');
+        // متغیر global برای CSRF token
+        let csrfToken = null;
+        // Promise برای جلوگیری از race condition در دریافت همزمان
+        let csrfTokenPromise = null;
+
+        // تابع دریافت CSRF token (بهبود یافته با Promise-based locking)
+        async function getCSRFToken() {
+            // اگر قبلاً دریافت شده، آن را برگردان
+            if (csrfToken) {
+                return csrfToken;
+            }
+            
+            // اگر یک Promise در حال انجام است، منتظر آن بمان
+            if (csrfTokenPromise) {
+                return await csrfTokenPromise;
+            }
+            
+            // ایجاد Promise جدید برای دریافت token
+            csrfTokenPromise = (async () => {
+                try {
+                    // ابتدا از window.csrfToken بررسی کن (از سرور)
+                    if (window.csrfToken) {
+                        csrfToken = window.csrfToken;
+                        return csrfToken;
+                    }
+                    
+                    // سپس از cookie بررسی کن
+                    const cookieToken = getCookie('csrftoken');
+                    if (cookieToken) {
+                        csrfToken = cookieToken;
+                        return csrfToken;
+                    }
+                    
+                    // اگر هیچکدام موجود نبود، از API endpoint دریافت کن
+                    const response = await fetch('/api/v1/auth/csrf/', {
+                        method: 'GET',
+                        credentials: 'include'
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.csrf_token) {
+                            csrfToken = data.csrf_token;
+                            return csrfToken;
+                        }
+                    }
+                    
+                    return null;
+                } catch (error) {
+                    console.error('خطا در دریافت CSRF token:', error);
+                    return null;
+                } finally {
+                    // پاک کردن Promise بعد از اتمام (برای امکان retry در صورت خطا)
+                    csrfTokenPromise = null;
+                }
+            })();
+            
+            // منتظر ماندن برای نتیجه Promise
+            return await csrfTokenPromise;
         }
 
         // Load initial data
@@ -739,11 +796,18 @@
                 showLoading(true);
                 
                 // Load transactions
+                const csrfToken = await getCSRFToken();
+                if (!csrfToken) {
+                    showError('خطا: CSRF Token یافت نشد. لطفاً صفحه را رفرش کنید.');
+                    showLoading(false);
+                    return;
+                }
+                
                 const response = await fetch(`${API_BASE}PettyCashTransaction/`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': getCSRFToken() || ''
+                        'X-CSRFToken': csrfToken
                     },
                     credentials: 'include'
                 });
@@ -931,11 +995,21 @@
                 }
                 
                 // دریافت آمار از سرور (Single Source of Truth)
+                const csrfToken = await getCSRFToken();
+                if (!csrfToken) {
+                    console.error('CSRF Token یافت نشد برای دریافت آمار');
+                    // در صورت نبود token، آمار را صفر نمایش می‌دهیم
+                    document.getElementById('totalReceipts').textContent = '0';
+                    document.getElementById('totalReturns').textContent = '0';
+                    document.getElementById('netAmount').textContent = '0';
+                    return;
+                }
+                
                 const response = await fetch(url, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': getCSRFToken() || ''
+                        'X-CSRFToken': csrfToken
                     },
                     credentials: 'include'
                 });
@@ -1062,11 +1136,17 @@
                     return;
                 }
 
+                const csrfToken = await getCSRFToken();
+                if (!csrfToken) {
+                    alert('خطا: CSRF Token یافت نشد. لطفاً صفحه را رفرش کنید.');
+                    return;
+                }
+
                 const response = await fetch(`${API_BASE}PettyCashTransaction/`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': getCSRFToken() || ''
+                        'X-CSRFToken': csrfToken
                     },
                     credentials: 'include',
                     body: JSON.stringify(formData)
@@ -1082,7 +1162,7 @@
                 // Reset dropdowns
                 $('#addExpenseTypeDropdown').dropdown('clear');
                 $('#addTransactionTypeDropdown').dropdown('clear');
-                loadInitialData();
+                await loadInitialData();
                 alert('تراکنش با موفقیت اضافه شد');
             } catch (error) {
                 console.error('Error saving transaction:', error);
@@ -1096,11 +1176,18 @@
                 showLoading(true);
                 
                 // دریافت داده‌های تراکنش از API
+                const csrfToken = await getCSRFToken();
+                if (!csrfToken) {
+                    showError('خطا: CSRF Token یافت نشد. لطفاً صفحه را رفرش کنید.');
+                    showLoading(false);
+                    return;
+                }
+                
                 const response = await fetch(`${API_BASE}PettyCashTransaction/${id}/`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': getCSRFToken() || ''
+                        'X-CSRFToken': csrfToken
                     },
                     credentials: 'include'
                 });
@@ -1251,11 +1338,17 @@
                 }
                 formData.date_shamsi_input = dateValue;
 
+                const csrfToken = await getCSRFToken();
+                if (!csrfToken) {
+                    alert('خطا: CSRF Token یافت نشد. لطفاً صفحه را رفرش کنید.');
+                    return;
+                }
+
                 const response = await fetch(`${API_BASE}PettyCashTransaction/${editingTransactionId}/`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': getCSRFToken() || ''
+                        'X-CSRFToken': csrfToken
                     },
                     credentials: 'include',
                     body: JSON.stringify(formData)
@@ -1293,7 +1386,7 @@
                 $('#editExpenseTypeDropdown').dropdown('clear');
                 $('#editTransactionTypeDropdown').dropdown('clear');
                 editingTransactionId = null;
-                loadInitialData();
+                await loadInitialData();
                 alert('تراکنش با موفقیت به‌روزرسانی شد');
             } catch (error) {
                 console.error('Error updating transaction:', error);
@@ -1307,11 +1400,17 @@
             }
 
             try {
+                const csrfToken = await getCSRFToken();
+                if (!csrfToken) {
+                    alert('خطا: CSRF Token یافت نشد. لطفاً صفحه را رفرش کنید.');
+                    return;
+                }
+
                 const response = await fetch(`${API_BASE}PettyCashTransaction/${id}/`, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': getCSRFToken() || ''
+                        'X-CSRFToken': csrfToken
                     },
                     credentials: 'include'
                 });
@@ -1321,7 +1420,7 @@
                     throw new Error(errorData.error || errorData.detail || 'خطا در حذف تراکنش');
                 }
 
-                loadInitialData();
+                await loadInitialData();
                 alert('تراکنش با موفقیت حذف شد');
             } catch (error) {
                 console.error('Error deleting transaction:', error);
@@ -1379,8 +1478,8 @@
         });
 
         // Initialize on page load
-        $(document).ready(function() {
-            loadInitialData();
+        $(document).ready(async function() {
+            await loadInitialData();
         });
     </script>
     
