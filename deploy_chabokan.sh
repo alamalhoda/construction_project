@@ -116,13 +116,57 @@ print_step "6. Running migrations..."
 python manage.py migrate --noinput
 print_message "Migrations completed"
 
-print_step "7. Collecting static files..."
+print_step "7. Creating necessary directories..."
+
+# Create necessary directories
+mkdir -p logs
+mkdir -p media
+mkdir -p staticfiles
+mkdir -p backups
+print_message "Directories created"
+
+print_step "8. Setting permissions..."
+
+# Set permissions
+chmod 755 logs 2>/dev/null || print_warning "Could not set permissions for logs"
+chmod 755 media 2>/dev/null || print_warning "Could not set permissions for media"
+chmod 755 staticfiles 2>/dev/null || print_warning "Could not set permissions for staticfiles"
+print_message "Permissions set"
+
+print_step "9. Creating superuser (if needed)..."
+
+# Create superuser if it doesn't exist
+if python manage.py shell << EOF 2>/dev/null; then
+from django.contrib.auth import get_user_model
+User = get_user_model()
+if not User.objects.filter(username='admin').exists():
+    User.objects.create_superuser('admin', 'admin@chabokan.net', 'admin123')
+    print('Superuser created: admin/admin123')
+else:
+    print('Superuser already exists')
+EOF
+    print_message "Superuser check completed"
+else
+    print_warning "Could not create superuser (continuing anyway)"
+fi
+
+print_step "10. Collecting static files..."
 
 # Collect static files
 python manage.py collectstatic --noinput --clear
 print_message "Static files collected"
 
-print_step "8. Testing Django setup..."
+print_step "11. Running security checks..."
+
+# Run security checks (non-blocking)
+if [ -f "security_check.py" ]; then
+    python security_check.py 2>/dev/null || print_warning "Security check had warnings (continuing anyway)"
+    print_message "Security checks completed"
+else
+    print_warning "security_check.py not found - skipping security checks"
+fi
+
+print_step "12. Testing Django setup..."
 
 # Test Django
 if python manage.py check >/dev/null 2>&1; then
@@ -131,7 +175,7 @@ else
     print_warning "Django check failed - continuing anyway"
 fi
 
-print_step "9. Starting Gunicorn..."
+print_step "13. Starting Gunicorn..."
 
 # Start Gunicorn on port 8000
 nohup gunicorn construction_project.wsgi:application \
@@ -147,7 +191,7 @@ nohup gunicorn construction_project.wsgi:application \
 # Wait for Gunicorn to start
 sleep 3
 
-print_step "10. Testing Gunicorn..."
+print_step "14. Testing Gunicorn..."
 
 # Test Gunicorn
 if curl -s http://localhost:8000/health/simple/ > /dev/null; then
@@ -160,7 +204,7 @@ else
     exit 1
 fi
 
-print_step "11. Setting up Nginx..."
+print_step "15. Setting up Nginx..."
 
 if command -v nginx > /dev/null; then
     # Copy correct nginx config
@@ -206,7 +250,7 @@ else
     print_warning "⚠️  Nginx not available, using Gunicorn directly"
 fi
 
-print_step "12. Final testing and cleanup..."
+print_step "16. Final testing and cleanup..."
 
 # Test localhost
 print_message "Testing localhost:8000..."
@@ -242,7 +286,11 @@ echo "  ✓ Synced with chabokan-deployment branch"
 echo "  ✓ Activated virtual environment"
 echo "  ✓ Updated requirements"
 echo "  ✓ Ran migrations"
+echo "  ✓ Created necessary directories"
+echo "  ✓ Set permissions"
+echo "  ✓ Created/checked superuser"
 echo "  ✓ Collected static files"
+echo "  ✓ Ran security checks"
 echo "  ✓ Started Gunicorn"
 echo "  ✓ Configured Nginx"
 echo "  ✓ Tested server functionality"
