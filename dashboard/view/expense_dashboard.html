@@ -1491,38 +1491,63 @@
 
         // متغیر global برای CSRF token
         let csrfToken = null;
+        // Promise برای جلوگیری از race condition در دریافت همزمان
+        let csrfTokenPromise = null;
 
-        // تابع دریافت CSRF token
+        // تابع دریافت CSRF token (بهبود یافته با Promise-based locking)
         async function getCSRFToken() {
             // اگر قبلاً دریافت شده، آن را برگردان
             if (csrfToken) {
                 return csrfToken;
             }
             
-            // ابتدا از cookie بررسی کن
-            const cookieToken = getCookie('csrftoken');
-            if (cookieToken) {
-                csrfToken = cookieToken;
-                return csrfToken;
+            // اگر یک Promise در حال انجام است، منتظر آن بمان
+            if (csrfTokenPromise) {
+                return await csrfTokenPromise;
             }
             
-            // اگر cookie موجود نبود، از سرور دریافت کن
-            try {
-                const response = await fetch('/api/v1/auth/csrf/', {
-                    method: 'GET',
-                    credentials: 'include'
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    csrfToken = data.csrf_token;
-                    return csrfToken;
+            // ایجاد Promise جدید برای دریافت token
+            csrfTokenPromise = (async () => {
+                try {
+                    // ابتدا از window.csrfToken بررسی کن (از سرور)
+                    if (window.csrfToken) {
+                        csrfToken = window.csrfToken;
+                        return csrfToken;
+                    }
+                    
+                    // سپس از cookie بررسی کن
+                    const cookieToken = getCookie('csrftoken');
+                    if (cookieToken) {
+                        csrfToken = cookieToken;
+                        return csrfToken;
+                    }
+                    
+                    // اگر هیچکدام موجود نبود، از API endpoint دریافت کن
+                    const response = await fetch('/api/v1/auth/csrf/', {
+                        method: 'GET',
+                        credentials: 'include'
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.csrf_token) {
+                            csrfToken = data.csrf_token;
+                            return csrfToken;
+                        }
+                    }
+                    
+                    return null;
+                } catch (error) {
+                    console.error('خطا در دریافت CSRF token:', error);
+                    return null;
+                } finally {
+                    // پاک کردن Promise بعد از اتمام (برای امکان retry در صورت خطا)
+                    csrfTokenPromise = null;
                 }
-            } catch (error) {
-                console.error('خطا در دریافت CSRF token:', error);
-            }
+            })();
             
-            return null;
+            // منتظر ماندن برای نتیجه Promise
+            return await csrfTokenPromise;
         }
 
 

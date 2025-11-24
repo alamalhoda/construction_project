@@ -50,7 +50,6 @@ def investor_pdf(request):
 def transaction_manager(request):
     """نمایش صفحه مدیریت تراکنش‌های مالی"""
     from django.middleware.csrf import get_token
-    from django.utils.crypto import get_random_string
     
     file_path = os.path.join(settings.BASE_DIR, 'dashboard', 'view', 'transaction_manager.html')
     try:
@@ -60,12 +59,10 @@ def transaction_manager(request):
         # دریافت CSRF token از Django
         csrf_token = get_token(request)
         
-        # اگر token خالی است، یک token جدید تولید کن
-        if not csrf_token:
-            csrf_token = get_random_string(64)
-        
-        # اضافه کردن CSRF token به JavaScript
-        csrf_script = f"""
+        # فقط اگر token معتبر موجود بود، آن را به JavaScript اضافه کن
+        # در غیر این صورت، JavaScript از cookie یا API endpoint استفاده خواهد کرد
+        if csrf_token:
+            csrf_script = f"""
         <script>
         // CSRF Token از سرور
         window.csrfToken = '{csrf_token}';
@@ -73,9 +70,8 @@ def transaction_manager(request):
         console.log('CSRF Token length:', window.csrfToken.length);
         </script>
         """
-        
-        # قرار دادن script قبل از closing body tag
-        content = content.replace('</body>', csrf_script + '</body>')
+            # قرار دادن script قبل از closing body tag
+            content = content.replace('</body>', csrf_script + '</body>')
         
         return HttpResponse(content)
     except FileNotFoundError:
@@ -152,7 +148,6 @@ def expense_dashboard(request):
 def interest_rate_manager(request):
     """نمایش صفحه مدیریت نرخ سود"""
     from django.middleware.csrf import get_token
-    from django.utils.crypto import get_random_string
     
     file_path = os.path.join(settings.BASE_DIR, 'dashboard', 'view', 'interestrate_manager.html')
     try:
@@ -162,12 +157,10 @@ def interest_rate_manager(request):
         # دریافت CSRF token از Django
         csrf_token = get_token(request)
         
-        # اگر token خالی است، یک token جدید تولید کن
-        if not csrf_token:
-            csrf_token = get_random_string(64)
-        
-        # اضافه کردن CSRF token به JavaScript
-        csrf_script = f"""
+        # فقط اگر token معتبر موجود بود، آن را به JavaScript اضافه کن
+        # در غیر این صورت، JavaScript از cookie یا API endpoint استفاده خواهد کرد
+        if csrf_token:
+            csrf_script = f"""
         <script>
         // CSRF Token از سرور
         window.csrfToken = '{csrf_token}';
@@ -175,9 +168,8 @@ def interest_rate_manager(request):
         console.log('CSRF Token length:', window.csrfToken.length);
         </script>
         """
-        
-        # قرار دادن script قبل از closing body tag
-        content = content.replace('</body>', csrf_script + '</body>')
+            # قرار دادن script قبل از closing body tag
+            content = content.replace('</body>', csrf_script + '</body>')
         
         return HttpResponse(content)
     except FileNotFoundError:
@@ -321,10 +313,30 @@ def detailed_calculations(request):
 @login_required
 def petty_cash_dashboard(request):
     """صفحه مدیریت تراکنش‌های تنخواه"""
+    from django.middleware.csrf import get_token
+    
     file_path = os.path.join(settings.BASE_DIR, 'dashboard', 'view', 'petty_cash_dashboard.html')
     try:
         with open(file_path, 'r', encoding='utf-8') as file:
             content = file.read()
+        
+        # دریافت CSRF token از Django
+        csrf_token = get_token(request)
+        
+        # فقط اگر token معتبر موجود بود، آن را به JavaScript اضافه کن
+        # در غیر این صورت، JavaScript از cookie یا API endpoint استفاده خواهد کرد
+        if csrf_token:
+            csrf_script = f"""
+        <script>
+        // CSRF Token از سرور
+        window.csrfToken = '{csrf_token}';
+        console.log('CSRF Token from server:', window.csrfToken);
+        console.log('CSRF Token length:', window.csrfToken.length);
+        </script>
+        """
+            # قرار دادن script قبل از closing body tag
+            content = content.replace('</body>', csrf_script + '</body>')
+        
         return HttpResponse(content)
     except FileNotFoundError:
         return HttpResponse('فایل مدیریت تنخواه یافت نشد', status=404)
@@ -333,10 +345,26 @@ def petty_cash_dashboard(request):
 @login_required
 def petty_cash_balance_report(request):
     """صفحه گزارش وضعیت مالی"""
+    from django.middleware.csrf import get_token
+    
     file_path = os.path.join(settings.BASE_DIR, 'dashboard', 'view', 'petty_cash_balance_report.html')
     try:
         with open(file_path, 'r', encoding='utf-8') as file:
             content = file.read()
+        
+        # دریافت CSRF token از Django
+        csrf_token = get_token(request)
+        
+        # فقط اگر token معتبر موجود بود، آن را به JavaScript اضافه کن
+        # در غیر این صورت، JavaScript از cookie یا API endpoint استفاده خواهد کرد
+        if csrf_token:
+            csrf_script = f"""
+        <script>
+        window.csrfToken = '{csrf_token}';
+        </script>
+        """
+            content = content.replace('</body>', csrf_script + '</body>')
+        
         return HttpResponse(content)
     except FileNotFoundError:
         return HttpResponse('فایل گزارش وضعیت مالی یافت نشد', status=404)
@@ -345,10 +373,26 @@ def petty_cash_balance_report(request):
 @login_required
 def petty_cash_period_report(request):
     """صفحه گزارش دوره‌ای"""
+    from django.middleware.csrf import get_token
+    
     file_path = os.path.join(settings.BASE_DIR, 'dashboard', 'view', 'petty_cash_period_report.html')
     try:
         with open(file_path, 'r', encoding='utf-8') as file:
             content = file.read()
+        
+        # دریافت CSRF token از Django
+        csrf_token = get_token(request)
+        
+        # فقط اگر token معتبر موجود بود، آن را به JavaScript اضافه کن
+        # در غیر این صورت، JavaScript از cookie یا API endpoint استفاده خواهد کرد
+        if csrf_token:
+            csrf_script = f"""
+        <script>
+        window.csrfToken = '{csrf_token}';
+        </script>
+        """
+            content = content.replace('</body>', csrf_script + '</body>')
+        
         return HttpResponse(content)
     except FileNotFoundError:
         return HttpResponse('فایل گزارش دوره‌ای یافت نشد', status=404)
@@ -357,10 +401,26 @@ def petty_cash_period_report(request):
 @login_required
 def petty_cash_detail_report(request):
     """صفحه گزارش تفصیلی"""
+    from django.middleware.csrf import get_token
+    
     file_path = os.path.join(settings.BASE_DIR, 'dashboard', 'view', 'petty_cash_detail_report.html')
     try:
         with open(file_path, 'r', encoding='utf-8') as file:
             content = file.read()
+        
+        # دریافت CSRF token از Django
+        csrf_token = get_token(request)
+        
+        # فقط اگر token معتبر موجود بود، آن را به JavaScript اضافه کن
+        # در غیر این صورت، JavaScript از cookie یا API endpoint استفاده خواهد کرد
+        if csrf_token:
+            csrf_script = f"""
+        <script>
+        window.csrfToken = '{csrf_token}';
+        </script>
+        """
+            content = content.replace('</body>', csrf_script + '</body>')
+        
         return HttpResponse(content)
     except FileNotFoundError:
         return HttpResponse('فایل گزارش تفصیلی یافت نشد', status=404)
