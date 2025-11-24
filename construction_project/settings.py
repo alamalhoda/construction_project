@@ -316,3 +316,129 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.BrowsableAPIRenderer',
     ],
 }
+
+# تنظیمات Logging
+LOGS_DIR = BASE_DIR / 'logs'
+LOGS_DIR.mkdir(exist_ok=True)
+
+# تعیین سطح لاگ بر اساس محیط
+if DEBUG:
+    DASHBOARD_LOG_LEVEL = 'DEBUG'
+    API_LOG_LEVEL = 'DEBUG'
+    CALCULATIONS_LOG_LEVEL = 'INFO'
+    DJANGO_LOG_LEVEL = 'INFO'
+else:
+    DASHBOARD_LOG_LEVEL = 'INFO'
+    API_LOG_LEVEL = 'INFO'
+    CALCULATIONS_LOG_LEVEL = 'WARNING'
+    DJANGO_LOG_LEVEL = 'WARNING'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        # Dashboard Logging - RotatingFileHandler (بر اساس اندازه)
+        'dashboard_file': {
+            'level': DASHBOARD_LOG_LEVEL,
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOGS_DIR / 'dashboard.log',
+            'maxBytes': 10 * 1024 * 1024,  # 10 MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+        # API Logging - RotatingFileHandler (بر اساس اندازه)
+        'api_file': {
+            'level': API_LOG_LEVEL,
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOGS_DIR / 'api.log',
+            'maxBytes': 10 * 1024 * 1024,  # 10 MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+        # Calculations Logging - TimedRotatingFileHandler (بر اساس زمان)
+        'calculations_file': {
+            'level': CALCULATIONS_LOG_LEVEL,
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': LOGS_DIR / 'calculations.log',
+            'when': 'midnight',
+            'interval': 1,
+            'backupCount': 30,  # نگه داشتن 30 روز
+            'formatter': 'verbose',
+        },
+        # Security Logging - TimedRotatingFileHandler (بر اساس زمان)
+        'security_file': {
+            'level': 'WARNING',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': LOGS_DIR / 'security.log',
+            'when': 'midnight',
+            'interval': 1,
+            'backupCount': 30,  # نگه داشتن 30 روز
+            'formatter': 'verbose',
+        },
+        # Django General Logging - RotatingFileHandler (بر اساس اندازه)
+        'django_file': {
+            'level': DJANGO_LOG_LEVEL,
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOGS_DIR / 'django.log',
+            'maxBytes': 10 * 1024 * 1024,  # 10 MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'django_file'],
+            'level': DJANGO_LOG_LEVEL,
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['console', 'django_file'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'django.security': {
+            'handlers': ['console', 'security_file'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'dashboard': {
+            'handlers': ['console', 'dashboard_file'],
+            'level': DASHBOARD_LOG_LEVEL,
+            'propagate': False,
+        },
+        'dashboard.views': {
+            'handlers': ['console', 'dashboard_file'],
+            'level': DASHBOARD_LOG_LEVEL,
+            'propagate': False,
+        },
+        'construction.api': {
+            'handlers': ['console', 'api_file'],
+            'level': API_LOG_LEVEL,
+            'propagate': False,
+        },
+        'construction.calculations': {
+            'handlers': ['console', 'calculations_file'],
+            'level': CALCULATIONS_LOG_LEVEL,
+            'propagate': False,
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
+    },
+}
