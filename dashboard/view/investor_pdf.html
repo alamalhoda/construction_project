@@ -945,10 +945,10 @@
                         <h4 id="projectNetCapital">-</h4>
                         <p>کل سرمایه (تومان)</p>
                     </div>
-                    <div class="stat-card project-overview expense">
+                    <!-- <div class="stat-card project-overview expense">
                         <h4 id="projectTotalExpenses">-</h4>
                         <p>برآورد کل هزینه ساختمان(تومان)</p>
-                    </div>
+                    </div> -->
                     <div class="stat-card project-overview sales">
                         <h4 id="projectTotalSales">-</h4>
                         <p>کل مرجوعی (تومان)</p>
@@ -1384,7 +1384,7 @@
                 document.getElementById('projectTotalDeposits').textContent = formatNumber(transactionStats.total_deposits || 0);
                 document.getElementById('projectTotalWithdrawals').textContent = formatNumber(Math.abs(transactionStats.total_withdrawals || 0));
                 document.getElementById('projectNetCapital').textContent = formatNumber(transactionStats.net_capital || 0);
-                document.getElementById('projectTotalExpenses').textContent = formatNumber(costMetrics.total_expenses || 0);
+                // document.getElementById('projectTotalExpenses').textContent = formatNumber(costMetrics.total_expenses || 0);
                 document.getElementById('projectTotalSales').textContent = formatNumber(costMetrics.total_sales || 0);
                 document.getElementById('projectNetCost').textContent = formatNumber(costMetrics.final_cost || 0);
 
