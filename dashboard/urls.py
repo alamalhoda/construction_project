@@ -21,6 +21,7 @@ urlpatterns = [
     path('petty-cash/', views.petty_cash_dashboard, name='petty_cash_dashboard'),
     path('petty-cash/balance/', views.petty_cash_balance_report, name='petty_cash_balance_report'),
     path('petty-cash/period/', views.petty_cash_period_report, name='petty_cash_period_report'),
+    path('petty-cash/period/print/', views.petty_cash_period_report_print, name='petty_cash_period_report_print'),
     path('petty-cash/detail/', views.petty_cash_detail_report, name='petty_cash_detail_report'),
     
     # Test pages

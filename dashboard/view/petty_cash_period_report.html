@@ -546,6 +546,11 @@
                         </select>
                     </div>
                 </div>
+                <div style="text-align: center; margin-top: 15px;">
+                    <a href="#" id="printLink" class="btn-primary" style="display: none; text-decoration: none;">
+                        <i class="fas fa-print"></i> نسخه چاپ/PDF
+                    </a>
+                </div>
             </div>
 
             <div id="loading" class="loading" style="display: none;">
@@ -692,10 +697,21 @@
                 expenseTypeSelect.addEventListener('change', function() {
                     if (this.value) {
                         loadTrendData();
+                        // فعال کردن لینک چاپ
+                        const printLink = document.getElementById('printLink');
+                        if (printLink) {
+                            printLink.href = `/dashboard/petty-cash/period/print/?expense_type=${this.value}`;
+                            printLink.style.display = 'inline-flex';
+                        }
                     } else {
                         // اگر هیچ عاملی انتخاب نشده باشد، محتوا را پنهان کن
                         document.getElementById('loading').style.display = 'none';
                         document.getElementById('content').style.display = 'none';
+                        // پنهان کردن لینک چاپ
+                        const printLink = document.getElementById('printLink');
+                        if (printLink) {
+                            printLink.style.display = 'none';
+                        }
                     }
                 });
             } catch (error) {
