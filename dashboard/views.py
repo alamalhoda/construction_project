@@ -537,6 +537,43 @@ def petty_cash_period_report(request):
 
 
 @login_required
+def petty_cash_period_report_print(request):
+    """صفحه گزارش دوره‌ای - نسخه چاپ/PDF"""
+    logger.info("User %s accessing petty_cash_period_report_print", request.user.username)
+    from django.middleware.csrf import get_token
+    
+    file_path = os.path.join(settings.BASE_DIR, 'dashboard', 'view', 'petty_cash_period_report_print.html')
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            content = file.read()
+        
+        # دریافت CSRF token از Django
+        csrf_token = get_token(request)
+        
+        # فقط اگر token معتبر موجود بود، آن را به JavaScript اضافه کن
+        # در غیر این صورت، JavaScript از cookie یا API endpoint استفاده خواهد کرد
+        if csrf_token:
+            logger.debug("CSRF token generated for user %s", request.user.username)
+            csrf_script = f"""
+        <script>
+        window.csrfToken = {json.dumps(csrf_token)};
+        </script>
+        """
+            content = content.replace('</body>', csrf_script + '</body>')
+        else:
+            logger.warning("CSRF token not available for user %s", request.user.username)
+        
+        logger.info("Successfully served petty_cash_period_report_print for user %s", request.user.username)
+        return HttpResponse(content)
+    except FileNotFoundError:
+        logger.error("File not found: %s for user %s", file_path, request.user.username)
+        return HttpResponse('فایل گزارش دوره‌ای چاپ یافت نشد', status=404)
+    except Exception as e:
+        logger.exception("Unexpected error in petty_cash_period_report_print for user %s: %s", request.user.username, e)
+        return HttpResponse('خطای سرور', status=500)
+
+
+@login_required
 def petty_cash_detail_report(request):
     """صفحه گزارش تفصیلی"""
     logger.info("User %s accessing petty_cash_detail_report", request.user.username)

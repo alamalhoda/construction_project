@@ -235,6 +235,7 @@
         }
 
         select {
+            font-family: 'Vazir','Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             padding: 12px;
             border: 2px solid var(--border-color);
             border-radius: 10px;
@@ -436,8 +437,9 @@
         }
 
         .stat-card.expense-card {
-            background: linear-gradient(135deg, var(--expense-color) 0%, #c82333 100%);
-            box-shadow: 0 12px 40px var(--expense-color-light);
+            color: #b71c1c;
+            background: linear-gradient(135deg, #f6f6f6 0%, #f6f6f6 100%);
+            box-shadow: 0 12px 40px #b71c1c;
         }
 
         .stat-card.balance-card {
@@ -543,6 +545,11 @@
                             <option value="">انتخاب عامل اجرایی</option>
                         </select>
                     </div>
+                </div>
+                <div style="text-align: center; margin-top: 15px;">
+                    <a href="#" id="printLink" class="btn-primary" style="display: none; text-decoration: none;">
+                        <i class="fas fa-print"></i> نسخه چاپ/PDF
+                    </a>
                 </div>
             </div>
 
@@ -690,10 +697,21 @@
                 expenseTypeSelect.addEventListener('change', function() {
                     if (this.value) {
                         loadTrendData();
+                        // فعال کردن لینک چاپ
+                        const printLink = document.getElementById('printLink');
+                        if (printLink) {
+                            printLink.href = `/dashboard/petty-cash/period/print/?expense_type=${this.value}`;
+                            printLink.style.display = 'inline-flex';
+                        }
                     } else {
                         // اگر هیچ عاملی انتخاب نشده باشد، محتوا را پنهان کن
                         document.getElementById('loading').style.display = 'none';
                         document.getElementById('content').style.display = 'none';
+                        // پنهان کردن لینک چاپ
+                        const printLink = document.getElementById('printLink');
+                        if (printLink) {
+                            printLink.style.display = 'none';
+                        }
                     }
                 });
             } catch (error) {
@@ -1044,25 +1062,20 @@
                 if (cumulativeBalancePositive) cumulativeBalanceClass = 'balance-positive';
                 else if (cumulativeBalanceNegative) cumulativeBalanceClass = 'balance-negative';
                 
-                const periodSign = periodBalancePositive ? '+' : '';
-                const cumulativeSign = cumulativeBalancePositive ? '+' : '';
-                
                 tableHTML += `<tr>
                     <td style="direction: rtl; text-align: right;"><strong>${item.period_label}</strong></td>
                     <td class="receipt-amount">${formatNumber(receipts)}</td>
                     <td class="return-amount">${formatNumber(returns)}</td>
                     <td class="expense-amount">${formatNumber(expenses)}</td>
-                    <td class="${periodBalanceClass}">${periodSign}${formatNumber(periodBalance)}</td>
-                    <td class="${cumulativeBalanceClass}">${cumulativeSign}${formatNumber(cumulativeBalance)}</td>
+                    <td class="${periodBalanceClass}">${formatNumber(periodBalance)}</td>
+                    <td class="${cumulativeBalanceClass}">${formatNumber(cumulativeBalance)}</td>
                 </tr>`;
             });
             
             // استفاده از مانده نهایی از سرور (Single Source of Truth)
             const finalCumulativeClass = finalCumulativeBalance > 0 ? 'balance-positive' : finalCumulativeBalance < 0 ? 'balance-negative' : 'balance-zero';
-            const finalCumulativeSign = finalCumulativeBalance >= 0 ? '+' : '';
             
             const totalPeriodBalanceClass = totalPeriodBalance > 0 ? 'balance-positive' : totalPeriodBalance < 0 ? 'balance-negative' : 'balance-zero';
-            const totalPeriodBalanceSign = totalPeriodBalance >= 0 ? '+' : '';
             
             tableHTML += '<tfoot>';
             tableHTML += `<tr>
@@ -1070,8 +1083,8 @@
                 <td class="receipt-amount">${formatNumber(totalReceipts)}</td>
                 <td class="return-amount">${formatNumber(totalReturns)}</td>
                 <td class="expense-amount">${formatNumber(totalExpenses)}</td>
-                <td class="${totalPeriodBalanceClass}">${totalPeriodBalanceSign}${formatNumber(totalPeriodBalance)}</td>
-                <td class="${finalCumulativeClass}">${finalCumulativeSign}${formatNumber(finalCumulativeBalance)}</td>
+                <td class="${totalPeriodBalanceClass}">${formatNumber(totalPeriodBalance)}</td>
+                <td class="${finalCumulativeClass}">${formatNumber(finalCumulativeBalance)}</td>
             </tr>`;
             tableHTML += '</tfoot>';
             tableHTML += '</tbody></table></div>';
@@ -1094,11 +1107,11 @@
             if (balancePositive) {
                 balanceCardClass = 'balance-positive';
                 balanceIcon = 'fa-exclamation-circle';
-                balanceStatus = 'بدهکار (باید برگرداند)';
+                balanceStatus = 'بدهکار';
             } else if (balanceNegative) {
                 balanceCardClass = 'balance-negative';
                 balanceIcon = 'fa-check-circle';
-                balanceStatus = 'بستانکار (صندوق باید بدهد)';
+                balanceStatus = 'بستانکار';
             }
 
             const balanceSign = balancePositive ? '+' : '';
@@ -1143,7 +1156,7 @@
                             <i class="fas ${balanceIcon}"></i>
                         </div>
                         <div class="stat-number">${balanceSign}${formatNumber(Math.abs(finalBalance))}</div>
-                        <div class="stat-label">مانده نهایی</div>
+                        <div class="stat-label"> مانده نهایی(تومان)</div>
                         <div class="stat-subtitle">${balanceStatus}</div>
                     </div>
                 </div>
