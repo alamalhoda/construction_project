@@ -248,6 +248,67 @@
             max-height: 400px;
         }
 
+        .transactions-table-container {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 30px;
+            page-break-inside: avoid;
+        }
+
+        .transactions-table-container h3 {
+            margin-bottom: 15px;
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .transactions-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background: var(--bg-secondary);
+            font-size: 0.85rem;
+        }
+
+        .transactions-table thead {
+            background: var(--balance-color);
+            color: white;
+        }
+
+        .transactions-table th {
+            padding: 12px 8px;
+            text-align: center;
+            font-weight: 600;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            white-space: nowrap;
+        }
+
+        .transactions-table td {
+            padding: 10px 8px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .transactions-table tbody tr:nth-child(even) {
+            background: var(--bg-primary);
+        }
+
+        .transactions-table .receipt-row {
+            background: var(--deposit-color-light);
+        }
+
+        .transactions-table .return-row {
+            background: var(--refund-color-light);
+        }
+
+        .transactions-table .expense-row {
+            background: var(--expense-color-light);
+        }
+
         .trend-table-container {
             background: var(--bg-secondary);
             padding: 20px;
@@ -369,8 +430,21 @@
                 page-break-inside: avoid;
             }
 
+            .transactions-table-container {
+                page-break-inside: avoid;
+            }
+
             .trend-table-container {
                 page-break-inside: avoid;
+            }
+
+            .transactions-table {
+                font-size: 0.75rem;
+            }
+
+            .transactions-table th,
+            .transactions-table td {
+                padding: 8px 5px;
             }
 
             .trend-table {
@@ -487,6 +561,11 @@
             <div class="chart-container">
                 <h3><i class="fas fa-chart-line"></i> نمودار ترند زمانی</h3>
                 <canvas id="trendChart"></canvas>
+            </div>
+
+            <div class="transactions-table-container">
+                <h3><i class="fas fa-list"></i> لیست تراکنش‌های تنخواه</h3>
+                <div id="transactionsTable"></div>
             </div>
 
             <div class="trend-table-container">
@@ -635,6 +714,10 @@
                 const result = await response.json();
                 if (result.success) {
                     displayTrendData(result);
+                    
+                    // دریافت لیست تراکنش‌ها
+                    await loadTransactions(expenseType, csrfToken);
+                    
                     document.getElementById('loading').style.display = 'none';
                     document.getElementById('content').style.display = 'block';
                 } else {
@@ -931,6 +1014,109 @@
             tableHTML += '</tbody></table></div>';
             
             document.getElementById('trendTable').innerHTML = tableHTML;
+        }
+
+        async function loadTransactions(expenseType, csrfToken) {
+            try {
+                // استفاده از endpoint detailed_report برای دریافت تمام تراکنش‌ها
+                const url = `${API_BASE}PettyCashTransaction/detailed_report/?expense_type=${expenseType}&ordering=-date_gregorian`;
+                const response = await fetch(url, {
+                    headers: {'X-CSRFToken': csrfToken || ''}
+                });
+
+                if (!response.ok) {
+                    throw new Error('خطا در دریافت تراکنش‌ها');
+                }
+
+                const result = await response.json();
+                // بررسی format response
+                let transactions = [];
+                if (result.success && result.data && result.data.transactions) {
+                    transactions = result.data.transactions;
+                } else if (result.success && Array.isArray(result.data)) {
+                    transactions = result.data;
+                } else if (Array.isArray(result)) {
+                    transactions = result;
+                } else if (result.results) {
+                    transactions = result.results;
+                }
+                
+                // فیلتر کردن فقط دریافت و عودت (نه هزینه‌ها)
+                transactions = transactions.filter(t => 
+                    t.transaction_type === 'receipt' || t.transaction_type === 'return'
+                );
+                
+                displayTransactionsTable(transactions);
+            } catch (error) {
+                console.error('Error loading transactions:', error);
+                document.getElementById('transactionsTable').innerHTML = 
+                    `<div class="no-data"><i class="fas fa-exclamation-triangle fa-2x"></i><p>خطا در بارگذاری تراکنش‌ها: ${error.message}</p></div>`;
+            }
+        }
+
+        function displayTransactionsTable(transactions) {
+            if (!transactions || transactions.length === 0) {
+                document.getElementById('transactionsTable').innerHTML = 
+                    '<div class="no-data"><p>تراکنشی برای نمایش وجود ندارد</p></div>';
+                return;
+            }
+
+            let tableHTML = '<div style="overflow-x: auto;"><table class="transactions-table">';
+            tableHTML += '<thead><tr>';
+            tableHTML += '<th><i class="fas fa-calendar"></i> تاریخ</th>';
+            tableHTML += '<th style="background-color: var(--balance-color-light); border-left: 3px solid var(--balance-color);">';
+            tableHTML += '<i class="fas fa-tag"></i> نوع تراکنش';
+            tableHTML += '</th>';
+            tableHTML += '<th style="background-color: var(--deposit-color-light); border-left: 3px solid var(--deposit-color);">';
+            tableHTML += '<i class="fas fa-plus-circle"></i> دریافت تنخواه';
+            tableHTML += '</th>';
+            tableHTML += '<th style="background-color: var(--refund-color-light); border-left: 3px solid var(--refund-color);">';
+            tableHTML += '<i class="fas fa-undo"></i> عودت تنخواه';
+            tableHTML += '</th>';
+            tableHTML += '<th><i class="fas fa-file-alt"></i> شماره فیش</th>';
+            tableHTML += '<th><i class="fas fa-comment"></i> توضیحات</th>';
+            tableHTML += '</tr></thead><tbody>';
+            
+            transactions.forEach(transaction => {
+                const transactionType = transaction.transaction_type;
+                const transactionTypeLabel = transaction.transaction_type_label || transactionType;
+                const dateShamsi = transaction.date_shamsi || '';
+                const amount = parseFloat(transaction.amount || 0);
+                const receiptNumber = transaction.receipt_number || '-';
+                const description = transaction.description || '-';
+                
+                // تعیین نوع ردیف بر اساس نوع تراکنش
+                let rowClass = '';
+                let receiptAmount = '';
+                let returnAmount = '';
+                
+                if (transactionType === 'receipt') {
+                    rowClass = 'receipt-row';
+                    receiptAmount = formatNumber(amount);
+                    returnAmount = '-';
+                } else if (transactionType === 'return') {
+                    rowClass = 'return-row';
+                    receiptAmount = '-';
+                    returnAmount = formatNumber(amount);
+                } else {
+                    rowClass = 'expense-row';
+                    receiptAmount = '-';
+                    returnAmount = '-';
+                }
+                
+                tableHTML += `<tr class="${rowClass}">`;
+                tableHTML += `<td style="direction: rtl; text-align: right;">${dateShamsi}</td>`;
+                tableHTML += `<td>${transactionTypeLabel}</td>`;
+                tableHTML += `<td class="receipt-amount">${receiptAmount}</td>`;
+                tableHTML += `<td class="return-amount">${returnAmount}</td>`;
+                tableHTML += `<td>${receiptNumber}</td>`;
+                tableHTML += `<td style="direction: rtl; text-align: right; max-width: 300px;">${description}</td>`;
+                tableHTML += '</tr>';
+            });
+            
+            tableHTML += '</tbody></table></div>';
+            
+            document.getElementById('transactionsTable').innerHTML = tableHTML;
         }
 
         function displayStatsCards(totalReceipts, totalReturns, totalExpenses, finalBalance) {
