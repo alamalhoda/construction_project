@@ -615,10 +615,6 @@
                     </div>
                 </div>
                 <div class="field">
-                    <label>شماره فیش/رسید</label>
-                    <input type="text" name="receipt_number" id="addReceiptNumberInput" placeholder="شماره فیش/رسید">
-                </div>
-                <div class="field">
                     <label>توضیحات</label>
                     <textarea name="description" id="addDescriptionInput" rows="3" placeholder="توضیحات تراکنش..."></textarea>
                 </div>
@@ -679,10 +675,6 @@
                         <label>تاریخ شمسی <span class="text-danger">*</span></label>
                         <input type="text" name="date_shamsi_input" id="editDateShamsiInput" placeholder="1403-01-01" class="form-control">
                     </div>
-                </div>
-                <div class="field">
-                    <label>شماره فیش/رسید</label>
-                    <input type="text" name="receipt_number" id="editReceiptNumberInput" placeholder="شماره فیش/رسید">
                 </div>
                 <div class="field">
                     <label>توضیحات</label>
@@ -923,7 +915,7 @@
                         const value = cell.getValue();
                         const formatted = parseFloat(value).toLocaleString('en-US');
                         if (value >= 0) {
-                            return `<span style="color: var(--deposit-color);">+${formatted}</span>`;
+                            return `<span style="color: var(--deposit-color);">${formatted}</span>`;
                         } else {
                             return `<span style="color: var(--withdrawal-color);">${formatted}</span>`;
                         }
@@ -970,20 +962,9 @@
                     hozAlign: 'right'
                 },
                 {
-                    title: 'شماره فیش/رسید',
-                    field: 'receipt_number',
-                    width: 120,
-                    formatter: function(cell) {
-                        return cell.getValue() || '-';
-                    },
-                    bottomCalc: function(values, data) {
-                        return '';
-                    }
-                },
-                {
                     title: 'توضیحات',
                     field: 'description',
-                    width: 300,
+                    width: 500,
                     formatter: function(cell) {
                         const value = cell.getValue();
                         return value ? (value.length > 50 ? value.substring(0, 50) + '...' : value) : '-';
@@ -1243,7 +1224,7 @@
                     transaction_type: $('#addTransactionTypeInput').val(),
                     amount: parseFloat($('#addAmountInput').val().replace(/,/g, '')),
                     date_shamsi_input: $('#addDateShamsiInput').val(),
-                    receipt_number: $('#addReceiptNumberInput').val(),
+                    receipt_number: '',
                     description: $('#addDescriptionInput').val()
                 };
 
@@ -1317,7 +1298,6 @@
                 $('#editExpenseTypeDropdown').dropdown('set selected', transaction.expense_type);
                 $('#editTransactionTypeDropdown').dropdown('set selected', transaction.transaction_type);
                 $('#editAmountInput').val(parseFloat(transaction.amount || 0).toLocaleString('en-US'));
-                $('#editReceiptNumberInput').val(transaction.receipt_number || '');
                 $('#editDescriptionInput').val(transaction.description || '');
                 
                 // Initialize dropdowns
@@ -1428,7 +1408,7 @@
                     transaction_type: $('#editTransactionTypeInput').val(),
                     amount: amountValue,
                     date_shamsi_input: dateShamsiValue,
-                    receipt_number: $('#editReceiptNumberInput').val() || '',
+                    receipt_number: '',
                     description: $('#editDescriptionInput').val() || ''
                 };
 
