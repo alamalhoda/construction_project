@@ -1319,19 +1319,18 @@
                     clearable: false
                 });
                 
+                // مقدار تاریخ تراکنش را set می‌کنیم
+                const transactionDate = transaction.date_shamsi || '';
+                
                 // Destroy existing datepicker if exists
                 if ($("#editDateShamsiInput").data('persianDatepicker')) {
                     $("#editDateShamsiInput").persianDatepicker('destroy');
                 }
                 
-                // مقدار تاریخ تراکنش را set می‌کنیم
-                const transactionDate = transaction.date_shamsi || '';
-                $("#editDateShamsiInput").val(transactionDate);
-                
-                // Initialize Persian Datepicker
+                // Initialize Persian Datepicker with transaction date
                 $("#editDateShamsiInput").persianDatepicker({
                     format: 'YYYY-MM-DD',
-                    initialValue: transactionDate || false,
+                    initialValue: transactionDate || false, // استفاده از تاریخ تراکنش به عنوان initialValue
                     calendar: {
                         persian: {
                             locale: 'fa',
@@ -1340,6 +1339,13 @@
                     },
                     observer: true
                 });
+                
+                // اگر تاریخ موجود است، آن را set می‌کنیم (برای اطمینان)
+                if (transactionDate) {
+                    $("#editDateShamsiInput").val(transactionDate);
+                } else {
+                    $("#editDateShamsiInput").val('');
+                }
                 
                 // نمایش مودال
                 $('#editTransactionModal').modal('show');
@@ -1582,6 +1588,18 @@
 
         // Initialize on page load
         $(document).ready(async function() {
+            // Initialize Persian Datepicker for edit form (یک بار در ابتدا)
+            $("#editDateShamsiInput").persianDatepicker({
+                format: 'YYYY-MM-DD',
+                initialValue: false,
+                calendar: {
+                    persian: {
+                        locale: 'fa',
+                        leapYearMode: 'astronomical'
+                    }
+                }
+            });
+            
             await loadInitialData();
         });
     </script>
