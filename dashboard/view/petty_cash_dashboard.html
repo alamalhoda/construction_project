@@ -390,6 +390,18 @@
             color: white !important;
         }
 
+        .tabulator-footer {
+            background: var(--total-color-light) !important;
+            border-top: 2px solid var(--total-color) !important;
+            font-weight: bold !important;
+        }
+
+        .tabulator-footer .tabulator-cell {
+            background: var(--total-color-light) !important;
+            border-top: 2px solid var(--total-color) !important;
+            padding: 12px 8px !important;
+        }
+
         .loading-container {
             text-align: center;
             padding: 60px 20px;
@@ -858,11 +870,17 @@
         }
 
         function createTable() {
+            // ایجاد یک closure برای دسترسی به table در bottomCalc
+            let tableRef = null;
+            
             const columns = [
                 {
                     title: 'ردیف',
                     formatter: function(cell) {
                         return cell.getRow().getPosition() + 1;
+                    },
+                    bottomCalc: function(values, data) {
+                        return '<strong>مجموع:</strong>';
                     },
                     width: 60,
                     headerSort: false,
@@ -872,13 +890,19 @@
                     title: 'تاریخ',
                     field: 'date_shamsi',
                     width: 110,
-                    sorter: 'string'
+                    sorter: 'string',
+                    bottomCalc: function(values, data) {
+                        return '';
+                    }
                 },
                 {
                     title: 'عامل اجرایی',
                     field: 'expense_type_label',
                     width: 150,
-                    sorter: 'string'
+                    sorter: 'string',
+                    bottomCalc: function(values, data) {
+                        return '';
+                    }
                 },
                 {
                     title: 'نوع تراکنش',
@@ -886,6 +910,9 @@
                     width: 140,
                     formatter: function(cell) {
                         return TRANSACTION_TYPE_FORMATS[cell.getValue()] || cell.getValue();
+                    },
+                    bottomCalc: function(values, data) {
+                        return '';
                     }
                 },
                 {
@@ -901,6 +928,44 @@
                             return `<span style="color: var(--withdrawal-color);">${formatted}</span>`;
                         }
                     },
+                    bottomCalcParams: {allData: true},
+                    bottomCalc: function(values, data, calcParams) {
+                        // محاسبه مجموع از تمام داده‌های فیلتر شده
+                        // با allData: true، data شامل تمام داده‌های فیلتر شده است (نه فقط صفحه فعلی)
+                        let sum = 0;
+                        try {
+                            if (data && Array.isArray(data) && data.length > 0) {
+                                // data شامل تمام داده‌های فیلتر شده است
+                                data.forEach(function(row) {
+                                    const amount = parseFloat(row.signed_amount) || 0;
+                                    if (!isNaN(amount)) {
+                                        sum += amount;
+                                    }
+                                });
+                            }
+                        } catch (e) {
+                            console.error('خطا در محاسبه مجموع:', e);
+                            // در صورت خطا، از values استفاده کن (مقادیر صفحه فعلی)
+                            if (values && values.length > 0) {
+                                values.forEach(function(value) {
+                                    const amount = parseFloat(value) || 0;
+                                    if (!isNaN(amount)) {
+                                        sum += amount;
+                                    }
+                                });
+                            }
+                        }
+                        return sum;
+                    },
+                    bottomCalcFormatter: function(cell) {
+                        const value = cell.getValue();
+                        const formatted = parseFloat(value).toLocaleString('en-US');
+                        if (value >= 0) {
+                            return `<strong style="color: var(--deposit-color);">+${formatted}</strong>`;
+                        } else {
+                            return `<strong style="color: var(--withdrawal-color);">${formatted}</strong>`;
+                        }
+                    },
                     sorter: 'number',
                     hozAlign: 'right'
                 },
@@ -910,6 +975,9 @@
                     width: 120,
                     formatter: function(cell) {
                         return cell.getValue() || '-';
+                    },
+                    bottomCalc: function(values, data) {
+                        return '';
                     }
                 },
                 {
@@ -919,6 +987,9 @@
                     formatter: function(cell) {
                         const value = cell.getValue();
                         return value ? (value.length > 50 ? value.substring(0, 50) + '...' : value) : '-';
+                    },
+                    bottomCalc: function(values, data) {
+                        return '';
                     }
                 },
                 {
@@ -936,13 +1007,16 @@
                             </div>
                         `;
                     },
+                    bottomCalc: function(values, data) {
+                        return '';
+                    },
                     headerSort: false,
                     width: 120,
                     hozAlign: 'center'
                 }
             ];
 
-            table = new Tabulator("#transactionsTable", {
+            tableRef = new Tabulator("#transactionsTable", {
                 data: transactionsData,
                 columns: columns,
                 layout: "fitData",
@@ -952,6 +1026,7 @@
                 movableColumns: true,
                 resizableRows: true,
                 tooltipsHeader: true,
+                footerElement: '<div class="tabulator-footer"></div>',
                 locale: "fa",
                 langs: {
                     fa: {
@@ -968,14 +1043,35 @@
                     }
                 }
             });
+            
+            // اختصاص tableRef به table global
+            table = tableRef;
 
-            table.on("dataLoaded", function(data) {
+            // منتظر بمان تا جدول به طور کامل ساخته شود
+            tableRef.on("tableBuilt", function() {
+                // به‌روزرسانی footer بعد از ساخت جدول
+                if (tableRef) {
+                    tableRef.recalc();
+                }
+            });
+
+            tableRef.on("dataLoaded", function(data) {
                 updateResultsCount(data.length);
             });
 
-            table.on("dataFiltered", async function(filters, rows) {
+            tableRef.on("dataFiltered", async function(filters, rows) {
                 updateResultsCount(rows.length);
                 await updateStats();
+                // به‌روزرسانی footer - با تاخیر برای اطمینان از اعمال فیلتر
+                setTimeout(function() {
+                    if (tableRef && tableRef.modules && tableRef.modules.footer) {
+                        try {
+                            tableRef.recalc();
+                        } catch (e) {
+                            console.warn('خطا در به‌روزرسانی footer:', e);
+                        }
+                    }
+                }, 150);
             });
         }
 
@@ -1060,6 +1156,17 @@
             document.getElementById('errorMessage').style.display = 'block';
         }
 
+        // تابع helper برای به‌روزرسانی footer
+        function updateFooter() {
+            if (table && table.modules && table.modules.footer) {
+                try {
+                    table.recalc();
+                } catch (e) {
+                    console.warn('خطا در به‌روزرسانی footer:', e);
+                }
+            }
+        }
+
         function applyFilters() {
             if (!table) return;
 
@@ -1070,6 +1177,11 @@
                 {field: "expense_type", type: "=", value: expenseTypeFilter || null},
                 {field: "transaction_type", type: "=", value: transactionTypeFilter || null}
             ].filter(f => f.value !== null));
+            
+            // به‌روزرسانی footer بعد از اعمال فیلتر
+            setTimeout(function() {
+                updateFooter();
+            }, 150);
         }
 
         function clearFilters() {
@@ -1077,6 +1189,10 @@
             $('#transactionTypeFilter').dropdown('clear');
             if (table) {
                 table.clearFilter();
+                // به‌روزرسانی footer بعد از پاک کردن فیلتر
+                setTimeout(function() {
+                    updateFooter();
+                }, 150);
             }
         }
 
@@ -1163,7 +1279,6 @@
                 $('#addExpenseTypeDropdown').dropdown('clear');
                 $('#addTransactionTypeDropdown').dropdown('clear');
                 await loadInitialData();
-                alert('تراکنش با موفقیت اضافه شد');
             } catch (error) {
                 console.error('Error saving transaction:', error);
                 alert('خطا در ذخیره تراکنش: ' + error.message);
@@ -1387,7 +1502,6 @@
                 $('#editTransactionTypeDropdown').dropdown('clear');
                 editingTransactionId = null;
                 await loadInitialData();
-                alert('تراکنش با موفقیت به‌روزرسانی شد');
             } catch (error) {
                 console.error('Error updating transaction:', error);
                 alert('خطا در به‌روزرسانی تراکنش: ' + error.message);
@@ -1421,7 +1535,6 @@
                 }
 
                 await loadInitialData();
-                alert('تراکنش با موفقیت حذف شد');
             } catch (error) {
                 console.error('Error deleting transaction:', error);
                 alert('خطا در حذف تراکنش: ' + error.message);
