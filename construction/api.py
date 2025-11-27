@@ -2001,12 +2001,14 @@ class PettyCashTransactionViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
                 active_project, expense_type, start_period, end_period
             )
           
-            # محاسبه آمار کلی (Single Source of Truth)
-            stats_total_receipts = sum(float(item.get('period_receipts', 0) or 0) for item in trend)
-            stats_total_returns = sum(float(item.get('period_returns', 0) or 0) for item in trend)
-            stats_total_expenses = sum(float(item.get('period_expenses', 0) or 0) for item in trend)
+            # محاسبه آمار کلی (Single Source of Truth) - استفاده از متدهای اصلی برای سازگاری با /balances/
+            stats_total_receipts = models.PettyCashTransaction.objects.get_total_receipts(active_project, expense_type)
+            stats_total_returns = models.PettyCashTransaction.objects.get_total_returns(active_project, expense_type)
+            stats_total_expenses = models.PettyCashTransaction.objects.get_total_expenses(active_project, expense_type)
+            final_balance = models.PettyCashTransaction.objects.get_balance(active_project, expense_type)
+            
+            # محاسبه مجموع مانده دوره‌ای (برای نمایش در نمودار)
             total_period_balance = sum(float(item.get('period_balance', 0) or 0) for item in trend)
-            final_balance = float(trend[-1].get('cumulative_balance', trend[-1].get('balance', 0)) or 0) if trend else 0.0
           
             return Response({
                 'success': True,
