@@ -582,7 +582,7 @@
             <i class="plus icon"></i> افزودن تراکنش تنخواه جدید
         </div>
         <div class="content">
-            <form class="ui form" id="addTransactionForm">
+            <form class="ui form" id="addTransactionForm" autocomplete="off">
                 <div class="two fields">
                     <div class="field">
                         <label>عامل اجرایی <span class="text-danger">*</span></label>
@@ -615,13 +615,15 @@
                         <label>مبلغ (تومان) <span class="text-danger">*</span></label>
                         <div class="ui right labeled input">
                             <input type="text" name="amount" id="addAmountInput" placeholder="مثال: 1000000" 
+                                   autocomplete="off"
                                    oninput="formatAmount(this)" onblur="validateAmount(this)">
                             <div class="ui basic label">تومان</div>
                         </div>
                     </div>
                     <div class="field">
                         <label>تاریخ شمسی <span class="text-danger">*</span></label>
-                        <input type="text" name="date_shamsi_input" id="addDateShamsiInput" placeholder="1403-01-01" class="form-control">
+                        <input type="text" name="date_shamsi_input" id="addDateShamsiInput" placeholder="1403-01-01" 
+                               autocomplete="off" class="form-control">
                     </div>
                 </div>
                 <div class="field">
