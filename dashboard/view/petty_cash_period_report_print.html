@@ -80,6 +80,12 @@
             margin-bottom: 30px;
             padding-bottom: 20px;
             border-bottom: 3px solid var(--balance-color);
+            position: relative;
+        }
+
+        .print-header::after {
+            content: '';
+            display: none;
         }
 
         .print-header h1 {
@@ -249,9 +255,13 @@
             padding-bottom: 10px;
         }
 
-        .chart-container canvas {
-            max-height: 400px;
-        }
+            .chart-container canvas {
+                max-height: 400px;
+            }
+
+            .chart-container .chart-image-print {
+                display: none;
+            }
 
         .transactions-table-container {
             background: var(--bg-secondary);
@@ -298,16 +308,16 @@
             color: var(--text-primary);
         }
 
-        .transactions-table tbody tr:nth-child(even) {
+        /* .transactions-table tbody tr:nth-child(even) {
             background: var(--bg-primary);
-        }
+        } */
 
         .transactions-table .receipt-row {
-            background: var(--deposit-color-light);
+            background: var(--petty-cash-received-color-light);
         }
 
         .transactions-table .return-row {
-            background: var(--refund-color-light);
+            background: var(--petty-cash-returned-color-light);
         }
 
         .transactions-table .expense-row {
@@ -411,59 +421,272 @@
             font-size: 1.1rem;
         }
 
-        /* Print Styles */
+        /* Print Styles - بهینه شده برای PDF */
         @media print {
+            @page {
+                size: A4 landscape;
+                margin: 10mm 15mm;
+            }
+
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+
             body {
                 padding: 0;
+                margin: 0;
                 background: white;
+                font-size: 11pt;
             }
 
             .print-container {
                 max-width: 100%;
                 margin: 0;
+                padding: 0;
             }
 
             .print-header {
                 page-break-after: avoid;
+                break-after: avoid;
+                margin-bottom: 15px;
+                padding-bottom: 10px;
+                position: relative;
+            }
+
+
+            .print-header h1 {
+                font-size: 18pt;
+                margin-bottom: 5px;
+            }
+
+            .print-header .subtitle {
+                font-size: 10pt;
+            }
+
+            .print-header .info-row {
+                font-size: 9pt;
+                gap: 10px;
+                margin-top: 8px;
             }
 
             .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 10px;
+                margin-bottom: 15px;
                 page-break-inside: avoid;
+                break-inside: avoid;
+            }
+
+            .stat-card {
+                padding: 12px;
+                border-radius: 5px;
+                border-width: 2px;
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+
+            .stat-card-icon {
+                font-size: 1.5rem;
+                margin-bottom: 5px;
+            }
+
+            .stat-number {
+                font-size: 1.3rem;
+                margin-bottom: 5px;
+            }
+
+            .stat-label {
+                font-size: 0.85rem;
+                margin-bottom: 3px;
+            }
+
+            .stat-subtitle {
+                font-size: 0.75rem;
             }
 
             .chart-container {
                 page-break-inside: avoid;
+                break-inside: avoid;
+                margin-bottom: 15px;
+                padding: 15px;
+                border: 1px solid #ccc;
             }
 
-            .transactions-table-container {
-                page-break-inside: avoid;
+            .chart-container h3 {
+                font-size: 12pt;
+                margin-bottom: 10px;
+                padding-bottom: 5px;
             }
 
+            .chart-container canvas {
+                max-height: 300px !important;
+                width: 100% !important;
+                height: auto !important;
+            }
+
+            .chart-container .chart-image-print {
+                display: block !important;
+                max-width: 100%;
+                height: auto;
+                margin: 10px auto;
+            }
+
+            .transactions-table-container,
             .trend-table-container {
                 page-break-inside: avoid;
+                break-inside: avoid;
+                margin-bottom: 15px;
+                padding: 15px;
+                border: 1px solid #ccc;
             }
 
-            .transactions-table {
-                font-size: 0.75rem;
+            .transactions-table-container h3,
+            .trend-table-container h3 {
+                font-size: 12pt;
+                margin-bottom: 10px;
+                padding-bottom: 5px;
+            }
+
+            .transactions-table,
+            .trend-table {
+                width: 100%;
+                font-size: 8pt;
+                border-collapse: collapse;
             }
 
             .transactions-table th,
-            .transactions-table td {
-                padding: 8px 5px;
-            }
-
-            .trend-table {
-                font-size: 0.75rem;
-            }
-
+            .transactions-table td,
             .trend-table th,
             .trend-table td {
-                padding: 8px 5px;
+                padding: 6px 4px;
+                border: 1px solid #ccc;
             }
 
-            @page {
-                size: A4 landscape;
-                margin: 1.5cm;
+            .transactions-table thead th,
+            .trend-table thead th {
+                background-color: var(--balance-color) !important;
+                color: white !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                font-weight: 600;
+            }
+
+            .transactions-table tbody tr,
+            .trend-table tbody tr {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+
+            /* جلوگیری از شکستن header جدول */
+            .transactions-table thead,
+            .trend-table thead {
+                display: table-header-group;
+            }
+
+            /* جلوگیری از شکستن footer جدول */
+            .trend-table tfoot {
+                display: table-footer-group;
+            }
+
+            /* تکرار header در هر صفحه برای جداول طولانی */
+            .transactions-table thead tr,
+            .trend-table thead tr {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+
+            .transactions-table tbody tr:nth-child(even),
+            .trend-table tbody tr:nth-child(even) {
+                background-color: #f8f9fa !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .receipt-row {
+                background-color: var(--petty-cash-received-color-light) !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .return-row {
+                background-color: var(--petty-cash-returned-color-light) !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .expense-row {
+                background-color: var(--expense-color-light) !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .stat-card.deposit-card {
+                background: linear-gradient(135deg, var(--petty-cash-received-color-light) 0%, white 100%) !important;
+                border-color: var(--petty-cash-received-color) !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .stat-card.return-card {
+                background: linear-gradient(135deg, var(--petty-cash-returned-color-light) 0%, white 100%) !important;
+                border-color: var(--petty-cash-returned-color) !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .stat-card.expense-card {
+                background: linear-gradient(135deg, var(--expense-color-light) 0%, white 100%) !important;
+                border-color: var(--expense-color) !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .stat-card.balance-card,
+            .stat-card.balance-positive,
+            .stat-card.balance-negative {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            /* بهینه‌سازی آیکون‌ها برای چاپ */
+            .fas, .fa {
+                display: inline-block;
+            }
+
+            /* نمایش آیکون‌ها در چاپ (در صورت نیاز می‌توانند مخفی شوند) */
+            i.fas, i.fa {
+                font-size: 0.9em;
+                margin-left: 3px;
+                opacity: 0.9;
+            }
+
+            /* در صورت عدم پشتیبانی از Font Awesome، آیکون‌ها مخفی می‌شوند */
+            @supports not (font-family: "Font Awesome 6 Free") {
+                .fas, .fa {
+                    display: none;
+                }
+            }
+
+            /* بهینه‌سازی برای چاپ سیاه و سفید */
+            @media print and (color: 0) {
+                .stat-card {
+                    border-width: 3px !important;
+                }
+                
+                .transactions-table thead th,
+                .trend-table thead th {
+                    background-color: #666 !important;
+                    color: white !important;
+                }
+
+                .receipt-amount,
+                .return-amount,
+                .expense-amount {
+                    font-weight: bold;
+                }
             }
         }
 
@@ -534,10 +757,10 @@
 
     <div class="print-container">
         <div class="print-header">
-            <h1>
+            <!-- <h1>
                 <i class="fas fa-calendar-alt"></i>
                 گزارش دوره‌ای تنخواه
-            </h1>
+            </h1> -->
             <p class="subtitle">ترند زمانی وضعیت مالی عوامل اجرایی</p>
             <div class="info-row">
                 <div class="info-item">
@@ -566,6 +789,7 @@
             <div class="chart-container">
                 <h3><i class="fas fa-chart-line"></i> نمودار ترند زمانی</h3>
                 <canvas id="trendChart"></canvas>
+                <!-- تصویر نمودار برای چاپ (تولید شده به صورت خودکار) -->
             </div>
 
             
@@ -1074,13 +1298,9 @@
             tableHTML += '<th style="background-color: var(--balance-color-light); border-left: 3px solid var(--balance-color);">';
             tableHTML += '<i class="fas fa-tag"></i> نوع تراکنش';
             tableHTML += '</th>';
-            tableHTML += '<th style="background-color: var(--petty-cash-received-color-light); border-left: 3px solid var(--petty-cash-received-color);">';
-            tableHTML += '<i class="fas fa-plus-circle"></i> دریافت تنخواه';
+            tableHTML += '<th style="background-color: var(--balance-color-light); border-left: 3px solid var(--balance-color);">';
+            tableHTML += '<i class="fas fa-money-bill-wave"></i> مبلغ';
             tableHTML += '</th>';
-            tableHTML += '<th style="background-color: var(--petty-cash-returned-color-light); border-left: 3px solid var(--petty-cash-returned-color);">';
-            tableHTML += '<i class="fas fa-undo"></i> عودت تنخواه';
-            tableHTML += '</th>';
-            tableHTML += '<th><i class="fas fa-file-alt"></i> شماره فیش</th>';
             tableHTML += '<th><i class="fas fa-comment"></i> توضیحات</th>';
             tableHTML += '</tr></thead><tbody>';
             
@@ -1089,34 +1309,31 @@
                 const transactionTypeLabel = transaction.transaction_type_label || transactionType;
                 const dateShamsi = transaction.date_shamsi || '';
                 const amount = parseFloat(transaction.amount || 0);
-                const receiptNumber = transaction.receipt_number || '-';
                 const description = transaction.description || '-';
                 
                 // تعیین نوع ردیف بر اساس نوع تراکنش
                 let rowClass = '';
-                let receiptAmount = '';
-                let returnAmount = '';
+                let amountClass = '';
+                let amountDisplay = '';
                 
                 if (transactionType === 'receipt') {
                     rowClass = 'receipt-row';
-                    receiptAmount = formatNumber(amount);
-                    returnAmount = '-';
+                    amountClass = 'receipt-amount';
+                    amountDisplay = formatNumber(amount);
                 } else if (transactionType === 'return') {
                     rowClass = 'return-row';
-                    receiptAmount = '-';
-                    returnAmount = formatNumber(amount);
+                    amountClass = 'return-amount';
+                    amountDisplay = formatNumber(amount);
                 } else {
                     rowClass = 'expense-row';
-                    receiptAmount = '-';
-                    returnAmount = '-';
+                    amountClass = 'expense-amount';
+                    amountDisplay = formatNumber(amount);
                 }
                 
                 tableHTML += `<tr class="${rowClass}">`;
                 tableHTML += `<td style="direction: rtl; text-align: right;">${dateShamsi}</td>`;
                 tableHTML += `<td>${transactionTypeLabel}</td>`;
-                tableHTML += `<td class="receipt-amount">${receiptAmount}</td>`;
-                tableHTML += `<td class="return-amount">${returnAmount}</td>`;
-                tableHTML += `<td>${receiptNumber}</td>`;
+                tableHTML += `<td class="${amountClass}" style="direction: ltr; text-align: center;">${amountDisplay}</td>`;
                 tableHTML += `<td style="direction: rtl; text-align: right; max-width: 300px;">${description}</td>`;
                 tableHTML += '</tr>';
             });
@@ -1187,6 +1404,83 @@
                 </div>
             `;
         }
+
+        // تبدیل نمودار به تصویر قبل از چاپ برای رندر بهتر در PDF
+        function convertChartToImage() {
+            const canvas = document.getElementById('trendChart');
+            if (!canvas || !trendChart) {
+                return false;
+            }
+
+            try {
+                // اطمینان از رندر شدن کامل نمودار
+                trendChart.update('none');
+                
+                // صبر کوتاه برای رندر شدن
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        try {
+                            // دریافت تصویر با کیفیت بالا از canvas
+                            const imageURL = canvas.toDataURL('image/png', 1.0);
+                            
+                            // ایجاد یک تصویر از canvas
+                            const img = document.createElement('img');
+                            img.src = imageURL;
+                            img.style.maxWidth = '100%';
+                            img.style.height = 'auto';
+                            img.style.display = 'block';
+                            img.style.margin = '0 auto';
+                            img.alt = 'نمودار ترند زمانی';
+                            
+                            // اضافه کردن به container
+                            const chartContainer = document.querySelector('.chart-container');
+                            if (chartContainer) {
+                                // حذف تصویر قبلی در صورت وجود
+                                const existingImg = chartContainer.querySelector('.chart-image-print');
+                                if (existingImg) {
+                                    existingImg.remove();
+                                }
+                                
+                                img.className = 'chart-image-print';
+                                chartContainer.insertBefore(img, canvas);
+                                
+                                // مخفی کردن canvas اصلی در حالت چاپ
+                                canvas.style.display = 'none';
+                            }
+                            resolve(true);
+                        } catch (error) {
+                            console.warn('خطا در تبدیل نمودار به تصویر:', error);
+                            resolve(false);
+                        }
+                    }, 100);
+                });
+            } catch (error) {
+                console.warn('خطا در آماده‌سازی نمودار:', error);
+                return Promise.resolve(false);
+            }
+        }
+
+        // آماده‌سازی قبل از چاپ
+        window.addEventListener('beforeprint', async function() {
+            // تبدیل نمودار به تصویر
+            if (trendChart) {
+                await convertChartToImage();
+            }
+        });
+
+        // بازگرداندن به حالت عادی بعد از چاپ
+        window.addEventListener('afterprint', function() {
+            const canvas = document.getElementById('trendChart');
+            const printImg = document.querySelector('.chart-image-print');
+            
+            if (canvas) {
+                canvas.style.display = 'block';
+            }
+            
+            if (printImg) {
+                printImg.remove();
+            }
+        });
 
         document.addEventListener('DOMContentLoaded', async function() {
             setReportDate();
