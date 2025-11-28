@@ -220,6 +220,15 @@
             margin-bottom: 30px;
         }
 
+        /* خط جداکننده بین کارت‌های خلاصه و کارت‌های وضعیت عامل‌ها */
+        .summary-divider {
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent 0%, var(--border-color) 20%, var(--border-color) 80%, transparent 100%);
+            margin: 40px 0;
+            border: none;
+        }
+
         .stat-card {
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             color: white;
@@ -245,6 +254,50 @@
         }
 
         .stat-card.zero {
+            background: linear-gradient(135deg, var(--balance-color) 0%, #495057 100%);
+            box-shadow: 0 12px 40px var(--balance-color-light);
+        }
+
+        /* کارت‌های خلاصه */
+        .stat-card.summary-received {
+            background: linear-gradient(135deg, var(--petty-cash-received-color) 0%, #1a6ba8 100%);
+            box-shadow: 0 12px 40px var(--petty-cash-received-color-light);
+        }
+
+        .stat-card.summary-returned {
+            background: linear-gradient(135deg, var(--petty-cash-returned-color) 0%, #e67e22 100%);
+            box-shadow: 0 12px 40px var(--petty-cash-returned-color-light);
+        }
+
+        .stat-card.summary-expense {
+            color: #b71c1c;
+            background: linear-gradient(135deg, #f6f6f6 0%, #f6f6f6 100%);
+            box-shadow: 0 12px 40px #b71c1c;
+        }
+        
+        .stat-card.summary-expense .stat-number,
+        .stat-card.summary-expense p,
+        .stat-card.summary-expense small,
+        .stat-card.summary-expense i {
+            color: #b71c1c;
+        }
+
+        .stat-card.summary-balance {
+            background: linear-gradient(135deg, var(--balance-color) 0%, #495057 100%);
+            box-shadow: 0 12px 40px var(--balance-color-light);
+        }
+
+        .stat-card.summary-balance-positive {
+            background: linear-gradient(135deg, var(--withdrawal-color) 0%, #b71c1c 100%);
+            box-shadow: 0 12px 40px var(--withdrawal-color-light);
+        }
+
+        .stat-card.summary-balance-negative {
+            background: linear-gradient(135deg, var(--profit-color) 0%, #1b8e3a 100%);
+            box-shadow: 0 12px 40px var(--profit-color-light);
+        }
+
+        .stat-card.summary-balance-zero {
             background: linear-gradient(135deg, var(--balance-color) 0%, #495057 100%);
             box-shadow: 0 12px 40px var(--balance-color-light);
         }
@@ -396,6 +449,8 @@
             </div>
 
             <div id="content" style="display: none;">
+                <div class="stats-grid" id="summaryStatsGrid"></div>
+                <hr class="summary-divider">
                 <div class="stats-grid" id="statsGrid"></div>
 
                 <div class="chart-container">
@@ -610,17 +665,110 @@
         }
 
         function displayBalanceData(data) {
+            const summaryStatsGrid = document.getElementById('summaryStatsGrid');
             const statsGrid = document.getElementById('statsGrid');
             const tableBody = document.getElementById('balanceTableBody');
             
+            summaryStatsGrid.innerHTML = '';
             statsGrid.innerHTML = '';
             tableBody.innerHTML = '';
+
+            // دریافت داده‌ها از ساختار جدید
+            const expenses = data.expenses || data; // سازگاری با ساختار قدیمی
+            const summary = data.summary || null;
+
+            // استفاده از مجموع‌های محاسبه شده در سمت سرور (اگر موجود باشد)
+            let totalReceipts = 0;
+            let totalReturns = 0;
+            let totalExpenses = 0;
+            let totalBalance = 0;
+
+            if (summary) {
+                // استفاده از مجموع‌های محاسبه شده در سمت سرور
+                totalReceipts = summary.total_receipts || 0;
+                totalReturns = summary.total_returns || 0;
+                totalExpenses = summary.total_expenses || 0;
+                totalBalance = summary.total_balance || 0;
+            } else {
+                // Fallback: محاسبه در کلاینت (برای سازگاری با ساختار قدیمی)
+                for (const [expenseType, info] of Object.entries(expenses)) {
+                    totalReceipts += info.total_receipts || 0;
+                    totalReturns += info.total_returns || 0;
+                    totalExpenses += info.total_expenses || 0;
+                    totalBalance += info.balance || 0;
+                }
+            }
+
+            // ایجاد کارت‌های خلاصه
+            // 1. کارت مجموع تنخواه
+            const receivedCard = document.createElement('div');
+            receivedCard.className = 'stat-card summary-received';
+            receivedCard.innerHTML = `
+                <i class="fas fa-hand-holding-usd fa-2x"></i>
+                <div class="stat-number">${formatNumber(totalReceipts)}</div>
+                <p style="margin-bottom: 10px;">مجموع تنخواه</p>
+                <small style="opacity: 0.9;">کل دریافت‌های تنخواه</small>
+            `;
+            summaryStatsGrid.appendChild(receivedCard);
+
+            // 2. کارت مجموع عودت تنخواه
+            const returnedCard = document.createElement('div');
+            returnedCard.className = 'stat-card summary-returned';
+            returnedCard.innerHTML = `
+                <i class="fas fa-undo-alt fa-2x"></i>
+                <div class="stat-number">${formatNumber(totalReturns)}</div>
+                <p style="margin-bottom: 10px;">مجموع عودت تنخواه</p>
+                <small style="opacity: 0.9;">کل عودت‌های تنخواه</small>
+            `;
+            summaryStatsGrid.appendChild(returnedCard);
+
+            // 3. کارت مجموع هزینه
+            const expenseCard = document.createElement('div');
+            expenseCard.className = 'stat-card summary-expense';
+            expenseCard.innerHTML = `
+                <i class="fas fa-receipt fa-2x"></i>
+                <div class="stat-number">${formatNumber(totalExpenses)}</div>
+                <p style="margin-bottom: 10px;">مجموع هزینه</p>
+                <small style="opacity: 0.9;">کل هزینه‌های انجام شده</small>
+            `;
+            summaryStatsGrid.appendChild(expenseCard);
+
+            // 4. کارت مجموع مانده تنخواه
+            const balanceCard = document.createElement('div');
+            const balancePositive = totalBalance > 0;
+            const balanceNegative = totalBalance < 0;
+            const balanceZero = totalBalance === 0;
+            
+            let balanceCardClass = 'summary-balance-zero';
+            let balanceIcon = 'fa-balance-scale';
+            let balanceStatus = 'تسویه شده';
+            
+            if (balancePositive) {
+                balanceCardClass = 'summary-balance-positive';
+                balanceIcon = 'fa-exclamation-circle';
+                balanceStatus = 'بدهکار';
+            } else if (balanceNegative) {
+                balanceCardClass = 'summary-balance-negative';
+                balanceIcon = 'fa-check-circle';
+                balanceStatus = 'بستانکار';
+            }
+            
+            const balanceSign = balancePositive ? '+' : '';
+            
+            balanceCard.className = `stat-card ${balanceCardClass}`;
+            balanceCard.innerHTML = `
+                <i class="fas ${balanceIcon} fa-2x"></i>
+                <div class="stat-number">${balanceSign}${formatNumber(Math.abs(totalBalance))}</div>
+                <p style="margin-bottom: 10px;">مجموع مانده تنخواه</p>
+                <small style="opacity: 0.9;">${balanceStatus}</small>
+            `;
+            summaryStatsGrid.appendChild(balanceCard);
 
             const chartLabels = [];
             const chartBalances = [];
             const chartColors = [];
 
-            for (const [expenseType, info] of Object.entries(data)) {
+            for (const [expenseType, info] of Object.entries(expenses)) {
                 const balance = info.balance;
                 const isPositive = balance > 0;
                 const isNegative = balance < 0;

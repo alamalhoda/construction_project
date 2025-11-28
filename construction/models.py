@@ -1177,18 +1177,45 @@ class PettyCashTransactionManager(models.Manager):
   
     def get_all_balances(self, project: Project):
         """وضعیت مالی همه عوامل اجرایی"""
+        from decimal import Decimal
+        
         balances = {}
+        total_receipts = Decimal('0')
+        total_returns = Decimal('0')
+        total_expenses = Decimal('0')
+        total_balance = Decimal('0')
+        
         for expense_type, label in Expense.EXPENSE_TYPES:
             # فیلتر کردن construction_contractor و other
             if expense_type not in ['construction_contractor', 'other']:
+                balance = self.get_balance(project, expense_type)
+                receipts = self.get_total_receipts(project, expense_type)
+                expenses = self.get_total_expenses(project, expense_type)
+                returns = self.get_total_returns(project, expense_type)
+                
                 balances[expense_type] = {
                     'label': label,
-                    'balance': self.get_balance(project, expense_type),
-                    'total_receipts': self.get_total_receipts(project, expense_type),
-                    'total_expenses': self.get_total_expenses(project, expense_type),
-                    'total_returns': self.get_total_returns(project, expense_type),
+                    'balance': balance,
+                    'total_receipts': receipts,
+                    'total_expenses': expenses,
+                    'total_returns': returns,
                 }
-        return balances
+                
+                # جمع کردن مجموع‌ها
+                total_receipts += Decimal(str(receipts))
+                total_returns += Decimal(str(returns))
+                total_expenses += Decimal(str(expenses))
+                total_balance += Decimal(str(balance))
+        
+        return {
+            'expenses': balances,
+            'summary': {
+                'total_receipts': float(total_receipts),
+                'total_returns': float(total_returns),
+                'total_expenses': float(total_expenses),
+                'total_balance': float(total_balance),
+            }
+        }
   
     def get_period_balance_trend(self, project: Project, expense_type: str, start_period: Period = None, end_period: Period = None):
         """
