@@ -119,7 +119,7 @@
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(2, 1fr);
             gap: 15px;
             margin-bottom: 30px;
         }
@@ -163,6 +163,10 @@
         .stat-card.balance-negative {
             border-color: var(--profit-color);
             background: linear-gradient(135deg, var(--profit-color-light) 0%, white 100%);
+        }
+
+        .stat-card.full-width {
+            grid-column: span 2;
         }
 
         .stat-card-icon {
@@ -484,7 +488,7 @@
 
             .stats-grid {
                 display: grid;
-                grid-template-columns: repeat(4, 1fr);
+                grid-template-columns: repeat(2, 1fr);
                 gap: 10px;
                 margin-bottom: 15px;
                 page-break-inside: avoid;
@@ -1405,7 +1409,7 @@
                     <div class="stat-subtitle">تومان</div>
                 </div>
                 
-                <div class="stat-card expense-card">
+                <div class="stat-card expense-card full-width">
                     <div class="stat-card-icon">
                         <i class="fas fa-receipt"></i>
                     </div>
@@ -1414,12 +1418,12 @@
                     <div class="stat-subtitle">تومان</div>
                 </div>
                 
-                <div class="stat-card ${balanceCardClass}">
+                <div class="stat-card ${balanceCardClass} full-width">
                     <div class="stat-card-icon">
                         <i class="fas ${balanceIcon}"></i>
                     </div>
                     <div class="stat-number">${balanceSign}${formatNumber(Math.abs(finalBalance))}</div>
-                    <div class="stat-label">مانده نهایی (تومان)</div>
+                    <div class="stat-label">مانده نهایی  تنخواه(تومان)</div>
                     <div class="stat-subtitle">${balanceStatus}</div>
                 </div>
             `;
