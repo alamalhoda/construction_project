@@ -144,8 +144,10 @@
         }
 
         .stat-card.expense-card {
+            color: #b71c1c;
             border-color: var(--expense-color);
-            background: linear-gradient(135deg, var(--expense-color-light) 0%, white 100%);
+            background: linear-gradient(135deg, #f6f6f6 0%, #f6f6f6 100%);
+            box-shadow: 0 12px 40px #b71c1c;
         }
 
         .stat-card.balance-card {
@@ -210,7 +212,16 @@
         }
 
         .stat-card.expense-card .stat-number {
-            color: var(--expense-color);
+            color: #b71c1c;
+        }
+        
+        .stat-card.expense-card .stat-label,
+        .stat-card.expense-card .stat-subtitle {
+            color: #b71c1c;
+        }
+        
+        .stat-card.expense-card .stat-card-icon {
+            color: #b71c1c;
         }
 
         .stat-card.balance-card .stat-number {
@@ -638,10 +649,19 @@
             }
 
             .stat-card.expense-card {
-                background: linear-gradient(135deg, var(--expense-color-light) 0%, white 100%) !important;
+                color: #b71c1c !important;
+                background: linear-gradient(135deg, #f6f6f6 0%, #f6f6f6 100%) !important;
                 border-color: var(--expense-color) !important;
+                box-shadow: 0 12px 40px #b71c1c !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
+            }
+            
+            .stat-card.expense-card .stat-number,
+            .stat-card.expense-card .stat-label,
+            .stat-card.expense-card .stat-subtitle,
+            .stat-card.expense-card .stat-card-icon {
+                color: #b71c1c !important;
             }
 
             .stat-card.balance-card,
