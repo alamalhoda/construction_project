@@ -70,6 +70,11 @@
             --gold-color-light: rgba(255, 215, 0, 0.1);
             --loan-deposit-color: #5ca5e8;      /* آبی روشن - آورده وام (نزدیک به #2185d0 اما روشن‌تر) */
             --loan-deposit-color-light: rgba(92, 165, 232, 0.1);
+            /* رنگ‌های تنخواه */
+            --petty-cash-received-color: #2185d0; /* آبی - تنخواه دریافتی */
+            --petty-cash-received-color-light: rgba(33, 133, 208, 0.1);
+            --petty-cash-returned-color: #ff8c00; /* نارنجی تیره - عودت تنخواه */
+            --petty-cash-returned-color-light: rgba(255, 140, 0, 0.1);
             
             --bg-primary: #f8f9fa;
             --bg-secondary: #ffffff;
@@ -104,6 +109,11 @@
             --gold-color-light: rgba(255, 237, 78, 0.2);
             --loan-deposit-color: #7eb8f0;      /* آبی روشن‌تر برای حالت تاریک */
             --loan-deposit-color-light: rgba(126, 184, 240, 0.15);
+            /* حالت تاریک برای تنخواه */
+            --petty-cash-received-color: #4fc3f7; /* آبی روشن‌تر */
+            --petty-cash-returned-color: #ffb74d;  /* نارنجی روشن‌تر */
+            --petty-cash-received-color-light: rgba(79, 195, 247, 0.15);
+            --petty-cash-returned-color-light: rgba(255, 183, 77, 0.15);
             
             --bg-primary: #121212;
             --bg-secondary: #1e1e1e;
@@ -323,13 +333,13 @@
         }
 
         .stat-card.receipt-card {
-            background: linear-gradient(135deg, var(--deposit-color) 0%, var(--secondary-color) 100%);
-            box-shadow: 0 12px 40px var(--deposit-color-light);
+            background: linear-gradient(135deg, var(--petty-cash-received-color) 0%, var(--secondary-color) 100%);
+            box-shadow: 0 12px 40px var(--petty-cash-received-color-light);
         }
 
         .stat-card.return-card {
-            background: linear-gradient(135deg, #f2dc1c 0%, #ceb000 100%);
-            box-shadow: 0 12px 40px var(--withdrawal-color-light);
+            background: linear-gradient(135deg, var(--petty-cash-returned-color) 0%, #e67e22 100%);
+            box-shadow: 0 12px 40px var(--petty-cash-returned-color-light);
         }
 
         .stat-card.net-card {
@@ -388,6 +398,18 @@
         .tabulator-header .tabulator-col {
             background: transparent !important;
             color: white !important;
+        }
+
+        .tabulator-footer {
+            background: var(--total-color-light) !important;
+            border-top: 2px solid var(--total-color) !important;
+            font-weight: bold !important;
+        }
+
+        .tabulator-footer .tabulator-cell {
+            background: var(--total-color-light) !important;
+            border-top: 2px solid var(--total-color) !important;
+            padding: 12px 8px !important;
         }
 
         .loading-container {
@@ -518,7 +540,7 @@
                                 <i class="ui blue circle icon"></i>دریافت تنخواه
                             </div>
                             <div class="item" data-value="return">
-                                <i class="ui yellow circle icon"></i>عودت تنخواه
+                                <i class="ui orange circle icon"></i>عودت تنخواه
                             </div>
                         </div>
                     </div>
@@ -542,7 +564,7 @@
             </div>
 
             <div class="table-container">
-                <div class="results-info" style="margin-bottom: 15px; padding: 10px; background: var(--deposit-color-light); border-radius: 8px; text-align: center;">
+                <div class="results-info" style="margin-bottom: 15px; padding: 10px; background: var(--petty-cash-received-color-light); border-radius: 8px; text-align: center;">
                     <span id="resultsCount">در حال بارگذاری...</span>
                 </div>
                 <div id="transactionsTable"></div>
@@ -560,7 +582,7 @@
             <i class="plus icon"></i> افزودن تراکنش تنخواه جدید
         </div>
         <div class="content">
-            <form class="ui form" id="addTransactionForm">
+            <form class="ui form" id="addTransactionForm" autocomplete="off">
                 <div class="two fields">
                     <div class="field">
                         <label>عامل اجرایی <span class="text-danger">*</span></label>
@@ -582,7 +604,7 @@
                                     <i class="ui blue circle icon"></i>دریافت تنخواه
                                 </div>
                                 <div class="item" data-value="return">
-                                    <i class="ui yellow circle icon"></i>عودت تنخواه
+                                    <i class="ui orange circle icon"></i>عودت تنخواه
                                 </div>
                             </div>
                         </div>
@@ -593,18 +615,16 @@
                         <label>مبلغ (تومان) <span class="text-danger">*</span></label>
                         <div class="ui right labeled input">
                             <input type="text" name="amount" id="addAmountInput" placeholder="مثال: 1000000" 
+                                   autocomplete="off"
                                    oninput="formatAmount(this)" onblur="validateAmount(this)">
                             <div class="ui basic label">تومان</div>
                         </div>
                     </div>
                     <div class="field">
                         <label>تاریخ شمسی <span class="text-danger">*</span></label>
-                        <input type="text" name="date_shamsi_input" id="addDateShamsiInput" placeholder="1403-01-01" class="form-control">
+                        <input type="text" name="date_shamsi_input" id="addDateShamsiInput" placeholder="1403-01-01" 
+                               autocomplete="off" class="form-control">
                     </div>
-                </div>
-                <div class="field">
-                    <label>شماره فیش/رسید</label>
-                    <input type="text" name="receipt_number" id="addReceiptNumberInput" placeholder="شماره فیش/رسید">
                 </div>
                 <div class="field">
                     <label>توضیحات</label>
@@ -648,7 +668,7 @@
                                     <i class="ui blue circle icon"></i>دریافت تنخواه
                                 </div>
                                 <div class="item" data-value="return">
-                                    <i class="ui yellow circle icon"></i>عودت تنخواه
+                                    <i class="ui orange circle icon"></i>عودت تنخواه
                                 </div>
                             </div>
                         </div>
@@ -667,10 +687,6 @@
                         <label>تاریخ شمسی <span class="text-danger">*</span></label>
                         <input type="text" name="date_shamsi_input" id="editDateShamsiInput" placeholder="1403-01-01" class="form-control">
                     </div>
-                </div>
-                <div class="field">
-                    <label>شماره فیش/رسید</label>
-                    <input type="text" name="receipt_number" id="editReceiptNumberInput" placeholder="شماره فیش/رسید">
                 </div>
                 <div class="field">
                     <label>توضیحات</label>
@@ -703,7 +719,7 @@
         // Transaction type mappings
         const TRANSACTION_TYPE_FORMATS = {
             'receipt': '<span class="ui blue label"><i class="fas fa-plus-circle"></i> دریافت تنخواه</span>',
-            'return': '<span class="ui yellow label"><i class="fas fa-minus-circle"></i> عودت تنخواه</span>'
+            'return': '<span class="ui orange label"><i class="fas fa-minus-circle"></i> عودت تنخواه</span>'
         };
 
         const EXPENSE_TYPES = [
@@ -858,11 +874,17 @@
         }
 
         function createTable() {
+            // ایجاد یک closure برای دسترسی به table در bottomCalc
+            let tableRef = null;
+            
             const columns = [
                 {
                     title: 'ردیف',
                     formatter: function(cell) {
                         return cell.getRow().getPosition() + 1;
+                    },
+                    bottomCalc: function(values, data) {
+                        return '<strong>مجموع:</strong>';
                     },
                     width: 60,
                     headerSort: false,
@@ -872,13 +894,19 @@
                     title: 'تاریخ',
                     field: 'date_shamsi',
                     width: 110,
-                    sorter: 'string'
+                    sorter: 'string',
+                    bottomCalc: function(values, data) {
+                        return '';
+                    }
                 },
                 {
                     title: 'عامل اجرایی',
                     field: 'expense_type_label',
                     width: 150,
-                    sorter: 'string'
+                    sorter: 'string',
+                    bottomCalc: function(values, data) {
+                        return '';
+                    }
                 },
                 {
                     title: 'نوع تراکنش',
@@ -886,6 +914,9 @@
                     width: 140,
                     formatter: function(cell) {
                         return TRANSACTION_TYPE_FORMATS[cell.getValue()] || cell.getValue();
+                    },
+                    bottomCalc: function(values, data) {
+                        return '';
                     }
                 },
                 {
@@ -896,29 +927,62 @@
                         const value = cell.getValue();
                         const formatted = parseFloat(value).toLocaleString('en-US');
                         if (value >= 0) {
-                            return `<span style="color: var(--deposit-color);">+${formatted}</span>`;
+                            return `<span style="color: var(--petty-cash-received-color);">${formatted}</span>`;
                         } else {
-                            return `<span style="color: var(--withdrawal-color);">${formatted}</span>`;
+                            return `<span style="color: var(--petty-cash-returned-color);">${formatted}</span>`;
+                        }
+                    },
+                    bottomCalcParams: {allData: true},
+                    bottomCalc: function(values, data, calcParams) {
+                        // محاسبه مجموع از تمام داده‌های فیلتر شده
+                        // با allData: true، data شامل تمام داده‌های فیلتر شده است (نه فقط صفحه فعلی)
+                        let sum = 0;
+                        try {
+                            if (data && Array.isArray(data) && data.length > 0) {
+                                // data شامل تمام داده‌های فیلتر شده است
+                                data.forEach(function(row) {
+                                    const amount = parseFloat(row.signed_amount) || 0;
+                                    if (!isNaN(amount)) {
+                                        sum += amount;
+                                    }
+                                });
+                            }
+                        } catch (e) {
+                            console.error('خطا در محاسبه مجموع:', e);
+                            // در صورت خطا، از values استفاده کن (مقادیر صفحه فعلی)
+                            if (values && values.length > 0) {
+                                values.forEach(function(value) {
+                                    const amount = parseFloat(value) || 0;
+                                    if (!isNaN(amount)) {
+                                        sum += amount;
+                                    }
+                                });
+                            }
+                        }
+                        return sum;
+                    },
+                    bottomCalcFormatter: function(cell) {
+                        const value = cell.getValue();
+                        const formatted = parseFloat(value).toLocaleString('en-US');
+                        if (value >= 0) {
+                            return `<strong style="color: var(--petty-cash-received-color);">+${formatted}</strong>`;
+                        } else {
+                            return `<strong style="color: var(--petty-cash-returned-color);">${formatted}</strong>`;
                         }
                     },
                     sorter: 'number',
                     hozAlign: 'right'
                 },
                 {
-                    title: 'شماره فیش/رسید',
-                    field: 'receipt_number',
-                    width: 120,
-                    formatter: function(cell) {
-                        return cell.getValue() || '-';
-                    }
-                },
-                {
                     title: 'توضیحات',
                     field: 'description',
-                    width: 300,
+                    width: 500,
                     formatter: function(cell) {
                         const value = cell.getValue();
                         return value ? (value.length > 50 ? value.substring(0, 50) + '...' : value) : '-';
+                    },
+                    bottomCalc: function(values, data) {
+                        return '';
                     }
                 },
                 {
@@ -936,13 +1000,16 @@
                             </div>
                         `;
                     },
+                    bottomCalc: function(values, data) {
+                        return '';
+                    },
                     headerSort: false,
                     width: 120,
                     hozAlign: 'center'
                 }
             ];
 
-            table = new Tabulator("#transactionsTable", {
+            tableRef = new Tabulator("#transactionsTable", {
                 data: transactionsData,
                 columns: columns,
                 layout: "fitData",
@@ -952,6 +1019,7 @@
                 movableColumns: true,
                 resizableRows: true,
                 tooltipsHeader: true,
+                footerElement: '<div class="tabulator-footer"></div>',
                 locale: "fa",
                 langs: {
                     fa: {
@@ -968,14 +1036,35 @@
                     }
                 }
             });
+            
+            // اختصاص tableRef به table global
+            table = tableRef;
 
-            table.on("dataLoaded", function(data) {
+            // منتظر بمان تا جدول به طور کامل ساخته شود
+            tableRef.on("tableBuilt", function() {
+                // به‌روزرسانی footer بعد از ساخت جدول
+                if (tableRef) {
+                    tableRef.recalc();
+                }
+            });
+
+            tableRef.on("dataLoaded", function(data) {
                 updateResultsCount(data.length);
             });
 
-            table.on("dataFiltered", async function(filters, rows) {
+            tableRef.on("dataFiltered", async function(filters, rows) {
                 updateResultsCount(rows.length);
                 await updateStats();
+                // به‌روزرسانی footer - با تاخیر برای اطمینان از اعمال فیلتر
+                setTimeout(function() {
+                    if (tableRef && tableRef.modules && tableRef.modules.footer) {
+                        try {
+                            tableRef.recalc();
+                        } catch (e) {
+                            console.warn('خطا در به‌روزرسانی footer:', e);
+                        }
+                    }
+                }, 150);
             });
         }
 
@@ -1060,6 +1149,17 @@
             document.getElementById('errorMessage').style.display = 'block';
         }
 
+        // تابع helper برای به‌روزرسانی footer
+        function updateFooter() {
+            if (table && table.modules && table.modules.footer) {
+                try {
+                    table.recalc();
+                } catch (e) {
+                    console.warn('خطا در به‌روزرسانی footer:', e);
+                }
+            }
+        }
+
         function applyFilters() {
             if (!table) return;
 
@@ -1070,6 +1170,11 @@
                 {field: "expense_type", type: "=", value: expenseTypeFilter || null},
                 {field: "transaction_type", type: "=", value: transactionTypeFilter || null}
             ].filter(f => f.value !== null));
+            
+            // به‌روزرسانی footer بعد از اعمال فیلتر
+            setTimeout(function() {
+                updateFooter();
+            }, 150);
         }
 
         function clearFilters() {
@@ -1077,6 +1182,10 @@
             $('#transactionTypeFilter').dropdown('clear');
             if (table) {
                 table.clearFilter();
+                // به‌روزرسانی footer بعد از پاک کردن فیلتر
+                setTimeout(function() {
+                    updateFooter();
+                }, 150);
             }
         }
 
@@ -1127,7 +1236,7 @@
                     transaction_type: $('#addTransactionTypeInput').val(),
                     amount: parseFloat($('#addAmountInput').val().replace(/,/g, '')),
                     date_shamsi_input: $('#addDateShamsiInput').val(),
-                    receipt_number: $('#addReceiptNumberInput').val(),
+                    receipt_number: '',
                     description: $('#addDescriptionInput').val()
                 };
 
@@ -1163,7 +1272,6 @@
                 $('#addExpenseTypeDropdown').dropdown('clear');
                 $('#addTransactionTypeDropdown').dropdown('clear');
                 await loadInitialData();
-                alert('تراکنش با موفقیت اضافه شد');
             } catch (error) {
                 console.error('Error saving transaction:', error);
                 alert('خطا در ذخیره تراکنش: ' + error.message);
@@ -1202,7 +1310,6 @@
                 $('#editExpenseTypeDropdown').dropdown('set selected', transaction.expense_type);
                 $('#editTransactionTypeDropdown').dropdown('set selected', transaction.transaction_type);
                 $('#editAmountInput').val(parseFloat(transaction.amount || 0).toLocaleString('en-US'));
-                $('#editReceiptNumberInput').val(transaction.receipt_number || '');
                 $('#editDescriptionInput').val(transaction.description || '');
                 
                 // Initialize dropdowns
@@ -1214,19 +1321,18 @@
                     clearable: false
                 });
                 
+                // مقدار تاریخ تراکنش را set می‌کنیم
+                const transactionDate = transaction.date_shamsi || '';
+                
                 // Destroy existing datepicker if exists
                 if ($("#editDateShamsiInput").data('persianDatepicker')) {
                     $("#editDateShamsiInput").persianDatepicker('destroy');
                 }
                 
-                // مقدار تاریخ تراکنش را set می‌کنیم
-                const transactionDate = transaction.date_shamsi || '';
-                $("#editDateShamsiInput").val(transactionDate);
-                
-                // Initialize Persian Datepicker
+                // Initialize Persian Datepicker with transaction date
                 $("#editDateShamsiInput").persianDatepicker({
                     format: 'YYYY-MM-DD',
-                    initialValue: transactionDate || false,
+                    initialValue: transactionDate || false, // استفاده از تاریخ تراکنش به عنوان initialValue
                     calendar: {
                         persian: {
                             locale: 'fa',
@@ -1235,6 +1341,13 @@
                     },
                     observer: true
                 });
+                
+                // اگر تاریخ موجود است، آن را set می‌کنیم (برای اطمینان)
+                if (transactionDate) {
+                    $("#editDateShamsiInput").val(transactionDate);
+                } else {
+                    $("#editDateShamsiInput").val('');
+                }
                 
                 // نمایش مودال
                 $('#editTransactionModal').modal('show');
@@ -1313,7 +1426,7 @@
                     transaction_type: $('#editTransactionTypeInput').val(),
                     amount: amountValue,
                     date_shamsi_input: dateShamsiValue,
-                    receipt_number: $('#editReceiptNumberInput').val() || '',
+                    receipt_number: '',
                     description: $('#editDescriptionInput').val() || ''
                 };
 
@@ -1387,7 +1500,6 @@
                 $('#editTransactionTypeDropdown').dropdown('clear');
                 editingTransactionId = null;
                 await loadInitialData();
-                alert('تراکنش با موفقیت به‌روزرسانی شد');
             } catch (error) {
                 console.error('Error updating transaction:', error);
                 alert('خطا در به‌روزرسانی تراکنش: ' + error.message);
@@ -1421,7 +1533,6 @@
                 }
 
                 await loadInitialData();
-                alert('تراکنش با موفقیت حذف شد');
             } catch (error) {
                 console.error('Error deleting transaction:', error);
                 alert('خطا در حذف تراکنش: ' + error.message);
@@ -1479,6 +1590,18 @@
 
         // Initialize on page load
         $(document).ready(async function() {
+            // Initialize Persian Datepicker for edit form (یک بار در ابتدا)
+            $("#editDateShamsiInput").persianDatepicker({
+                format: 'YYYY-MM-DD',
+                initialValue: false,
+                calendar: {
+                    persian: {
+                        locale: 'fa',
+                        leapYearMode: 'astronomical'
+                    }
+                }
+            });
+            
             await loadInitialData();
         });
     </script>
