@@ -54,6 +54,180 @@
             box-sizing: border-box;
         }
 
+        /* استایل‌های نمایش محتوای Quill Editor */
+        #projectDescription,
+        #investorDescription {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            white-space: normal;
+        }
+
+        /* استایل‌های Quill Editor برای نمایش محتوا */
+        #projectDescription.ql-editor,
+        #investorDescription.ql-editor {
+            box-sizing: border-box;
+            line-height: 1.42;
+            height: 100%;
+            outline: none;
+            overflow-y: auto;
+            padding: 0;
+            tab-size: 4;
+            -moz-tab-size: 4;
+            text-align: right;
+            direction: rtl;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        #projectDescription.ql-editor p,
+        #investorDescription.ql-editor p {
+            margin: 0 0 1em 0;
+            display: block;
+        }
+
+        #projectDescription.ql-editor p:last-child,
+        #investorDescription.ql-editor p:last-child {
+            margin-bottom: 0;
+        }
+
+        #projectDescription.ql-editor > *,
+        #investorDescription.ql-editor > * {
+            cursor: text;
+        }
+
+        #projectDescription.ql-editor p,
+        #projectDescription.ql-editor ol,
+        #projectDescription.ql-editor ul,
+        #projectDescription.ql-editor pre,
+        #projectDescription.ql-editor blockquote,
+        #projectDescription.ql-editor h1,
+        #projectDescription.ql-editor h2,
+        #projectDescription.ql-editor h3,
+        #projectDescription.ql-editor h4,
+        #projectDescription.ql-editor h5,
+        #projectDescription.ql-editor h6,
+        #investorDescription.ql-editor p,
+        #investorDescription.ql-editor ol,
+        #investorDescription.ql-editor ul,
+        #investorDescription.ql-editor pre,
+        #investorDescription.ql-editor blockquote,
+        #investorDescription.ql-editor h1,
+        #investorDescription.ql-editor h2,
+        #investorDescription.ql-editor h3,
+        #investorDescription.ql-editor h4,
+        #investorDescription.ql-editor h5,
+        #investorDescription.ql-editor h6 {
+            margin: 0;
+            padding: 0;
+            counter-reset: list-1 list-2 list-3 list-4 list-5 list-6 list-7 list-8 list-9;
+        }
+
+        #projectDescription.ql-editor ol,
+        #projectDescription.ql-editor ul,
+        #investorDescription.ql-editor ol,
+        #investorDescription.ql-editor ul {
+            padding-right: 1.5em;
+            padding-left: 0;
+        }
+
+        #projectDescription.ql-editor ol > li,
+        #projectDescription.ql-editor ul > li,
+        #investorDescription.ql-editor ol > li,
+        #investorDescription.ql-editor ul > li {
+            list-style-type: none;
+        }
+
+        #projectDescription.ql-editor ul > li::before,
+        #investorDescription.ql-editor ul > li::before {
+            content: '\2022';
+        }
+
+        #projectDescription.ql-editor ol {
+            counter-reset: list-1;
+        }
+
+        #investorDescription.ql-editor ol {
+            counter-reset: list-1;
+        }
+
+        #projectDescription.ql-editor ol > li,
+        #investorDescription.ql-editor ol > li {
+            counter-increment: list-1;
+        }
+
+        #projectDescription.ql-editor ol > li::before,
+        #investorDescription.ql-editor ol > li::before {
+            content: counter(list-1, decimal) '. ';
+        }
+
+        #projectDescription.ql-editor br,
+        #investorDescription.ql-editor br {
+            display: block;
+        }
+
+        #projectDescription h1,
+        #projectDescription h2,
+        #projectDescription h3,
+        #projectDescription h4,
+        #projectDescription h5,
+        #projectDescription h6,
+        #investorDescription h1,
+        #investorDescription h2,
+        #investorDescription h3,
+        #investorDescription h4,
+        #investorDescription h5,
+        #investorDescription h6 {
+            margin: 1em 0 0.5em 0;
+            display: block;
+            font-weight: bold;
+        }
+
+        #projectDescription ul,
+        #projectDescription ol,
+        #investorDescription ul,
+        #investorDescription ol {
+            margin: 1em 0;
+            padding-right: 2em;
+            display: block;
+        }
+
+        #projectDescription li,
+        #investorDescription li {
+            margin: 0.5em 0;
+            display: list-item;
+        }
+
+        #projectDescription strong,
+        #investorDescription strong {
+            font-weight: bold;
+        }
+
+        #projectDescription em,
+        #investorDescription em {
+            font-style: italic;
+        }
+
+        #projectDescription u,
+        #investorDescription u {
+            text-decoration: underline;
+        }
+
+        #projectDescription s,
+        #investorDescription s {
+            text-decoration: line-through;
+        }
+
+        #projectDescription a,
+        #investorDescription a {
+            color: var(--primary-color);
+            text-decoration: underline;
+        }
+
+        #projectDescription a:hover,
+        #investorDescription a:hover {
+            color: var(--secondary-color);
+        }
+
         body {
             font-family: 'Vazir', 'Tahoma', Arial, sans-serif;
             background: #f8f9fa;
@@ -905,7 +1079,7 @@
                     توضیحات پروژه
                 </h3>
                 <div style="background: var(--bg-card); padding: 20px; border-radius: 10px; border: 1px solid var(--border-color);">
-                    <p id="projectDescription" style="color: var(--text-primary); line-height: 1.8; margin: 0; white-space: pre-wrap;"></p>
+                    <div id="projectDescription" class="ql-editor" style="color: var(--text-primary); line-height: 1.8; margin: 0; direction: rtl; text-align: right;"></div>
                 </div>
             </div>
             <!-- بخش توضیحات سرمایه‌گذار -->
@@ -915,7 +1089,7 @@
                     توضیحات مشارکت کننده
                 </h3>
                 <div style="background: var(--bg-card); padding: 20px; border-radius: 10px; border: 1px solid var(--border-color);">
-                    <p id="investorDescription" style="color: var(--text-primary); line-height: 1.8; margin: 0; white-space: pre-wrap;"></p>
+                    <div id="investorDescription" class="ql-editor" style="color: var(--text-primary); line-height: 1.8; margin: 0; direction: rtl; text-align: right;"></div>
                 </div>
             </div>
             <!-- Project Overview Section -->
@@ -1303,7 +1477,7 @@
                             const projectDescriptionEl = document.getElementById('projectDescription');
                             const projectDescriptionSection = document.getElementById('projectDescriptionSection');
                             if (projectDescriptionEl && projectDescriptionSection && currentProject.description && currentProject.description.trim()) {
-                                projectDescriptionEl.textContent = currentProject.description;
+                                projectDescriptionEl.innerHTML = currentProject.description;
                                 projectDescriptionSection.style.display = 'block';
                             } else if (projectDescriptionSection) {
                                 projectDescriptionSection.style.display = 'none';
@@ -1330,7 +1504,7 @@
                         const projectDescriptionEl = document.getElementById('projectDescription');
                         const projectDescriptionSection = document.getElementById('projectDescriptionSection');
                         if (projectDescriptionEl && projectDescriptionSection && projects[0].description && projects[0].description.trim()) {
-                            projectDescriptionEl.textContent = projects[0].description;
+                            projectDescriptionEl.innerHTML = projects[0].description;
                             projectDescriptionSection.style.display = 'block';
                         } else if (projectDescriptionSection) {
                             projectDescriptionSection.style.display = 'none';
@@ -1638,7 +1812,7 @@
                 const descriptionSection = document.getElementById('descriptionSection');
                 if (descriptionEl && descriptionSection) {
                     if (investor.description && investor.description.trim()) {
-                        descriptionEl.textContent = investor.description;
+                        descriptionEl.innerHTML = investor.description;
                         descriptionSection.style.display = 'block';
                     } else {
                         descriptionSection.style.display = 'none';

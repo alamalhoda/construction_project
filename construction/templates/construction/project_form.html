@@ -188,8 +188,12 @@
                     </div>
                         <div class="form-group">
                             <label for="{{ form.description.id_for_label }}" class="form-label">توضیحات</label>
-                            <textarea class="form-control" id="{{ form.description.id_for_label }}" name="description" rows="4" 
-                                      placeholder="توضیحات اضافی درباره پروژه...">{{ form.description.value|default:'' }}</textarea>
+                            <!-- Container for Quill editor -->
+                            <div id="description-editor" style="height: 200px; direction: rtl; text-align: right;">
+                                {{ form.description.value|default:''|safe }}
+                            </div>
+                            <!-- Hidden input to store HTML content -->
+                            <input type="hidden" id="{{ form.description.id_for_label }}" name="description" value="{{ form.description.value|default:'' }}">
                             <small class="form-text text-muted">می‌توانید توضیحات اضافی درباره پروژه را در اینجا وارد کنید</small>
                         </div>
                         
@@ -210,7 +214,41 @@
 
 {% endblock %}
 
+{% block extrahead %}
+<!-- Quill Editor CSS -->
+<link href="{% static 'vendor/quill/1.3.6/css/quill.snow.css' %}" rel="stylesheet">
+<style>
+    /* استایل‌های RTL برای Quill Editor */
+    .ql-editor {
+        direction: rtl;
+        text-align: right;
+        font-family: 'Vazir', 'Tahoma', sans-serif;
+    }
+    
+    .ql-toolbar {
+        direction: rtl;
+        text-align: right;
+    }
+    
+    .ql-container {
+        direction: rtl;
+    }
+    
+    /* بهبود ظاهر ادیتور */
+    .ql-snow {
+        border: 1px solid #1c242b;
+        border-radius: 0.25rem;
+    }
+    
+    .ql-snow .ql-tooltip {
+        direction: rtl;
+    }
+</style>
+{% endblock %}
+
 {% block extrascripts %}
+<!-- Quill Editor JS -->
+<script src="{% static 'vendor/quill/1.3.6/js/quill.min.js' %}"></script>
 <script>
     // همگام‌سازی color picker با text input
     document.getElementById('{{ form.color.id_for_label }}').addEventListener('change', function() {
@@ -280,5 +318,40 @@
     if (document.getElementById('gradient-preview')) {
         updateGradientPreview();
     }
+    
+    // راه‌اندازی Quill Editor
+    var quill = new Quill('#description-editor', {
+        theme: 'snow',
+        modules: {
+            toolbar: [
+                [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                [{ 'size': ['small', false, 'large', 'huge'] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ 'color': [] }, { 'background': [] }],
+                [{ 'align': [] }],
+                ['clean']
+            ]
+        },
+        placeholder: 'توضیحات اضافی درباره پروژه...',
+        direction: 'rtl'
+    });
+
+    // همگام‌سازی محتوای ادیتور با فیلد مخفی فرم
+    var descriptionInput = document.getElementById('{{ form.description.id_for_label }}');
+    
+    // بارگذاری محتوای اولیه در ادیتور
+    if (descriptionInput.value) {
+        quill.root.innerHTML = descriptionInput.value;
+    }
+    
+    // به‌روزرسانی فیلد مخفی هنگام تغییر محتوا
+    quill.on('text-change', function() {
+        descriptionInput.value = quill.root.innerHTML;
+    });
+    
+    // همگام‌سازی قبل از ارسال فرم
+    document.querySelector('form').addEventListener('submit', function() {
+        descriptionInput.value = quill.root.innerHTML;
+    });
 </script>
 {% endblock %}
