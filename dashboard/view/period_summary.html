@@ -18,163 +18,7 @@
     <link rel="stylesheet" href="/static/css/dashboard-common.css">
     
     <style>
-        :root {
-            --primary-color: #667eea;
-            --secondary-color: #764ba2;
-            --success-color: #28a745;
-            --danger-color: #dc3545;
-            --warning-color: #ffc107;
-            --info-color: #17a2b8;
-            --bg-primary: #f8f9fa;
-            --bg-secondary: #ffffff;
-            --text-primary: #2c3e50;
-            --text-secondary: #6c757d;
-            --border-color: #e9ecef;
-            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 8px 25px rgba(0, 0, 0, 0.08);
-            --shadow-lg: 0 15px 35px rgba(0, 0, 0, 0.12);
-            
-            /* رنگ‌های استاندارد مالی پروژه */
-            --deposit-color: #2185d0;
-            --deposit-color-light: rgba(33, 133, 208, 0.1);
-            --withdrawal-color: #db2828;
-            --withdrawal-color-light: rgba(219, 40, 40, 0.1);
-            --profit-color: #21ba45;
-            --profit-color-light: rgba(33, 186, 69, 0.1);
-            --capital-color: #aa26ff;
-            --capital-color-light: rgba(170, 38, 255, 0.1);
-            --expense-color: #dc3545;
-            --expense-color-light: rgba(220, 53, 69, 0.1);
-            --refund-color: #ffc107;
-            --refund-color-light: rgba(255, 193, 7, 0.1);
-            --balance-color: #6c757d;
-            --balance-color-light: rgba(108, 117, 125, 0.1);
-            --total-color: #6c757d;
-            --total-color-light: rgba(108, 117, 125, 0.1);
-            --gold-color: #ffd700;              /* طلایی - شاخص نفع و عملکرد برتر */
-            --gold-color-light: rgba(255, 215, 0, 0.1);
-        }
-
-        * {
-            font-family: 'Vazir', 'Segoe UI', Tahoma, sans-serif;
-        }
-
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            direction: rtl;
-            padding: 20px;
-            color: var(--text-primary);
-        }
-
-        .main-container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: var(--shadow-lg);
-            overflow: hidden;
-            margin-bottom: 40px;
-        }
-
-        /* Header */
-        .page-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 40px 30px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .page-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/></svg>');
-            opacity: 0.3;
-        }
-
-        .page-header-content {
-            position: relative;
-            z-index: 2;
-        }
-
-        .page-header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            font-weight: 300;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-        }
-
-        .page-header .subtitle {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-
-        /* Navigation */
-        .navigation-links {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin-top: 25px;
-        }
-
-        .nav-link {
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-            padding: 12px 25px;
-            border-radius: 25px;
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .nav-link:hover {
-            background: rgba(255, 255, 255, 0.25);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-        }
-
-        .nav-link i {
-            font-size: 1.1rem;
-        }
-        
-        /* Project Switcher در page-header */
-        .page-header .project-switcher-container {
-            position: absolute;
-            top: 20px;
-            /* left: 20px; */
-            z-index: 10;
-        }
-        
-        .page-header .project-switcher .current-project-display {
-            background: rgba(255, 255, 255, 0.25);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-        
-        .page-header .project-switcher .current-project-display:hover {
-            background: rgba(255, 255, 255, 0.35);
-        }
-        
-        /* Badge پروژه فعلی در عنوان */
-        .current-project-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 400;
-        }
+        /* استایل‌های خاص این صفحه - استایل‌های مشترک در dashboard-common.css هستند */
 
         /* Summary Cards */
         .summary-cards {
@@ -500,8 +344,34 @@
         }
 
         @media (max-width: 768px) {
-            .page-header h1 {
-                font-size: 1.8rem;
+            .unified-header {
+                padding: 25px 20px;
+                border-radius: 15px 15px 0 0;
+            }
+
+            .unified-header h1 {
+                font-size: 2.2rem;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .unified-header h1 i {
+                font-size: 2rem;
+            }
+
+            .unified-header .subtitle {
+                font-size: 1.1rem;
+            }
+
+            .unified-header .navigation-links {
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .unified-header .nav-link {
+                padding: 10px 20px;
+                font-size: 0.95rem;
             }
 
             .current-period-section {
@@ -579,23 +449,19 @@
 <body>
     <div class="main-container">
         <!-- Header -->
-        <div class="page-header">
+        <div class="unified-header">
             <!-- Project Switcher در گوشه بالا-چپ -->
             <div class="project-switcher-container">
                 <!-- Project Switcher will be rendered here by JavaScript -->
                 <div id="projectSwitcherContainer"></div>
             </div>
             
-            <div class="page-header-content">
+            <div class="unified-header-content">
                 <h1>
                     <i class="fas fa-calendar-alt"></i>
                     خلاصه دوره‌ای پروژه
-                    <!-- Project Badge will be rendered here by JavaScript -->
-                    <span id="currentProjectBadge" style="display: none; font-size: 0.6em; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; margin-right: 15px; display: inline-flex; align-items: center; gap: 8px;"></span>
                 </h1>
                 <p class="subtitle">نمایش جامع تمام داده های مالی در هر دوره</p>
-                
-                <!-- Navigation -->
                 <div class="navigation-links">
                     <a href="/user-dashboard/" class="nav-link">
                         <i class="fas fa-home"></i>
@@ -1098,3 +964,4 @@
     <script src="/static/js/project-switcher.js"></script>
 </body>
 </html>
+
