@@ -735,6 +735,21 @@
                     </div>
                 </div>
                 
+                <!-- Display Mode Toggle -->
+                <div class="display-mode-toggle" style="margin: 15px 0; padding: 15px; background: var(--bg-card, #fff); border-radius: 8px; border: 1px solid var(--border-color, #e9ecef);">
+                    <div class="ui toggle checkbox" id="transactionDisplayModeToggle">
+                        <input type="checkbox" id="displayModeCheckbox">
+                        <label for="displayModeCheckbox" style="cursor: pointer; font-weight: 500;">
+                            <i class="object ungroup icon"></i>
+                            نمایش ترکیبی تراکنش‌ها (تراکنش اصلی + سود در یک رکورد)
+                        </label>
+                    </div>
+                    <div style="margin-top: 8px; font-size: 0.85rem; color: var(--text-secondary, #6c757d);">
+                        <i class="info circle icon"></i>
+                        در حالت ترکیبی، تراکنش‌های سود در ستون جداگانه نمایش داده می‌شوند. در حالت جداگانه، هر تراکنش سود به صورت رکورد مستقل نمایش داده می‌شود.
+                    </div>
+                </div>
+                
                 <!-- Search and Actions Row -->
                 <div class="actions-row">
                     <!-- بخش اول: عملیات مدیریت داده‌ها -->
@@ -1047,8 +1062,33 @@
         
         // API endpoints
         const API_BASE = '/api/v1/';
+        
+        // تنظیمات حالت نمایش تراکنش‌ها
+        const TRANSACTION_DISPLAY_MODE = {
+            COMBINED: 'combined',      // تراکنش اصلی + سود در یک رکورد
+            SEPARATE: 'separate'        // تراکنش‌های سود جداگانه
+        };
+        
+        // خواندن حالت از localStorage (پیش‌فرض: combined)
+        function getTransactionDisplayMode() {
+            return localStorage.getItem('transactionDisplayMode') || TRANSACTION_DISPLAY_MODE.COMBINED;
+        }
+        
+        // ذخیره حالت در localStorage
+        function setTransactionDisplayMode(mode) {
+            localStorage.setItem('transactionDisplayMode', mode);
+        }
+        
+        // تعیین endpoint بر اساس حالت
+        function getTransactionsEndpoint() {
+            const mode = getTransactionDisplayMode();
+            return mode === TRANSACTION_DISPLAY_MODE.COMBINED 
+                ? 'Transaction/combined/' 
+                : 'Transaction/';
+        }
+        
         const ENDPOINTS = {
-            transactions: 'Transaction/',
+            transactions: getTransactionsEndpoint(),  // استفاده از تابع
             investors: 'Investor/',
             projects: 'Project/',
             periods: 'Period/'
@@ -1061,6 +1101,45 @@
             'principal_withdrawal': '<span class="ui red label">برداشت</span>',
             'profit_accrual': '<span class="ui green label">سود مشارکت</span>'
         };
+        
+        // Transaction Display Mode Management
+        // تابع تغییر حالت نمایش
+        function toggleTransactionDisplayMode() {
+            const currentMode = getTransactionDisplayMode();
+            const newMode = currentMode === TRANSACTION_DISPLAY_MODE.COMBINED 
+                ? TRANSACTION_DISPLAY_MODE.SEPARATE 
+                : TRANSACTION_DISPLAY_MODE.COMBINED;
+            
+            setTransactionDisplayMode(newMode);
+            
+            // به‌روزرسانی endpoint
+            ENDPOINTS.transactions = getTransactionsEndpoint();
+            
+            // نمایش پیام
+            $('body').toast({
+                message: newMode === TRANSACTION_DISPLAY_MODE.COMBINED 
+                    ? 'حالت نمایش ترکیبی فعال شد' 
+                    : 'حالت نمایش جداگانه فعال شد',
+                class: 'info',
+                position: 'top center',
+                displayTime: 2000
+            });
+            
+            // بارگذاری مجدد داده‌ها
+            loadInitialData();
+        }
+        
+        // مقداردهی اولیه checkbox
+        function initializeDisplayModeToggle() {
+            const mode = getTransactionDisplayMode();
+            const checkbox = document.getElementById('displayModeCheckbox');
+            if (checkbox) {
+                checkbox.checked = mode === TRANSACTION_DISPLAY_MODE.COMBINED;
+                checkbox.addEventListener('change', function() {
+                    toggleTransactionDisplayMode();
+                });
+            }
+        }
         
         // Theme Management
         function initializeTheme() {
@@ -1096,6 +1175,7 @@
             console.log('addNewTransaction function exists:', typeof addNewTransaction);
             
             initializeTheme();
+            initializeDisplayModeToggle();  // مقداردهی اولیه toggle حالت نمایش
             initializeDropdowns();
             
             // Ensure loading is hidden initially
@@ -1482,60 +1562,83 @@
         }
         
         function sortTransactionsWithProfits(data) {
-            // تفکیک تراکنش‌های اصلی و سود
-            const profitsByInvestorDatePeriod = {};
-            const mainTransactions = [];
+            const mode = getTransactionDisplayMode();
             
-            data.forEach(item => {
-                if (item.transaction_type === 'profit_accrual') {
-                    // ایجاد کلید ترکیبی با استفاده از investor_data.id و period_data.id
-                    const investorId = item.investor_data?.id || '';
-                    const periodId = item.period_data?.id || '';
-                    const key = `${investorId}_${periodId}_${item.date_shamsi}`;
-                    
-                    if (!profitsByInvestorDatePeriod[key]) {
-                        profitsByInvestorDatePeriod[key] = [];
+            if (mode === TRANSACTION_DISPLAY_MODE.COMBINED) {
+                // حالت ترکیبی: با استفاده از endpoint combined، داده‌ها از سرور به صورت ترکیبی می‌آیند
+                // فقط تراکنش‌های اصلی با اطلاعات سود در همان رکورد
+                // فیلتر کردن فقط تراکنش‌های اصلی (غیر سود) - برای اطمینان
+                const mainTransactions = data.filter(item => 
+                    item.transaction_type !== 'profit_accrual'
+                );
+                
+                // مرتب‌سازی تراکنش‌های اصلی بر اساس تاریخ و ID
+                mainTransactions.sort((a, b) => {
+                    // ابتدا بر اساس تاریخ (نزولی - جدیدترین اول)
+                    if (a.date_shamsi !== b.date_shamsi) {
+                        return b.date_shamsi.localeCompare(a.date_shamsi);
                     }
-                    profitsByInvestorDatePeriod[key].push(item);
-                } else {
-                    mainTransactions.push(item);
-                }
-            });
-            
-            // مرتب‌سازی تراکنش‌های اصلی بر اساس تاریخ و ID
-            mainTransactions.sort((a, b) => {
-                // ابتدا بر اساس تاریخ (نزولی - جدیدترین اول)
-                if (a.date_shamsi !== b.date_shamsi) {
-                    return b.date_shamsi.localeCompare(a.date_shamsi);
-                }
-                // سپس بر اساس ID (نزولی - جدیدترین اول)
-                return b.id - a.id;
-            });
-            
-            // ساخت آرایه نهایی با قرار دادن سود بلافاصله بعد از تراکنش اصلی
-            const sortedData = [];
-            mainTransactions.forEach(mainItem => {
-                sortedData.push(mainItem);
+                    // سپس بر اساس ID (نزولی - جدیدترین اول)
+                    return b.id - a.id;
+                });
                 
-                // پیدا کردن و اضافه کردن سودهای مرتبط
-                const investorId = mainItem.investor_data?.id || '';
-                const periodId = mainItem.period_data?.id || '';
-                const key = `${investorId}_${periodId}_${mainItem.date_shamsi}`;
+                return mainTransactions;
+            } else {
+                // حالت جداگانه: تفکیک تراکنش‌های اصلی و سود
+                const profitsByInvestorDatePeriod = {};
+                const mainTransactions = [];
                 
-                const relatedProfits = profitsByInvestorDatePeriod[key];
+                data.forEach(item => {
+                    if (item.transaction_type === 'profit_accrual') {
+                        // ایجاد کلید ترکیبی با استفاده از investor_data.id و period_data.id
+                        const investorId = item.investor_data?.id || '';
+                        const periodId = item.period_data?.id || '';
+                        const key = `${investorId}_${periodId}_${item.date_shamsi}`;
+                        
+                        if (!profitsByInvestorDatePeriod[key]) {
+                            profitsByInvestorDatePeriod[key] = [];
+                        }
+                        profitsByInvestorDatePeriod[key].push(item);
+                    } else {
+                        mainTransactions.push(item);
+                    }
+                });
                 
-                if (relatedProfits && relatedProfits.length > 0) {
-                    sortedData.push(...relatedProfits);
-                    delete profitsByInvestorDatePeriod[key];
-                }
-            });
-            
-            // اضافه کردن سودهای باقیمانده (اگر هست)
-            Object.values(profitsByInvestorDatePeriod).forEach(profits => {
-                sortedData.push(...profits);
-            });
-            
-            return sortedData;
+                // مرتب‌سازی تراکنش‌های اصلی بر اساس تاریخ و ID
+                mainTransactions.sort((a, b) => {
+                    // ابتدا بر اساس تاریخ (نزولی - جدیدترین اول)
+                    if (a.date_shamsi !== b.date_shamsi) {
+                        return b.date_shamsi.localeCompare(a.date_shamsi);
+                    }
+                    // سپس بر اساس ID (نزولی - جدیدترین اول)
+                    return b.id - a.id;
+                });
+                
+                // ساخت آرایه نهایی با قرار دادن سود بلافاصله بعد از تراکنش اصلی
+                const sortedData = [];
+                mainTransactions.forEach(mainItem => {
+                    sortedData.push(mainItem);
+                    
+                    // پیدا کردن و اضافه کردن سودهای مرتبط
+                    const investorId = mainItem.investor_data?.id || '';
+                    const periodId = mainItem.period_data?.id || '';
+                    const key = `${investorId}_${periodId}_${mainItem.date_shamsi}`;
+                    
+                    const relatedProfits = profitsByInvestorDatePeriod[key];
+                    
+                    if (relatedProfits && relatedProfits.length > 0) {
+                        sortedData.push(...relatedProfits);
+                        delete profitsByInvestorDatePeriod[key];
+                    }
+                });
+                
+                // اضافه کردن سودهای باقیمانده (اگر هست)
+                Object.values(profitsByInvestorDatePeriod).forEach(profits => {
+                    sortedData.push(...profits);
+                });
+                
+                return sortedData;
+            }
         }
         
         function createTable() {
@@ -1628,10 +1731,49 @@
                     },
                     hozAlign: 'right'
                 },
+                // اضافه کردن ستون سود فقط در حالت combined
+                ...(getTransactionDisplayMode() === TRANSACTION_DISPLAY_MODE.COMBINED ? [{
+                    title: 'سود (تومان)',
+                    field: 'profit_transaction',
+                    width: 150,
+                    formatter: function(cell) {
+                        const data = cell.getRow().getData();
+                        const profitTransaction = data.profit_transaction;
+                        
+                        if (profitTransaction && profitTransaction.amount !== null && profitTransaction.amount !== undefined) {
+                            const amount = parseFloat(profitTransaction.amount);
+                            // استفاده از رنگ سبز برای سود (طبق استاندارد پروژه)
+                            return `<span style="color: var(--profit-color, #21ba45); font-weight: 600;">${amount.toLocaleString('en-US')}</span>`;
+                        }
+                        return '<span style="color: var(--text-secondary, #6c757d);">-</span>';
+                    },
+                    sorter: function(a, b, aRow, bRow) {
+                        // مرتب‌سازی بر اساس مبلغ سود
+                        const aProfit = aRow.getData().profit_transaction?.amount || 0;
+                        const bProfit = bRow.getData().profit_transaction?.amount || 0;
+                        return parseFloat(aProfit) - parseFloat(bProfit);
+                    },
+                    bottomCalc: function(values, data) {
+                        // محاسبه مجموع سودها
+                        let sum = 0;
+                        data.forEach(function(row) {
+                            const profitAmount = row.profit_transaction?.amount;
+                            if (profitAmount !== null && profitAmount !== undefined) {
+                                sum += parseFloat(profitAmount);
+                            }
+                        });
+                        return sum;
+                    },
+                    bottomCalcFormatter: function(cell) {
+                        const value = cell.getValue();
+                        return '<strong style="color: var(--profit-color, #21ba45);">' + parseFloat(value).toLocaleString('en-US') + '</strong>';
+                    },
+                    hozAlign: 'right'
+                }] : []),
                 {
                     title: 'توضیحات',
                     field: 'description',
-                    width: 390,
+                    width: getTransactionDisplayMode() === TRANSACTION_DISPLAY_MODE.COMBINED ? 335 : 390,
                     formatter: function(cell) {
                         const value = cell.getValue();
                         if (value && value.trim() !== '') {
@@ -1919,9 +2061,19 @@
                 .filter(row => row.transaction_type === 'principal_withdrawal')
                 .reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
                 
-            const profits = filteredData
-                .filter(row => row.transaction_type === 'profit_accrual')
-                .reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
+            // محاسبه سود بر اساس حالت نمایش
+            let profits;
+            if (getTransactionDisplayMode() === TRANSACTION_DISPLAY_MODE.COMBINED) {
+                // حالت ترکیبی: از profit_transaction
+                profits = filteredData
+                    .filter(row => row.profit_transaction && row.profit_transaction.amount !== null && row.profit_transaction.amount !== undefined)
+                    .reduce((sum, row) => sum + parseFloat(row.profit_transaction.amount || 0), 0);
+            } else {
+                // حالت جداگانه: از transaction_type
+                profits = filteredData
+                    .filter(row => row.transaction_type === 'profit_accrual')
+                    .reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
+            }
             
             // محاسبه سرمایه موجود (بدون سود مشارکت) = مجموع واریزها - مجموع برداشت‌ها
             // const netCapital = deposits - withdrawals; //withdrawals منفی است پس به جای تفریق باید جمع بشه
@@ -1996,7 +2148,15 @@
                 // Calculate breakdown when no filters are applied
                 const deposits = totalCount.filter(row => ['principal_deposit','loan_deposit'].includes(row.transaction_type)).length;
                 const withdrawals = totalCount.filter(row => row.transaction_type === 'principal_withdrawal').length;
-                const profits = totalCount.filter(row => row.transaction_type === 'profit_accrual').length;
+                // شمارش تعداد تراکنش‌های سود بر اساس حالت نمایش
+                let profits;
+                if (getTransactionDisplayMode() === TRANSACTION_DISPLAY_MODE.COMBINED) {
+                    // حالت ترکیبی: تعداد تراکنش‌هایی که سود دارند
+                    profits = totalCount.filter(row => row.has_profit || (row.profit_transaction && row.profit_transaction.amount !== null)).length;
+                } else {
+                    // حالت جداگانه: تعداد تراکنش‌های سود
+                    profits = totalCount.filter(row => row.transaction_type === 'profit_accrual').length;
+                }
                 
                 resultsCountElement.textContent = `نمایش تمام ${totalCount.length.toLocaleString('en-US')} تراکنش (${deposits} آورده و ${withdrawals} برداشت و ${profits} سود مشارکت)`;
                 filterInfoElement.textContent = '';

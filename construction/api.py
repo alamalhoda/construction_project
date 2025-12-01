@@ -1642,6 +1642,34 @@ class TransactionViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
             'unique_investors': unique_investors
         })
 
+    @action(detail=False, methods=['get'])
+    def combined(self, request):
+        """
+        دریافت تراکنش‌های اصلی به همراه تراکنش‌های سود مرتبط در یک رکورد
+        فقط تراکنش‌های اصلی (غیر سود) را برمی‌گرداند
+        """
+        # فیلتر کردن فقط تراکنش‌های اصلی (غیر سود)
+        from django.db.models import Prefetch
+        queryset = self.get_queryset().exclude(
+            transaction_type='profit_accrual'
+        ).select_related(
+            'investor', 'project', 'period', 'interest_rate'
+        ).prefetch_related(
+            # بهینه‌سازی: فقط تراکنش‌های سود را prefetch می‌کنیم
+            Prefetch(
+                'transaction_set',
+                queryset=models.Transaction.objects.filter(transaction_type='profit_accrual').select_related('interest_rate'),
+                to_attr='profit_transactions'
+            )
+        )
+        
+        # اعمال فیلترهای پروژه (از ProjectFilterMixin)
+        queryset = self.filter_queryset(queryset)
+        
+        # استفاده از serializer جدید
+        serializer = serializers.CombinedTransactionSerializer(queryset, many=True)
+        return Response(serializer.data)
+
     # کدهای قبلی برای تغییر نرخ سود - کامنت شده برای مراجعه آینده
     """
     @action(detail=False, methods=['post'])
