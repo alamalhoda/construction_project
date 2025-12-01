@@ -48,6 +48,18 @@ class Project(models.Model):
         verbose_name="آیکون پروژه",
         help_text="نام کلاس آیکون Font Awesome (مثال: fa-building)"
     )
+    gradient_primary_color = models.CharField(
+        max_length=7,
+        default='#667eea',
+        verbose_name="رنگ اول گرادیانت",
+        help_text="رنگ اول گرادیانت پس‌زمینه (فرمت HEX)"
+    )
+    gradient_secondary_color = models.CharField(
+        max_length=7,
+        default='#764ba2',
+        verbose_name="رنگ دوم گرادیانت",
+        help_text="رنگ دوم گرادیانت پس‌زمینه (فرمت HEX)"
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="تاریخ به‌روزرسانی")
 

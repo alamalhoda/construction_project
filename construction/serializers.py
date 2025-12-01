@@ -158,6 +158,8 @@ class ProjectSerializer(serializers.ModelSerializer):
             "description",
             "color",
             "icon",
+            "gradient_primary_color",
+            "gradient_secondary_color",
             "created_at",
             "updated_at",
         ]

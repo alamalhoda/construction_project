@@ -102,7 +102,7 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="{{ form.color.id_for_label }}" class="form-label">رنگ پروژه</label>
+                                    <label for="{{ form.color.id_for_label }}" class="form-label">رنگ آیکون پروژه</label>
                                     <div style="display: flex; align-items: center; gap: 10px;">
                                         <input type="color" name="color" id="{{ form.color.id_for_label }}" 
                                                value="{{ form.color.value|default:'#667eea' }}" 
@@ -133,6 +133,56 @@
                                     <small class="form-text text-muted">{{ form.icon.help_text }}</small>
                                 </div>
                             </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.gradient_primary_color.id_for_label }}" class="form-label">رنگ اول گرادیانت تم</label>
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <input type="color" name="gradient_primary_color" id="{{ form.gradient_primary_color.id_for_label }}" 
+                                               value="{{ form.gradient_primary_color.value|default:'#667eea' }}" 
+                                               class="form-control" 
+                                               style="width: 80px; height: 40px; cursor: pointer; padding: 2px;"
+                                               onchange="updateGradientPreview(); document.getElementById('gradient_primary_text').value = this.value;">
+                                        <input type="text" name="gradient_primary_text" id="gradient_primary_text" 
+                                               class="form-control" 
+                                               placeholder="#667eea"
+                                               value="{{ form.gradient_primary_color.value|default:'#667eea' }}"
+                                               style="flex: 1; direction: ltr;"
+                                               onchange="var colorInput = document.getElementById('{{ form.gradient_primary_color.id_for_label }}'); if (/^#[0-9A-F]{6}$/i.test(this.value)) { colorInput.value = this.value; updateGradientPreview(); }">
+                                    </div>
+                                    <small class="form-text text-muted">{{ form.gradient_primary_color.help_text }}</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.gradient_secondary_color.id_for_label }}" class="form-label">رنگ دوم گرادیانت تم</label>
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <input type="color" name="gradient_secondary_color" id="{{ form.gradient_secondary_color.id_for_label }}" 
+                                               value="{{ form.gradient_secondary_color.value|default:'#764ba2' }}" 
+                                               class="form-control" 
+                                               style="width: 80px; height: 40px; cursor: pointer; padding: 2px;"
+                                               onchange="updateGradientPreview(); document.getElementById('gradient_secondary_text').value = this.value;">
+                                        <input type="text" name="gradient_secondary_text" id="gradient_secondary_text" 
+                                               class="form-control" 
+                                               placeholder="#764ba2"
+                                               value="{{ form.gradient_secondary_color.value|default:'#764ba2' }}"
+                                               style="flex: 1; direction: ltr;"
+                                               onchange="var colorInput = document.getElementById('{{ form.gradient_secondary_color.id_for_label }}'); if (/^#[0-9A-F]{6}$/i.test(this.value)) { colorInput.value = this.value; updateGradientPreview(); }">
+                                    </div>
+                                    <small class="form-text text-muted">{{ form.gradient_secondary_color.help_text }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- پیش‌نمایش گرادیانت -->
+                        <div class="form-group">
+                            <label class="form-label">پیش‌نمایش گرادیانت تم</label>
+                            <div id="gradient-preview" 
+                                 style="width: 100%; height: 100px; border-radius: 10px; border: 2px solid #dee2e6; margin-top: 10px; background: linear-gradient(90deg, {{ form.gradient_primary_color.value|default:'#667eea' }} 0%, {{ form.gradient_secondary_color.value|default:'#764ba2' }} 100%); transition: all 0.3s ease;">
+                            </div>
+                            <small class="form-text text-muted">این گرادیانت به عنوان پس‌زمینه صفحات داشبورد استفاده می‌شود</small>
                         </div>
                         
                     </div>
@@ -197,5 +247,38 @@
         document.getElementById('color_text').value = this.value;
         updateIconPreviewColor();
     });
+    
+    // همگام‌سازی gradient color picker با text input
+    var gradientPrimaryInput = document.getElementById('{{ form.gradient_primary_color.id_for_label }}');
+    var gradientSecondaryInput = document.getElementById('{{ form.gradient_secondary_color.id_for_label }}');
+    
+    if (gradientPrimaryInput) {
+        gradientPrimaryInput.addEventListener('input', function() {
+            document.getElementById('gradient_primary_text').value = this.value;
+            updateGradientPreview();
+        });
+    }
+    
+    if (gradientSecondaryInput) {
+        gradientSecondaryInput.addEventListener('input', function() {
+            document.getElementById('gradient_secondary_text').value = this.value;
+            updateGradientPreview();
+        });
+    }
+    
+    // تابع به‌روزرسانی پیش‌نمایش گرادیانت
+    function updateGradientPreview() {
+        var preview = document.getElementById('gradient-preview');
+        if (!preview) return;
+        
+        var primaryColor = gradientPrimaryInput ? (gradientPrimaryInput.value || '#667eea') : '#667eea';
+        var secondaryColor = gradientSecondaryInput ? (gradientSecondaryInput.value || '#764ba2') : '#764ba2';
+        preview.style.background = `linear-gradient(90deg, ${primaryColor} 0%, ${secondaryColor} 100%)`;
+    }
+    
+    // مقداردهی اولیه پیش‌نمایش گرادیانت
+    if (document.getElementById('gradient-preview')) {
+        updateGradientPreview();
+    }
 </script>
 {% endblock %}
