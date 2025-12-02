@@ -1393,6 +1393,7 @@
                             <th>تاریخ</th>
                             <th>نوع تراکنش</th>
                             <th>مبلغ (تومان)</th>
+                            <th id="profitColumnHeader" style="display: none;">سود (تومان)</th>
                             <th>توضیحات</th>
                         </tr>
                     </thead>
@@ -1454,6 +1455,30 @@
         function getInvestorIdFromURL() {
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get('investor_id');
+        }
+
+        // تنظیمات حالت نمایش تراکنش‌ها (همانند transaction_manager.html)
+        const TRANSACTION_DISPLAY_MODE = {
+            COMBINED: 'combined',      // تراکنش اصلی + سود در یک رکورد
+            SEPARATE: 'separate'        // تراکنش‌های سود جداگانه
+        };
+
+        // خواندن حالت از localStorage (پیش‌فرض: combined)
+        function getTransactionDisplayMode() {
+            return localStorage.getItem('transactionDisplayMode') || TRANSACTION_DISPLAY_MODE.COMBINED;
+        }
+
+        // تعیین endpoint بر اساس حالت
+        function getTransactionsEndpoint(investorId) {
+            const mode = getTransactionDisplayMode();
+            const baseEndpoint = `/api/v1/Transaction/`;
+            if (mode === TRANSACTION_DISPLAY_MODE.COMBINED) {
+                // در حالت combined، باید از endpoint combined استفاده کنیم
+                // اما باید investor filter را هم اعمال کنیم
+                return `${baseEndpoint}combined/?investor=${investorId}`;
+            } else {
+                return `${baseEndpoint}?investor=${investorId}`;
+            }
         }
 
         // متغیر سراسری برای نام پروژه
@@ -1652,8 +1677,8 @@
                 if (!investorResponse.ok) throw new Error('خطا در دریافت اطلاعات مشارکت کننده');
                 const investor = await investorResponse.json();
 
-                // Fetch transactions
-                const transactionsResponse = await fetch(`/api/v1/Transaction/?investor=${investorId}`);
+                // Fetch transactions - استفاده از endpoint بر اساس حالت نمایش
+                const transactionsResponse = await fetch(getTransactionsEndpoint(investorId));
                 if (!transactionsResponse.ok) throw new Error('خطا در دریافت تراکنش‌ها');
                 const transactions = await transactionsResponse.json();
 
@@ -1712,17 +1737,31 @@
                     netPrincipal = investorStatsData.amounts_toman.net_principal || 0;
                     totalBalance = investorStatsData.amounts_toman.total_balance || 0;
                 } else {
-                    // محاسبه محلی (fallback)
+                    // محاسبه محلی (fallback) - فقط در صورت خطای API
+                    // رعایت SSOT: این محاسبات فقط fallback است، اولویت با API است
+                    const mode = getTransactionDisplayMode();
+                    
                     const principalDeposits = transactions.filter(t => t.transaction_type === 'principal_deposit');
                     const loanDeposits = transactions.filter(t => t.transaction_type === 'loan_deposit');
                     const principalWithdrawals = transactions.filter(t => t.transaction_type === 'principal_withdrawal');
-                    const profitAccruals = transactions.filter(t => t.transaction_type === 'profit_accrual');
-
+                    
                     totalPrincipalDeposit = principalDeposits.reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
                     totalLoanDeposit = loanDeposits.reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
                     totalPrincipal = totalPrincipalDeposit + totalLoanDeposit;
                     totalWithdrawal = Math.abs(principalWithdrawals.reduce((sum, t) => sum + parseFloat(t.amount || 0), 0));
-                    totalProfit = profitAccruals.reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
+                    
+                    // محاسبه سود بر اساس حالت نمایش
+                    if (mode === TRANSACTION_DISPLAY_MODE.COMBINED) {
+                        // حالت ترکیبی: از profit_transaction
+                        totalProfit = transactions
+                            .filter(t => t.profit_transaction && t.profit_transaction.amount !== null && t.profit_transaction.amount !== undefined)
+                            .reduce((sum, t) => sum + parseFloat(t.profit_transaction.amount || 0), 0);
+                    } else {
+                        // حالت جداگانه: از transaction_type
+                        const profitAccruals = transactions.filter(t => t.transaction_type === 'profit_accrual');
+                        totalProfit = profitAccruals.reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
+                    }
+                    
                     netPrincipal = totalPrincipal - totalWithdrawal;
                     totalBalance = netPrincipal + totalProfit;
                 }
@@ -1910,9 +1949,26 @@
 
                 // Load transactions table with sorting
                 const tableBody = document.getElementById('transactionsTableBody');
+                const mode = getTransactionDisplayMode();
+                const showProfitColumn = mode === TRANSACTION_DISPLAY_MODE.COMBINED;
+                
+                // نمایش/مخفی کردن ستون سود
+                const profitHeader = document.getElementById('profitColumnHeader');
+                if (profitHeader) {
+                    profitHeader.style.display = showProfitColumn ? '' : 'none';
+                }
+                
                 if (transactions.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="5">هیچ تراکنشی ثبت نشده است</td></tr>';
+                    const colspan = showProfitColumn ? 6 : 5;
+                    tableBody.innerHTML = `<tr><td colspan="${colspan}">هیچ تراکنشی ثبت نشده است</td></tr>`;
                 } else {
+                    // فیلتر کردن تراکنش‌ها بر اساس حالت
+                    let displayTransactions = transactions;
+                    if (mode === TRANSACTION_DISPLAY_MODE.COMBINED) {
+                        // فقط تراکنش‌های اصلی (غیر سود)
+                        displayTransactions = transactions.filter(t => t.transaction_type !== 'profit_accrual');
+                    }
+                    
                     // Define transaction type priority
                     const transactionTypePriority = {
                         'principal_deposit': 1,
@@ -1922,7 +1978,7 @@
                     };
 
                     // Sort transactions by Shamsi date, day_from_start, then by transaction type
-                    const sortedTransactions = [...transactions].sort((a, b) => {
+                    const sortedTransactions = [...displayTransactions].sort((a, b) => {
                         // Compare by day_from_start (روز از شروع)
                         const dayFromStartA = parseInt(a.day_from_start) || 0;
                         const dayFromStartB = parseInt(b.day_from_start) || 0;
@@ -1948,15 +2004,26 @@
                         return priorityA - priorityB;
                     });
 
-                    tableBody.innerHTML = sortedTransactions.map((t, index) => `
-                        <tr class="row-${t.transaction_type}">
-                            <td>${index + 1}</td>
-                            <td>${t.date_shamsi || t.date}</td>
-                            <td><span class="transaction-type ${t.transaction_type}">${getTransactionTypeLabel(t.transaction_type)}</span></td>
-                            <td>${formatNumber(Math.abs(t.amount))}</td>
-                            <td>${t.description || '-'}</td>
-                        </tr>
-                    `).join('');
+                    tableBody.innerHTML = sortedTransactions.map((t, index) => {
+                        const profitCell = showProfitColumn ? `
+                            <td style="color: var(--profit-color, #21ba45); font-weight: 600;">
+                                ${t.profit_transaction && t.profit_transaction.amount !== null && t.profit_transaction.amount !== undefined
+                                    ? formatNumber(Math.abs(t.profit_transaction.amount))
+                                    : '-'}
+                            </td>
+                        ` : '';
+                        
+                        return `
+                            <tr class="row-${t.transaction_type}">
+                                <td>${index + 1}</td>
+                                <td>${t.date_shamsi || t.date}</td>
+                                <td><span class="transaction-type ${t.transaction_type}">${getTransactionTypeLabel(t.transaction_type)}</span></td>
+                                <td>${formatNumber(Math.abs(t.amount))}</td>
+                                ${profitCell}
+                                <td>${t.description || '-'}</td>
+                            </tr>
+                        `;
+                    }).join('');
                 }
 
                 // نمایش اطلاعات جامع پروژه
@@ -2027,9 +2094,22 @@
         const BASE_AMOUNT = 1000000; // میلیون تومان
 
         function createActivityDistributionChart(investorTransactions) {
+            const mode = getTransactionDisplayMode();
+            
             const principalData = investorTransactions.filter(row => ['principal_deposit','loan_deposit'].includes(row.transaction_type));
             const withdrawalData = investorTransactions.filter(row => row.transaction_type === 'principal_withdrawal');
-            const profitData = investorTransactions.filter(row => row.transaction_type === 'profit_accrual');
+            
+            // محاسبه سود بر اساس حالت نمایش (رعایت SSOT)
+            let profitData;
+            if (mode === TRANSACTION_DISPLAY_MODE.COMBINED) {
+                // حالت ترکیبی: از profit_transaction
+                profitData = investorTransactions
+                    .filter(row => row.profit_transaction && row.profit_transaction.amount !== null && row.profit_transaction.amount !== undefined)
+                    .map(row => ({ amount: row.profit_transaction.amount }));
+            } else {
+                // حالت جداگانه: از transaction_type
+                profitData = investorTransactions.filter(row => row.transaction_type === 'profit_accrual');
+            }
 
             const totalPrincipal = principalData.reduce((s, r) => s + parseFloat(r.amount || 0), 0);
             const totalWithdrawal = Math.abs(withdrawalData.reduce((s, r) => s + parseFloat(r.amount || 0), 0));
