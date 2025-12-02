@@ -51,6 +51,8 @@ def get_database_stats(project_id=None):
         Expense = apps.get_model('construction', 'Expense')
         Sale = apps.get_model('construction', 'Sale')
         UserProfile = apps.get_model('construction', 'UserProfile')
+        UnitSpecificExpense = apps.get_model('construction', 'UnitSpecificExpense')
+        PettyCashTransaction = apps.get_model('construction', 'PettyCashTransaction')
         
         User = apps.get_model('auth', 'User')
         Group = apps.get_model('auth', 'Group')
@@ -77,6 +79,8 @@ def get_database_stats(project_id=None):
             'interest_rates': InterestRate.objects.filter(**project_related_filter).count() if project_id else InterestRate.objects.count(),
             'expenses': Expense.objects.filter(**project_related_filter).count() if project_id else Expense.objects.count(),
             'sales': Sale.objects.filter(**project_related_filter).count() if project_id else Sale.objects.count(),
+            'unit_specific_expenses': UnitSpecificExpense.objects.filter(unit__project_id=project_id).count() if project_id else UnitSpecificExpense.objects.count(),
+            'petty_cash_transactions': PettyCashTransaction.objects.filter(**project_related_filter).count() if project_id else PettyCashTransaction.objects.count(),
             'user_profiles': UserProfile.objects.count(),  # user profiles معمولاً به پروژه مربوط نیستند
             
             # مدل‌های Django داخلی - همیشه همه
@@ -102,6 +106,8 @@ def get_database_stats(project_id=None):
             'interest_rates': 0,
             'expenses': 0,
             'sales': 0,
+            'unit_specific_expenses': 0,
+            'petty_cash_transactions': 0,
             'user_profiles': 0,
             
             # مدل‌های Django داخلی
@@ -158,6 +164,8 @@ def create_individual_fixtures(backup_path):
         ('construction.interestrate', 'interest_rates.json', 'نرخ‌های سود'),
         ('construction.expense', 'expenses.json', 'هزینه‌ها'),
         ('construction.sale', 'sales.json', 'فروش‌ها'),
+        ('construction.unitspecificexpense', 'unit_specific_expenses.json', 'هزینه‌های اختصاصی واحد'),
+        ('construction.pettycashtransaction', 'petty_cash_transactions.json', 'تراکنش‌های تنخواه'),
         ('construction.userprofile', 'user_profiles.json', 'پروفایل‌های کاربری'),
         
         # مدل‌های Django داخلی
@@ -244,6 +252,8 @@ def create_stats_file(backup_path, timestamp, stats):
             'interest_rates.json',
             'expenses.json',
             'sales.json',
+            'unit_specific_expenses.json',
+            'petty_cash_transactions.json',
             'user_profiles.json',
             'users.json',
             'groups.json',
@@ -283,6 +293,8 @@ def create_stats_file(backup_path, timestamp, stats):
         f.write(f"    نرخ‌های سود: {stats['interest_rates']}\n")
         f.write(f"    هزینه‌ها: {stats['expenses']}\n")
         f.write(f"    فروش‌ها: {stats['sales']}\n")
+        f.write(f"    هزینه‌های اختصاصی واحد: {stats['unit_specific_expenses']}\n")
+        f.write(f"    تراکنش‌های تنخواه: {stats['petty_cash_transactions']}\n")
         f.write(f"    پروفایل‌های کاربری: {stats['user_profiles']}\n")
         f.write("  مدل‌های Django:\n")
         f.write(f"    کاربران: {stats['users']}\n")
@@ -438,14 +450,14 @@ def create_backup_with_record():
         create_stats_file(backup_path, timestamp, stats)
         
         # به‌روزرسانی رکورد
-        if complete_success and individual_count == 17:
+        if complete_success and individual_count == 19:  # شامل UnitSpecificExpense و PettyCashTransaction
             backup_record.status = 'completed'
             backup_record.completed_at = datetime.now()
             backup_record.success_message = "بک‌آپ با موفقیت ایجاد شد"
         else:
             backup_record.status = 'failed'
             backup_record.completed_at = datetime.now()
-            backup_record.error_message = f"خطا در ایجاد fixture: {individual_count}/17"
+            backup_record.error_message = f"خطا در ایجاد fixture: {individual_count}/19"
         
         # آمار داده‌ها
         backup_record.projects_count = stats['projects']
@@ -456,6 +468,8 @@ def create_backup_with_record():
         backup_record.interest_rates_count = stats['interest_rates']
         backup_record.expenses_count = stats['expenses']
         backup_record.sales_count = stats['sales']
+        backup_record.unit_specific_expenses_count = stats['unit_specific_expenses']
+        backup_record.petty_cash_transactions_count = stats['petty_cash_transactions']
         backup_record.user_profiles_count = stats['user_profiles']
         backup_record.total_records = stats['total']
         

@@ -334,6 +334,8 @@ def create_backup_api(request):
             backup_record.interest_rates_count = stats['interest_rates']
             backup_record.expenses_count = stats['expenses']
             backup_record.sales_count = stats['sales']
+            backup_record.unit_specific_expenses_count = stats['unit_specific_expenses']
+            backup_record.petty_cash_transactions_count = stats['petty_cash_transactions']
             backup_record.user_profiles_count = stats['user_profiles']
             backup_record.total_records = stats['total']
             
