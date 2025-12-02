@@ -97,16 +97,17 @@ def user_register_view(request):
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
-            user = form.save()
+            user = form.save(commit=False)  # استفاده از commit=False برای تنظیم is_active
             user.email = form.cleaned_data.get('email')
             user.first_name = form.cleaned_data.get('first_name')
             user.last_name = form.cleaned_data.get('last_name')
+            user.is_active = False  # کاربر جدید به صورت پیش‌فرض غیرفعال است
             user.save()
             
             # لاگ کردن ثبت نام موفق
-            logger.info(f"New user registered: {user.username} ({user.email})")
+            logger.info(f"New user registered (inactive): {user.username} ({user.email})")
             
-            messages.success(request, 'ثبت نام با موفقیت انجام شد. اکنون می‌توانید وارد شوید.')
+            messages.success(request, 'ثبت نام با موفقیت انجام شد. حساب کاربری شما در انتظار تایید مدیر است. پس از تایید می‌توانید وارد شوید.')
             return redirect('user_login')
     else:
         form = UserRegistrationForm()
