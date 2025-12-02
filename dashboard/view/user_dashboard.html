@@ -8,12 +8,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Project Switcher CSS -->
     <link rel="stylesheet" href="/static/css/project-switcher.css">
+    
+    <!-- Dashboard Common CSS -->
+    <link rel="stylesheet" href="/static/css/dashboard-common.css">
+    
 <style>
-    body {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
-        font-family: 'Vazir', 'Tahoma', sans-serif;
-    }
+    /* استایل‌های خاص این صفحه - استایل‌های مشترک در dashboard-common.css هستند */
     
     .dashboard-container {
         max-width: 1200px;
@@ -24,29 +24,6 @@
     /* Project Switcher */
     .project-switcher-container {
         /* text-align: left; */
-        margin-bottom: 20px;
-    }
-    
-    .dashboard-header {
-        background: rgba(255, 255, 255, 0.95);
-        padding: 30px;
-        border-radius: 20px;
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-        backdrop-filter: blur(10px);
-        margin-bottom: 30px;
-        text-align: center;
-    }
-    
-    .dashboard-header h1 {
-        color: #333;
-        font-size: 2.5rem;
-        margin-bottom: 10px;
-        font-weight: 300;
-    }
-    
-    .dashboard-header p {
-        color: #666;
-        font-size: 1.1rem;
         margin-bottom: 20px;
     }
     
@@ -328,14 +305,6 @@
     @media (max-width: 768px) {
         .dashboard-container {
             padding: 15px;
-        }
-        
-        .dashboard-header {
-            padding: 20px;
-        }
-        
-        .dashboard-header h1 {
-            font-size: 2rem;
         }
         
         .dashboard-grid {

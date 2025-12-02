@@ -227,6 +227,30 @@ class ProjectForm(forms.ModelForm):
         })
     )
     
+    gradient_primary_color = forms.CharField(
+        label="رنگ اول گرادیانت",
+        required=False,
+        initial='#667eea',
+        help_text="رنگ اول گرادیانت پس‌زمینه (فرمت HEX)",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'type': 'color',
+            'style': 'width: 100px; height: 40px; cursor: pointer;'
+        })
+    )
+    
+    gradient_secondary_color = forms.CharField(
+        label="رنگ دوم گرادیانت",
+        required=False,
+        initial='#764ba2',
+        help_text="رنگ دوم گرادیانت پس‌زمینه (فرمت HEX)",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'type': 'color',
+            'style': 'width: 100px; height: 40px; cursor: pointer;'
+        })
+    )
+    
     class Meta:
         model = models.Project
         fields = [
@@ -239,6 +263,8 @@ class ProjectForm(forms.ModelForm):
             "description",
             "color",
             "icon",
+            "gradient_primary_color",
+            "gradient_secondary_color",
         ]
     
     def save(self, commit=True):

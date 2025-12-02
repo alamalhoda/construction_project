@@ -1,7 +1,7 @@
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.authentication import SessionAuthentication
+from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from django.db.models import Sum, Q, Count
 from django.db import connection
 import logging
@@ -42,8 +42,8 @@ class ExpenseViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
     queryset = models.Expense.objects.all()
     serializer_class = serializers.ExpenseSerializer
-    authentication_classes = [CsrfExemptSessionAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
+    permission_classes = [APISecurityPermission]
 
     @action(detail=False, methods=['get'])
     def with_periods(self, request):
@@ -415,6 +415,7 @@ class InvestorViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
     queryset = models.Investor.objects.all()
     serializer_class = serializers.InvestorSerializer
+    authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
     permission_classes = [APISecurityPermission]
 
     @action(detail=False, methods=['get'])
@@ -742,8 +743,8 @@ class InvestorViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 class ComprehensiveAnalysisViewSet(viewsets.ViewSet):
     """ViewSet for comprehensive project analysis"""
     
-    authentication_classes = [CsrfExemptSessionAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
+    permission_classes = [APISecurityPermission]
     
     @action(detail=False, methods=['get'])
     def comprehensive_analysis(self, request):
@@ -794,6 +795,7 @@ class PeriodViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
     queryset = models.Period.objects.all().order_by('-year', '-month_number')
     serializer_class = serializers.PeriodSerializer
+    authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
     permission_classes = [APISecurityPermission]
 
     @action(detail=False, methods=['get'])
@@ -1065,8 +1067,8 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
     queryset = models.Project.objects.all()
     serializer_class = serializers.ProjectSerializer
+    authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
     permission_classes = [APISecurityPermission]
-    authentication_classes = [CsrfExemptSessionAuthentication]
 
     @action(detail=False, methods=['get'])
     def active(self, request):
@@ -1526,8 +1528,8 @@ class SaleViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
     queryset = models.Sale.objects.all()
     serializer_class = serializers.SaleSerializer
-    authentication_classes = [CsrfExemptSessionAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
+    permission_classes = [APISecurityPermission]
 
     @action(detail=False, methods=['get'])
     def total_sales(self, request):
@@ -1595,6 +1597,7 @@ class TransactionViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
     queryset = models.Transaction.objects.all()
     serializer_class = serializers.TransactionSerializer
+    authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
     permission_classes = [APISecurityPermission]
     filterset_fields = ['investor', 'project', 'period', 'transaction_type']
 
@@ -1638,6 +1641,34 @@ class TransactionViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
             'grand_total': grand_total,
             'unique_investors': unique_investors
         })
+
+    @action(detail=False, methods=['get'])
+    def combined(self, request):
+        """
+        دریافت تراکنش‌های اصلی به همراه تراکنش‌های سود مرتبط در یک رکورد
+        فقط تراکنش‌های اصلی (غیر سود) را برمی‌گرداند
+        """
+        # فیلتر کردن فقط تراکنش‌های اصلی (غیر سود)
+        from django.db.models import Prefetch
+        queryset = self.get_queryset().exclude(
+            transaction_type='profit_accrual'
+        ).select_related(
+            'investor', 'project', 'period', 'interest_rate'
+        ).prefetch_related(
+            # بهینه‌سازی: فقط تراکنش‌های سود را prefetch می‌کنیم
+            Prefetch(
+                'transaction_set',
+                queryset=models.Transaction.objects.filter(transaction_type='profit_accrual').select_related('interest_rate'),
+                to_attr='profit_transactions'
+            )
+        )
+        
+        # اعمال فیلترهای پروژه (از ProjectFilterMixin)
+        queryset = self.filter_queryset(queryset)
+        
+        # استفاده از serializer جدید
+        serializer = serializers.CombinedTransactionSerializer(queryset, many=True)
+        return Response(serializer.data)
 
     # کدهای قبلی برای تغییر نرخ سود - کامنت شده برای مراجعه آینده
     """
@@ -1805,6 +1836,7 @@ class InterestRateViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
     queryset = models.InterestRate.objects.all()
     serializer_class = serializers.InterestRateSerializer
+    authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
     permission_classes = [APISecurityPermission]
 
     @action(detail=False, methods=['get'])
@@ -1831,6 +1863,7 @@ class UnitViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
     queryset = models.Unit.objects.all()
     serializer_class = serializers.UnitSerializer
+    authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
     permission_classes = [APISecurityPermission]
 
     @action(detail=False, methods=['get'])
@@ -1874,6 +1907,7 @@ class UnitSpecificExpenseViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
     queryset = models.UnitSpecificExpense.objects.all()
     serializer_class = serializers.UnitSpecificExpenseSerializer
+    authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
     permission_classes = [APISecurityPermission]
     filterset_fields = ['unit', 'project']
 
@@ -1882,8 +1916,8 @@ class PettyCashTransactionViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
     """ViewSet برای مدیریت تراکنش‌های تنخواه"""
   
     queryset = models.PettyCashTransaction.objects.all()
-    authentication_classes = [CsrfExemptSessionAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
+    permission_classes = [APISecurityPermission]
     serializer_class = serializers.PettyCashTransactionSerializer
   
     @action(detail=False, methods=['get'])

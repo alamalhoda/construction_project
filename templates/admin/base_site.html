@@ -1,0 +1,46 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'admin:index' %}">{{ site_header|default:_('Django administration') }}</a></h1>
+{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<!-- فونت Vazir برای Django Admin -->
+<link rel="stylesheet" href="{% static 'fonts/vazir.css' %}">
+<style>
+    /* اعمال فونت Vazir به تمام بخش‌های Django Admin */
+    * {
+        font-family: 'Vazir', 'Tahoma', Arial, sans-serif !important;
+    }
+    
+    /* تنظیمات اضافی برای بهبود نمایش */
+    body {
+        direction: rtl;
+        text-align: right;
+    }
+    
+    /* اطمینان از نمایش اعداد انگلیسی */
+    input[type="number"],
+    .vIntegerField,
+    .vDecimalField,
+    .vBigIntegerField,
+    .vSmallIntegerField,
+    .vPositiveIntegerField,
+    .vPositiveSmallIntegerField,
+    .vCommaSeparatedIntegerField,
+    td.numeric,
+    th.numeric,
+    .amount,
+    .number,
+    .price {
+        font-variant-numeric: lining-nums;
+        unicode-bidi: bidi-override;
+        direction: ltr;
+        text-align: left;
+    }
+</style>
+{% endblock %}

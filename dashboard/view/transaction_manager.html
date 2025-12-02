@@ -23,240 +23,11 @@
     <!-- Project Switcher CSS -->
     <link rel="stylesheet" href="/static/css/project-switcher.css">
     
+    <!-- Dashboard Common CSS -->
+    <link rel="stylesheet" href="/static/css/dashboard-common.css">
+    
     <style>
-        /* CSS Variables for Theme System */
-        :root {
-            /* Light Theme Colors */
-            --primary-color: #667eea;
-            --secondary-color: #764ba2;
-            --success-color: #28a745;
-            --danger-color: #dc3545;
-            --warning-color: #ffc107;
-            --info-color: #17a2b8;
-            
-            /* Background Colors */
-            --bg-primary: #f8f9fa;
-            --bg-secondary: #ffffff;
-            --bg-card: #ffffff;
-            --bg-overlay: rgba(255, 255, 255, 0.95);
-            
-            /* Text Colors */
-            --text-primary: #2c3e50;
-            --text-secondary: #6c757d;
-            --text-muted: #8e9297;
-            --text-white: #ffffff;
-            
-            /* Border & Shadow */
-            --border-color: #e9ecef;
-            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 8px 25px rgba(0, 0, 0, 0.08);
-            --shadow-lg: 0 15px 35px rgba(0, 0, 0, 0.12);
-            
-            /* Project Standard Colors - Financial Categories */
-            --deposit-color: #2185d0;           /* آبی - آورده */
-            --deposit-color-light: rgba(33, 133, 208, 0.1);
-            --withdrawal-color: #db2828;        /* قرمز - برداشت */
-            --withdrawal-color-light: rgba(219, 40, 40, 0.1);
-            --profit-color: #21ba45;            /* سبز - سود مشارکت */
-            --profit-color-light: rgba(33, 186, 69, 0.1);
-            --capital-color: #9575cd;           /* بنفش - سرمایه موجود */
-            --capital-color-light: rgba(102, 126, 234, 0.1);
-            --expense-color: #dc3545;           /* قرمز تیره - هزینه‌ها */
-            --expense-color-light: rgba(220, 53, 69, 0.1);
-            --refund-color: #ffc107;            /* زرد - مرجوعی */
-            --refund-color-light: rgba(255, 193, 7, 0.1);
-            --balance-color: #6c757d;           /* خاکستری - مانده */
-            --balance-color-light: rgba(108, 117, 125, 0.1);
-            --total-color: #6c757d;             /* خاکستری - مجموع */
-            --total-color-light: rgba(108, 117, 125, 0.1);
-            --gold-color: #ffd700;              /* طلایی - شاخص نفع */
-            --gold-color-light: rgba(255, 215, 0, 0.1);
-            --loan-deposit-color: #5ca5e8;      /* آبی روشن - آورده وام (نزدیک به #2185d0 اما روشن‌تر) */
-            --loan-deposit-color-light: rgba(92, 165, 232, 0.1);
-        }
-
-        /* Dark Theme */
-        [data-theme="dark"] {
-            --primary-color: #667eea;
-            --secondary-color: #764ba2;
-            --success-color: #28a745;
-            --danger-color: #dc3545;
-            --warning-color: #ffc107;
-            --info-color: #17a2b8;
-            
-            /* Dark Background Colors */
-            --bg-primary: #121212;
-            --bg-secondary: #1e1e1e;
-            --bg-card: #2d2d2d;
-            --bg-overlay: rgba(45, 45, 45, 0.95);
-            
-            /* Dark Text Colors */
-            --text-primary: #ffffff;
-            --text-secondary: #b3b3b3;
-            --text-muted: #888888;
-            --text-white: #ffffff;
-            
-            /* Dark Border & Shadow */
-            --border-color: #404040;
-            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
-            --shadow-md: 0 8px 25px rgba(0, 0, 0, 0.4);
-            --shadow-lg: 0 15px 35px rgba(0, 0, 0, 0.5);
-            
-            /* Project Standard Colors - Financial Categories (Dark Theme) */
-            --deposit-color: #4fc3f7;           /* آبی روشن‌تر - آورده */
-            --deposit-color-light: rgba(79, 195, 247, 0.2);
-            --withdrawal-color: #f48fb1;        /* قرمز روشن‌تر - برداشت */
-            --withdrawal-color-light: rgba(244, 143, 177, 0.2);
-            --profit-color: #81c784;            /* سبز روشن‌تر - سود مشارکت */
-            --profit-color-light: rgba(129, 199, 132, 0.2);
-            --capital-color: #9575cd;           /* بنفش روشن‌تر - سرمایه موجود */
-            --capital-color-light: rgba(149, 117, 205, 0.2);
-            --expense-color: #f48fb1;           /* قرمز روشن‌تر - هزینه‌ها */
-            --expense-color-light: rgba(244, 143, 177, 0.2);
-            --refund-color: #ffeb3b;            /* زرد روشن‌تر - مرجوعی */
-            --refund-color-light: rgba(255, 235, 59, 0.2);
-            --balance-color: #b0bec5;           /* خاکستری روشن‌تر - مانده */
-            --balance-color-light: rgba(176, 190, 197, 0.2);
-            --total-color: #b0bec5;             /* خاکستری روشن‌تر - مجموع */
-            --total-color-light: rgba(176, 190, 197, 0.2);
-            --gold-color: #ffed4e;              /* طلایی روشن‌تر */
-            --gold-color-light: rgba(255, 237, 78, 0.2);
-            --loan-deposit-color: #7eb8f0;      /* آبی روشن‌تر برای حالت تاریک */
-            --loan-deposit-color-light: rgba(126, 184, 240, 0.15);
-        }
-
-        * {
-            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-        }
-
-        body {
-            font-family: 'Vazir','Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            min-height: 100vh;
-            padding: 20px;
-            direction: rtl;
-            color: var(--text-primary);
-        }
-        
-        .main-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: var(--bg-card);
-            border-radius: 20px;
-            box-shadow: var(--shadow-lg);
-            overflow: hidden;
-            border: 1px solid var(--border-color);
-        }
-        
-        /* Unified Header Design */
-        .unified-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 40px 30px;
-            border-radius: 20px 20px 0 0;
-            margin-bottom: 30px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .unified-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.05)"/><circle cx="10" cy="60" r="0.5" fill="rgba(255,255,255,0.05)"/><circle cx="90" cy="40" r="0.5" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-            opacity: 0.3;
-        }
-
-        .unified-header-content {
-            position: relative;
-            z-index: 2;
-            text-align: center;
-        }
-
-        .unified-header h1 {
-            font-family: 'Vazir','Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-size: 2.8rem;
-            margin-bottom: 15px;
-            font-weight: 300;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-        }
-
-        .unified-header h1 i {
-            font-size: 2.5rem;
-            opacity: 0.9;
-        }
-
-        .unified-header .subtitle {
-            font-size: 1.2rem;
-            opacity: 0.9;
-            margin-bottom: 25px;
-            font-weight: 300;
-        }
-
-        .unified-header .navigation-links {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        .unified-header .nav-link {
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-            padding: 12px 25px;
-            border-radius: 25px;
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .unified-header .nav-link:hover {
-            background: rgba(255, 255, 255, 0.25);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-        }
-
-        .unified-header .nav-link i {
-            font-size: 1.1rem;
-        }
-        
-        /* Project Switcher در unified-header */
-        .unified-header .project-switcher-container {
-            position: absolute;
-            top: 20px;
-            /* left: 20px; */
-            z-index: 10;
-        }
-        
-        .unified-header .project-switcher .current-project-display {
-            background: rgba(255, 255, 255, 0.25);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-        
-        .unified-header .project-switcher .current-project-display:hover {
-            background: rgba(255, 255, 255, 0.35);
-        }
-        
-        /* Badge پروژه فعلی در عنوان */
-        .current-project-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 400;
-        }
+        /* استایل‌های خاص این صفحه - استایل‌های مشترک در dashboard-common.css هستند */
 
         /* Theme Toggle Button */
         .theme-toggle {
@@ -839,8 +610,6 @@
                 <h1>
                     <i class="money bill alternate outline icon"></i>
                     مدیریت تراکنش‌های مالی
-                    <!-- Project Badge will be rendered here by JavaScript -->
-                    <span id="currentProjectBadge" style="display: none; font-size: 0.6em; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; margin-right: 15px; display: inline-flex; align-items: center; gap: 8px;"></span>
                 </h1>
                 <p class="subtitle">مدیریت کامل تراکنش‌های مشارکت کنندگان</p>
                 <div class="navigation-links">
@@ -963,6 +732,21 @@
                                 <i class="ui blue circle icon"></i>سرمایه گذار
                             </div>
                         </div>
+                    </div>
+                </div>
+                
+                <!-- Display Mode Toggle -->
+                <div class="display-mode-toggle" style="margin: 15px 0; padding: 15px; background: var(--bg-card, #fff); border-radius: 8px; border: 1px solid var(--border-color, #e9ecef);">
+                    <div class="ui toggle checkbox" id="transactionDisplayModeToggle">
+                        <input type="checkbox" id="displayModeCheckbox">
+                        <label for="displayModeCheckbox" style="cursor: pointer; font-weight: 500;">
+                            <i class="object ungroup icon"></i>
+                            نمایش ترکیبی تراکنش‌ها (تراکنش اصلی + سود در یک رکورد)
+                        </label>
+                    </div>
+                    <div style="margin-top: 8px; font-size: 0.85rem; color: var(--text-secondary, #6c757d);">
+                        <i class="info circle icon"></i>
+                        در حالت ترکیبی، تراکنش‌های سود در ستون جداگانه نمایش داده می‌شوند. در حالت جداگانه، هر تراکنش سود به صورت رکورد مستقل نمایش داده می‌شود.
                     </div>
                 </div>
                 
@@ -1278,8 +1062,33 @@
         
         // API endpoints
         const API_BASE = '/api/v1/';
+        
+        // تنظیمات حالت نمایش تراکنش‌ها
+        const TRANSACTION_DISPLAY_MODE = {
+            COMBINED: 'combined',      // تراکنش اصلی + سود در یک رکورد
+            SEPARATE: 'separate'        // تراکنش‌های سود جداگانه
+        };
+        
+        // خواندن حالت از localStorage (پیش‌فرض: combined)
+        function getTransactionDisplayMode() {
+            return localStorage.getItem('transactionDisplayMode') || TRANSACTION_DISPLAY_MODE.COMBINED;
+        }
+        
+        // ذخیره حالت در localStorage
+        function setTransactionDisplayMode(mode) {
+            localStorage.setItem('transactionDisplayMode', mode);
+        }
+        
+        // تعیین endpoint بر اساس حالت
+        function getTransactionsEndpoint() {
+            const mode = getTransactionDisplayMode();
+            return mode === TRANSACTION_DISPLAY_MODE.COMBINED 
+                ? 'Transaction/combined/' 
+                : 'Transaction/';
+        }
+        
         const ENDPOINTS = {
-            transactions: 'Transaction/',
+            transactions: getTransactionsEndpoint(),  // استفاده از تابع
             investors: 'Investor/',
             projects: 'Project/',
             periods: 'Period/'
@@ -1292,6 +1101,45 @@
             'principal_withdrawal': '<span class="ui red label">برداشت</span>',
             'profit_accrual': '<span class="ui green label">سود مشارکت</span>'
         };
+        
+        // Transaction Display Mode Management
+        // تابع تغییر حالت نمایش
+        function toggleTransactionDisplayMode() {
+            const currentMode = getTransactionDisplayMode();
+            const newMode = currentMode === TRANSACTION_DISPLAY_MODE.COMBINED 
+                ? TRANSACTION_DISPLAY_MODE.SEPARATE 
+                : TRANSACTION_DISPLAY_MODE.COMBINED;
+            
+            setTransactionDisplayMode(newMode);
+            
+            // به‌روزرسانی endpoint
+            ENDPOINTS.transactions = getTransactionsEndpoint();
+            
+            // نمایش پیام
+            $('body').toast({
+                message: newMode === TRANSACTION_DISPLAY_MODE.COMBINED 
+                    ? 'حالت نمایش ترکیبی فعال شد' 
+                    : 'حالت نمایش جداگانه فعال شد',
+                class: 'info',
+                position: 'top center',
+                displayTime: 2000
+            });
+            
+            // بارگذاری مجدد داده‌ها
+            loadInitialData();
+        }
+        
+        // مقداردهی اولیه checkbox
+        function initializeDisplayModeToggle() {
+            const mode = getTransactionDisplayMode();
+            const checkbox = document.getElementById('displayModeCheckbox');
+            if (checkbox) {
+                checkbox.checked = mode === TRANSACTION_DISPLAY_MODE.COMBINED;
+                checkbox.addEventListener('change', function() {
+                    toggleTransactionDisplayMode();
+                });
+            }
+        }
         
         // Theme Management
         function initializeTheme() {
@@ -1327,6 +1175,7 @@
             console.log('addNewTransaction function exists:', typeof addNewTransaction);
             
             initializeTheme();
+            initializeDisplayModeToggle();  // مقداردهی اولیه toggle حالت نمایش
             initializeDropdowns();
             
             // Ensure loading is hidden initially
@@ -1713,60 +1562,83 @@
         }
         
         function sortTransactionsWithProfits(data) {
-            // تفکیک تراکنش‌های اصلی و سود
-            const profitsByInvestorDatePeriod = {};
-            const mainTransactions = [];
+            const mode = getTransactionDisplayMode();
             
-            data.forEach(item => {
-                if (item.transaction_type === 'profit_accrual') {
-                    // ایجاد کلید ترکیبی با استفاده از investor_data.id و period_data.id
-                    const investorId = item.investor_data?.id || '';
-                    const periodId = item.period_data?.id || '';
-                    const key = `${investorId}_${periodId}_${item.date_shamsi}`;
-                    
-                    if (!profitsByInvestorDatePeriod[key]) {
-                        profitsByInvestorDatePeriod[key] = [];
+            if (mode === TRANSACTION_DISPLAY_MODE.COMBINED) {
+                // حالت ترکیبی: با استفاده از endpoint combined، داده‌ها از سرور به صورت ترکیبی می‌آیند
+                // فقط تراکنش‌های اصلی با اطلاعات سود در همان رکورد
+                // فیلتر کردن فقط تراکنش‌های اصلی (غیر سود) - برای اطمینان
+                const mainTransactions = data.filter(item => 
+                    item.transaction_type !== 'profit_accrual'
+                );
+                
+                // مرتب‌سازی تراکنش‌های اصلی بر اساس تاریخ و ID
+                mainTransactions.sort((a, b) => {
+                    // ابتدا بر اساس تاریخ (نزولی - جدیدترین اول)
+                    if (a.date_shamsi !== b.date_shamsi) {
+                        return b.date_shamsi.localeCompare(a.date_shamsi);
                     }
-                    profitsByInvestorDatePeriod[key].push(item);
-                } else {
-                    mainTransactions.push(item);
-                }
-            });
-            
-            // مرتب‌سازی تراکنش‌های اصلی بر اساس تاریخ و ID
-            mainTransactions.sort((a, b) => {
-                // ابتدا بر اساس تاریخ (نزولی - جدیدترین اول)
-                if (a.date_shamsi !== b.date_shamsi) {
-                    return b.date_shamsi.localeCompare(a.date_shamsi);
-                }
-                // سپس بر اساس ID (نزولی - جدیدترین اول)
-                return b.id - a.id;
-            });
-            
-            // ساخت آرایه نهایی با قرار دادن سود بلافاصله بعد از تراکنش اصلی
-            const sortedData = [];
-            mainTransactions.forEach(mainItem => {
-                sortedData.push(mainItem);
+                    // سپس بر اساس ID (نزولی - جدیدترین اول)
+                    return b.id - a.id;
+                });
                 
-                // پیدا کردن و اضافه کردن سودهای مرتبط
-                const investorId = mainItem.investor_data?.id || '';
-                const periodId = mainItem.period_data?.id || '';
-                const key = `${investorId}_${periodId}_${mainItem.date_shamsi}`;
+                return mainTransactions;
+            } else {
+                // حالت جداگانه: تفکیک تراکنش‌های اصلی و سود
+                const profitsByInvestorDatePeriod = {};
+                const mainTransactions = [];
                 
-                const relatedProfits = profitsByInvestorDatePeriod[key];
+                data.forEach(item => {
+                    if (item.transaction_type === 'profit_accrual') {
+                        // ایجاد کلید ترکیبی با استفاده از investor_data.id و period_data.id
+                        const investorId = item.investor_data?.id || '';
+                        const periodId = item.period_data?.id || '';
+                        const key = `${investorId}_${periodId}_${item.date_shamsi}`;
+                        
+                        if (!profitsByInvestorDatePeriod[key]) {
+                            profitsByInvestorDatePeriod[key] = [];
+                        }
+                        profitsByInvestorDatePeriod[key].push(item);
+                    } else {
+                        mainTransactions.push(item);
+                    }
+                });
                 
-                if (relatedProfits && relatedProfits.length > 0) {
-                    sortedData.push(...relatedProfits);
-                    delete profitsByInvestorDatePeriod[key];
-                }
-            });
-            
-            // اضافه کردن سودهای باقیمانده (اگر هست)
-            Object.values(profitsByInvestorDatePeriod).forEach(profits => {
-                sortedData.push(...profits);
-            });
-            
-            return sortedData;
+                // مرتب‌سازی تراکنش‌های اصلی بر اساس تاریخ و ID
+                mainTransactions.sort((a, b) => {
+                    // ابتدا بر اساس تاریخ (نزولی - جدیدترین اول)
+                    if (a.date_shamsi !== b.date_shamsi) {
+                        return b.date_shamsi.localeCompare(a.date_shamsi);
+                    }
+                    // سپس بر اساس ID (نزولی - جدیدترین اول)
+                    return b.id - a.id;
+                });
+                
+                // ساخت آرایه نهایی با قرار دادن سود بلافاصله بعد از تراکنش اصلی
+                const sortedData = [];
+                mainTransactions.forEach(mainItem => {
+                    sortedData.push(mainItem);
+                    
+                    // پیدا کردن و اضافه کردن سودهای مرتبط
+                    const investorId = mainItem.investor_data?.id || '';
+                    const periodId = mainItem.period_data?.id || '';
+                    const key = `${investorId}_${periodId}_${mainItem.date_shamsi}`;
+                    
+                    const relatedProfits = profitsByInvestorDatePeriod[key];
+                    
+                    if (relatedProfits && relatedProfits.length > 0) {
+                        sortedData.push(...relatedProfits);
+                        delete profitsByInvestorDatePeriod[key];
+                    }
+                });
+                
+                // اضافه کردن سودهای باقیمانده (اگر هست)
+                Object.values(profitsByInvestorDatePeriod).forEach(profits => {
+                    sortedData.push(...profits);
+                });
+                
+                return sortedData;
+            }
         }
         
         function createTable() {
@@ -1859,10 +1731,49 @@
                     },
                     hozAlign: 'right'
                 },
+                // اضافه کردن ستون سود فقط در حالت combined
+                ...(getTransactionDisplayMode() === TRANSACTION_DISPLAY_MODE.COMBINED ? [{
+                    title: 'سود (تومان)',
+                    field: 'profit_transaction',
+                    width: 150,
+                    formatter: function(cell) {
+                        const data = cell.getRow().getData();
+                        const profitTransaction = data.profit_transaction;
+                        
+                        if (profitTransaction && profitTransaction.amount !== null && profitTransaction.amount !== undefined) {
+                            const amount = parseFloat(profitTransaction.amount);
+                            // استفاده از رنگ سبز برای سود (طبق استاندارد پروژه)
+                            return `<span style="color: var(--profit-color, #21ba45); font-weight: 600;">${amount.toLocaleString('en-US')}</span>`;
+                        }
+                        return '<span style="color: var(--text-secondary, #6c757d);">-</span>';
+                    },
+                    sorter: function(a, b, aRow, bRow) {
+                        // مرتب‌سازی بر اساس مبلغ سود
+                        const aProfit = aRow.getData().profit_transaction?.amount || 0;
+                        const bProfit = bRow.getData().profit_transaction?.amount || 0;
+                        return parseFloat(aProfit) - parseFloat(bProfit);
+                    },
+                    bottomCalc: function(values, data) {
+                        // محاسبه مجموع سودها
+                        let sum = 0;
+                        data.forEach(function(row) {
+                            const profitAmount = row.profit_transaction?.amount;
+                            if (profitAmount !== null && profitAmount !== undefined) {
+                                sum += parseFloat(profitAmount);
+                            }
+                        });
+                        return sum;
+                    },
+                    bottomCalcFormatter: function(cell) {
+                        const value = cell.getValue();
+                        return '<strong style="color: var(--profit-color, #21ba45);">' + parseFloat(value).toLocaleString('en-US') + '</strong>';
+                    },
+                    hozAlign: 'right'
+                }] : []),
                 {
                     title: 'توضیحات',
                     field: 'description',
-                    width: 390,
+                    width: getTransactionDisplayMode() === TRANSACTION_DISPLAY_MODE.COMBINED ? 335 : 390,
                     formatter: function(cell) {
                         const value = cell.getValue();
                         if (value && value.trim() !== '') {
@@ -2150,9 +2061,19 @@
                 .filter(row => row.transaction_type === 'principal_withdrawal')
                 .reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
                 
-            const profits = filteredData
-                .filter(row => row.transaction_type === 'profit_accrual')
-                .reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
+            // محاسبه سود بر اساس حالت نمایش
+            let profits;
+            if (getTransactionDisplayMode() === TRANSACTION_DISPLAY_MODE.COMBINED) {
+                // حالت ترکیبی: از profit_transaction
+                profits = filteredData
+                    .filter(row => row.profit_transaction && row.profit_transaction.amount !== null && row.profit_transaction.amount !== undefined)
+                    .reduce((sum, row) => sum + parseFloat(row.profit_transaction.amount || 0), 0);
+            } else {
+                // حالت جداگانه: از transaction_type
+                profits = filteredData
+                    .filter(row => row.transaction_type === 'profit_accrual')
+                    .reduce((sum, row) => sum + parseFloat(row.amount || 0), 0);
+            }
             
             // محاسبه سرمایه موجود (بدون سود مشارکت) = مجموع واریزها - مجموع برداشت‌ها
             // const netCapital = deposits - withdrawals; //withdrawals منفی است پس به جای تفریق باید جمع بشه
@@ -2227,7 +2148,15 @@
                 // Calculate breakdown when no filters are applied
                 const deposits = totalCount.filter(row => ['principal_deposit','loan_deposit'].includes(row.transaction_type)).length;
                 const withdrawals = totalCount.filter(row => row.transaction_type === 'principal_withdrawal').length;
-                const profits = totalCount.filter(row => row.transaction_type === 'profit_accrual').length;
+                // شمارش تعداد تراکنش‌های سود بر اساس حالت نمایش
+                let profits;
+                if (getTransactionDisplayMode() === TRANSACTION_DISPLAY_MODE.COMBINED) {
+                    // حالت ترکیبی: تعداد تراکنش‌هایی که سود دارند
+                    profits = totalCount.filter(row => row.has_profit || (row.profit_transaction && row.profit_transaction.amount !== null)).length;
+                } else {
+                    // حالت جداگانه: تعداد تراکنش‌های سود
+                    profits = totalCount.filter(row => row.transaction_type === 'profit_accrual').length;
+                }
                 
                 resultsCountElement.textContent = `نمایش تمام ${totalCount.length.toLocaleString('en-US')} تراکنش (${deposits} آورده و ${withdrawals} برداشت و ${profits} سود مشارکت)`;
                 filterInfoElement.textContent = '';

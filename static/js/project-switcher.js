@@ -211,11 +211,35 @@ async function loadProjectData() {
                 // اگر در allProjectsData پیدا نشد، از داده API استفاده کن
                 currentProjectData = currentProjectFromAPI;
             }
+            
+            // اعمال رنگ‌های گرادیانت از پروژه جاری
+            const primaryColor = currentProjectData.gradient_primary_color || '#667eea';
+            const secondaryColor = currentProjectData.gradient_secondary_color || '#764ba2';
+            
+            // اعمال به CSS variables
+            document.documentElement.style.setProperty('--gradient-primary', primaryColor);
+            document.documentElement.style.setProperty('--gradient-secondary', secondaryColor);
+            
+            // اعمال مستقیم به body (برای سازگاری با کدهای موجود)
+            document.body.style.background = `linear-gradient(90deg, ${primaryColor} 0%, ${secondaryColor} 100%)`;
+            
+            // اعمال به unified-header (اگر موجود باشد)
+            const unifiedHeaders = document.querySelectorAll('.unified-header');
+            unifiedHeaders.forEach(header => {
+                header.style.background = `linear-gradient(90deg, ${primaryColor} 0%, ${secondaryColor} 100%)`;
+            });
         } else {
             // اگر API پروژه جاری را برنگرداند (404) یا خطا رخ داد، یعنی هیچ پروژه فعالی وجود ندارد
             // در این صورت نباید به صورت پیش‌فرض اولین پروژه را انتخاب کنیم
             // و نباید از localStorage استفاده کنیم چون ممکن است پروژه قدیمی باشد
             currentProjectData = null;
+            
+            // استفاده از رنگ‌های پیش‌فرض
+            const defaultPrimary = '#dc3545';
+            const defaultSecondary = '#764ba2';
+            document.documentElement.style.setProperty('--gradient-primary', defaultPrimary);
+            document.documentElement.style.setProperty('--gradient-secondary', defaultSecondary);
+            document.body.style.background = `linear-gradient(90deg, ${defaultPrimary} 0%, ${defaultSecondary} 100%)`;
         }
         
         // علامت‌گذاری که loadProjectData کامل شده است

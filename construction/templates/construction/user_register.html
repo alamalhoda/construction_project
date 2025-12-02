@@ -7,10 +7,11 @@
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         min-height: 100vh;
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: center;
         font-family: 'Vazir', 'Tahoma', sans-serif;
-        padding: 20px 0;
+        padding: 40px 20px;
+        margin: 0;
     }
     
     .register-container {
@@ -22,6 +23,8 @@
         width: 100%;
         max-width: 500px;
         text-align: center;
+        margin-top: 40px;
+        margin-bottom: 40px;
     }
     
     .register-header {
@@ -124,6 +127,12 @@
         border: 1px solid #c3e6cb;
     }
     
+    .alert-info {
+        background: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+    }
+    
     .register-links {
         margin-top: 25px;
         padding-top: 20px;
@@ -199,13 +208,18 @@
     }
     
     @media (max-width: 768px) {
+        body {
+            padding: 20px 15px;
+        }
+        
         .row {
             flex-direction: column;
             gap: 0;
         }
         
         .register-container {
-            margin: 10px;
+            margin-top: 20px;
+            margin-bottom: 20px;
             padding: 30px 20px;
         }
     }
@@ -216,7 +230,7 @@
 <div class="register-container">
     <div class="register-header">
         <h1>📝 ثبت نام</h1>
-        <p>حساب کاربری جدید ایجاد کنید</p>
+        <p>حساب کاربری جدید ایجاد کنید (نیاز به تایید مدیر دارد)</p>
     </div>
     
     {% if messages %}
@@ -226,6 +240,10 @@
             </div>
         {% endfor %}
     {% endif %}
+    
+    <div class="alert alert-info">
+        <strong>⚠️ توجه:</strong> پس از ثبت نام، حساب کاربری شما در انتظار تایید مدیر خواهد بود. پس از تایید، می‌توانید وارد سیستم شوید.
+    </div>
     
     <form method="post" id="registerForm">
         {% csrf_token %}
@@ -332,66 +350,79 @@
         <a href="{% url 'index' %}">بازگشت به صفحه اصلی</a>
     </div>
 </div>
+{% endblock %}
 
+{% block extrascripts %}
 <script>
-document.getElementById('registerForm').addEventListener('submit', function(e) {
-    const registerBtn = document.getElementById('registerBtn');
-    const loading = document.getElementById('loading');
+document.addEventListener('DOMContentLoaded', function() {
+    const registerForm = document.getElementById('registerForm');
+    if (!registerForm) return;
     
-    // نمایش loading
-    registerBtn.disabled = true;
-    registerBtn.textContent = 'در حال ثبت نام...';
-    loading.style.display = 'block';
-    
-    // اگر فرم معتبر نباشد، loading را مخفی کن
-    setTimeout(() => {
-        if (!this.checkValidity()) {
-            registerBtn.disabled = false;
-            registerBtn.textContent = 'ثبت نام';
-            loading.style.display = 'none';
-        }
-    }, 100);
-});
+    registerForm.addEventListener('submit', function(e) {
+        const registerBtn = document.getElementById('registerBtn');
+        const loading = document.getElementById('loading');
+        
+        // نمایش loading
+        registerBtn.disabled = true;
+        registerBtn.textContent = 'در حال ثبت نام...';
+        loading.style.display = 'block';
+        
+        // اگر فرم معتبر نباشد، loading را مخفی کن
+        setTimeout(() => {
+            if (!this.checkValidity()) {
+                registerBtn.disabled = false;
+                registerBtn.textContent = 'ثبت نام';
+                loading.style.display = 'none';
+            }
+        }, 100);
+    });
 
-// اضافه کردن انیمیشن به input ها
-document.querySelectorAll('.form-control').forEach(input => {
-    input.addEventListener('focus', function() {
-        this.parentElement.style.transform = 'translateY(-2px)';
+    // اضافه کردن انیمیشن به input ها
+    document.querySelectorAll('.form-control').forEach(input => {
+        input.addEventListener('focus', function() {
+            this.parentElement.style.transform = 'translateY(-2px)';
+        });
+        
+        input.addEventListener('blur', function() {
+            this.parentElement.style.transform = 'translateY(0)';
+        });
+        
+        // اضافه کردن کلاس invalid در صورت خطا
+        if (this.classList.contains('is-invalid')) {
+            this.addEventListener('input', function() {
+                if (this.value.trim() !== '') {
+                    this.classList.remove('is-invalid');
+                }
+            });
+        }
     });
-    
-    input.addEventListener('blur', function() {
-        this.parentElement.style.transform = 'translateY(0)';
-    });
-    
-    // اضافه کردن کلاس invalid در صورت خطا
-    if (this.classList.contains('is-invalid')) {
-        this.addEventListener('input', function() {
-            if (this.value.trim() !== '') {
+
+    // بررسی تطابق رمز عبور
+    const password2Field = document.getElementById('id_password2');
+    if (password2Field) {
+        password2Field.addEventListener('input', function() {
+            const password1 = document.getElementById('id_password1');
+            if (!password1) return;
+            
+            const password1Value = password1.value;
+            const password2Value = this.value;
+            
+            if (password2Value && password1Value !== password2Value) {
+                this.classList.add('is-invalid');
+                if (!this.nextElementSibling || !this.nextElementSibling.classList.contains('invalid-feedback')) {
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'invalid-feedback';
+                    errorDiv.textContent = 'رمز عبور و تکرار آن مطابقت ندارند.';
+                    this.parentNode.appendChild(errorDiv);
+                }
+            } else {
                 this.classList.remove('is-invalid');
+                const errorDiv = this.nextElementSibling;
+                if (errorDiv && errorDiv.classList.contains('invalid-feedback')) {
+                    errorDiv.remove();
+                }
             }
         });
-    }
-});
-
-// بررسی تطابق رمز عبور
-document.getElementById('id_password2').addEventListener('input', function() {
-    const password1 = document.getElementById('id_password1').value;
-    const password2 = this.value;
-    
-    if (password2 && password1 !== password2) {
-        this.classList.add('is-invalid');
-        if (!this.nextElementSibling || !this.nextElementSibling.classList.contains('invalid-feedback')) {
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'invalid-feedback';
-            errorDiv.textContent = 'رمز عبور و تکرار آن مطابقت ندارند.';
-            this.parentNode.appendChild(errorDiv);
-        }
-    } else {
-        this.classList.remove('is-invalid');
-        const errorDiv = this.nextElementSibling;
-        if (errorDiv && errorDiv.classList.contains('invalid-feedback')) {
-            errorDiv.remove();
-        }
     }
 });
 </script>

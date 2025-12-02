@@ -158,6 +158,8 @@ class ProjectSerializer(serializers.ModelSerializer):
             "description",
             "color",
             "icon",
+            "gradient_primary_color",
+            "gradient_secondary_color",
             "created_at",
             "updated_at",
         ]
@@ -405,6 +407,94 @@ class TransactionSerializer(serializers.ModelSerializer):
             transaction.save(update_fields=['day_remaining', 'day_from_start'])
         
         return transaction
+
+
+class CombinedTransactionSerializer(serializers.ModelSerializer):
+    """
+    Serializer ترکیبی که تراکنش اصلی و تراکنش سود مرتبط را در یک رکورد برمی‌گرداند
+    فقط تراکنش‌های اصلی (غیر سود) را می‌گیرد و اطلاعات سود مرتبط را در همان رکورد اضافه می‌کند
+    """
+    # فیلدهای تراکنش اصلی
+    date_gregorian = serializers.DateField(read_only=True)
+    day_remaining = serializers.IntegerField(read_only=True)
+    day_from_start = serializers.IntegerField(read_only=True)
+    date_shamsi = serializers.SerializerMethodField()
+    
+    # فیلدهای nested برای خواندن
+    investor_data = InvestorSerializer(source='investor', read_only=True)
+    project_data = ProjectSerializer(source='project', read_only=True)
+    period_data = PeriodSerializer(source='period', read_only=True)
+    
+    # اطلاعات تراکنش سود مرتبط
+    profit_transaction = serializers.SerializerMethodField()
+    has_profit = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = models.Transaction
+        fields = [
+            "id",
+            "date_shamsi",
+            "date_gregorian",
+            "amount",
+            "transaction_type",
+            "description",
+            "day_remaining",
+            "day_from_start",
+            "created_at",
+            "investor",
+            "period",
+            "investor_data",
+            "project_data",
+            "period_data",
+            "profit_transaction",
+            "has_profit",
+        ]
+    
+    def get_date_shamsi(self, obj):
+        """تبدیل تاریخ میلادی به شمسی برای نمایش"""
+        if obj.date_gregorian:
+            from jdatetime import datetime as jdatetime
+            jdate = jdatetime.fromgregorian(date=obj.date_gregorian)
+            return jdate.strftime('%Y-%m-%d')
+        return None
+    
+    def get_profit_transaction(self, obj):
+        """
+        پیدا کردن تراکنش سود مرتبط با این تراکنش اصلی
+        استفاده از prefetch_related برای بهینه‌سازی (بدون N+1 query)
+        """
+        # استفاده از profit_transactions که از prefetch_related آمده است
+        # اگر prefetch نشده باشد، از transaction_set استفاده می‌کنیم (fallback)
+        profit_transactions = getattr(obj, 'profit_transactions', None)
+        if profit_transactions is None:
+            # Fallback: اگر prefetch نشده باشد
+            profit_transactions = [t for t in obj.transaction_set.all() if t.transaction_type == 'profit_accrual']
+        
+        if profit_transactions and len(profit_transactions) > 0:
+            profit = profit_transactions[0]
+            return {
+                'id': profit.id,
+                'amount': float(profit.amount),
+                'date_shamsi': self.get_date_shamsi(profit),
+                'date_gregorian': profit.date_gregorian.isoformat() if profit.date_gregorian else None,
+                'description': profit.description,
+                'day_remaining': profit.day_remaining,
+                'day_from_start': profit.day_from_start,
+                'is_system_generated': profit.is_system_generated,
+                'interest_rate_id': profit.interest_rate.id if profit.interest_rate else None,
+                'created_at': profit.created_at.isoformat() if profit.created_at else None,
+            }
+        return None
+    
+    def get_has_profit(self, obj):
+        """بررسی وجود تراکنش سود برای این تراکنش اصلی"""
+        # استفاده از prefetch_related برای بهینه‌سازی
+        profit_transactions = getattr(obj, 'profit_transactions', None)
+        if profit_transactions is not None:
+            return len(profit_transactions) > 0
+        # Fallback: اگر prefetch نشده باشد
+        return any(t.transaction_type == 'profit_accrual' for t in obj.transaction_set.all())
+
 
 class InterestRateSerializer(serializers.ModelSerializer):
     project = serializers.PrimaryKeyRelatedField(
