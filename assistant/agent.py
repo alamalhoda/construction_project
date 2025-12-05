@@ -11,12 +11,60 @@ from django.conf import settings
 from django.core.cache import cache
 from langchain.agents import create_agent
 from langchain_core.tools import BaseTool, StructuredTool
+from langchain_core.callbacks import BaseCallbackHandler
 from assistant.llm_providers import LLMProviderFactory
 # Import تمام ابزارهای تولید شده از schema
 from assistant.generated import generated_tools_from_schema
 from construction.project_manager import ProjectManager
 
 logger = logging.getLogger(__name__)
+
+
+class TokenUsageCallbackHandler(BaseCallbackHandler):
+    """Callback handler برای جمع‌آوری اطلاعات توکن‌ها"""
+    
+    def __init__(self):
+        super().__init__()
+        self.input_tokens = 0
+        self.output_tokens = 0
+        self.total_tokens = 0
+    
+    def on_llm_end(self, response, **kwargs):
+        """هنگامی که LLM پاسخ را تمام می‌کند"""
+        try:
+            # بررسی response_metadata
+            if hasattr(response, 'response_metadata') and response.response_metadata:
+                if isinstance(response.response_metadata, dict):
+                    usage = response.response_metadata.get('token_usage', {})
+                    if usage:
+                        self.input_tokens += usage.get('prompt_tokens', 0) or usage.get('input_tokens', 0)
+                        self.output_tokens += usage.get('completion_tokens', 0) or usage.get('output_tokens', 0)
+                        self.total_tokens += usage.get('total_tokens', 0)
+                else:
+                    usage = getattr(response.response_metadata, 'token_usage', None)
+                    if usage:
+                        if isinstance(usage, dict):
+                            self.input_tokens += usage.get('prompt_tokens', 0) or usage.get('input_tokens', 0)
+                            self.output_tokens += usage.get('completion_tokens', 0) or usage.get('output_tokens', 0)
+                            self.total_tokens += usage.get('total_tokens', 0)
+                        else:
+                            self.input_tokens += getattr(usage, 'prompt_tokens', 0) or getattr(usage, 'input_tokens', 0)
+                            self.output_tokens += getattr(usage, 'completion_tokens', 0) or getattr(usage, 'output_tokens', 0)
+                            self.total_tokens += getattr(usage, 'total_tokens', 0)
+            
+            # بررسی usage_metadata
+            if hasattr(response, 'usage_metadata') and response.usage_metadata:
+                usage = response.usage_metadata
+                if isinstance(usage, dict):
+                    self.input_tokens += usage.get('input_tokens', 0) or usage.get('prompt_tokens', 0)
+                    self.output_tokens += usage.get('output_tokens', 0) or usage.get('completion_tokens', 0)
+                    self.total_tokens += usage.get('total_tokens', 0)
+                else:
+                    self.input_tokens += getattr(usage, 'input_tokens', 0) or getattr(usage, 'prompt_tokens', 0)
+                    self.output_tokens += getattr(usage, 'output_tokens', 0) or getattr(usage, 'completion_tokens', 0)
+                    self.total_tokens += getattr(usage, 'total_tokens', 0)
+        except Exception as e:
+            logger.debug(f"خطا در دریافت اطلاعات توکن از callback: {str(e)}")
 
 
 class ConstructionAssistantAgent:
@@ -268,20 +316,20 @@ class ConstructionAssistantAgent:
             }
             
             # گروه‌بندی ابزارها بر اساس prefix
-            for tool_info in tools_info:
-                tool_name = tool_info['name']
-                # پیدا کردن category از prefix
-                category = 'other'
-                for prefix in ['expense_', 'investor_', 'period_', 'project_', 'transaction_',
-                              'unit_', 'pettycashtransaction_', 'interestrate_', 'sale_',
-                              'unitspecificexpense_', 'auth_', 'comprehensive_', 'status_']:
-                    if tool_name.startswith(prefix):
-                        category = prefix.rstrip('_')
-                        break
+            # for tool_info in tools_info:
+            #     tool_name = tool_info['name']
+            #     # پیدا کردن category از prefix
+            #     category = 'other'
+            #     for prefix in ['expense_', 'investor_', 'period_', 'project_', 'transaction_',
+            #                   'unit_', 'pettycashtransaction_', 'interestrate_', 'sale_',
+            #                   'unitspecificexpense_', 'auth_', 'comprehensive_', 'status_']:
+            #         if tool_name.startswith(prefix):
+            #             category = prefix.rstrip('_')
+            #             break
                 
-                if category not in tools_data['tools_by_category']:
-                    tools_data['tools_by_category'][category] = []
-                tools_data['tools_by_category'][category].append(tool_info)
+            #     if category not in tools_data['tools_by_category']:
+            #         tools_data['tools_by_category'][category] = []
+            #     tools_data['tools_by_category'][category].append(tool_info)
             
             # ذخیره در فایل JSON
             with open(output_file, 'w', encoding='utf-8') as f:
@@ -678,13 +726,18 @@ class ConstructionAssistantAgent:
             base_delay = 2  # شروع با 2 ثانیه
             result = None
             
+            # ایجاد callback handler برای جمع‌آوری اطلاعات توکن‌ها
+            token_callback = TokenUsageCallbackHandler()
+            
             for attempt in range(max_retries):
                 try:
                     # در نسخه جدید langchain، همه agent ها StateGraph هستند
                     # StateGraph از messages استفاده می‌کند
-                    result = self.agent_graph.invoke({
-                        "messages": messages
-                    })
+                    # استفاده از config برای ارسال callback
+                    result = self.agent_graph.invoke(
+                        {"messages": messages},
+                        config={"callbacks": [token_callback]}
+                    )
                     break  # موفق بود، از حلقه خارج شو
                 except Exception as e:
                     error_str = str(e)
@@ -742,6 +795,103 @@ class ConstructionAssistantAgent:
             
             if result is None:
                 raise Exception("Failed to get response after all retries")
+            
+            # استخراج و لاگ کردن اطلاعات توکن‌ها
+            input_tokens = 0
+            output_tokens = 0
+            total_tokens = 0
+            
+            # اول از callback handler استفاده کن
+            if token_callback and (token_callback.input_tokens > 0 or token_callback.output_tokens > 0):
+                input_tokens = token_callback.input_tokens
+                output_tokens = token_callback.output_tokens
+                total_tokens = token_callback.total_tokens
+            
+            # اگر callback handler اطلاعات نداشت، از result استفاده کن
+            if input_tokens == 0 and output_tokens == 0:
+                # بررسی usage_metadata در result
+                if isinstance(result, dict) and result.get("usage_metadata"):
+                    usage = result.get("usage_metadata")
+                    input_tokens = usage.get("input_tokens", 0) if isinstance(usage, dict) else getattr(usage, "input_tokens", 0)
+                    output_tokens = usage.get("output_tokens", 0) if isinstance(usage, dict) else getattr(usage, "output_tokens", 0)
+                    total_tokens = usage.get("total_tokens", 0) if isinstance(usage, dict) else getattr(usage, "total_tokens", 0)
+                elif hasattr(result, "usage_metadata") and result.usage_metadata:
+                    usage = result.usage_metadata
+                    input_tokens = getattr(usage, "input_tokens", 0)
+                    output_tokens = getattr(usage, "output_tokens", 0)
+                    total_tokens = getattr(usage, "total_tokens", 0)
+                
+                # بررسی response_metadata در result
+                if input_tokens == 0 and output_tokens == 0:
+                    if isinstance(result, dict) and result.get("response_metadata"):
+                        response_meta = result.get("response_metadata")
+                        if isinstance(response_meta, dict) and response_meta.get("usage_metadata"):
+                            usage = response_meta.get("usage_metadata")
+                            input_tokens = usage.get("input_tokens", 0) if isinstance(usage, dict) else getattr(usage, "input_tokens", 0)
+                            output_tokens = usage.get("output_tokens", 0) if isinstance(usage, dict) else getattr(usage, "output_tokens", 0)
+                            total_tokens = usage.get("total_tokens", 0) if isinstance(usage, dict) else getattr(usage, "total_tokens", 0)
+                    elif hasattr(result, "response_metadata") and result.response_metadata:
+                        response_meta = result.response_metadata
+                        if hasattr(response_meta, "usage_metadata") and response_meta.usage_metadata:
+                            usage = response_meta.usage_metadata
+                            input_tokens = getattr(usage, "input_tokens", 0)
+                            output_tokens = getattr(usage, "output_tokens", 0)
+                            total_tokens = getattr(usage, "total_tokens", 0)
+                
+                # بررسی usage_metadata در messages
+                if input_tokens == 0 and output_tokens == 0 and result.get("messages"):
+                    for msg in result["messages"]:
+                        # بررسی usage_metadata در هر message
+                        if hasattr(msg, 'usage_metadata') and msg.usage_metadata:
+                            usage = msg.usage_metadata
+                            input_tokens += getattr(usage, "input_tokens", 0) if hasattr(usage, "input_tokens") else (usage.get("input_tokens", 0) if isinstance(usage, dict) else 0)
+                            output_tokens += getattr(usage, "output_tokens", 0) if hasattr(usage, "output_tokens") else (usage.get("output_tokens", 0) if isinstance(usage, dict) else 0)
+                            total_tokens += getattr(usage, "total_tokens", 0) if hasattr(usage, "total_tokens") else (usage.get("total_tokens", 0) if isinstance(usage, dict) else 0)
+                        # بررسی response_metadata در message
+                        elif hasattr(msg, 'response_metadata') and msg.response_metadata:
+                            response_meta = msg.response_metadata
+                            if hasattr(response_meta, "usage_metadata") and response_meta.usage_metadata:
+                                usage = response_meta.usage_metadata
+                                input_tokens += getattr(usage, "input_tokens", 0)
+                                output_tokens += getattr(usage, "output_tokens", 0)
+                                total_tokens += getattr(usage, "total_tokens", 0)
+                        # بررسی در dict format
+                        elif isinstance(msg, dict):
+                            if msg.get("usage_metadata"):
+                                usage = msg.get("usage_metadata")
+                                input_tokens += usage.get("input_tokens", 0) if isinstance(usage, dict) else getattr(usage, "input_tokens", 0)
+                                output_tokens += usage.get("output_tokens", 0) if isinstance(usage, dict) else getattr(usage, "output_tokens", 0)
+                                total_tokens += usage.get("total_tokens", 0) if isinstance(usage, dict) else getattr(usage, "total_tokens", 0)
+                            elif msg.get("response_metadata"):
+                                response_meta = msg.get("response_metadata")
+                                if isinstance(response_meta, dict) and response_meta.get("usage_metadata"):
+                                    usage = response_meta.get("usage_metadata")
+                                    input_tokens += usage.get("input_tokens", 0) if isinstance(usage, dict) else getattr(usage, "input_tokens", 0)
+                                    output_tokens += usage.get("output_tokens", 0) if isinstance(usage, dict) else getattr(usage, "output_tokens", 0)
+                                    total_tokens += usage.get("total_tokens", 0) if isinstance(usage, dict) else getattr(usage, "total_tokens", 0)
+            
+            # اگر total_tokens محاسبه نشد، از مجموع input و output استفاده کن
+            if total_tokens == 0 and (input_tokens > 0 or output_tokens > 0):
+                total_tokens = input_tokens + output_tokens
+            
+            # محاسبه هزینه بر اساس قیمت‌ها
+            # قیمت: $0.20/M input tokens, $0.50/M output tokens
+            input_cost_per_million = 0.20
+            output_cost_per_million = 0.50
+            
+            input_cost = (input_tokens / 1_000_000) * input_cost_per_million
+            output_cost = (output_tokens / 1_000_000) * output_cost_per_million
+            total_cost = input_cost + output_cost
+            
+            # لاگ کردن اطلاعات توکن‌ها و هزینه
+            if input_tokens > 0 or output_tokens > 0:
+                logger.info(f"📊 آمار توکن‌ها: ورودی={input_tokens:,} | خروجی={output_tokens:,} | مجموع={total_tokens:,}")
+                logger.info(f"💰 هزینه: ورودی=${input_cost:.4f} | خروجی=${output_cost:.4f} | مجموع=${total_cost:.4f}")
+                print(f"📊 آمار توکن‌ها: ورودی={input_tokens:,} | خروجی={output_tokens:,} | مجموع={total_tokens:,}")
+                print(f"💰 هزینه: ورودی=${input_cost:.4f} | خروجی=${output_cost:.4f} | مجموع=${total_cost:.4f}")
+            else:
+                # اگر اطلاعات توکن پیدا نشد، یک پیام debug نمایش بده
+                logger.debug("⚠️ اطلاعات توکن‌ها در دسترس نیست")
             
             # لاگ کردن استفاده از tools
             if result.get("messages"):
