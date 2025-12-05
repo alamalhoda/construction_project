@@ -10,21 +10,8 @@ from typing import Optional, Dict, Any, Callable
 from django.conf import settings
 from django.core.cache import cache
 from langchain.agents import create_agent
-from langchain.tools import tool
 from langchain_core.tools import BaseTool, StructuredTool
 from assistant.llm_providers import LLMProviderFactory
-from assistant.tools import (
-    create_expense,
-    get_expense,
-    list_expenses,
-    get_investor_info,
-    list_periods,
-    get_expense_stats,
-    get_investor_stats,
-    get_unit_stats,
-    get_period_stats,
-    search_expenses
-)
 # Import تمام ابزارهای تولید شده از schema
 from assistant.generated import generated_tools_from_schema
 from construction.project_manager import ProjectManager
@@ -157,6 +144,7 @@ class ConstructionAssistantAgent:
         """ایجاد لیست Tools برای Agent"""
         request = self.request
         tools_list = []
+        tools_info = []  # لیست اطلاعات ابزارها برای ذخیره
         
         # Helper function برای ایجاد wrapper با request
         def create_wrapper_with_request(original_func: Callable) -> Callable:
@@ -193,61 +181,6 @@ class ConstructionAssistantAgent:
             
             return wrapper
         
-        # اضافه کردن ابزارهای قدیمی (برای سازگاری)
-        def create_expense_wrapper(amount: float, period_id: int, expense_type: str, description: str = "") -> str:
-            """ایجاد یک هزینه جدید"""
-            return create_expense.func(amount, period_id, expense_type, description, request)
-        
-        def get_expense_wrapper(expense_id: int) -> str:
-            """دریافت اطلاعات یک هزینه"""
-            return get_expense.func(expense_id)
-        
-        def list_expenses_wrapper(period_id: int = None, expense_type: str = None, limit: int = 20) -> str:
-            """لیست هزینه‌ها با فیلتر"""
-            return list_expenses.func(period_id, expense_type, limit, request)
-        
-        def get_investor_info_wrapper(investor_id: int) -> str:
-            """دریافت اطلاعات یک سرمایه‌گذار"""
-            return get_investor_info.func(investor_id)
-        
-        def list_periods_wrapper(project_id: int = None) -> str:
-            """دریافت لیست دوره‌های پروژه"""
-            return list_periods.func(project_id, request)
-        
-        def get_expense_stats_wrapper(project_id: int = None) -> str:
-            """دریافت آمار هزینه‌های پروژه"""
-            return get_expense_stats.func(project_id, request)
-        
-        def get_investor_stats_wrapper(project_id: int = None) -> str:
-            """دریافت آمار سرمایه‌گذاران پروژه"""
-            return get_investor_stats.func(project_id, request)
-        
-        def get_unit_stats_wrapper(project_id: int = None) -> str:
-            """دریافت آمار واحدهای پروژه"""
-            return get_unit_stats.func(project_id, request)
-        
-        def get_period_stats_wrapper(project_id: int = None) -> str:
-            """دریافت آمار دوره‌های پروژه"""
-            return get_period_stats.func(project_id, request)
-        
-        def search_expenses_wrapper(query: str, limit: int = 10) -> str:
-            """جستجوی هزینه‌ها بر اساس توضیحات"""
-            return search_expenses.func(query, limit, request)
-        
-        # اضافه کردن ابزارهای قدیمی
-        tools_list.extend([
-            tool(create_expense_wrapper),
-            tool(get_expense_wrapper),
-            tool(list_expenses_wrapper),
-            tool(get_investor_info_wrapper),
-            tool(list_periods_wrapper),
-            tool(get_expense_stats_wrapper),
-            tool(get_investor_stats_wrapper),
-            tool(get_unit_stats_wrapper),
-            tool(get_period_stats_wrapper),
-            tool(search_expenses_wrapper)
-        ])
-        
         # اضافه کردن تمام ابزارهای تولید شده از schema
         # استخراج تمام Tool objects از generated_tools_from_schema
         tool_prefixes = [
@@ -280,8 +213,20 @@ class ConstructionAssistantAgent:
                     else:
                         # اگر func نداریم، از tool اصلی استفاده کنیم
                         tool_obj = obj
+                        tool_name = obj.name if hasattr(obj, 'name') else name
+                        tool_description = obj.description if hasattr(obj, 'description') else ''
                     
                     tools_list.append(tool_obj)
+                    
+                    # جمع‌آوری اطلاعات ابزار برای ذخیره
+                    tool_info = {
+                        'name': tool_name,
+                        'original_name': name,
+                        'description': tool_description[:200] if tool_description else '',  # محدود کردن طول
+                        'type': type(tool_obj).__name__
+                    }
+                    tools_info.append(tool_info)
+                    
                     logger.debug(f"✅ ابزار اضافه شد: {name}")
                 except Exception as e:
                     logger.warning(f"⚠️ خطا در اضافه کردن ابزار {name}: {str(e)}")
@@ -289,8 +234,83 @@ class ConstructionAssistantAgent:
                     logger.warning(traceback.format_exc())
                     continue
         
+        # ذخیره اطلاعات ابزارها
+        self._save_tools_info(tools_info)
+        
         logger.info(f"📊 تعداد کل ابزارها: {len(tools_list)}")
         return tools_list
+    
+    def _save_tools_info(self, tools_info: list):
+        """
+        ذخیره اطلاعات ابزارها در فایل و نمایش در لاگ
+        
+        Args:
+            tools_info: لیست اطلاعات ابزارها
+        """
+        import json
+        import os
+        from datetime import datetime
+        
+        try:
+            # ساخت مسیر فایل برای ذخیره
+            output_dir = os.path.join(settings.BASE_DIR, 'assistant', 'logs')
+            os.makedirs(output_dir, exist_ok=True)
+            
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            output_file = os.path.join(output_dir, f'tools_info_{timestamp}.json')
+            
+            # ساخت داده‌های کامل برای ذخیره
+            tools_data = {
+                'timestamp': datetime.now().isoformat(),
+                'total_tools': len(tools_info),
+                'tools': tools_info,
+                'tools_by_category': {}
+            }
+            
+            # گروه‌بندی ابزارها بر اساس prefix
+            for tool_info in tools_info:
+                tool_name = tool_info['name']
+                # پیدا کردن category از prefix
+                category = 'other'
+                for prefix in ['expense_', 'investor_', 'period_', 'project_', 'transaction_',
+                              'unit_', 'pettycashtransaction_', 'interestrate_', 'sale_',
+                              'unitspecificexpense_', 'auth_', 'comprehensive_', 'status_']:
+                    if tool_name.startswith(prefix):
+                        category = prefix.rstrip('_')
+                        break
+                
+                if category not in tools_data['tools_by_category']:
+                    tools_data['tools_by_category'][category] = []
+                tools_data['tools_by_category'][category].append(tool_info)
+            
+            # ذخیره در فایل JSON
+            with open(output_file, 'w', encoding='utf-8') as f:
+                json.dump(tools_data, f, ensure_ascii=False, indent=2)
+            
+            logger.info(f"📁 اطلاعات ابزارها در فایل ذخیره شد: {output_file}")
+            
+            # # نمایش خلاصه در لاگ
+            # logger.info("=" * 80)
+            # logger.info("📊 خلاصه ابزارهای اضافه شده:")
+            # logger.info(f"   تعداد کل: {len(tools_info)}")
+            # for category, tools in tools_data['tools_by_category'].items():
+            #     logger.info(f"   - {category}: {len(tools)} ابزار")
+            # logger.info("=" * 80)
+            
+            # نمایش در کنسول (فقط در حالت DEBUG)
+            if settings.DEBUG:
+            #     print("=" * 80)
+            #     print("📊 خلاصه ابزارهای اضافه شده:")
+            #     print(f"   تعداد کل: {len(tools_info)}")
+            #     for category, tools in tools_data['tools_by_category'].items():
+            #         print(f"   - {category}: {len(tools)} ابزار")
+                print(f"📁 اطلاعات کامل در فایل ذخیره شد: {output_file}")
+                print("=" * 80)
+            
+        except Exception as e:
+            logger.error(f"❌ خطا در ذخیره اطلاعات ابزارها: {str(e)}")
+            import traceback
+            logger.error(traceback.format_exc())
     
     def _create_agent(self):
         """ایجاد Agent executor با استفاده از API جدید langchain 1.0"""
@@ -396,6 +416,7 @@ class ConstructionAssistantAgent:
 1. همیشه ابتدا از tools استفاده کنید و سپس پاسخ دهید
 2. برای ابزارهایی که project_id اختیاری است، اگر داده نشود، از پروژه جاری استفاده می‌شود
 3. تمام ابزارها به صورت خودکار request را دریافت می‌کنند و نیازی به ارسال آن نیست
+4. **🔒 امنیت:** تمام ابزارها از HTTP endpoints استفاده می‌کنند و تمام بررسی‌های امنیتی (authentication, permission checking) به صورت خودکار انجام می‌شود. شما فقط می‌توانید از ابزارهایی استفاده کنید که کاربر فعلی دسترسی به آن‌ها را دارد.
 
 4. **⚠️ قانون طلایی برای ابزارهای retrieve (unit_retrieve, investor_retrieve, expense_retrieve, period_retrieve, transaction_retrieve):**
    - **این ابزارها همیشه نیاز به پارامتر id دارند که باید یک عدد صحیح (int) باشد**
@@ -675,20 +696,42 @@ class ConstructionAssistantAgent:
                         "rate limit" in error_str.lower()
                     )
                     
-                    if is_rate_limit and attempt < max_retries - 1:
+                    # بررسی اینکه آیا خطای timeout است (524 یا timeout errors)
+                    is_timeout = (
+                        "524" in error_str or
+                        "timeout" in error_str.lower() or
+                        "timed out" in error_str.lower() or
+                        "time out" in error_str.lower() or
+                        ("code" in error_str.lower() and "524" in error_str)
+                    )
+                    
+                    # بررسی اینکه آیا خطای قابل retry است
+                    is_retryable = is_rate_limit or is_timeout
+                    
+                    if is_retryable and attempt < max_retries - 1:
                         # محاسبه delay با exponential backoff
                         delay = base_delay * (2 ** attempt)  # 2, 4, 8, 16, 32 ثانیه
                         # محدود کردن delay به حداکثر 60 ثانیه
                         delay = min(delay, 60)
                         
-                        logger.warning(
-                            f"⚠️ Rate limit error (attempt {attempt + 1}/{max_retries}). "
-                            f"Waiting {delay} seconds before retry..."
-                        )
-                        print(
-                            f"⚠️ محدودیت نرخ درخواست از سمت Google Gemini (تلاش {attempt + 1}/{max_retries}). "
-                            f"در حال انتظار {delay} ثانیه..."
-                        )
+                        if is_timeout:
+                            logger.warning(
+                                f"⚠️ Timeout error (524) (attempt {attempt + 1}/{max_retries}). "
+                                f"Waiting {delay} seconds before retry..."
+                            )
+                            print(
+                                f"⚠️ خطای timeout از سمت provider (تلاش {attempt + 1}/{max_retries}). "
+                                f"در حال انتظار {delay} ثانیه..."
+                            )
+                        else:
+                            logger.warning(
+                                f"⚠️ Rate limit error (attempt {attempt + 1}/{max_retries}). "
+                                f"Waiting {delay} seconds before retry..."
+                            )
+                            print(
+                                f"⚠️ محدودیت نرخ درخواست از سمت provider (تلاش {attempt + 1}/{max_retries}). "
+                                f"در حال انتظار {delay} ثانیه..."
+                            )
                         
                         # انتظار قبل از retry
                         time.sleep(delay)
@@ -784,9 +827,9 @@ class ConstructionAssistantAgent:
                 error_message = "⚠️ محدودیت نرخ درخواست: سرویس Google Gemini در حال حاضر شلوغ است. لطفاً چند لحظه صبر کنید و دوباره تلاش کنید."
                 logger.warning("⚠️ Rate Limit Error (429):")
                 logger.warning(error_str)
-            elif "timeout" in error_str.lower() or "timed out" in error_str.lower():
-                error_message = "⏱️ زمان انتظار به پایان رسید. لطفاً دوباره تلاش کنید."
-                logger.error("⏱️ Timeout Error:")
+            elif "524" in error_str or "timeout" in error_str.lower() or "timed out" in error_str.lower():
+                error_message = "⏱️ زمان انتظار به پایان رسید (خطای 524). لطفاً دوباره تلاش کنید. این خطا معمولاً به دلیل درخواست‌های طولانی یا شلوغی سرور رخ می‌دهد."
+                logger.error("⏱️ Timeout Error (524):")
                 logger.error(error_str)
             elif "401" in error_str or "Unauthorized" in error_str or "Invalid API key" in error_str:
                 error_message = "🔑 خطا در احراز هویت: API key نامعتبر است. لطفاً تنظیمات را بررسی کنید."

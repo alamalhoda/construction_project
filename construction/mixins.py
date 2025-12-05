@@ -25,6 +25,9 @@ class ProjectFilterMixin:
     
     def get_queryset(self):
         """فیلتر خودکار بر اساس پروژه جاری"""
+        import logging
+        logger = logging.getLogger(__name__)
+        
         queryset = super().get_queryset()
         
         # بررسی اینکه مدل فیلد project دارد
@@ -36,14 +39,23 @@ class ProjectFilterMixin:
         # این متد ممکن است None برگرداند اگر هیچ پروژه جاری یا فعالی وجود نداشته باشد
         current_project = ProjectManager.get_current_project(self.request)
         
+        # لاگ کردن برای دیباگ
+        if hasattr(self.request, 'session'):
+            project_id_from_session = self.request.session.get('current_project_id')
+            logger.debug(f"🔍 ProjectFilterMixin.get_queryset - مدل: {queryset.model.__name__}, project_id از session: {project_id_from_session}, current_project: {current_project}")
+        else:
+            logger.warning(f"⚠️ ProjectFilterMixin.get_queryset - request.session وجود ندارد")
+        
         # فیلتر کردن بر اساس پروژه جاری
         if current_project is not None:
             # اگر پروژه جاری وجود دارد، فقط داده‌های آن پروژه را برگردان
             queryset = queryset.filter(project=current_project)
+            logger.debug(f"✅ فیلتر اعمال شد: project={current_project.id} ({current_project.name})")
         else:
             # اگر پروژه جاری وجود ندارد، queryset خالی برگردان
             # این برای جلوگیری از نمایش داده‌های همه پروژه‌ها ضروری است
             queryset = queryset.none()
+            logger.warning(f"⚠️ هیچ پروژه جاری یافت نشد - queryset خالی برگردانده شد")
         
         return queryset
 

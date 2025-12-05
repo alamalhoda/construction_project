@@ -1,207 +1,134 @@
 """
-Helper برای فراخوانی مستقیم ViewSet methods
-این ماژول امکان فراخوانی ViewSet methods را بدون HTTP overhead فراهم می‌کند
+Helper برای فراخوانی ViewSet methods
+این ماژول امکان فراخوانی ViewSet methods را از طریق HTTP فراهم می‌کند
 و Single Source of Truth را حفظ می‌کند
 """
 
-from django.test import RequestFactory
-from django.contrib.auth.models import AnonymousUser
-from rest_framework.test import force_authenticate
+from django.test import Client
 from rest_framework.response import Response
 import json
-import importlib
+import logging
+
+logger = logging.getLogger(__name__)
 
 
-def get_viewset_class_from_operation_id(operation_id: str):
+def _copy_session_to_client(client, request):
     """
-    پیدا کردن ViewSet class از operation_id
+    کپی کردن session از request به Test Client
     
-    Args:
-        operation_id: Operation ID از OpenAPI schema (مثل Expense_list, Investor_create)
-    
-    Returns:
-        ViewSet class یا None
+    نکته مهم: باید session را در یک متغیر ذخیره کنیم
+    چون هر بار که client.session را فراخوانی می‌کنیم، Test Client یک SessionStore جدید می‌سازد
     """
+    if not request or not hasattr(request, 'session'):
+        return None
+    
+    # اطمینان از وجود session_key
+    if not request.session.session_key:
+        request.session.save()
+    
+    original_project_id = request.session.get('current_project_id')
+    
     try:
-        # استخراج نام ViewSet از operation_id
-        # مثال: Expense_list -> ExpenseViewSet
-        parts = operation_id.split('_')
-        if len(parts) >= 2:
-            viewset_name = parts[0] + 'ViewSet'
-            
-            # Import کردن api module
-            from construction import api
-            
-            # پیدا کردن ViewSet class
-            viewset_class = getattr(api, viewset_name, None)
-            return viewset_class
-    except Exception:
-        pass
-    
-    return None
-
-
-def get_viewset_class_from_path(path: str):
-    """
-    پیدا کردن ViewSet class از API path
-    
-    Args:
-        path: API path (مثل /api/v1/Expense/)
-    
-    Returns:
-        ViewSet class یا None
-    """
-    try:
-        # استخراج نام resource از path
-        # مثال: /api/v1/Expense/ -> ExpenseViewSet
-        parts = path.strip('/').split('/')
-        if len(parts) >= 3:
-            resource_name = parts[-1]  # Expense
-            
-            # تبدیل به ViewSet name
-            viewset_name = resource_name + 'ViewSet'
-            
-            # Import کردن api module
-            from construction import api
-            
-            # پیدا کردن ViewSet class
-            viewset_class = getattr(api, viewset_name, None)
-            return viewset_class
-    except Exception:
-        pass
-    
-    return None
-
-
-def call_viewset_action(viewset_class, action_name, request=None, method='GET', data=None, pk=None, **kwargs):
-    """
-    فراخوانی مستقیم یک ViewSet action
-    
-    این تابع از Single Source of Truth استفاده می‌کند و مستقیماً ViewSet methods را فراخوانی می‌کند.
-    این کار باعث می‌شود که:
-    - منطق فقط در ViewSets باشد (SST)
-    - تغییرات در ViewSets خودکار در Tools اعمال شود
-    - بدون HTTP overhead کار کند
-    
-    Args:
-        viewset_class: کلاس ViewSet
-        action_name: نام action (list, retrieve, create, update, destroy, یا custom action)
-        request: درخواست HTTP (اگر None باشد، یک request mock ساخته می‌شود)
-        method: متد HTTP (GET, POST, PUT, PATCH, DELETE)
-        data: داده‌های request body (برای POST, PUT, PATCH)
-        pk: primary key (برای retrieve, update, destroy)
-        **kwargs: پارامترهای اضافی برای action (مثل query parameters)
-    
-    Returns:
-        Response object از ViewSet
-    """
-    from rest_framework.request import Request
-    from rest_framework.parsers import JSONParser
-    
-    # ساخت request factory
-    factory = RequestFactory()
-    
-    # ساخت URL path
-    resource_name = viewset_class.__name__.replace("ViewSet", "")
-    if pk:
-        path = f'/api/v1/{resource_name}/{pk}/'
-    else:
-        path = f'/api/v1/{resource_name}/'
-    
-    # ساخت request بر اساس method
-    if method == 'GET':
-        request_obj = factory.get(path, kwargs)
-    elif method == 'POST':
-        request_obj = factory.post(path, data=data or {}, content_type='application/json')
-    elif method == 'PUT':
-        request_obj = factory.put(path, data=data or {}, content_type='application/json')
-    elif method == 'PATCH':
-        request_obj = factory.patch(path, data=data or {}, content_type='application/json')
-    elif method == 'DELETE':
-        request_obj = factory.delete(path)
-    else:
-        request_obj = factory.get(path)
-    
-    # اگر request اصلی داده شده، از user و session آن استفاده کن
-    if request:
-        request_obj.user = request.user if hasattr(request, 'user') and request.user.is_authenticated else AnonymousUser()
-        request_obj.session = request.session if hasattr(request, 'session') else {}
-    else:
-        request_obj.user = AnonymousUser()
-        request_obj.session = {}
-    
-    # اضافه کردن query parameters به request
-    if kwargs:
-        request_obj.GET = request_obj.GET.copy()
-        for key, value in kwargs.items():
-            request_obj.GET[key] = value
-    
-    # تبدیل به DRF Request object
-    drf_request = Request(request_obj)
-    
-    # تنظیم data برای POST/PUT/PATCH
-    if data and method in ['POST', 'PUT', 'PATCH']:
-        drf_request._full_data = data
-    
-    # Instantiate ViewSet
-    viewset = viewset_class()
-    viewset.request = drf_request
-    viewset.format_kwarg = None
-    viewset.action = action_name
-    
-    # تنظیم kwargs برای actions که نیاز به pk دارند
-    if pk:
-        viewset.kwargs = {'pk': pk}
-    
-    # فراخوانی action
-    try:
-        if action_name == 'list':
-            response = viewset.list(drf_request)
-        elif action_name == 'retrieve':
-            response = viewset.retrieve(drf_request, pk=pk)
-        elif action_name == 'create':
-            response = viewset.create(drf_request)
-        elif action_name == 'update':
-            response = viewset.update(drf_request, pk=pk)
-        elif action_name == 'partial_update':
-            response = viewset.partial_update(drf_request, pk=pk)
-        elif action_name == 'destroy':
-            response = viewset.destroy(drf_request, pk=pk)
-        else:
-            # Custom action
-            action_method = getattr(viewset, action_name, None)
-            if action_method:
-                if pk:
-                    response = action_method(drf_request, pk=pk)
-                else:
-                    response = action_method(drf_request)
-            else:
-                raise ValueError(f"Action '{action_name}' not found in {viewset_class.__name__}")
+        from django.contrib.sessions.backends.db import SessionStore
+        session_store = SessionStore(session_key=request.session.session_key)
+        
+        # ⭐ کلید: ذخیره session در متغیر
+        session = client.session
+        for key, value in session_store.items():
+            session[key] = value
+        session.modified = True
+        session.save()
+        
+        return original_project_id
     except Exception as e:
-        # در صورت خطا، یک Response با خطا برگردان
-        from rest_framework.response import Response
-        return Response({'error': str(e)}, status=500)
+        logger.error(f"خطا در بارگذاری session: {e}")
+        return None
+
+
+def call_api_via_http(url, request=None, method='GET', data=None, **kwargs):
+    """
+    فراخوانی API endpoint از طریق HTTP
     
-    return response
+    این تابع یکپارچه برای تمام API calls استفاده می‌شود و با Single Source of Truth سازگار است:
+    - از همان مسیر HTTP استفاده می‌کند که frontend استفاده می‌کند
+    - تمام middleware، authentication و permissions اجرا می‌شوند
+    
+    Args:
+        url: مسیر کامل API (مثل '/api/v1/Expense/' یا '/api/v1/auth/user/')
+        request: درخواست HTTP (برای احراز هویت و session)
+        method: متد HTTP (GET, POST, PUT, PATCH, DELETE)
+        data: داده‌های request body (dict)
+        **kwargs: query parameters
+    
+    Returns:
+        DRF Response object
+    """
+    # اضافه کردن query parameters
+    if kwargs:
+        query_string = '&'.join([f"{k}={v}" for k, v in kwargs.items()])
+        url = f"{url}?{query_string}"
+    
+    client = Client()
+    
+    # کپی session
+    original_project_id = _copy_session_to_client(client, request)
+    
+    # احراز هویت کاربر
+    if request and request.user.is_authenticated:
+        client.force_login(request.user)
+        
+        # اطمینان از حفظ project_id بعد از force_login
+        if original_project_id:
+            session = client.session
+            if session.get('current_project_id') != original_project_id:
+                session['current_project_id'] = original_project_id
+                session.modified = True
+                session.save()
+    
+    # ارسال درخواست HTTP
+    try:
+        if method == 'GET':
+            response = client.get(url, follow=True)
+        elif method == 'POST':
+            response = client.post(url, data=json.dumps(data) if data else '{}', 
+                                 content_type='application/json', follow=True)
+        elif method == 'PUT':
+            response = client.put(url, data=json.dumps(data) if data else '{}', 
+                                content_type='application/json', follow=True)
+        elif method == 'PATCH':
+            response = client.patch(url, data=json.dumps(data) if data else '{}', 
+                                  content_type='application/json', follow=True)
+        elif method == 'DELETE':
+            response = client.delete(url, follow=True)
+        else:
+            raise ValueError(f"متد HTTP نامعتبر: {method}")
+        
+        # تبدیل Django HttpResponse به DRF Response
+        try:
+            response_data = json.loads(response.content.decode('utf-8')) if hasattr(response, 'content') else {}
+        except (json.JSONDecodeError, AttributeError):
+            response_data = {'error': 'پاسخ نامعتبر از سرور'}
+        
+        drf_response = Response(response_data, status=response.status_code)
+        
+        if response.status_code >= 400:
+            logger.warning(f"خطا در {method} {url}: {response.status_code}")
+        
+        return drf_response
+        
+    except Exception as e:
+        logger.error(f"خطا در فراخوانی {url}: {str(e)}")
+        return Response({'error': str(e)}, status=500)
 
 
 def translate_participation_type(data):
-    """
-    تبدیل participation_type از انگلیسی به فارسی در داده‌ها
-    
-    Args:
-        data: داده‌های dict یا list
-    
-    Returns:
-        داده‌های تبدیل شده
-    """
+    """تبدیل participation_type از انگلیسی به فارسی"""
     PARTICIPATION_TYPE_MAP = {
         'owner': 'مالک',
         'investor': 'سرمایه‌گذار'
     }
     
     if isinstance(data, dict):
-        # اگر dict است، به صورت recursive تبدیل کن
         result = {}
         for key, value in data.items():
             if key == 'participation_type' and value in PARTICIPATION_TYPE_MAP:
@@ -212,7 +139,6 @@ def translate_participation_type(data):
                 result[key] = value
         return result
     elif isinstance(data, list):
-        # اگر list است، هر آیتم را تبدیل کن
         return [translate_participation_type(item) for item in data]
     else:
         return data
@@ -231,11 +157,10 @@ def response_to_string(response: Response) -> str:
     if not isinstance(response, Response):
         return str(response)
     
-    # بررسی status code
     status_code = response.status_code
     
+    # خطا
     if status_code >= 400:
-        # خطا
         error_msg = "❌ خطا: "
         if hasattr(response, 'data'):
             if isinstance(response.data, dict):
@@ -251,26 +176,18 @@ def response_to_string(response: Response) -> str:
     success_msg = "✅ عملیات با موفقیت انجام شد"
     
     if hasattr(response, 'data'):
-        data = response.data
+        data = translate_participation_type(response.data)
         
-        # تبدیل participation_type به فارسی
-        data = translate_participation_type(data)
-        
-        # اگر data یک dict است، اطلاعات مفید را استخراج کن
         if isinstance(data, dict):
-            # اگر success message دارد
             if 'success' in data and data['success']:
                 success_msg = data.get('message', success_msg)
             
-            # اگر id دارد (برای create)
             if 'id' in data:
                 success_msg += f"\n📋 شناسه: #{data['id']}"
             
-            # اگر اطلاعات مفید دیگری دارد
             if 'name' in data:
                 success_msg += f"\n📝 نام: {data['name']}"
             
-            # تبدیل به JSON برای نمایش کامل
             try:
                 data_str = json.dumps(data, ensure_ascii=False, indent=2)
                 success_msg += f"\n\n📊 جزئیات:\n{data_str}"
@@ -278,19 +195,15 @@ def response_to_string(response: Response) -> str:
                 success_msg += f"\n\n📊 جزئیات: {str(data)}"
         
         elif isinstance(data, list):
-            # لیست
             count = len(data)
             success_msg = f"📋 تعداد نتایج: {count}"
             if count > 0:
-                # نمایش همه نتایج
                 try:
                     all_data_str = json.dumps(data, ensure_ascii=False, indent=2)
                     success_msg += f"\n\n📊 نتایج:\n{all_data_str}"
                 except:
                     success_msg += f"\n\n📊 نتایج: {str(data)}"
-        
         else:
             success_msg += f"\n\n📊 نتیجه: {str(data)}"
     
     return success_msg
-

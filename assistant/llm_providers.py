@@ -310,7 +310,7 @@ class OpenRouterProvider(LLMProvider):
             raise ValueError("OPENROUTER_API_KEY environment variable is required")
     
     def get_llm(self, temperature: float = 0, **kwargs):
-        """ایجاد OpenRouter LLM"""
+        """ایجاد OpenRouter LLM با timeout و retry logic بهبود یافته"""
         try:
             from langchain_openai import ChatOpenAI
             
@@ -363,14 +363,35 @@ class OpenRouterProvider(LLMProvider):
             
             headers = safe_headers
             
-            return ChatOpenAI(
-                model=self.model,
-                temperature=temperature,
-                openai_api_key=self.api_key,
-                base_url=self.base_url,
-                default_headers=headers if headers else None,
-                **kwargs
-            )
+            # تنظیمات پیش‌فرض برای timeout و retry
+            default_kwargs = {
+                'model': self.model,
+                'temperature': temperature,
+                'openai_api_key': self.api_key,
+                'base_url': self.base_url,
+                'default_headers': headers if headers else None,
+            }
+            
+            # اضافه کردن timeout برای جلوگیری از خطای 524
+            # OpenRouter ممکن است درخواست‌های طولانی را timeout کند
+            if 'timeout' not in kwargs:
+                try:
+                    # برخی نسخه‌های langchain از request_timeout استفاده می‌کنند
+                    default_kwargs['request_timeout'] = 180  # 180 ثانیه (3 دقیقه) برای درخواست‌های طولانی
+                except:
+                    pass
+            
+            # اضافه کردن max_retries برای retry خودکار
+            if 'max_retries' not in kwargs:
+                try:
+                    default_kwargs['max_retries'] = 3  # حداکثر 3 بار retry خودکار
+                except:
+                    pass
+            
+            # override کردن با kwargs ورودی
+            default_kwargs.update(kwargs)
+            
+            return ChatOpenAI(**default_kwargs)
         except ImportError:
             raise ImportError("langchain-openai is not installed. Install it with: pip install langchain-openai")
     

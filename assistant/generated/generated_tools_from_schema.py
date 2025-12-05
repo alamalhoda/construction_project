@@ -78,31 +78,23 @@ def expense_list(request=None) -> str:
         GET /api/v1/Expense/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Expense_list') or get_viewset_class_from_path('/api/v1/Expense/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Expense_list یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Expense/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='list',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -166,18 +158,13 @@ def expense_create(project: int, expense_type: str, amount: str, period: int, de
         POST /api/v1/Expense/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Expense_create') or get_viewset_class_from_path('/api/v1/Expense/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Expense_create یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Expense/'
         
         # ساخت data برای request body
         data = {}
@@ -192,15 +179,12 @@ def expense_create(project: int, expense_type: str, amount: str, period: int, de
         if period is not None:
             data['period'] = period
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='create',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='POST',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -211,68 +195,69 @@ def expense_create(project: int, expense_type: str, amount: str, period: int, de
 @tool
 def expense_retrieve(id: int, request=None) -> str:
     """
-    دریافت اطلاعات کامل یک هزینه خاص بر اساس شناسه (ID) آن.
+    ViewSet برای مدیریت هزینه‌های پروژه
 
-    ⚠️ **هشدار مهم:** این ابزار نیاز به پارامتر id دارد که باید یک عدد صحیح (int) باشد.
-    هیچ‌وقت این ابزار را بدون id فراخوانی نکنید - این کار باعث خطا می‌شود.
+    این ViewSet امکان مدیریت کامل هزینه‌های پروژه را فراهم می‌کند.
+    
+    قابلیت‌ها:
+    - ایجاد، خواندن، به‌روزرسانی و حذف هزینه‌ها
+    - دریافت آمار و گزارش‌های مالی
+    - محاسبه مجموع هزینه‌ها بر اساس نوع و دوره
+    - مدیریت هزینه‌های دوره‌ای
+    
+    سناریوهای استفاده:
+    - ثبت هزینه‌های مواد اولیه (material)
+    - ثبت هزینه‌های نیروی کار (labor)
+    - ثبت هزینه‌های اداری و عمومی (administrative)
+    - دریافت گزارش‌های مالی برای تحلیل پروژه
+    - محاسبه هزینه‌های تجمعی برای هر دوره
+    
+    مثال‌های کاربرد:
+    - برای ثبت خرید سیمان و آجر: expense_type='material', amount='5000000'
+    - برای ثبت حقوق کارگران: expense_type='labor', amount='3000000'
+    - برای دریافت لیست تمام هزینه‌ها: GET /api/v1/Expense/
+    - برای دریافت آمار هزینه‌ها: GET /api/v1/Expense/dashboard_data/
+    
+    نکات مهم:
+    - تمام عملیات بر اساس پروژه جاری (active project) انجام می‌شود
+    - هزینه‌ها می‌توانند به یک دوره خاص مرتبط باشند
+    - انواع هزینه: project_manager, facilities_manager, procurement, warehouse, construction_contractor, other
 
     این Tool از API endpoint GET /api/v1/Expense/{id}/ استفاده می‌کند.
     Operation ID: Expense_retrieve
     دسته‌بندی: Expense
 
     Args:
-        id (int): شناسه عددی هزینه (مثلاً 1، 2، 3 و غیره).
-                 ⚠️ این پارامتر الزامی است و نمی‌تواند None یا خالی باشد.
-                 اگر کاربر سوالی درباره "هزینه شماره X" یا "هزینه X" پرسید،
-                 ابتدا عدد X را از سوال استخراج کنید، سپس آن را به عنوان id پاس دهید.
+        id (int): یک مقداد عدد یکتا که این هزینه را شناسایی میکند.
         request (optional): درخواست HTTP برای احراز هویت (برای استفاده داخلی)
 
     Returns:
-        str: اطلاعات کامل هزینه شامل: مبلغ، نوع، دوره، توضیحات و سایر جزئیات
+        str: نتیجه عملیات به صورت رشته متنی
+        - 200: Expense
 
-    مثال‌های استفاده صحیح:
-        - سوال: "هزینه شماره 1" → expense_retrieve(id=1) ✅
-        - سوال: "هزینه 5" → expense_retrieve(id=5) ✅
-        - سوال: "اطلاعات هزینه 10" → expense_retrieve(id=10) ✅
-
-    مثال‌های استفاده نادرست (هرگز این کار را نکنید):
-        - expense_retrieve() ❌ (بدون id - خطا می‌دهد)
-        - expense_retrieve(id=None) ❌ (id نمی‌تواند None باشد)
-        - expense_retrieve(id="1") ❌ (id باید int باشد، نه string)
-
-    نکات مهم:
-        - نیاز به احراز هویت: cookieAuth, tokenAuth
-        - id باید یک عدد صحیح مثبت باشد (int)
-        - اگر هزینه‌ای با این id وجود نداشته باشد، خطا برمی‌گرداند
-        - اگر id را از سوال کاربر پیدا نکردید، ابتدا از expense_list استفاده کنید
-        - انواع هزینه: project_manager, facilities_manager, procurement, warehouse, construction_contractor, other
+    مثال استفاده:
+        GET /api/v1/Expense/1/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Expense_retrieve') or get_viewset_class_from_path('/api/v1/Expense/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Expense_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Expense/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -337,18 +322,15 @@ def expense_update(id: int, project: int, expense_type: str, amount: str, period
         PUT /api/v1/Expense/{id}/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Expense_update') or get_viewset_class_from_path('/api/v1/Expense/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Expense_update یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Expense/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت data برای request body
         data = {}
@@ -363,15 +345,12 @@ def expense_update(id: int, project: int, expense_type: str, amount: str, period
         if period is not None:
             data['period'] = period
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='update',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='PUT',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -435,18 +414,15 @@ def expense_partial_update(id: int, project: Optional[int] = None, expense_type:
         PATCH /api/v1/Expense/{id}/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Expense_partial_update') or get_viewset_class_from_path('/api/v1/Expense/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Expense_partial_update یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Expense/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت data برای request body
         data = {}
@@ -461,15 +437,12 @@ def expense_partial_update(id: int, project: Optional[int] = None, expense_type:
         if period is not None:
             data['period'] = period
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='partial_update',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='PATCH',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -527,32 +500,26 @@ def expense_destroy(id: int, request=None) -> str:
         DELETE /api/v1/Expense/{id}/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Expense_destroy') or get_viewset_class_from_path('/api/v1/Expense/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Expense_destroy یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Expense/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت data برای request body
         data = {}
 
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='destroy',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='DELETE',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -624,31 +591,23 @@ def expense_dashboard_data_retrieve(request=None) -> str:
         GET /api/v1/Expense/dashboard_data/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Expense_dashboard_data_retrieve') or get_viewset_class_from_path('/api/v1/Expense/dashboard_data/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Expense_dashboard_data_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Expense/dashboard_data/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='dashboard_data_retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -678,31 +637,23 @@ def expense_get_expense_details_retrieve(request=None) -> str:
         GET /api/v1/Expense/get_expense_details/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Expense_get_expense_details_retrieve') or get_viewset_class_from_path('/api/v1/Expense/get_expense_details/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Expense_get_expense_details_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Expense/get_expense_details/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='get_expense_details_retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -732,31 +683,23 @@ def expense_total_expenses_retrieve(request=None) -> str:
         GET /api/v1/Expense/total_expenses/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Expense_total_expenses_retrieve') or get_viewset_class_from_path('/api/v1/Expense/total_expenses/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Expense_total_expenses_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Expense/total_expenses/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='total_expenses_retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -838,18 +781,13 @@ def expense_update_expense_create(project: int, expense_type: str, amount: str, 
         POST /api/v1/Expense/update_expense/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Expense_update_expense_create') or get_viewset_class_from_path('/api/v1/Expense/update_expense/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Expense_update_expense_create یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Expense/update_expense/'
         
         # ساخت data برای request body
         data = {}
@@ -864,15 +802,12 @@ def expense_update_expense_create(project: int, expense_type: str, amount: str, 
         if period is not None:
             data['period'] = period
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='update_expense_create',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='POST',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -901,31 +836,23 @@ def expense_with_periods_retrieve(request=None) -> str:
         GET /api/v1/Expense/with_periods/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Expense_with_periods_retrieve') or get_viewset_class_from_path('/api/v1/Expense/with_periods/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Expense_with_periods_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Expense/with_periods/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='with_periods_retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -961,31 +888,23 @@ def interestrate_list(request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('InterestRate_list') or get_viewset_class_from_path('/api/v1/InterestRate/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای InterestRate_list یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/InterestRate/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='list',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -1027,18 +946,13 @@ def interestrate_create(rate: str, effective_date: str, project: Optional[int] =
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('InterestRate_create') or get_viewset_class_from_path('/api/v1/InterestRate/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای InterestRate_create یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/InterestRate/'
         
         # ساخت data برای request body
         data = {}
@@ -1055,15 +969,12 @@ def interestrate_create(rate: str, effective_date: str, project: Optional[int] =
         if is_active is not None:
             data['is_active'] = is_active
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='create',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='POST',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -1095,31 +1006,25 @@ def interestrate_retrieve(id: int, request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('InterestRate_retrieve') or get_viewset_class_from_path('/api/v1/InterestRate/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای InterestRate_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/InterestRate/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -1162,18 +1067,15 @@ def interestrate_update(id: int, rate: str, effective_date: str, project: Option
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('InterestRate_update') or get_viewset_class_from_path('/api/v1/InterestRate/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای InterestRate_update یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/InterestRate/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت data برای request body
         data = {}
@@ -1190,15 +1092,12 @@ def interestrate_update(id: int, rate: str, effective_date: str, project: Option
         if is_active is not None:
             data['is_active'] = is_active
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='update',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='PUT',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -1240,18 +1139,15 @@ def interestrate_partial_update(id: int, project: Optional[int] = None, rate: Op
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('InterestRate_partial_update') or get_viewset_class_from_path('/api/v1/InterestRate/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای InterestRate_partial_update یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/InterestRate/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت data برای request body
         data = {}
@@ -1268,15 +1164,12 @@ def interestrate_partial_update(id: int, project: Optional[int] = None, rate: Op
         if is_active is not None:
             data['is_active'] = is_active
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='partial_update',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='PATCH',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -1311,32 +1204,26 @@ def interestrate_destroy(id: int, request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('InterestRate_destroy') or get_viewset_class_from_path('/api/v1/InterestRate/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای InterestRate_destroy یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/InterestRate/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت data برای request body
         data = {}
 
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='destroy',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='DELETE',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -1368,31 +1255,23 @@ def interestrate_current_retrieve(request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('InterestRate_current_retrieve') or get_viewset_class_from_path('/api/v1/InterestRate/current/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای InterestRate_current_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/InterestRate/current/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='current_retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -1428,31 +1307,23 @@ def investor_list(request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Investor_list') or get_viewset_class_from_path('/api/v1/Investor/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Investor_list یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Investor/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='list',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -1496,18 +1367,13 @@ def investor_create(project: int, first_name: str, last_name: str, phone: str, e
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Investor_create') or get_viewset_class_from_path('/api/v1/Investor/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Investor_create یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Investor/'
         
         # ساخت data برای request body
         data = {}
@@ -1528,15 +1394,12 @@ def investor_create(project: int, first_name: str, last_name: str, phone: str, e
         if description is not None:
             data['description'] = description
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='create',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='POST',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -1547,67 +1410,46 @@ def investor_create(project: int, first_name: str, last_name: str, phone: str, e
 @tool
 def investor_retrieve(id: int, request=None) -> str:
     """
-    دریافت اطلاعات کامل یک سرمایه‌گذار خاص بر اساس شناسه (ID) آن.
-
-    ⚠️ **هشدار مهم:** این ابزار نیاز به پارامتر id دارد که باید یک عدد صحیح (int) باشد.
-    هیچ‌وقت این ابزار را بدون id فراخوانی نکنید - این کار باعث خطا می‌شود.
+    ViewSet for the Investor class
 
     این Tool از API endpoint GET /api/v1/Investor/{id}/ استفاده می‌کند.
     Operation ID: Investor_retrieve
     دسته‌بندی: Investor
 
     Args:
-        id (int): شناسه عددی سرمایه‌گذار (مثلاً 1، 2، 3 و غیره).
-                 ⚠️ این پارامتر الزامی است و نمی‌تواند None یا خالی باشد.
-                 اگر کاربر سوالی درباره "سرمایه‌گذار شماره X" یا "سرمایه‌گذار X" پرسید،
-                 ابتدا عدد X را از سوال استخراج کنید، سپس آن را به عنوان id پاس دهید.
+        id (int): یک مقداد عدد یکتا که این سرمایه‌گذار را شناسایی میکند.
         request (optional): درخواست HTTP برای احراز هویت (برای استفاده داخلی)
 
     Returns:
-        str: اطلاعات کامل سرمایه‌گذار شامل: نام، واحدها، تراکنش‌ها و سایر جزئیات
+        str: نتیجه عملیات به صورت رشته متنی
+        - 200: Investor
 
-    مثال‌های استفاده صحیح:
-        - سوال: "سرمایه‌گذار شماره 1" → investor_retrieve(id=1) ✅
-        - سوال: "سرمایه‌گذار 5" → investor_retrieve(id=5) ✅
-        - سوال: "اطلاعات سرمایه‌گذار 10" → investor_retrieve(id=10) ✅
-
-    مثال‌های استفاده نادرست (هرگز این کار را نکنید):
-        - investor_retrieve() ❌ (بدون id - خطا می‌دهد)
-        - investor_retrieve(id=None) ❌ (id نمی‌تواند None باشد)
-        - investor_retrieve(id="1") ❌ (id باید int باشد، نه string)
+    مثال استفاده:
+        GET /api/v1/Investor/1/
 
     نکات مهم:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
-        - id باید یک عدد صحیح مثبت باشد (int)
-        - اگر سرمایه‌گذاری با این id وجود نداشته باشد، خطا برمی‌گرداند
-        - اگر id را از سوال کاربر پیدا نکردید، ابتدا از investor_list استفاده کنید
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Investor_retrieve') or get_viewset_class_from_path('/api/v1/Investor/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Investor_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Investor/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -1652,18 +1494,15 @@ def investor_update(id: int, project: int, first_name: str, last_name: str, phon
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Investor_update') or get_viewset_class_from_path('/api/v1/Investor/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Investor_update یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Investor/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت data برای request body
         data = {}
@@ -1684,15 +1523,12 @@ def investor_update(id: int, project: int, first_name: str, last_name: str, phon
         if description is not None:
             data['description'] = description
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='update',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='PUT',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -1736,18 +1572,15 @@ def investor_partial_update(id: int, project: Optional[int] = None, first_name: 
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Investor_partial_update') or get_viewset_class_from_path('/api/v1/Investor/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Investor_partial_update یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Investor/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت data برای request body
         data = {}
@@ -1768,15 +1601,12 @@ def investor_partial_update(id: int, project: Optional[int] = None, first_name: 
         if description is not None:
             data['description'] = description
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='partial_update',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='PATCH',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -1811,32 +1641,26 @@ def investor_destroy(id: int, request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Investor_destroy') or get_viewset_class_from_path('/api/v1/Investor/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Investor_destroy یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Investor/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت data برای request body
         data = {}
 
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='destroy',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='DELETE',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -1911,31 +1735,25 @@ def investor_detailed_statistics_retrieve(id: int, request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Investor_detailed_statistics_retrieve') or get_viewset_class_from_path('/api/v1/Investor/{id}/detailed_statistics/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Investor_detailed_statistics_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Investor/{id}/detailed_statistics/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='detailed_statistics_retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -1972,31 +1790,25 @@ def investor_cumulative_capital_and_unit_cost_chart_retrieve(id: int, request=No
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Investor_investor_cumulative_capital_and_unit_cost_chart_retrieve') or get_viewset_class_from_path('/api/v1/Investor/{id}/investor_cumulative_capital_and_unit_cost_chart/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Investor_investor_cumulative_capital_and_unit_cost_chart_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Investor/{id}/investor_cumulative_capital_and_unit_cost_chart/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='investor_cumulative_capital_and_unit_cost_chart_retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -2031,31 +1843,25 @@ def investor_ownership_retrieve(id: int, request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Investor_ownership_retrieve') or get_viewset_class_from_path('/api/v1/Investor/{id}/ownership/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Investor_ownership_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Investor/{id}/ownership/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='ownership_retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -2088,31 +1894,25 @@ def investor_ratios_retrieve(id: int, request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Investor_ratios_retrieve') or get_viewset_class_from_path('/api/v1/Investor/{id}/ratios/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Investor_ratios_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Investor/{id}/ratios/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='ratios_retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -2148,31 +1948,23 @@ def investor_all_investors_summary_retrieve(request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Investor_all_investors_summary_retrieve') or get_viewset_class_from_path('/api/v1/Investor/all_investors_summary/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Investor_all_investors_summary_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Investor/all_investors_summary/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='all_investors_summary_retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -2205,31 +1997,23 @@ def investor_participation_stats_retrieve(request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Investor_participation_stats_retrieve') or get_viewset_class_from_path('/api/v1/Investor/participation_stats/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Investor_participation_stats_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Investor/participation_stats/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='participation_stats_retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -2312,31 +2096,23 @@ def investor_summary_retrieve(request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Investor_summary_retrieve') or get_viewset_class_from_path('/api/v1/Investor/summary/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Investor_summary_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Investor/summary/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='summary_retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -2369,31 +2145,23 @@ def investor_summary_ssot_retrieve(request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Investor_summary_ssot_retrieve') or get_viewset_class_from_path('/api/v1/Investor/summary_ssot/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Investor_summary_ssot_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Investor/summary_ssot/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='summary_ssot_retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -2429,31 +2197,23 @@ def period_list(request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Period_list') or get_viewset_class_from_path('/api/v1/Period/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Period_list یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Period/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='list',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -2499,18 +2259,13 @@ def period_create(label: str, year: int, month_number: int, month_name: str, wei
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Period_create') or get_viewset_class_from_path('/api/v1/Period/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Period_create یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Period/'
         
         # ساخت data برای request body
         data = {}
@@ -2535,15 +2290,12 @@ def period_create(label: str, year: int, month_number: int, month_name: str, wei
         if project is not None:
             data['project'] = project
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='create',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='POST',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -2554,67 +2306,46 @@ def period_create(label: str, year: int, month_number: int, month_name: str, wei
 @tool
 def period_retrieve(id: int, request=None) -> str:
     """
-    دریافت اطلاعات کامل یک دوره خاص بر اساس شناسه (ID) آن.
-
-    ⚠️ **هشدار مهم:** این ابزار نیاز به پارامتر id دارد که باید یک عدد صحیح (int) باشد.
-    هیچ‌وقت این ابزار را بدون id فراخوانی نکنید - این کار باعث خطا می‌شود.
+    ViewSet for the Period class
 
     این Tool از API endpoint GET /api/v1/Period/{id}/ استفاده می‌کند.
     Operation ID: Period_retrieve
     دسته‌بندی: Period
 
     Args:
-        id (int): شناسه عددی دوره (مثلاً 1، 2، 3 و غیره).
-                 ⚠️ این پارامتر الزامی است و نمی‌تواند None یا خالی باشد.
-                 اگر کاربر سوالی درباره "دوره شماره X" یا "دوره X" پرسید،
-                 ابتدا عدد X را از سوال استخراج کنید، سپس آن را به عنوان id پاس دهید.
+        id (int): یک مقداد عدد یکتا که این دوره را شناسایی میکند.
         request (optional): درخواست HTTP برای احراز هویت (برای استفاده داخلی)
 
     Returns:
-        str: اطلاعات کامل دوره شامل: نام، تاریخ شروع و پایان، هزینه‌ها و سایر جزئیات
+        str: نتیجه عملیات به صورت رشته متنی
+        - 200: Period
 
-    مثال‌های استفاده صحیح:
-        - سوال: "دوره شماره 1" → period_retrieve(id=1) ✅
-        - سوال: "دوره 5" → period_retrieve(id=5) ✅
-        - سوال: "اطلاعات دوره 10" → period_retrieve(id=10) ✅
-
-    مثال‌های استفاده نادرست (هرگز این کار را نکنید):
-        - period_retrieve() ❌ (بدون id - خطا می‌دهد)
-        - period_retrieve(id=None) ❌ (id نمی‌تواند None باشد)
-        - period_retrieve(id="1") ❌ (id باید int باشد، نه string)
+    مثال استفاده:
+        GET /api/v1/Period/1/
 
     نکات مهم:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
-        - id باید یک عدد صحیح مثبت باشد (int)
-        - اگر دوره‌ای با این id وجود نداشته باشد، خطا برمی‌گرداند
-        - اگر id را از سوال کاربر پیدا نکردید، ابتدا از period_list استفاده کنید
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Period_retrieve') or get_viewset_class_from_path('/api/v1/Period/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Period_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Period/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -2661,18 +2392,15 @@ def period_update(id: int, label: str, year: int, month_number: int, month_name:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Period_update') or get_viewset_class_from_path('/api/v1/Period/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Period_update یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Period/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت data برای request body
         data = {}
@@ -2697,15 +2425,12 @@ def period_update(id: int, label: str, year: int, month_number: int, month_name:
         if project is not None:
             data['project'] = project
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='update',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='PUT',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -2751,18 +2476,15 @@ def period_partial_update(id: int, label: Optional[str] = None, year: Optional[i
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Period_partial_update') or get_viewset_class_from_path('/api/v1/Period/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Period_partial_update یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Period/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت data برای request body
         data = {}
@@ -2787,15 +2509,12 @@ def period_partial_update(id: int, label: Optional[str] = None, year: Optional[i
         if project is not None:
             data['project'] = project
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='partial_update',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='PATCH',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -2830,32 +2549,26 @@ def period_destroy(id: int, request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Period_destroy') or get_viewset_class_from_path('/api/v1/Period/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Period_destroy یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Period/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت data برای request body
         data = {}
 
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='destroy',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='DELETE',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -2887,31 +2600,23 @@ def period_chart_data_retrieve(request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Period_chart_data_retrieve') or get_viewset_class_from_path('/api/v1/Period/chart_data/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Period_chart_data_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Period/chart_data/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='chart_data_retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -2997,31 +2702,23 @@ def period_summary_retrieve(request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Period_period_summary_retrieve') or get_viewset_class_from_path('/api/v1/Period/period_summary/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Period_period_summary_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Period/period_summary/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='period_summary_retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -3054,31 +2751,23 @@ def pettycashtransaction_list(request=None) -> str:
         GET /api/v1/PettyCashTransaction/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('PettyCashTransaction_list') or get_viewset_class_from_path('/api/v1/PettyCashTransaction/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای PettyCashTransaction_list یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/PettyCashTransaction/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='list',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -3124,18 +2813,13 @@ def pettycashtransaction_create(expense_type: str, transaction_type: str, amount
         POST /api/v1/PettyCashTransaction/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('PettyCashTransaction_create') or get_viewset_class_from_path('/api/v1/PettyCashTransaction/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای PettyCashTransaction_create یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/PettyCashTransaction/'
         
         # ساخت data برای request body
         data = {}
@@ -3152,15 +2836,12 @@ def pettycashtransaction_create(expense_type: str, transaction_type: str, amount
         if date_shamsi_input is not None:
             data['date_shamsi_input'] = date_shamsi_input
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='create',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='POST',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -3189,31 +2870,25 @@ def pettycashtransaction_retrieve(id: int, request=None) -> str:
         GET /api/v1/PettyCashTransaction/1/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('PettyCashTransaction_retrieve') or get_viewset_class_from_path('/api/v1/PettyCashTransaction/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای PettyCashTransaction_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/PettyCashTransaction/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -3260,18 +2935,15 @@ def pettycashtransaction_update(id: int, expense_type: str, transaction_type: st
         PUT /api/v1/PettyCashTransaction/{id}/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('PettyCashTransaction_update') or get_viewset_class_from_path('/api/v1/PettyCashTransaction/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای PettyCashTransaction_update یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/PettyCashTransaction/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت data برای request body
         data = {}
@@ -3288,15 +2960,12 @@ def pettycashtransaction_update(id: int, expense_type: str, transaction_type: st
         if date_shamsi_input is not None:
             data['date_shamsi_input'] = date_shamsi_input
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='update',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='PUT',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -3342,18 +3011,15 @@ def pettycashtransaction_partial_update(id: int, expense_type: Optional[str] = N
         PATCH /api/v1/PettyCashTransaction/{id}/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('PettyCashTransaction_partial_update') or get_viewset_class_from_path('/api/v1/PettyCashTransaction/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای PettyCashTransaction_partial_update یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/PettyCashTransaction/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت data برای request body
         data = {}
@@ -3370,15 +3036,12 @@ def pettycashtransaction_partial_update(id: int, expense_type: Optional[str] = N
         if date_shamsi_input is not None:
             data['date_shamsi_input'] = date_shamsi_input
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='partial_update',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='PATCH',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -3410,32 +3073,26 @@ def pettycashtransaction_destroy(id: int, request=None) -> str:
         DELETE /api/v1/PettyCashTransaction/{id}/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('PettyCashTransaction_destroy') or get_viewset_class_from_path('/api/v1/PettyCashTransaction/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای PettyCashTransaction_destroy یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/PettyCashTransaction/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت data برای request body
         data = {}
 
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='destroy',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='DELETE',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -3510,31 +3167,23 @@ def pettycashtransaction_balance_detail_retrieve(request=None) -> str:
         GET /api/v1/PettyCashTransaction/balance_detail/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('PettyCashTransaction_balance_detail_retrieve') or get_viewset_class_from_path('/api/v1/PettyCashTransaction/balance_detail/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای PettyCashTransaction_balance_detail_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/PettyCashTransaction/balance_detail/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='balance_detail_retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -3564,31 +3213,23 @@ def pettycashtransaction_balance_trend_retrieve(request=None) -> str:
         GET /api/v1/PettyCashTransaction/balance_trend/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('PettyCashTransaction_balance_trend_retrieve') or get_viewset_class_from_path('/api/v1/PettyCashTransaction/balance_trend/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای PettyCashTransaction_balance_trend_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/PettyCashTransaction/balance_trend/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='balance_trend_retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -3618,31 +3259,23 @@ def pettycashtransaction_balances_retrieve(request=None) -> str:
         GET /api/v1/PettyCashTransaction/balances/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('PettyCashTransaction_balances_retrieve') or get_viewset_class_from_path('/api/v1/PettyCashTransaction/balances/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای PettyCashTransaction_balances_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/PettyCashTransaction/balances/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='balances_retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -3672,31 +3305,23 @@ def pettycashtransaction_detailed_report_retrieve(request=None) -> str:
         GET /api/v1/PettyCashTransaction/detailed_report/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('PettyCashTransaction_detailed_report_retrieve') or get_viewset_class_from_path('/api/v1/PettyCashTransaction/detailed_report/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای PettyCashTransaction_detailed_report_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/PettyCashTransaction/detailed_report/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='detailed_report_retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -3726,31 +3351,23 @@ def pettycashtransaction_period_balance_retrieve(request=None) -> str:
         GET /api/v1/PettyCashTransaction/period_balance/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('PettyCashTransaction_period_balance_retrieve') or get_viewset_class_from_path('/api/v1/PettyCashTransaction/period_balance/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای PettyCashTransaction_period_balance_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/PettyCashTransaction/period_balance/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='period_balance_retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -3783,31 +3400,23 @@ def project_list(request=None) -> str:
         GET /api/v1/Project/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Project_list') or get_viewset_class_from_path('/api/v1/Project/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Project_list یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Project/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='list',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -3851,18 +3460,13 @@ def project_create(name: str, start_date_shamsi: str, end_date_shamsi: str, star
         POST /api/v1/Project/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Project_create') or get_viewset_class_from_path('/api/v1/Project/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Project_create یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Project/'
         
         # ساخت data برای request body
         data = {}
@@ -3889,15 +3493,12 @@ def project_create(name: str, start_date_shamsi: str, end_date_shamsi: str, star
         if icon is not None:
             data['icon'] = icon
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='create',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='POST',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -3926,31 +3527,25 @@ def project_retrieve(id: int, request=None) -> str:
         GET /api/v1/Project/1/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Project_retrieve') or get_viewset_class_from_path('/api/v1/Project/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Project_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Project/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -3995,18 +3590,15 @@ def project_update(id: int, name: str, start_date_shamsi: str, end_date_shamsi: 
         PUT /api/v1/Project/{id}/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Project_update') or get_viewset_class_from_path('/api/v1/Project/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Project_update یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Project/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت data برای request body
         data = {}
@@ -4033,15 +3625,12 @@ def project_update(id: int, name: str, start_date_shamsi: str, end_date_shamsi: 
         if icon is not None:
             data['icon'] = icon
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='update',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='PUT',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -4085,18 +3674,15 @@ def project_partial_update(id: int, name: Optional[str] = None, start_date_shams
         PATCH /api/v1/Project/{id}/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Project_partial_update') or get_viewset_class_from_path('/api/v1/Project/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Project_partial_update یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Project/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت data برای request body
         data = {}
@@ -4123,15 +3709,12 @@ def project_partial_update(id: int, name: Optional[str] = None, start_date_shams
         if icon is not None:
             data['icon'] = icon
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='partial_update',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='PATCH',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -4163,32 +3746,26 @@ def project_destroy(id: int, request=None) -> str:
         DELETE /api/v1/Project/{id}/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Project_destroy') or get_viewset_class_from_path('/api/v1/Project/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Project_destroy یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Project/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت data برای request body
         data = {}
 
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='destroy',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='DELETE',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -4217,31 +3794,23 @@ def project_active_retrieve(request=None) -> str:
         GET /api/v1/Project/active/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Project_active_retrieve') or get_viewset_class_from_path('/api/v1/Project/active/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Project_active_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Project/active/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='active_retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -4326,31 +3895,23 @@ def project_comprehensive_analysis_retrieve(request=None) -> str:
         GET /api/v1/Project/comprehensive_analysis/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Project_comprehensive_analysis_retrieve') or get_viewset_class_from_path('/api/v1/Project/comprehensive_analysis/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Project_comprehensive_analysis_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Project/comprehensive_analysis/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='comprehensive_analysis_retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -4380,31 +3941,23 @@ def project_cost_metrics_retrieve(request=None) -> str:
         GET /api/v1/Project/cost_metrics/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Project_cost_metrics_retrieve') or get_viewset_class_from_path('/api/v1/Project/cost_metrics/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Project_cost_metrics_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Project/cost_metrics/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='cost_metrics_retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -4434,31 +3987,23 @@ def project_current_retrieve(request=None) -> str:
         GET /api/v1/Project/current/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Project_current_retrieve') or get_viewset_class_from_path('/api/v1/Project/current/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Project_current_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Project/current/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='current_retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -4527,31 +4072,23 @@ def project_profit_metrics_retrieve(request=None) -> str:
         GET /api/v1/Project/profit_metrics/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Project_profit_metrics_retrieve') or get_viewset_class_from_path('/api/v1/Project/profit_metrics/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Project_profit_metrics_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Project/profit_metrics/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='profit_metrics_retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -4581,31 +4118,23 @@ def project_statistics_detailed_retrieve(request=None) -> str:
         GET /api/v1/Project/project_statistics_detailed/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Project_project_statistics_detailed_retrieve') or get_viewset_class_from_path('/api/v1/Project/project_statistics_detailed/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Project_project_statistics_detailed_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Project/project_statistics_detailed/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='project_statistics_detailed_retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -4635,31 +4164,23 @@ def project_timeline_retrieve(request=None) -> str:
         GET /api/v1/Project/project_timeline/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Project_project_timeline_retrieve') or get_viewset_class_from_path('/api/v1/Project/project_timeline/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Project_project_timeline_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Project/project_timeline/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='project_timeline_retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -4703,18 +4224,13 @@ def project_set_active_create(name: str, start_date_shamsi: str, end_date_shamsi
         POST /api/v1/Project/set_active/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Project_set_active_create') or get_viewset_class_from_path('/api/v1/Project/set_active/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Project_set_active_create یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Project/set_active/'
         
         # ساخت data برای request body
         data = {}
@@ -4741,15 +4257,12 @@ def project_set_active_create(name: str, start_date_shamsi: str, end_date_shamsi
         if icon is not None:
             data['icon'] = icon
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='set_active_create',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='POST',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -4778,31 +4291,23 @@ def project_statistics_retrieve(request=None) -> str:
         GET /api/v1/Project/statistics/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Project_statistics_retrieve') or get_viewset_class_from_path('/api/v1/Project/statistics/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Project_statistics_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Project/statistics/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='statistics_retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -4846,18 +4351,13 @@ def project_switch_create(name: str, start_date_shamsi: str, end_date_shamsi: st
         POST /api/v1/Project/switch/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Project_switch_create') or get_viewset_class_from_path('/api/v1/Project/switch/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Project_switch_create یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Project/switch/'
         
         # ساخت data برای request body
         data = {}
@@ -4884,15 +4384,12 @@ def project_switch_create(name: str, start_date_shamsi: str, end_date_shamsi: st
         if icon is not None:
             data['icon'] = icon
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='switch_create',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='POST',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -4924,31 +4421,23 @@ def sale_list(request=None) -> str:
         GET /api/v1/Sale/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Sale_list') or get_viewset_class_from_path('/api/v1/Sale/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Sale_list یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Sale/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='list',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -4985,18 +4474,13 @@ def sale_create(project: int, period: int, amount: str, description: Optional[st
         POST /api/v1/Sale/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Sale_create') or get_viewset_class_from_path('/api/v1/Sale/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Sale_create یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Sale/'
         
         # ساخت data برای request body
         data = {}
@@ -5009,15 +4493,12 @@ def sale_create(project: int, period: int, amount: str, description: Optional[st
         if description is not None:
             data['description'] = description
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='create',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='POST',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -5046,31 +4527,25 @@ def sale_retrieve(id: int, request=None) -> str:
         GET /api/v1/Sale/1/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Sale_retrieve') or get_viewset_class_from_path('/api/v1/Sale/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Sale_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Sale/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -5108,18 +4583,15 @@ def sale_update(id: int, project: int, period: int, amount: str, description: Op
         PUT /api/v1/Sale/{id}/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Sale_update') or get_viewset_class_from_path('/api/v1/Sale/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Sale_update یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Sale/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت data برای request body
         data = {}
@@ -5132,15 +4604,12 @@ def sale_update(id: int, project: int, period: int, amount: str, description: Op
         if description is not None:
             data['description'] = description
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='update',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='PUT',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -5177,18 +4646,15 @@ def sale_partial_update(id: int, project: Optional[int] = None, period: Optional
         PATCH /api/v1/Sale/{id}/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Sale_partial_update') or get_viewset_class_from_path('/api/v1/Sale/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Sale_partial_update یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Sale/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت data برای request body
         data = {}
@@ -5201,15 +4667,12 @@ def sale_partial_update(id: int, project: Optional[int] = None, period: Optional
         if description is not None:
             data['description'] = description
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='partial_update',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='PATCH',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -5241,32 +4704,26 @@ def sale_destroy(id: int, request=None) -> str:
         DELETE /api/v1/Sale/{id}/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Sale_destroy') or get_viewset_class_from_path('/api/v1/Sale/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Sale_destroy یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Sale/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت data برای request body
         data = {}
 
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='destroy',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='DELETE',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -5295,31 +4752,23 @@ def sale_total_sales_retrieve(request=None) -> str:
         GET /api/v1/Sale/total_sales/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Sale_total_sales_retrieve') or get_viewset_class_from_path('/api/v1/Sale/total_sales/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Sale_total_sales_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Sale/total_sales/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='total_sales_retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -5361,18 +4810,13 @@ def transaction_list(investor: Optional[int] = None, period: Optional[int] = Non
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Transaction_list') or get_viewset_class_from_path('/api/v1/Transaction/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Transaction_list یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Transaction/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
@@ -5385,14 +4829,11 @@ def transaction_list(investor: Optional[int] = None, period: Optional[int] = Non
         if transaction_type is not None:
             kwargs['transaction_type'] = transaction_type
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='list',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -5437,18 +4878,13 @@ def transaction_create(amount: str, transaction_type: str, date_shamsi_input: Op
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Transaction_create') or get_viewset_class_from_path('/api/v1/Transaction/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Transaction_create یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Transaction/'
         
         # ساخت data برای request body
         data = {}
@@ -5471,15 +4907,12 @@ def transaction_create(amount: str, transaction_type: str, date_shamsi_input: Op
         if period_id is not None:
             data['period_id'] = period_id
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='create',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='POST',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -5490,68 +4923,46 @@ def transaction_create(amount: str, transaction_type: str, date_shamsi_input: Op
 @tool
 def transaction_retrieve(id: int, request=None) -> str:
     """
-    دریافت اطلاعات کامل یک تراکنش خاص بر اساس شناسه (ID) آن.
-
-    ⚠️ **هشدار مهم:** این ابزار نیاز به پارامتر id دارد که باید یک عدد صحیح (int) باشد.
-    هیچ‌وقت این ابزار را بدون id فراخوانی نکنید - این کار باعث خطا می‌شود.
+    ViewSet for the Transaction class
 
     این Tool از API endpoint GET /api/v1/Transaction/{id}/ استفاده می‌کند.
     Operation ID: Transaction_retrieve
     دسته‌بندی: Transaction
 
     Args:
-        id (int): شناسه عددی تراکنش (مثلاً 1، 2، 3 و غیره).
-                 ⚠️ این پارامتر الزامی است و نمی‌تواند None یا خالی باشد.
-                 اگر کاربر سوالی درباره "تراکنش شماره X" یا "تراکنش X" پرسید،
-                 ابتدا عدد X را از سوال استخراج کنید، سپس آن را به عنوان id پاس دهید.
+        id (int): یک مقداد عدد یکتا که این تراکنش را شناسایی میکند.
         request (optional): درخواست HTTP برای احراز هویت (برای استفاده داخلی)
 
     Returns:
-        str: اطلاعات کامل تراکنش شامل: نوع، مبلغ، تاریخ، سرمایه‌گذار و سایر جزئیات
+        str: نتیجه عملیات به صورت رشته متنی
+        - 200: Transaction
 
-    مثال‌های استفاده صحیح:
-        - سوال: "تراکنش شماره 1" → transaction_retrieve(id=1) ✅
-        - سوال: "تراکنش 5" → transaction_retrieve(id=5) ✅
-        - سوال: "اطلاعات تراکنش 10" → transaction_retrieve(id=10) ✅
-
-    مثال‌های استفاده نادرست (هرگز این کار را نکنید):
-        - transaction_retrieve() ❌ (بدون id - خطا می‌دهد)
-        - transaction_retrieve(id=None) ❌ (id نمی‌تواند None باشد)
-        - transaction_retrieve(id="1") ❌ (id باید int باشد، نه string)
+    مثال استفاده:
+        GET /api/v1/Transaction/1/
 
     نکات مهم:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
-        - id باید یک عدد صحیح مثبت باشد (int)
-        - اگر تراکنشی با این id وجود نداشته باشد، خطا برمی‌گرداند
-        - اگر id را از سوال کاربر پیدا نکردید، ابتدا از transaction_list استفاده کنید
-        - انواع تراکنش: principal_deposit, principal_withdrawal, profit, withdrawal
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Transaction_retrieve') or get_viewset_class_from_path('/api/v1/Transaction/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Transaction_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Transaction/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -5597,18 +5008,15 @@ def transaction_update(id: int, amount: str, transaction_type: str, date_shamsi_
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Transaction_update') or get_viewset_class_from_path('/api/v1/Transaction/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Transaction_update یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Transaction/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت data برای request body
         data = {}
@@ -5631,15 +5039,12 @@ def transaction_update(id: int, amount: str, transaction_type: str, date_shamsi_
         if period_id is not None:
             data['period_id'] = period_id
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='update',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='PUT',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -5684,18 +5089,15 @@ def transaction_partial_update(id: int, date_shamsi_input: Optional[str] = None,
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Transaction_partial_update') or get_viewset_class_from_path('/api/v1/Transaction/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Transaction_partial_update یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Transaction/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت data برای request body
         data = {}
@@ -5718,15 +5120,12 @@ def transaction_partial_update(id: int, date_shamsi_input: Optional[str] = None,
         if period_id is not None:
             data['period_id'] = period_id
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='partial_update',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='PATCH',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -5761,32 +5160,26 @@ def transaction_destroy(id: int, request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Transaction_destroy') or get_viewset_class_from_path('/api/v1/Transaction/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Transaction_destroy یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Transaction/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت data برای request body
         data = {}
 
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='destroy',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='DELETE',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -5818,31 +5211,23 @@ def transaction_detailed_statistics_retrieve(request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Transaction_detailed_statistics_retrieve') or get_viewset_class_from_path('/api/v1/Transaction/detailed_statistics/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Transaction_detailed_statistics_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Transaction/detailed_statistics/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='detailed_statistics_retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -5887,18 +5272,13 @@ def transaction_recalculate_construction_contractor_create(amount: str, transact
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Transaction_recalculate_construction_contractor_create') or get_viewset_class_from_path('/api/v1/Transaction/recalculate_construction_contractor/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Transaction_recalculate_construction_contractor_create یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Transaction/recalculate_construction_contractor/'
         
         # ساخت data برای request body
         data = {}
@@ -5921,15 +5301,12 @@ def transaction_recalculate_construction_contractor_create(amount: str, transact
         if period_id is not None:
             data['period_id'] = period_id
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='recalculate_construction_contractor_create',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='POST',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -5973,18 +5350,13 @@ def transaction_recalculate_profits_create(amount: str, transaction_type: str, d
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Transaction_recalculate_profits_create') or get_viewset_class_from_path('/api/v1/Transaction/recalculate_profits/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Transaction_recalculate_profits_create یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Transaction/recalculate_profits/'
         
         # ساخت data برای request body
         data = {}
@@ -6007,15 +5379,12 @@ def transaction_recalculate_profits_create(amount: str, transaction_type: str, d
         if period_id is not None:
             data['period_id'] = period_id
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='recalculate_profits_create',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='POST',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -6085,31 +5454,23 @@ def transaction_statistics_retrieve(request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Transaction_statistics_retrieve') or get_viewset_class_from_path('/api/v1/Transaction/statistics/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Transaction_statistics_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Transaction/statistics/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='statistics_retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -6145,31 +5506,23 @@ def unit_list(request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Unit_list') or get_viewset_class_from_path('/api/v1/Unit/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Unit_list یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Unit/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='list',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -6210,18 +5563,13 @@ def unit_create(name: str, area: str, price_per_meter: str, total_price: str, pr
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Unit_create') or get_viewset_class_from_path('/api/v1/Unit/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Unit_create یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Unit/'
         
         # ساخت data برای request body
         data = {}
@@ -6236,15 +5584,12 @@ def unit_create(name: str, area: str, price_per_meter: str, total_price: str, pr
         if project is not None:
             data['project'] = project
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='create',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='POST',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -6255,68 +5600,46 @@ def unit_create(name: str, area: str, price_per_meter: str, total_price: str, pr
 @tool
 def unit_retrieve(id: int, request=None) -> str:
     """
-    دریافت اطلاعات کامل یک واحد خاص بر اساس شناسه (ID) آن.
-
-    ⚠️ **هشدار مهم:** این ابزار نیاز به پارامتر id دارد که باید یک عدد صحیح (int) باشد.
-    هیچ‌وقت این ابزار را بدون id فراخوانی نکنید - این کار باعث خطا می‌شود.
+    ViewSet for the Unit class
 
     این Tool از API endpoint GET /api/v1/Unit/{id}/ استفاده می‌کند.
     Operation ID: Unit_retrieve
     دسته‌بندی: Unit
 
     Args:
-        id (int): شناسه عددی واحد (مثلاً 1، 2، 3 و غیره). 
-                 ⚠️ این پارامتر الزامی است و نمی‌تواند None یا خالی باشد.
-                 اگر کاربر سوالی درباره "واحد شماره X" یا "واحد X" پرسید، 
-                 ابتدا عدد X را از سوال استخراج کنید، سپس آن را به عنوان id پاس دهید.
-                 مثال: "واحد شماره 1" → id=1
+        id (int): یک مقداد عدد یکتا که این واحد را شناسایی میکند.
         request (optional): درخواست HTTP برای احراز هویت (برای استفاده داخلی)
 
     Returns:
-        str: اطلاعات کامل واحد شامل: نام، متراژ، قیمت، پروژه، مالکین و سایر جزئیات
+        str: نتیجه عملیات به صورت رشته متنی
+        - 200: Unit
 
-    مثال‌های استفاده صحیح:
-        - سوال: "اطلاعات واحد شماره 1" → unit_retrieve(id=1) ✅
-        - سوال: "واحد 5" → unit_retrieve(id=5) ✅
-        - سوال: "اطلاعات کامل واحد 10" → unit_retrieve(id=10) ✅
-
-    مثال‌های استفاده نادرست (هرگز این کار را نکنید):
-        - unit_retrieve() ❌ (بدون id - خطا می‌دهد)
-        - unit_retrieve(id=None) ❌ (id نمی‌تواند None باشد)
-        - unit_retrieve(id="1") ❌ (id باید int باشد، نه string)
+    مثال استفاده:
+        GET /api/v1/Unit/1/
 
     نکات مهم:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
-        - id باید یک عدد صحیح مثبت باشد (int)
-        - اگر واحدی با این id وجود نداشته باشد، خطا برمی‌گرداند
-        - اگر id را از سوال کاربر پیدا نکردید، ابتدا از unit_list استفاده کنید
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Unit_retrieve') or get_viewset_class_from_path('/api/v1/Unit/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Unit_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Unit/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -6358,18 +5681,15 @@ def unit_update(id: int, name: str, area: str, price_per_meter: str, total_price
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Unit_update') or get_viewset_class_from_path('/api/v1/Unit/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Unit_update یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Unit/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت data برای request body
         data = {}
@@ -6384,15 +5704,12 @@ def unit_update(id: int, name: str, area: str, price_per_meter: str, total_price
         if project is not None:
             data['project'] = project
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='update',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='PUT',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -6433,18 +5750,15 @@ def unit_partial_update(id: int, name: Optional[str] = None, area: Optional[str]
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Unit_partial_update') or get_viewset_class_from_path('/api/v1/Unit/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Unit_partial_update یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Unit/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت data برای request body
         data = {}
@@ -6459,15 +5773,12 @@ def unit_partial_update(id: int, name: Optional[str] = None, area: Optional[str]
         if project is not None:
             data['project'] = project
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='partial_update',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='PATCH',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -6502,32 +5813,26 @@ def unit_destroy(id: int, request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Unit_destroy') or get_viewset_class_from_path('/api/v1/Unit/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Unit_destroy یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Unit/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت data برای request body
         data = {}
 
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='destroy',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='DELETE',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -6559,31 +5864,23 @@ def unit_statistics_retrieve(request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('Unit_statistics_retrieve') or get_viewset_class_from_path('/api/v1/Unit/statistics/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای Unit_statistics_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/Unit/statistics/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='statistics_retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -6620,18 +5917,13 @@ def unitspecificexpense_list(project: Optional[int] = None, unit: Optional[int] 
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('UnitSpecificExpense_list') or get_viewset_class_from_path('/api/v1/UnitSpecificExpense/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای UnitSpecificExpense_list یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/UnitSpecificExpense/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
@@ -6640,14 +5932,11 @@ def unitspecificexpense_list(project: Optional[int] = None, unit: Optional[int] 
         if unit is not None:
             kwargs['unit'] = unit
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='list',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -6691,18 +5980,13 @@ def unitspecificexpense_create(title: str, amount: str, project: Optional[int] =
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('UnitSpecificExpense_create') or get_viewset_class_from_path('/api/v1/UnitSpecificExpense/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای UnitSpecificExpense_create یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/UnitSpecificExpense/'
         
         # ساخت data برای request body
         data = {}
@@ -6723,15 +6007,12 @@ def unitspecificexpense_create(title: str, amount: str, project: Optional[int] =
         if description is not None:
             data['description'] = description
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='create',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='POST',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -6763,31 +6044,25 @@ def unitspecificexpense_retrieve(id: int, request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('UnitSpecificExpense_retrieve') or get_viewset_class_from_path('/api/v1/UnitSpecificExpense/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای UnitSpecificExpense_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/UnitSpecificExpense/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -6832,18 +6107,15 @@ def unitspecificexpense_update(id: int, title: str, amount: str, project: Option
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('UnitSpecificExpense_update') or get_viewset_class_from_path('/api/v1/UnitSpecificExpense/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای UnitSpecificExpense_update یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/UnitSpecificExpense/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت data برای request body
         data = {}
@@ -6864,15 +6136,12 @@ def unitspecificexpense_update(id: int, title: str, amount: str, project: Option
         if description is not None:
             data['description'] = description
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='update',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='PUT',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -6916,18 +6185,15 @@ def unitspecificexpense_partial_update(id: int, project: Optional[int] = None, p
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('UnitSpecificExpense_partial_update') or get_viewset_class_from_path('/api/v1/UnitSpecificExpense/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای UnitSpecificExpense_partial_update یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/UnitSpecificExpense/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت data برای request body
         data = {}
@@ -6948,15 +6214,12 @@ def unitspecificexpense_partial_update(id: int, project: Optional[int] = None, p
         if description is not None:
             data['description'] = description
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='partial_update',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='PATCH',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -6991,32 +6254,26 @@ def unitspecificexpense_destroy(id: int, request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('UnitSpecificExpense_destroy') or get_viewset_class_from_path('/api/v1/UnitSpecificExpense/{id}/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای UnitSpecificExpense_destroy یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/UnitSpecificExpense/{id}/'
+        if id is not None:
+            url = url.replace('{id}', str(id))
         
         # ساخت data برای request body
         data = {}
 
         
-        # فراخوانی ViewSet action
-        pk = id if id is not None else None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='destroy',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='DELETE',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -7054,32 +6311,24 @@ def auth_change_password_create(request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('auth_change_password_create') or get_viewset_class_from_path('/api/v1/auth/change-password/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای auth_change_password_create یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/auth/change-password/'
         
         # ساخت data برای request body
         data = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='change_password_create',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='POST',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -7110,31 +6359,23 @@ def auth_csrf_retrieve(request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('auth_csrf_retrieve') or get_viewset_class_from_path('/api/v1/auth/csrf/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای auth_csrf_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/auth/csrf/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='csrf_retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -7170,32 +6411,24 @@ def auth_login_create(request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('auth_login_create') or get_viewset_class_from_path('/api/v1/auth/login/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای auth_login_create یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/auth/login/'
         
         # ساخت data برای request body
         data = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='login_create',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='POST',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -7230,32 +6463,24 @@ def auth_logout_create(request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('auth_logout_create') or get_viewset_class_from_path('/api/v1/auth/logout/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای auth_logout_create یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/auth/logout/'
         
         # ساخت data برای request body
         data = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='logout_create',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='POST',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -7290,32 +6515,24 @@ def auth_register_create(request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('auth_register_create') or get_viewset_class_from_path('/api/v1/auth/register/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای auth_register_create یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/auth/register/'
         
         # ساخت data برای request body
         data = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='register_create',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='POST',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
@@ -7346,31 +6563,23 @@ def auth_user_retrieve(request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('auth_user_retrieve') or get_viewset_class_from_path('/api/v1/auth/user/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای auth_user_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/auth/user/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='user_retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -7402,31 +6611,23 @@ def comprehensive_analysis_retrieve(request=None) -> str:
         GET /api/v1/comprehensive/comprehensive_analysis/
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('comprehensive_comprehensive_analysis_retrieve') or get_viewset_class_from_path('/api/v1/comprehensive/comprehensive_analysis/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای comprehensive_comprehensive_analysis_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/comprehensive/comprehensive_analysis/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='comprehensive_analysis_retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         
@@ -7461,31 +6662,23 @@ def status_retrieve(request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        # پیدا کردن ViewSet class
         from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
+            call_api_via_http,
             response_to_string
         )
         
-        viewset_class = get_viewset_class_from_operation_id('status_retrieve') or get_viewset_class_from_path('/api/v1/status/')
-        
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای status_retrieve یافت نشد"
+        # ساخت URL کامل
+        url = '/api/v1/status/'
         
         # ساخت kwargs برای query parameters
         kwargs = {}
 
         
-        # فراخوانی ViewSet action
-        pk = None
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='retrieve',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='GET',
-            pk=pk,
             **kwargs
         )
         

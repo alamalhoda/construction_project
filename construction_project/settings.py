@@ -537,6 +537,16 @@ LOGGING = {
             'level': CALCULATIONS_LOG_LEVEL,
             'propagate': False,
         },
+        'assistant': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'assistant.viewset_helper': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
     },
     'root': {
         'handlers': ['console'],

@@ -538,6 +538,18 @@ class SchemaToolGenerator:
             parts = operation_id.split('_')
             if len(parts) >= 2:
                 action_name = '_'.join(parts[1:])  # list, create, retrieve, etc.
+                
+                # حذف suffix های DRF از custom actions
+                # مثال: active_retrieve -> active, dashboard_data_retrieve -> dashboard_data
+                drf_suffixes = ['_list', '_retrieve', '_create', '_update', '_partial_update', '_destroy']
+                for suffix in drf_suffixes:
+                    if action_name.endswith(suffix):
+                        # اگر action فقط suffix است (مثل list, retrieve)، نگه دار
+                        if action_name == suffix[1:]:  # حذف _ اول
+                            break
+                        # اگر action custom است (مثل active_retrieve)، suffix را حذف کن
+                        action_name = action_name[:-len(suffix)]
+                        break
         
         # اگر action_name پیدا نشد، از method و path استخراج کن
         if not action_name:
@@ -555,21 +567,17 @@ class SchemaToolGenerator:
             elif method == 'DELETE':
                 action_name = 'destroy'
         
-        # ساخت کد برای فراخوانی ViewSet
-        # پیدا کردن ViewSet class از operation_id یا path
-        viewset_class_code = f'''        # پیدا کردن ViewSet class
-        from assistant.viewset_helper import (
-            get_viewset_class_from_operation_id,
-            get_viewset_class_from_path,
-            call_viewset_action,
-            response_to_string
-        )
+        # ساخت URL کامل با جایگزینی path parameters
+        url_builder_parts = []
+        url_builder_parts.append("        # ساخت URL کامل")
+        url_builder_parts.append(f"        url = '{path}'")
         
-        viewset_class = get_viewset_class_from_operation_id('{operation_id}') or get_viewset_class_from_path('{path}')
+        # جایگزینی path parameters در URL
+        for path_param in path_params:
+            url_builder_parts.append(f"        if {path_param} is not None:")
+            url_builder_parts.append(f"            url = url.replace('{{{path_param}}}', str({path_param}))")
         
-        if not viewset_class:
-            return f"❌ خطا: ViewSet برای {operation_id} یافت نشد"
-        '''
+        url_builder_str = '\n'.join(url_builder_parts)
         
         # ساخت کد برای query parameters (برای GET)
         query_params_code = []
@@ -589,28 +597,25 @@ class SchemaToolGenerator:
         
         body_params_str = '\n'.join(body_params_code) if body_params_code else ""
         
-        # استخراج pk از path parameters
-        pk_code = "None"
-        if path_params:
-            pk_var = path_params[0]  # اولین path parameter معمولاً pk است
-            pk_code = f"{pk_var} if {pk_var} is not None else None"
-        
         # ساخت body بر اساس method
         if method == 'GET':
             body = f'''    try:
-{viewset_class_code}
+        from assistant.viewset_helper import (
+            call_api_via_http,
+            response_to_string
+        )
+        
+{url_builder_str}
+        
         # ساخت kwargs برای query parameters
         kwargs = {{}}
 {query_params_str}
         
-        # فراخوانی ViewSet action
-        pk = {pk_code}
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='{action_name}',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='{method}',
-            pk=pk,
             **kwargs
         )
         
@@ -620,20 +625,23 @@ class SchemaToolGenerator:
         return f"❌ خطا: {{str(e)}}"'''
         else:
             body = f'''    try:
-{viewset_class_code}
+        from assistant.viewset_helper import (
+            call_api_via_http,
+            response_to_string
+        )
+        
+{url_builder_str}
+        
         # ساخت data برای request body
         data = {{}}
 {body_params_str}
         
-        # فراخوانی ViewSet action
-        pk = {pk_code}
-        response = call_viewset_action(
-            viewset_class=viewset_class,
-            action_name='{action_name}',
+        # فراخوانی API endpoint از طریق HTTP
+        response = call_api_via_http(
+            url=url,
             request=request,
             method='{method}',
-            data=data,
-            pk=pk
+            data=data
         )
         
         # تبدیل response به string
