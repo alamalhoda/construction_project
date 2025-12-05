@@ -1,9 +1,10 @@
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.authentication import SessionAuthentication
+from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from django.db.models import Sum, Q, Count
 from django.db import connection
+import logging
 
 from . import serializers
 from . import models
@@ -11,6 +12,9 @@ from . import calculations
 from .calculations import InvestorCalculations
 from .api_security import APISecurityPermission, ReadOnlyPermission, AdminOnlyPermission
 from .mixins import ProjectFilterMixin
+
+# ایجاد logger برای API
+logger = logging.getLogger('construction.api')
 
 
 class CsrfExemptSessionAuthentication(SessionAuthentication):
@@ -66,17 +70,19 @@ class ExpenseViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
     queryset = models.Expense.objects.all()
     serializer_class = serializers.ExpenseSerializer
-    authentication_classes = [CsrfExemptSessionAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
+    permission_classes = [APISecurityPermission]
 
     @action(detail=False, methods=['get'])
     def with_periods(self, request):
         """دریافت هزینه‌ها با اطلاعات دوره‌ها برای محاسبه دوره متوسط ساخت"""
+        logger.info("User %s requesting expenses with periods", request.user.username)
         try:
             # دریافت پروژه جاری از session
             from construction.project_manager import ProjectManager
             active_project = ProjectManager.get_current_project(request)  # پروژه جاری
             if not active_project:
+                logger.warning("No active project found for user %s in with_periods", request.user.username)
                 return Response({
                     'error': 'هیچ پروژه جاری یافت نشد. لطفاً ابتدا یک پروژه را انتخاب کنید.'
                 }, status=400)
@@ -94,6 +100,8 @@ class ExpenseViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
             # استفاده از serializer مخصوص
             serializer = serializers.ExpenseSerializer(expenses, many=True)  # سریالایزر هزینه‌ها
             
+            logger.info("Successfully returned %d expenses with periods for user %s (project: %s)", 
+                       total_expenses, request.user.username, active_project.name)
             return Response({
                 'expenses': serializer.data,
                 'total_count': total_expenses,
@@ -103,6 +111,7 @@ class ExpenseViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
             })
 
         except Exception as e:
+            logger.exception("Error in with_periods for user %s: %s", request.user.username, e)
             return Response({
                 'error': f'خطا در دریافت داده‌ها: {str(e)}'
             }, status=500)
@@ -110,51 +119,28 @@ class ExpenseViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def dashboard_data(self, request):
         """
-        دریافت داده‌های لیست هزینه‌ها برای نمایش در داشبورد
+        دریافت داده‌های لیست هزینه‌ها
         
-        این endpoint داده‌های لازم برای نمایش در داشبورد هزینه‌ها را برمی‌گرداند.
+        این endpoint داده‌های کامل داشبورد هزینه‌ها را بر اساس دوره‌ها و انواع هزینه
+        برمی‌گرداند. شامل:
+        - لیست تمام دوره‌ها با هزینه‌های هر نوع
+        - مجموع تجمعی هزینه‌ها
+        - مجموع هر ستون (هر نوع هزینه)
+        - مجموع کل همه هزینه‌ها
         
-        خروجی شامل:
-        - لیست تمام هزینه‌ها با اطلاعات دوره
-        - آمار کلی هزینه‌ها (تعداد، مجموع)
-        - اطلاعات پروژه جاری
-        - داده‌های ماتریسی برای نمایش جدولی
-        
-        سناریوهای استفاده:
-        - نمایش داشبورد هزینه‌ها در رابط کاربری
-        - فیلتر کردن هزینه‌ها بر اساس دوره
-        - محاسبه مجموع هزینه‌ها برای گزارش‌گیری
-        - نمایش ترند هزینه‌ها در طول زمان
-        
-        مثال استفاده:
-        GET /api/v1/Expense/dashboard_data/
-        
-        مثال خروجی:
-        {
-            "success": true,
-            "data": {
-                "periods": [
-                    {
-                        "period_id": 1,
-                        "period_label": "مرداد 1402",
-                        "expenses": {
-                            "material": {"amount": 5000000, "label": "مواد اولیه"},
-                            "labor": {"amount": 3000000, "label": "نیروی کار"}
-                        },
-                        "period_total": 8000000,
-                        "cumulative_total": 8000000
-                    }
-                ],
-                "grand_total": 15000000,
-                "project_name": "پروژه نمونه"
-            }
-        }
+        Returns:
+            Response: شامل:
+                - periods: لیست دوره‌ها با هزینه‌های هر نوع
+                - expense_types: انواع هزینه‌ها
+                - column_totals: مجموع هر نوع هزینه در تمام دوره‌ها
+                - grand_total: مجموع کل همه هزینه‌ها
         
         نکات مهم:
         - فقط هزینه‌های پروژه جاری را برمی‌گرداند
         - اگر پروژه جاری وجود نداشته باشد، خطای 400 برمی‌گرداند
         - داده‌ها بر اساس دوره مرتب می‌شوند
         """
+        logger.info("User %s requesting expense dashboard data", request.user.username)
         try:
             # دریافت پروژه جاری از session
             from construction.project_manager import ProjectManager
@@ -245,6 +231,8 @@ class ExpenseViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
             # مجموع کل
             grand_total = sum(period['period_total'] for period in dashboard_data)  # مجموع کل همه هزینه‌ها
 
+            logger.info("Successfully returned dashboard data for user %s (project: %s, periods: %d)", 
+                       request.user.username, active_project.name, len(dashboard_data))
             return Response({
                 'success': True,
                 'data': {
@@ -257,6 +245,7 @@ class ExpenseViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
             })
 
         except Exception as e:
+            logger.exception("Error in dashboard_data for user %s: %s", request.user.username, e)
             return Response({
                 'error': f'خطا در دریافت داده‌ها: {str(e)}'
             }, status=500)
@@ -264,45 +253,22 @@ class ExpenseViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def update_expense(self, request):
         """
-        به‌روزرسانی یا ایجاد هزینه برای یک دوره و نوع خاص.
+        به‌روزرسانی یا ایجاد هزینه برای یک دوره و نوع خاص
         
-        این endpoint هزینه را برای یک دوره و نوع خاص به‌روزرسانی می‌کند.
-        اگر هزینه وجود نداشته باشد، آن را ایجاد می‌کند. هزینه بر اساس پروژه جاری،
-        دوره و نوع هزینه شناسایی می‌شود. مبلغ به صورت Decimal ذخیره می‌شود.
+        این endpoint امکان به‌روزرسانی یا ایجاد هزینه برای یک دوره و نوع خاص را فراهم می‌کند.
+        اگر هزینه وجود داشته باشد، به‌روزرسانی می‌شود؛ در غیر این صورت ایجاد می‌شود.
         
-        قابلیت‌ها/خروجی شامل:
-        - ثبت یا به‌روزرسانی هزینه با جزئیات کامل
-        - بازگشت جزئیات هزینه با ID و وضعیت ایجاد/به‌روزرسانی
+        Parameters:
+            period_id (int): شناسه دوره
+            expense_type (str): نوع هزینه (project_manager, facilities_manager, ...)
+            amount (float/str): مبلغ هزینه
+            description (str, optional): توضیحات هزینه
         
-        سناریوهای استفاده:
-        - ثبت هزینه‌های ماهانه پروژه ساختمانی توسط مدیر پروژه
-        - به‌روزرسانی مبلغ هزینه‌های قبلی در صورت تغییر
-        - ثبت هزینه‌های دوره‌ای به صورت دسته‌ای از سیستم حسابداری خارجی
-        - ویرایش هزینه‌های ثبت شده در داشبورد مدیریت
-        
-        مثال استفاده:
-            POST /api/v1/Expense/update_expense/
-        
-        مثال ورودی/خروجی:
-            Input:
-            {
-                "period_id": 3,
-                "expense_type": "project_manager",
-                "amount": "5000000",
-                "description": "حقوق مدیر پروژه"
-            }
-            
-            Output:
-            {
-                "success": true,
-                "message": "هزینه با موفقیت به‌روزرسانی شد",
-                "data": {
-                    "expense_id": 15,
-                    "amount": 5000000.0,
-                    "description": "حقوق مدیر پروژه",
-                    "created": false
-                }
-            }
+        Returns:
+            Response: شامل:
+                - success: وضعیت موفقیت
+                - message: پیام پاسخ
+                - data: شامل expense_id, amount, description, created
         
         نکات مهم:
         - هزینه بر اساس پروژه جاری (active project) از session شناسایی می‌شود
@@ -310,6 +276,7 @@ class ExpenseViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
         - مبلغ باید به صورت string ارسال شود تا از مشکلات precision جلوگیری شود
         - نیاز به احراز هویت دارد (IsAuthenticated)
         """
+        logger.info("User %s updating expense", request.user.username)
         try:
             period_id = request.data.get('period_id')  # شناسه دوره
             expense_type = request.data.get('expense_type')  # نوع هزینه
@@ -353,6 +320,9 @@ class ExpenseViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
                 expense.amount = amount
                 expense.description = description
                 expense.save()
+                logger.info("Expense %d updated by user %s (amount: %s)", expense.id, request.user.username, amount)
+            else:
+                logger.info("Expense %d created by user %s (amount: %s)", expense.id, request.user.username, amount)
 
             return Response({
                 'success': True,
@@ -366,6 +336,7 @@ class ExpenseViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
             })
 
         except Exception as e:
+            logger.exception("Error updating expense for user %s: %s", request.user.username, e)
             return Response({
                 'error': f'خطا در به‌روزرسانی هزینه: {str(e)}'
             }, status=500)
@@ -373,6 +344,7 @@ class ExpenseViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def get_expense_details(self, request):
         """دریافت جزئیات هزینه برای ویرایش"""
+        logger.debug("User %s requesting expense details", request.user.username)
         try:
             period_id = request.query_params.get('period_id')  # شناسه دوره از پارامترهای درخواست
             expense_type = request.query_params.get('expense_type')  # نوع هزینه از پارامترهای درخواست
@@ -439,6 +411,7 @@ class ExpenseViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
                 })
 
         except Exception as e:
+            logger.exception("Error getting expense details for user %s: %s", request.user.username, e)
             return Response({
                 'error': f'خطا در دریافت جزئیات هزینه: {str(e)}'
             }, status=500)
@@ -446,6 +419,7 @@ class ExpenseViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def total_expenses(self, request):
         """دریافت مجموع کل هزینه‌های پروژه"""
+        logger.info("User %s requesting total expenses", request.user.username)
         try:
             project_id = request.query_params.get('project_id')  # شناسه پروژه از پارامترهای درخواست
             
@@ -502,6 +476,7 @@ class ExpenseViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
             })
                 
         except Exception as e:
+            logger.exception("Error getting total expenses for user %s: %s", request.user.username, e)
             return Response({
                 'error': f'خطا در دریافت مجموع هزینه‌ها: {str(e)}'
             }, status=500)
@@ -512,6 +487,7 @@ class InvestorViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
     queryset = models.Investor.objects.all()
     serializer_class = serializers.InvestorSerializer
+    authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
     permission_classes = [APISecurityPermission]
 
     @action(detail=False, methods=['get'])
@@ -612,8 +588,11 @@ class InvestorViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
                 })
 
             results.sort(key=lambda x: x['net_principal'], reverse=True)
+            logger.info("Successfully returned investor summary for user %s (%d investors)", 
+                       request.user.username, len(results))
             return Response(results)
         except Exception as e:
+            logger.exception("Error in summary for user %s: %s", request.user.username, e)
             return Response({'error': f'خطا در خلاصه سرمایه‌گذاران: {str(e)}'}, status=500)
 
     @action(detail=False, methods=['get'])
@@ -662,9 +641,12 @@ class InvestorViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
             # مرتب‌سازی مشابه نسخه SQL: بر اساس net_principal نزولی
             results.sort(key=lambda x: x['net_principal'], reverse=True)
+            logger.info("Successfully returned investor summary_ssot for user %s (%d investors)", 
+                       request.user.username, len(results))
             return Response(results)
 
         except Exception as e:
+            logger.exception("Error in summary_ssot for user %s: %s", request.user.username, e)
             return Response({'error': f'خطا در خلاصه SSOT سرمایه‌گذاران: {str(e)}'}, status=500)
 
     @action(detail=False, methods=['get'])
@@ -698,38 +680,19 @@ class InvestorViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
         """
         دریافت آمار تفصیلی سرمایه‌گذار
         
-        این endpoint آمار کامل و تفصیلی یک سرمایه‌گذار خاص را محاسبه و برمی‌گرداند.
+        این endpoint آمار کامل و تفصیلی برای یک سرمایه‌گذار خاص را محاسبه و برمی‌گرداند.
+        شامل اطلاعات مالی، سرمایه، سود، نسبت‌ها و سایر متریک‌های مرتبط.
         
-        پارامترها:
-        - pk (int): شناسه یکتای سرمایه‌گذار
-        - project_id (query param, اختیاری): شناسه پروژه (در صورت عدم ارسال از پروژه جاری استفاده می‌شود)
+        Parameters:
+            pk (int): شناسه سرمایه‌گذار
+            project_id (int, optional): شناسه پروژه (از query parameter یا پروژه جاری)
         
-        خروجی شامل:
-        - مجموع آورده‌ها (deposits)
-        - مجموع برداشت‌ها (withdrawals)
-        - مجموع سود (profits)
-        - سرمایه خالص (net principal)
-        - مجموع کل (grand total)
-        - درصد مالکیت
-        - نسبت‌های مالی
+        Returns:
+            Response: شامل آمار تفصیلی سرمایه‌گذار
         
-        سناریوهای استفاده:
-        - نمایش پروفایل کامل سرمایه‌گذار
-        - محاسبه سهم هر سرمایه‌گذار در پروژه
-        - تهیه گزارش‌های مالی تفصیلی
-        - تحلیل عملکرد سرمایه‌گذاری
-        
-        مثال استفاده:
-        GET /api/v1/Investor/5/detailed_statistics/
-        GET /api/v1/Investor/5/detailed_statistics/?project_id=1
-        
-        مثال خروجی:
+        مثال Response:
         {
-            "investor_id": 5,
-            "name": "علی احمدی",
-            "total_deposits": 100000000,
-            "total_withdrawals": 0,
-            "net_principal": 100000000,
+            "total_investment": 50000000,
             "total_profit": 15000000,
             "grand_total": 115000000,
             "ownership_percentage": 25.5,
@@ -741,6 +704,7 @@ class InvestorViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
         - محاسبات بر اساس پروژه جاری یا project_id ارسالی انجام می‌شود
         - تمام مبالغ به تومان هستند
         """
+        logger.info("User %s requesting detailed statistics for investor %s", request.user.username, pk)
         try:
             # دریافت project_id از query parameter یا از پروژه جاری از session
             project_id = request.query_params.get('project_id')
@@ -757,11 +721,14 @@ class InvestorViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
             stats = calculations.InvestorCalculations.calculate_investor_statistics(pk, project_id)  # محاسبه آمار تفصیلی سرمایه‌گذار
             
             if 'error' in stats:
+                logger.warning("Error in detailed_statistics for investor %s: %s", pk, stats.get('error'))
                 return Response(stats, status=400)
             
+            logger.info("Successfully returned detailed statistics for investor %s (user: %s)", pk, request.user.username)
             return Response(stats)
             
         except Exception as e:
+            logger.exception("Error in detailed_statistics for investor %s (user: %s): %s", pk, request.user.username, e)
             return Response({
                 'error': f'خطا در دریافت آمار تفصیلی سرمایه‌گذار: {str(e)}'
             }, status=500)
@@ -769,6 +736,7 @@ class InvestorViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
     @action(detail=True, methods=['get'])
     def ratios(self, request, pk=None):
         """دریافت نسبت‌های سرمایه‌گذار"""
+        logger.info("User %s requesting ratios for investor %s", request.user.username, pk)
         try:
             # دریافت project_id از query parameter یا از پروژه جاری از session
             project_id = request.query_params.get('project_id')
@@ -785,11 +753,14 @@ class InvestorViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
             ratios = calculations.InvestorCalculations.calculate_investor_ratios(pk, project_id)  # محاسبه نسبت‌های سرمایه‌گذار
             
             if 'error' in ratios:
+                logger.warning("Error in ratios for investor %s: %s", pk, ratios.get('error'))
                 return Response(ratios, status=400)
             
+            logger.info("Successfully returned ratios for investor %s (user: %s)", pk, request.user.username)
             return Response(ratios)
             
         except Exception as e:
+            logger.exception("Error in ratios for investor %s (user: %s): %s", pk, request.user.username, e)
             return Response({
                 'error': f'خطا در محاسبه نسبت‌های سرمایه‌گذار: {str(e)}'
             }, status=500)
@@ -801,6 +772,7 @@ class InvestorViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
         
         محاسبه: (آورده + سود) / قیمت هر متر مربع واحد انتخابی
         """
+        logger.info("User %s requesting ownership for investor %s", request.user.username, pk)
         try:
             # دریافت project_id از query parameter یا از پروژه جاری از session
             project_id = request.query_params.get('project_id')
@@ -817,11 +789,14 @@ class InvestorViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
             ownership = calculations.InvestorCalculations.calculate_investor_ownership(pk, project_id)  # محاسبه مالکیت سرمایه‌گذار
             
             if 'error' in ownership:
+                logger.warning("Error in ownership for investor %s: %s", pk, ownership.get('error'))
                 return Response(ownership, status=400)
             
+            logger.info("Successfully returned ownership for investor %s (user: %s)", pk, request.user.username)
             return Response(ownership)
             
         except Exception as e:
+            logger.exception("Error in ownership for investor %s (user: %s): %s", pk, request.user.username, e)
             return Response({
                 'error': f'خطا در محاسبه مالکیت سرمایه‌گذار: {str(e)}'
             }, status=500)
@@ -835,6 +810,7 @@ class InvestorViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
         - سرمایه موجود تجمعی به میلیون تومان
         - هزینه واحد به میلیون تومان برای هر دوره
         """
+        logger.info("User %s requesting trend chart for investor %s", request.user.username, pk)
         try:
             # دریافت project_id از query parameter یا از پروژه جاری از session
             project_id = request.query_params.get('project_id')
@@ -851,11 +827,14 @@ class InvestorViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
             trend_data = calculations.InvestorCalculations.calculate_investor_trend_chart(pk, project_id)  # محاسبه داده‌های نمودار ترند سرمایه‌گذار
             
             if 'error' in trend_data:
+                logger.warning("Error in trend chart for investor %s: %s", pk, trend_data.get('error'))
                 return Response(trend_data, status=400)
             
+            logger.info("Successfully returned trend chart for investor %s (user: %s)", pk, request.user.username)
             return Response(trend_data)
             
         except Exception as e:
+            logger.exception("Error in trend chart for investor %s (user: %s): %s", pk, request.user.username, e)
             return Response({
                 'error': f'خطا در محاسبه داده‌های نمودار ترند سرمایه‌گذار: {str(e)}'
             }, status=500)
@@ -868,6 +847,7 @@ class InvestorViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
         این endpoint از سرویس محاسباتی InvestorCalculations استفاده می‌کند
         تا آمار کامل شامل نسبت‌های سرمایه، سود و شاخص نفع را ارائه دهد.
         """
+        logger.info("User %s requesting all investors summary", request.user.username)
         try:
             project_id = request.query_params.get('project_id')  # شناسه پروژه از پارامترهای درخواست
             
@@ -889,17 +869,22 @@ class InvestorViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
             summary = InvestorCalculations.get_all_investors_summary(project_id)  # دریافت خلاصه تمام سرمایه‌گذاران
             
             if not summary:
+                logger.warning("No investors summary found for user %s", request.user.username)
                 return Response({
                     'error': 'هیچ سرمایه‌گذاری یافت نشد یا پروژه فعالی وجود ندارد'
                 }, status=404)
             
+            logger.info("Successfully returned all investors summary for user %s (%d investors)", 
+                       request.user.username, len(summary) if isinstance(summary, list) else 0)
             return Response(summary)
             
-        except ValueError:
+        except ValueError as e:
+            logger.warning("Invalid project_id in all_investors_summary for user %s: %s", request.user.username, e)
             return Response({
                 'error': 'شناسه پروژه نامعتبر است'
             }, status=400)
         except Exception as e:
+            logger.exception("Error in all_investors_summary for user %s: %s", request.user.username, e)
             return Response({
                 'error': f'خطا در دریافت خلاصه سرمایه‌گذاران: {str(e)}'
             }, status=500)
@@ -908,12 +893,29 @@ class InvestorViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 class ComprehensiveAnalysisViewSet(viewsets.ViewSet):
     """ViewSet for comprehensive project analysis"""
     
-    authentication_classes = [CsrfExemptSessionAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
+    permission_classes = [APISecurityPermission]
     
     @action(detail=False, methods=['get'])
     def comprehensive_analysis(self, request):
-        """دریافت تحلیل جامع پروژه"""
+        """
+        دریافت تحلیل جامع پروژه شامل تمام محاسبات مالی
+        
+        این endpoint تحلیل کامل و جامع پروژه را با تمام محاسبات مالی
+        شامل سرمایه، سود، هزینه‌ها، فروش‌ها و سایر متریک‌های مرتبط برمی‌گرداند.
+        
+        Parameters:
+            project_id (int, optional): شناسه پروژه (از query parameter یا پروژه جاری)
+        
+        Returns:
+            Response: شامل تحلیل جامع پروژه
+        
+        نکات مهم:
+        - اگر پروژه جاری وجود نداشته باشد، خطای 400 برمی‌گرداند
+        - تمام محاسبات بر اساس داده‌های واقعی انجام می‌شود
+        - مبالغ به تومان هستند
+        """
+        logger.info("User %s requesting comprehensive analysis", request.user.username)
         try:
             project_id = request.query_params.get('project_id')  # شناسه پروژه از پارامترهای درخواست
             
@@ -936,15 +938,19 @@ class ComprehensiveAnalysisViewSet(viewsets.ViewSet):
             analysis = ComprehensiveCalculations.get_comprehensive_project_analysis(project_id)  # دریافت تحلیل جامع پروژه
             
             if 'error' in analysis:
+                logger.warning("Error in comprehensive_analysis: %s", analysis.get('error'))
                 return Response(analysis, status=400)
             
+            logger.info("Successfully returned comprehensive analysis for user %s", request.user.username)
             return Response(analysis)
             
-        except ValueError:
+        except ValueError as e:
+            logger.warning("Invalid project_id in comprehensive_analysis for user %s: %s", request.user.username, e)
             return Response({
                 'error': 'شناسه پروژه نامعتبر است'
             }, status=400)
         except Exception as e:
+            logger.exception("Error in comprehensive_analysis for user %s: %s", request.user.username, e)
             return Response({
                 'error': f'خطا در دریافت تحلیل جامع: {str(e)}'
             }, status=500)
@@ -955,11 +961,13 @@ class PeriodViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
     queryset = models.Period.objects.all().order_by('-year', '-month_number')
     serializer_class = serializers.PeriodSerializer
+    authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
     permission_classes = [APISecurityPermission]
 
     @action(detail=False, methods=['get'])
     def chart_data(self, request):
         """دریافت داده‌های دوره‌ای برای نمودارها (سرمایه، هزینه، فروش، مانده صندوق)"""
+        logger.info("User %s requesting period chart data", request.user.username)
         try:
             # دریافت پروژه جاری از session
             from construction.project_manager import ProjectManager
@@ -1020,6 +1028,7 @@ class PeriodViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
             })
 
         except Exception as e:
+            logger.exception("Error in chart_data for user %s: %s", request.user.username, e)
             return Response({
                 'error': f'خطا در دریافت داده‌های نمودار: {str(e)}'
             }, status=500)
@@ -1029,52 +1038,14 @@ class PeriodViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
         """
         دریافت خلاصه کامل دوره‌ای شامل تمام فاکتورها و مقادیر تجمعی
         
-        این endpoint خلاصه کامل مالی برای تمام دوره‌های پروژه را برمی‌گرداند.
+        این endpoint خلاصه کامل تمام دوره‌های پروژه را با تمام اطلاعات مالی
+        شامل آورده‌ها، برداشت‌ها، سرمایه خالص، سود، هزینه‌ها و فروش‌ها برمی‌گرداند.
         
-        خروجی شامل:
-        - اطلاعات هر دوره (شناسه، برچسب، تاریخ)
-        - آورده‌های دوره و تجمعی
-        - برداشت‌های دوره و تجمعی
-        - سرمایه خالص دوره و تجمعی
-        - سود دوره و تجمعی
-        - هزینه‌های دوره و تجمعی
-        - فروش/مرجوعی دوره و تجمعی
-        - مانده صندوق برای هر دوره
-        
-        سناریوهای استفاده:
-        - نمایش گزارش دوره‌ای کامل پروژه
-        - تحلیل روند مالی در طول زمان
-        - نمایش ترند سرمایه، هزینه و سود
-        - محاسبه مانده صندوق برای هر دوره
-        - تهیه گزارش‌های تفصیلی دوره‌ای
-        
-        مثال استفاده:
-        GET /api/v1/Period/period_summary/
-        
-        مثال خروجی:
-        {
-            "success": true,
-            "data": [
-                {
-                    "period_id": 1,
-                    "period_label": "مرداد 1402",
-                    "deposits": 100000000,
-                    "cumulative_deposits": 100000000,
-                    "withdrawals": 0,
-                    "cumulative_withdrawals": 0,
-                    "net_capital": 100000000,
-                    "cumulative_net_capital": 100000000,
-                    "profits": 5000000,
-                    "cumulative_profits": 5000000,
-                    "expenses": 30000000,
-                    "cumulative_expenses": 30000000,
-                    "sales": 0,
-                    "cumulative_sales": 0,
-                    "fund_balance": 75000000
-                }
-            ],
-            "current": {...}
-        }
+        Returns:
+            Response: شامل:
+                - data: لیست خلاصه هر دوره
+                - totals: مجموع‌های کلی
+                - current: خلاصه دوره جاری
         
         نکات مهم:
         - فقط دوره‌های پروژه جاری را شامل می‌شود
@@ -1082,6 +1053,7 @@ class PeriodViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
         - دوره‌ها به ترتیب زمانی مرتب می‌شوند
         - تمام مبالغ به تومان هستند
         """
+        logger.info("User %s requesting period summary", request.user.username)
         try:
             # دریافت پروژه جاری از session
             from construction.project_manager import ProjectManager
@@ -1266,6 +1238,7 @@ class PeriodViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
             })
 
         except Exception as e:
+            logger.exception("Error in period_summary for user %s: %s", request.user.username, e)
             return Response({
                 'error': f'خطا در دریافت خلاصه دوره‌ای: {str(e)}'
             }, status=500)
@@ -1277,8 +1250,8 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
     queryset = models.Project.objects.all()
     serializer_class = serializers.ProjectSerializer
+    authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
     permission_classes = [APISecurityPermission]
-    authentication_classes = [CsrfExemptSessionAuthentication]
 
     @action(detail=False, methods=['get'])
     def active(self, request):
@@ -1294,6 +1267,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def statistics(self, request):
         """دریافت آمار کامل پروژه جاری شامل اطلاعات پروژه و آمار واحدها"""
+        logger.info("User %s requesting project statistics", request.user.username)
         try:
             # دریافت پروژه جاری از session
             from construction.project_manager import ProjectManager
@@ -1325,6 +1299,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
             })
 
         except Exception as e:
+            logger.exception("Error in statistics for user %s: %s", request.user.username, e)
             return Response({
                 'error': f'خطا در دریافت آمار پروژه: {str(e)}'
             }, status=500)
@@ -1334,8 +1309,10 @@ class ProjectViewSet(viewsets.ModelViewSet):
         """تنظیم پروژه فعال"""
         project_id = request.data.get('project_id')  # شناسه پروژه از داده‌های درخواست
         if not project_id:
+            logger.warning("set_active called without project_id by user %s", request.user.username)
             return Response({'error': 'شناسه پروژه الزامی است'}, status=400)
         
+        logger.info("User %s setting active project to %s", request.user.username, project_id)
         try:
             project = models.Project.set_active_project(project_id)  # تنظیم پروژه به عنوان فعال
             if project:
@@ -1346,8 +1323,10 @@ class ProjectViewSet(viewsets.ModelViewSet):
                     'project': serializer.data
                 })
             else:
+                logger.warning("Project %s not found for user %s", project_id, request.user.username)
                 return Response({'error': 'پروژه یافت نشد'}, status=404)
         except Exception as e:
+            logger.exception("Error in set_active for user %s (project_id: %s): %s", request.user.username, project_id, e)
             return Response({'error': f'خطا در تنظیم پروژه فعال: {str(e)}'}, status=500)
 
     @action(detail=False, methods=['get'])
@@ -1369,8 +1348,10 @@ class ProjectViewSet(viewsets.ModelViewSet):
         
         project_id = request.data.get('project_id')
         if not project_id:
+            logger.warning("switch called without project_id by user %s", request.user.username)
             return Response({'error': 'project_id الزامی است'}, status=400)
         
+        logger.info("User %s switching to project %s", request.user.username, project_id)
         try:
             project = models.Project.objects.get(id=project_id)
             
@@ -1388,8 +1369,10 @@ class ProjectViewSet(viewsets.ModelViewSet):
                 'message': 'پروژه با موفقیت تغییر کرد'
             })
         except models.Project.DoesNotExist:
+            logger.warning("Project %s not found for user %s in switch", project_id, request.user.username)
             return Response({'error': 'پروژه یافت نشد'}, status=404)
         except Exception as e:
+            logger.exception("Error in switch for user %s (project_id: %s): %s", request.user.username, project_id, e)
             return Response({'error': f'خطا در تغییر پروژه: {str(e)}'}, status=500)
 
     @action(detail=False, methods=['get'])
@@ -1397,6 +1380,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
         """محاسبه روزهای مانده و گذشته پروژه بر اساس تاریخ امروز"""
         from datetime import date
         
+        logger.info("User %s requesting project timeline", request.user.username)
         try:
             # دریافت پروژه جاری از session
             from construction.project_manager import ProjectManager
@@ -1461,70 +1445,14 @@ class ProjectViewSet(viewsets.ModelViewSet):
             })
 
         except Exception as e:
+            logger.exception("Error in project_timeline for user %s: %s", request.user.username, e)
             return Response({
                 'error': f'خطا در محاسبه زمان‌بندی پروژه: {str(e)}'
             }, status=500)
 
     @action(detail=False, methods=['get'])
     def comprehensive_analysis(self, request):
-        """
-        دریافت تحلیل جامع پروژه شامل تمام محاسبات مالی
-        
-        این endpoint یک تحلیل کامل و جامع از وضعیت مالی پروژه را ارائه می‌دهد.
-        
-        پارامترها:
-        - project_id (query param, اختیاری): شناسه پروژه (در صورت عدم ارسال از پروژه جاری استفاده می‌شود)
-        
-        خروجی شامل:
-        - اطلاعات کلی پروژه
-        - آمار سرمایه‌گذاران
-        - آمار تراکنش‌ها (آورده، برداشت، سود)
-        - آمار هزینه‌ها
-        - آمار فروش‌ها
-        - محاسبات مالی (سرمایه خالص، مجموع کل، مانده صندوق)
-        - متریک‌های عملکردی
-        
-        سناریوهای استفاده:
-        - نمایش داشبورد مدیریتی پروژه
-        - تهیه گزارش‌های جامع برای مدیران
-        - تحلیل سلامت مالی پروژه
-        - تصمیم‌گیری‌های استراتژیک
-        - ارائه گزارش به سرمایه‌گذاران
-        
-        مثال استفاده:
-        GET /api/v1/Project/comprehensive_analysis/
-        GET /api/v1/Project/comprehensive_analysis/?project_id=1
-        
-        مثال خروجی:
-        {
-            "project": {
-                "id": 1,
-                "name": "پروژه نمونه",
-                "start_date": "1402-05-01",
-                "end_date": "1405-05-01"
-            },
-            "investors": {
-                "total_count": 5,
-                "total_deposits": 500000000,
-                "total_withdrawals": 20000000,
-                "net_principal": 480000000,
-                "total_profits": 75000000
-            },
-            "expenses": {
-                "total_amount": 300000000,
-                "by_type": {...}
-            },
-            "financial_summary": {
-                "grand_total": 555000000,
-                "fund_balance": 255000000
-            }
-        }
-        
-        نکات مهم:
-        - اگر پروژه جاری وجود نداشته باشد، خطای 400 برمی‌گرداند
-        - تمام محاسبات بر اساس داده‌های واقعی انجام می‌شود
-        - مبالغ به تومان هستند
-        """
+        """دریافت تحلیل جامع پروژه شامل تمام محاسبات مالی"""
         try:
             project_id = request.query_params.get('project_id')  # شناسه پروژه از پارامترهای درخواست
             
@@ -1542,11 +1470,14 @@ class ProjectViewSet(viewsets.ModelViewSet):
             analysis = calculations.ComprehensiveCalculations.get_comprehensive_project_analysis(project_id)  # دریافت تحلیل جامع پروژه
             
             if 'error' in analysis:
+                logger.warning("Error in comprehensive_analysis: %s", analysis.get('error'))
                 return Response(analysis, status=400)
             
+            logger.info("Successfully returned comprehensive analysis for user %s", request.user.username)
             return Response(analysis)
             
         except Exception as e:
+            logger.exception("Error in comprehensive_analysis for user %s: %s", request.user.username, e)
             return Response({
                 'error': f'خطا در دریافت تحلیل جامع: {str(e)}'
             }, status=500)
@@ -1554,47 +1485,23 @@ class ProjectViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def profit_metrics(self, request):
         """
-        دریافت متریک‌های سود پروژه
+        دریافت متریک‌های سود (کل، سالانه، ماهانه، روزانه)
         
-        این endpoint متریک‌های مختلف سود پروژه را محاسبه و برمی‌گرداند.
+        این endpoint متریک‌های مختلف سود شامل سود کل، سالانه، ماهانه و روزانه
+        را برای پروژه محاسبه و برمی‌گرداند.
         
-        پارامترها:
-        - project_id (query param, اختیاری): شناسه پروژه (در صورت عدم ارسال از پروژه جاری استفاده می‌شود)
+        Parameters:
+            project_id (int, optional): شناسه پروژه (از query parameter یا پروژه جاری)
         
-        خروجی شامل:
-        - مجموع کل سود
-        - سود سالانه (میانگین)
-        - سود ماهانه (میانگین)
-        - سود روزانه (میانگین)
-        - نرخ بازدهی
-        - ترند سود در طول زمان
-        
-        سناریوهای استفاده:
-        - نمایش عملکرد مالی پروژه
-        - مقایسه سودآوری پروژه‌های مختلف
-        - تحلیل روند سوددهی
-        - محاسبه نرخ بازدهی سرمایه‌گذاری
-        - تهیه گزارش‌های تحلیلی
-        
-        مثال استفاده:
-        GET /api/v1/Project/profit_metrics/
-        GET /api/v1/Project/profit_metrics/?project_id=1
-        
-        مثال خروجی:
-        {
-            "total_profit": 75000000,
-            "annual_profit": 25000000,
-            "monthly_profit": 2083333.33,
-            "daily_profit": 69444.44,
-            "return_rate": 15.6,
-            "profit_trend": [...]
-        }
+        Returns:
+            Response: شامل متریک‌های سود
         
         نکات مهم:
         - اگر پروژه جاری وجود نداشته باشد، خطای 400 برمی‌گرداند
         - محاسبات بر اساس تاریخ شروع و پایان پروژه انجام می‌شود
         - مبالغ به تومان هستند
         """
+        logger.info("User %s requesting profit metrics", request.user.username)
         try:
             project_id = request.query_params.get('project_id')  # شناسه پروژه از پارامترهای درخواست
             
@@ -1612,11 +1519,14 @@ class ProjectViewSet(viewsets.ModelViewSet):
             metrics = calculations.ProfitCalculations.calculate_profit_percentages(project_id)  # محاسبه متریک‌های سود
             
             if 'error' in metrics:
+                logger.warning("Error in profit_metrics: %s", metrics.get('error'))
                 return Response(metrics, status=400)
             
+            logger.info("Successfully returned profit metrics for user %s", request.user.username)
             return Response(metrics)
             
         except Exception as e:
+            logger.exception("Error in profit_metrics for user %s: %s", request.user.username, e)
             return Response({
                 'error': f'خطا در محاسبه متریک‌های سود: {str(e)}'
             }, status=500)
@@ -1624,6 +1534,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def cost_metrics(self, request):
         """دریافت متریک‌های هزینه"""
+        logger.info("User %s requesting cost metrics", request.user.username)
         try:
             project_id = request.query_params.get('project_id')  # شناسه پروژه از پارامترهای درخواست
             
@@ -1641,11 +1552,14 @@ class ProjectViewSet(viewsets.ModelViewSet):
             metrics = calculations.ProjectCalculations.calculate_cost_metrics(project_id)  # محاسبه متریک‌های هزینه
             
             if 'error' in metrics:
+                logger.warning("Error in cost_metrics: %s", metrics.get('error'))
                 return Response(metrics, status=400)
             
+            logger.info("Successfully returned cost metrics for user %s", request.user.username)
             return Response(metrics)
             
         except Exception as e:
+            logger.exception("Error in cost_metrics for user %s: %s", request.user.username, e)
             return Response({
                 'error': f'خطا در محاسبه متریک‌های هزینه: {str(e)}'
             }, status=500)
@@ -1653,6 +1567,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def project_statistics_detailed(self, request):
         """دریافت آمار تفصیلی پروژه"""
+        logger.info("User %s requesting detailed project statistics", request.user.username)
         try:
             project_id = request.query_params.get('project_id')  # شناسه پروژه از پارامترهای درخواست
             
@@ -1670,11 +1585,14 @@ class ProjectViewSet(viewsets.ModelViewSet):
             stats = calculations.ProjectCalculations.calculate_project_statistics(project_id)  # محاسبه آمار تفصیلی پروژه
             
             if 'error' in stats:
+                logger.warning("Error in project_statistics_detailed: %s", stats.get('error'))
                 return Response(stats, status=400)
             
+            logger.info("Successfully returned detailed project statistics for user %s", request.user.username)
             return Response(stats)
             
         except Exception as e:
+            logger.exception("Error in project_statistics_detailed for user %s: %s", request.user.username, e)
             return Response({
                 'error': f'خطا در دریافت آمار تفصیلی: {str(e)}'
             }, status=500)
@@ -1808,12 +1726,13 @@ class SaleViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
     queryset = models.Sale.objects.all()
     serializer_class = serializers.SaleSerializer
-    authentication_classes = [CsrfExemptSessionAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
+    permission_classes = [APISecurityPermission]
 
     @action(detail=False, methods=['get'])
     def total_sales(self, request):
         """دریافت مجموع فروش‌ها"""
+        logger.info("User %s requesting total sales", request.user.username)
         try:
             # دریافت پروژه جاری از session
             from construction.project_manager import ProjectManager
@@ -1865,6 +1784,7 @@ class SaleViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
             })
 
         except Exception as e:
+            logger.exception("Error in total_sales for user %s: %s", request.user.username, e)
             return Response({
                 'error': f'خطا در محاسبه مجموع فروش‌ها: {str(e)}'
             }, status=500)
@@ -1875,6 +1795,7 @@ class TransactionViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
     queryset = models.Transaction.objects.all()
     serializer_class = serializers.TransactionSerializer
+    authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
     permission_classes = [APISecurityPermission]
     filterset_fields = ['investor', 'project', 'period', 'transaction_type']
 
@@ -1959,6 +1880,34 @@ class TransactionViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
             'unique_investors': unique_investors
         })
 
+    @action(detail=False, methods=['get'])
+    def combined(self, request):
+        """
+        دریافت تراکنش‌های اصلی به همراه تراکنش‌های سود مرتبط در یک رکورد
+        فقط تراکنش‌های اصلی (غیر سود) را برمی‌گرداند
+        """
+        # فیلتر کردن فقط تراکنش‌های اصلی (غیر سود)
+        from django.db.models import Prefetch
+        queryset = self.get_queryset().exclude(
+            transaction_type='profit_accrual'
+        ).select_related(
+            'investor', 'project', 'period', 'interest_rate'
+        ).prefetch_related(
+            # بهینه‌سازی: فقط تراکنش‌های سود را prefetch می‌کنیم
+            Prefetch(
+                'transaction_set',
+                queryset=models.Transaction.objects.filter(transaction_type='profit_accrual').select_related('interest_rate'),
+                to_attr='profit_transactions'
+            )
+        )
+        
+        # اعمال فیلترهای پروژه (از ProjectFilterMixin)
+        queryset = self.filter_queryset(queryset)
+        
+        # استفاده از serializer جدید
+        serializer = serializers.CombinedTransactionSerializer(queryset, many=True)
+        return Response(serializer.data)
+
     # کدهای قبلی برای تغییر نرخ سود - کامنت شده برای مراجعه آینده
     """
     @action(detail=False, methods=['post'])
@@ -2016,6 +1965,7 @@ class TransactionViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def recalculate_profits(self, request):
         """محاسبه مجدد سودها با نرخ سود فعال فعلی برای پروژه فعال"""
+        logger.info("User %s requesting profit recalculation", request.user.username)
         try:
             # دریافت پروژه جاری از session
             from construction.project_manager import ProjectManager
@@ -2045,6 +1995,7 @@ class TransactionViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
             })
             
         except Exception as e:
+            logger.exception("Error in recalculate_profits for user %s: %s", request.user.username, e)
             return Response({
                 'error': f'خطا در محاسبه مجدد سودها: {str(e)}'
             }, status=500)
@@ -2052,6 +2003,7 @@ class TransactionViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def detailed_statistics(self, request):
         """دریافت آمار تفصیلی تراکنش‌ها با فیلترهای پیشرفته"""
+        logger.info("User %s requesting detailed transaction statistics", request.user.username)
         try:
             project_id = request.query_params.get('project_id')  # شناسه پروژه از پارامترهای درخواست
             
@@ -2069,11 +2021,14 @@ class TransactionViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
             stats = calculations.TransactionCalculations.calculate_transaction_statistics(project_id, filters)  # محاسبه آمار تفصیلی تراکنش‌ها
             
             if 'error' in stats:
+                logger.warning("Error in detailed_statistics: %s", stats.get('error'))
                 return Response(stats, status=400)
             
+            logger.info("Successfully returned detailed transaction statistics for user %s", request.user.username)
             return Response(stats)
             
         except Exception as e:
+            logger.exception("Error in detailed_statistics for user %s: %s", request.user.username, e)
             return Response({
                 'error': f'خطا در دریافت آمار تفصیلی تراکنش‌ها: {str(e)}'
             }, status=500)
@@ -2081,6 +2036,7 @@ class TransactionViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def recalculate_construction_contractor(self, request):
         """محاسبه مجدد همه هزینه‌های پیمان ساختمان"""
+        logger.info("User %s requesting construction contractor recalculation", request.user.username)
         try:
             project_id = request.data.get('project_id')  # شناسه پروژه از داده‌های درخواست
             
@@ -2106,6 +2062,7 @@ class TransactionViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
                 })
                 
         except Exception as e:
+            logger.exception("Error in recalculate_construction_contractor for user %s: %s", request.user.username, e)
             return Response({
                 'error': f'خطا در محاسبه مجدد هزینه‌های پیمان ساختمان: {str(e)}'
             }, status=500)
@@ -2117,6 +2074,7 @@ class InterestRateViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
     queryset = models.InterestRate.objects.all()
     serializer_class = serializers.InterestRateSerializer
+    authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
     permission_classes = [APISecurityPermission]
 
     @action(detail=False, methods=['get'])
@@ -2143,6 +2101,7 @@ class UnitViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
     queryset = models.Unit.objects.all()
     serializer_class = serializers.UnitSerializer
+    authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
     permission_classes = [APISecurityPermission]
 
     @action(detail=False, methods=['get'])
@@ -2186,6 +2145,7 @@ class UnitSpecificExpenseViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
     queryset = models.UnitSpecificExpense.objects.all()
     serializer_class = serializers.UnitSpecificExpenseSerializer
+    authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
     permission_classes = [APISecurityPermission]
     filterset_fields = ['unit', 'project']
 
@@ -2194,13 +2154,14 @@ class PettyCashTransactionViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
     """ViewSet برای مدیریت تراکنش‌های تنخواه"""
   
     queryset = models.PettyCashTransaction.objects.all()
-    authentication_classes = [CsrfExemptSessionAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
+    permission_classes = [APISecurityPermission]
     serializer_class = serializers.PettyCashTransactionSerializer
   
     @action(detail=False, methods=['get'])
     def balances(self, request):
         """دریافت وضعیت مالی همه عوامل اجرایی"""
+        logger.info("User %s requesting petty cash balances", request.user.username)
         try:
             from construction.project_manager import ProjectManager
             active_project = ProjectManager.get_current_project(request)
@@ -2208,8 +2169,10 @@ class PettyCashTransactionViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
                 return Response({'error': 'هیچ پروژه فعالی یافت نشد'}, status=400)
           
             balances = models.PettyCashTransaction.objects.get_all_balances(active_project)
+            logger.info("Successfully returned balances for user %s (project: %s)", request.user.username, active_project.name)
             return Response({'success': True, 'data': balances})
         except Exception as e:
+            logger.exception("Error in balances for user %s: %s", request.user.username, e)
             return Response({'error': str(e)}, status=500)
   
     @action(detail=False, methods=['get'])
@@ -2217,43 +2180,20 @@ class PettyCashTransactionViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
         """
         دریافت وضعیت مالی یک عامل اجرایی خاص
         
-        این endpoint وضعیت مالی تفصیلی یک عامل اجرایی (مدیر پروژه، سرپرست کارگاه، کارپرداز، انباردار، پیمانکار) را برمی‌گرداند.
+        این endpoint وضعیت مالی کامل یک عامل اجرایی (expense_type) را
+        شامل مانده، مجموع دریافت‌ها، هزینه‌ها و مرجوعی‌ها برمی‌گرداند.
         
-        پارامترها:
-        - expense_type (query param, الزامی): نوع عامل اجرایی (project_manager, facilities_manager, procurement, warehouse, construction_contractor)
+        Parameters:
+            expense_type (str): نوع عامل اجرایی (الزامی)
         
-        خروجی شامل:
-        - نوع عامل اجرایی و برچسب فارسی آن
-        - مانده فعلی (balance)
-        - مجموع دریافت‌ها (total_receipts)
-        - مجموع هزینه‌ها (total_expenses)
-        - مجموع برگشت‌ها (total_returns)
-        - وضعیت بستانکاری/بدهکاری
-        
-        سناریوهای استفاده:
-        - نمایش وضعیت مالی هر عامل اجرایی
-        - بررسی مانده تنخواه هر شخص
-        - محاسبه بدهی یا طلب هر عامل
-        - تهیه گزارش‌های تفصیلی تنخواه
-        - مدیریت جریان نقدی عوامل اجرایی
-        
-        مثال استفاده:
-        GET /api/v1/PettyCashTransaction/balance_detail/?expense_type=project_manager
-        
-        مثال خروجی:
-        {
-            "success": true,
-            "data": {
-                "expense_type": "project_manager",
-                "expense_type_label": "مدیر پروژه",
-                "balance": 5000000,
-                "total_receipts": 20000000,
-                "total_expenses": 15000000,
-                "total_returns": 0,
-                "is_creditor": false,
-                "is_debtor": true
-            }
-        }
+        Returns:
+            Response: شامل:
+                - expense_type: نوع عامل اجرایی
+                - expense_type_label: برچسب نوع عامل
+                - balance: مانده فعلی
+                - total_receipts: مجموع دریافت‌ها
+                - total_expenses: مجموع هزینه‌ها
+                - total_returns: مجموع مرجوعی‌ها
         
         نکات مهم:
         - فقط تراکنش‌های پروژه جاری را شامل می‌شود
@@ -2263,8 +2203,9 @@ class PettyCashTransactionViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
         - مانده منفی = بستانکار (بدهکار است)
         - تمام مبالغ به تومان هستند
         """
+        expense_type = request.query_params.get('expense_type')
+        logger.info("User %s requesting balance detail for expense_type: %s", request.user.username, expense_type)
         try:
-            expense_type = request.query_params.get('expense_type')
             if not expense_type:
                 return Response({'error': 'expense_type الزامی است'}, status=400)
           
@@ -2292,11 +2233,14 @@ class PettyCashTransactionViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
                 }
             })
         except Exception as e:
+            logger.exception("Error in balance_detail for user %s (expense_type: %s): %s", 
+                           request.user.username, expense_type, e)
             return Response({'error': str(e)}, status=500)
   
     @action(detail=False, methods=['get'])
     def period_balance(self, request):
         """دریافت وضعیت مالی عامل اجرایی در یک دوره"""
+        logger.debug("User %s requesting period balance", request.user.username)
         try:
             expense_type = request.query_params.get('expense_type')
             period_id = request.query_params.get('period_id')
@@ -2321,11 +2265,13 @@ class PettyCashTransactionViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
                 }
             })
         except Exception as e:
+            logger.exception("Error in period_balance for user %s: %s", request.user.username, e)
             return Response({'error': str(e)}, status=500)
   
     @action(detail=False, methods=['get'])
     def balance_trend(self, request):
         """ترند زمانی وضعیت مالی عامل اجرایی"""
+        logger.info("User %s requesting balance trend", request.user.username)
         try:
             expense_type = request.query_params.get('expense_type')
             if not expense_type:
@@ -2351,13 +2297,34 @@ class PettyCashTransactionViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
                 active_project, expense_type, start_period, end_period
             )
           
-            return Response({'success': True, 'data': trend})
+            # محاسبه آمار کلی (Single Source of Truth) - استفاده از متدهای اصلی برای سازگاری با /balances/
+            stats_total_receipts = models.PettyCashTransaction.objects.get_total_receipts(active_project, expense_type)
+            stats_total_returns = models.PettyCashTransaction.objects.get_total_returns(active_project, expense_type)
+            stats_total_expenses = models.PettyCashTransaction.objects.get_total_expenses(active_project, expense_type)
+            final_balance = models.PettyCashTransaction.objects.get_balance(active_project, expense_type)
+            
+            # محاسبه مجموع مانده دوره‌ای (برای نمایش در نمودار)
+            total_period_balance = sum(float(item.get('period_balance', 0) or 0) for item in trend)
+          
+            return Response({
+                'success': True,
+                'data': trend,
+                'summary': {
+                    'total_receipts': stats_total_receipts,
+                    'total_returns': stats_total_returns,
+                    'total_expenses': stats_total_expenses,
+                    'total_period_balance': total_period_balance,
+                    'final_balance': final_balance
+                }
+            })
         except Exception as e:
+            logger.exception("Error in balance_trend for user %s: %s", request.user.username, e)
             return Response({'error': str(e)}, status=500)
     
     @action(detail=False, methods=['get'])
     def detailed_report(self, request):
         """گزارش تفصیلی تراکنش‌های تنخواه با فیلتر و جستجو"""
+        logger.info("User %s requesting detailed petty cash report", request.user.username)
         try:
             from construction.project_manager import ProjectManager
             active_project = ProjectManager.get_current_project(request)
@@ -2433,4 +2400,56 @@ class PettyCashTransactionViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
                 }
             })
         except Exception as e:
+            logger.exception("Error in detailed_report for user %s: %s", request.user.username, e)
+            return Response({'error': str(e)}, status=500)
+    
+    @action(detail=False, methods=['get'])
+    def statistics(self, request):
+        """آمار کلی تراکنش‌های تنخواه (Single Source of Truth)"""
+        logger.info("User %s requesting petty cash statistics", request.user.username)
+        try:
+            from construction.project_manager import ProjectManager
+            from django.db.models import Sum
+            
+            active_project = ProjectManager.get_current_project(request)
+            if not active_project:
+                return Response({'error': 'هیچ پروژه فعالی یافت نشد'}, status=400)
+            
+            # دریافت فیلترها
+            expense_type = request.query_params.get('expense_type')
+            transaction_type = request.query_params.get('transaction_type')
+            
+            # QuerySet اولیه
+            queryset = models.PettyCashTransaction.objects.filter(project=active_project)
+            
+            # اعمال فیلترها
+            if expense_type:
+                queryset = queryset.filter(expense_type=expense_type)
+            if transaction_type:
+                queryset = queryset.filter(transaction_type=transaction_type)
+            
+            # محاسبه آمار با استفاده از Manager (Single Source of Truth)
+            total_receipts = queryset.filter(transaction_type='receipt').aggregate(
+                total=Sum('amount')
+            )['total'] or 0
+            
+            total_returns = queryset.filter(transaction_type='return').aggregate(
+                total=Sum('amount')
+            )['total'] or 0
+            
+            total_receipts = float(total_receipts)
+            total_returns = float(total_returns)
+            net_amount = total_receipts - total_returns
+            
+            return Response({
+                'success': True,
+                'data': {
+                    'total_receipts': total_receipts,
+                    'total_returns': total_returns,
+                    'net_amount': net_amount,
+                    'count': queryset.count()
+                }
+            })
+        except Exception as e:
+            logger.exception("Error in statistics for user %s: %s", request.user.username, e)
             return Response({'error': str(e)}, status=500)

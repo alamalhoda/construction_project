@@ -11,7 +11,13 @@ venv/
 *.env.development
 *.env.test
 *.env.local
+# Logs
 *.log
+logs/
+!logs/.gitkeep    # استثنا: فقط .gitkeep را نگه داریم
+logs/*.log
+logs/*.log.*  # برای فایل‌های backup (مثل dashboard.log.1)
+
 .DS_Store
 .vscode/
 

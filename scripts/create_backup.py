@@ -33,7 +33,7 @@ django.setup()
 
 from django.core.management import call_command
 from django.core import serializers
-from construction.models import Project, Investor, Period, Transaction, Unit, InterestRate, Expense, Sale, UserProfile, PettyCashTransaction
+from construction.models import Project, Investor, Period, Transaction, Unit, InterestRate, Expense, Sale, UserProfile, PettyCashTransaction, UnitSpecificExpense
 
 # دریافت project_id از آرگومان خط فرمان
 project_id = None
@@ -104,6 +104,7 @@ def get_database_stats(project_id=None):
         'expenses': Expense.objects.filter(**project_related_filter).count() if project_id else Expense.objects.count(),
         'sales': Sale.objects.filter(**project_related_filter).count() if project_id else Sale.objects.count(),
         'petty_cash_transactions': PettyCashTransaction.objects.filter(**project_related_filter).count() if project_id else PettyCashTransaction.objects.count(),
+        'unit_specific_expenses': UnitSpecificExpense.objects.filter(unit__project_id=project_id).count() if project_id else UnitSpecificExpense.objects.count(),
         'user_profiles': UserProfile.objects.count(),  # user profiles معمولاً به پروژه مربوط نیستند
         
         # مدل‌های Django داخلی - همیشه همه
@@ -172,12 +173,17 @@ def create_complete_fixture(backup_path, project_id=None):
                 ('construction', 'Expense'),
                 ('construction', 'Sale'),
                 ('construction', 'PettyCashTransaction'),
+                ('construction', 'UnitSpecificExpense'),
             ]
             
             for app_name, model_name in related_models_config:
                 try:
                     model_class = django_apps.get_model(app_name, model_name)
-                    queryset = model_class.objects.filter(project_id=project_id)
+                    # UnitSpecificExpense به Unit وابسته است که به Project وابسته است
+                    if model_name == 'UnitSpecificExpense':
+                        queryset = model_class.objects.filter(unit__project_id=project_id)
+                    else:
+                        queryset = model_class.objects.filter(project_id=project_id)
                     if queryset.exists():
                         serialized = serializers.serialize('json', queryset, use_natural_foreign_keys=True, use_natural_primary_keys=True)
                         all_fixtures.append(serialized)
@@ -389,6 +395,7 @@ def create_individual_fixtures(backup_path, project_id=None):
         ('construction.expense', 'expenses.json', 'هزینه‌ها'),
         ('construction.sale', 'sales.json', 'فروش/مرجوعی‌ها'),
         ('construction.pettycashtransaction', 'petty_cash_transactions.json', 'تراکنش‌های تنخواه'),
+        ('construction.unitspecificexpense', 'unit_specific_expenses.json', 'هزینه‌های اختصاصی واحد'),
     ]
     
     # مدل‌های دیگر
@@ -452,7 +459,11 @@ def create_individual_fixtures(backup_path, project_id=None):
                 model_class = apps.get_model(app_name, model_class_name)
                 
                 # فیلتر کردن queryset بر اساس پروژه
-                queryset = model_class.objects.filter(project_id=project_id)
+                # UnitSpecificExpense به Unit وابسته است که به Project وابسته است
+                if model_class_name.lower() == 'unitspecificexpense':
+                    queryset = model_class.objects.filter(unit__project_id=project_id)
+                else:
+                    queryset = model_class.objects.filter(project_id=project_id)
                 
                 # استفاده از serialization مستقیم
                 with open(file_path, 'w', encoding='utf-8') as f:
@@ -577,6 +588,7 @@ def create_stats_file(backup_path, timestamp, stats, project_id=None):
         'expenses.json',
         'sales.json',
         'petty_cash_transactions.json',
+        'unit_specific_expenses.json',
         'user_profiles.json',
             'users.json',
             'groups.json',
@@ -621,6 +633,7 @@ def create_stats_file(backup_path, timestamp, stats, project_id=None):
         f.write(f"    هزینه‌ها: {stats['expenses']}\n")
         f.write(f"    فروش/مرجوعی‌ها: {stats['sales']}\n")
         f.write(f"    تراکنش‌های تنخواه: {stats['petty_cash_transactions']}\n")
+        f.write(f"    هزینه‌های اختصاصی واحد: {stats['unit_specific_expenses']}\n")
         f.write(f"    پروفایل‌های کاربران: {stats['user_profiles']}\n")
         f.write("  مدل‌های Django:\n")
         f.write(f"    کاربران: {stats['users']}\n")
@@ -691,7 +704,7 @@ def main():
     # گزارش نهایی
     print("\n" + "=" * 60)
     
-    if complete_success and individual_count == 18:  # 19 - 1 (security_events)
+    if complete_success and individual_count == 19:  # شامل UnitSpecificExpense
         print("🎉 پشتیبان‌گیری با موفقیت کامل شد!")
         print(f"📁 مسیر: {backup_path}")
         print(f"📦 فایل‌های ایجاد شده: {len(os.listdir(backup_path))}")

@@ -17,197 +17,11 @@
     <!-- Project Switcher CSS -->
     <link rel="stylesheet" href="/static/css/project-switcher.css">
     
+    <!-- Dashboard Common CSS -->
+    <link rel="stylesheet" href="/static/css/dashboard-common.css">
+    
     <style>
-        /* CSS Variables for Theme System - Project Standard Colors */
-        :root {
-            /* Primary Colors */
-            --primary-color: #667eea;
-            --secondary-color: #764ba2;
-            
-            /* Project Standard Colors - Financial Categories */
-            --deposit-color: #2185d0;           /* آبی - آورده و واریزی */
-            --deposit-color-light: rgba(33, 133, 208, 0.1);
-            --withdrawal-color: #db2828;        /* قرمز - برداشت و خروجی */
-            --withdrawal-color-light: rgba(219, 40, 40, 0.1);
-            --profit-color: #21ba45;            /* سبز - سود مشارکت و درآمد */
-            --profit-color-light: rgba(33, 186, 69, 0.1);
-            --capital-color: #aa26ff;           /* بنفش - سرمایه موجود و موجودی */
-            --capital-color-light: rgba(170, 38, 255, 0.1);
-            --expense-color: #dc3545;           /* قرمز تیره - هزینه‌ها و خرجی */
-            --expense-color-light: rgba(220, 53, 69, 0.1);
-            --refund-color: #ffc107;            /* زرد - فروش/مرجوعی */
-            --refund-color-light: rgba(255, 193, 7, 0.1);
-            --balance-color: #6c757d;           /* خاکستری - مانده صندوق، مجموع و کل */
-            --balance-color-light: rgba(108, 117, 125, 0.1);
-            --total-color: #6c757d;             /* خاکستری - مجموع و کل */
-            --total-color-light: rgba(108, 117, 125, 0.1);
-            --gold-color: #ffd700;              /* طلایی - شاخص نفع و عملکرد برتر */
-            --gold-color-light: rgba(255, 215, 0, 0.1);
-            --loan-deposit-color: #5ca5e8;      /* آبی روشن - آورده وام */
-            --loan-deposit-color-light: rgba(92, 165, 232, 0.1);
-            
-            /* Background Colors */
-            --bg-primary: #f8f9fa;
-            --bg-secondary: #ffffff;
-            --bg-card: #ffffff;
-            --bg-overlay: rgba(255, 255, 255, 0.95);
-            
-            /* Text Colors */
-            --text-primary: #2c3e50;
-            --text-secondary: #6c757d;
-            --text-muted: #8e9297;
-            --text-white: #ffffff;
-            
-            /* Border & Shadow */
-            --border-color: #e9ecef;
-            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 8px 25px rgba(0, 0, 0, 0.08);
-            --shadow-lg: 0 15px 35px rgba(0, 0, 0, 0.12);
-        }
-
-        /* Dark Theme */
-        [data-theme="dark"] {
-            --primary-color: #667eea;
-            --secondary-color: #764ba2;
-            
-            /* Project Standard Colors - Dark Theme */
-            --deposit-color: #4fc3f7;           /* آبی روشن‌تر */
-            --deposit-color-light: rgba(79, 195, 247, 0.2);
-            --withdrawal-color: #f48fb1;        /* قرمز روشن‌تر */
-            --withdrawal-color-light: rgba(244, 143, 177, 0.2);
-            --profit-color: #81c784;            /* سبز روشن‌تر */
-            --profit-color-light: rgba(129, 199, 132, 0.2);
-            --capital-color: #c77dff;           /* بنفش روشن‌تر */
-            --capital-color-light: rgba(199, 125, 255, 0.2);
-            --expense-color: #f48fb1;           /* قرمز روشن‌تر */
-            --expense-color-light: rgba(244, 143, 177, 0.2);
-            --refund-color: #ffeb3b;            /* زرد روشن‌تر */
-            --refund-color-light: rgba(255, 235, 59, 0.2);
-            --balance-color: #b0bec5;           /* خاکستری روشن‌تر */
-            --balance-color-light: rgba(176, 190, 197, 0.2);
-            --total-color: #b0bec5;             /* خاکستری روشن‌تر */
-            --total-color-light: rgba(176, 190, 197, 0.2);
-            --gold-color: #ffed4e;              /* طلایی روشن‌تر */
-            --gold-color-light: rgba(255, 237, 78, 0.2);
-            --loan-deposit-color: #7eb8f0;      /* آبی روشن‌تر برای حالت تاریک */
-            --loan-deposit-color-light: rgba(126, 184, 240, 0.15);
-            
-            /* Dark Background Colors */
-            --bg-primary: #121212;
-            --bg-secondary: #1e1e1e;
-            --bg-card: #2d2d2d;
-            --bg-overlay: rgba(45, 45, 45, 0.95);
-            
-            /* Dark Text Colors */
-            --text-primary: #ffffff;
-            --text-secondary: #b3b3b3;
-            --text-muted: #888888;
-            --text-white: #ffffff;
-            
-            /* Dark Border & Shadow */
-            --border-color: #404040;
-            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
-            --shadow-md: 0 8px 25px rgba(0, 0, 0, 0.4);
-            --shadow-lg: 0 15px 35px rgba(0, 0, 0, 0.5);
-        }
-
-        body {
-            font-family: 'Vazir','Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            min-height: 100vh;
-            padding: 20px;
-            direction: rtl;
-            color: var(--text-primary);
-        }
-
-        .main-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: var(--bg-card);
-            border-radius: 20px;
-            box-shadow: var(--shadow-lg);
-            overflow: hidden;
-            border: 1px solid var(--border-color);
-        }
-
-        .unified-header {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            color: white;
-            padding: 40px 30px;
-            border-radius: 20px 20px 0 0;
-            margin-bottom: 30px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .unified-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-            opacity: 0.3;
-        }
-
-        .unified-header-content {
-            position: relative;
-            z-index: 2;
-            text-align: center;
-        }
-
-        .unified-header h1 {
-            font-size: 2.8rem;
-            margin-bottom: 15px;
-            font-weight: 300;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-        }
-
-        .unified-header .subtitle {
-            font-size: 1.2rem;
-            opacity: 0.9;
-            margin-bottom: 25px;
-        }
-
-        .unified-header .navigation-links {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        .unified-header .nav-link {
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-            padding: 12px 25px;
-            border-radius: 25px;
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .unified-header .nav-link:hover {
-            background: rgba(255, 255, 255, 0.25);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-        }
-
-        .unified-header .project-switcher-container {
-            position: absolute;
-            top: 20px;
-            /* left: 20px; */
-            z-index: 10;
-        }
+        /* استایل‌های خاص این صفحه - استایل‌های مشترک در dashboard-common.css هستند */
 
         .content-section {
             padding: 30px;
@@ -235,6 +49,7 @@
         }
 
         select {
+            font-family: 'Vazir','Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             padding: 12px;
             border: 2px solid var(--border-color);
             border-radius: 10px;
@@ -366,12 +181,12 @@
         }
 
         .receipt-amount {
-            color: var(--deposit-color);
+            color: var(--petty-cash-received-color);
             font-weight: 600;
         }
 
         .return-amount {
-            color: var(--refund-color);
+            color: var(--petty-cash-returned-color);
             font-weight: 600;
         }
 
@@ -426,18 +241,19 @@
         }
 
         .stat-card.deposit-card {
-            background: linear-gradient(135deg, var(--deposit-color) 0%, #1565c0 100%);
-            box-shadow: 0 12px 40px var(--deposit-color-light);
+            background: linear-gradient(135deg, var(--petty-cash-received-color) 0%, #1565c0 100%);
+            box-shadow: 0 12px 40px var(--petty-cash-received-color-light);
         }
 
         .stat-card.return-card {
-            background: linear-gradient(135deg, var(--refund-color) 0%, #e6ac00 100%);
-            box-shadow: 0 12px 40px var(--refund-color-light);
+            background: linear-gradient(135deg, var(--petty-cash-returned-color) 0%, #e67e22 100%);
+            box-shadow: 0 12px 40px var(--petty-cash-returned-color-light);
         }
 
         .stat-card.expense-card {
-            background: linear-gradient(135deg, var(--expense-color) 0%, #c82333 100%);
-            box-shadow: 0 12px 40px var(--expense-color-light);
+            color: #b71c1c;
+            background: linear-gradient(135deg, #f6f6f6 0%, #f6f6f6 100%);
+            box-shadow: 0 12px 40px #b71c1c;
         }
 
         .stat-card.balance-card {
@@ -517,8 +333,6 @@
                 <h1>
                     <i class="fas fa-calendar-alt"></i>
                     گزارش دوره‌ای تنخواه
-                    <!-- Project Badge will be rendered here by JavaScript -->
-                    <span id="currentProjectBadge" style="display: none; font-size: 0.6em; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; margin-right: 15px; display: inline-flex; align-items: center; gap: 8px;"></span>
                 </h1>
                 <p class="subtitle">ترند زمانی وضعیت مالی عوامل اجرایی</p>
                 <div class="navigation-links">
@@ -543,6 +357,11 @@
                             <option value="">انتخاب عامل اجرایی</option>
                         </select>
                     </div>
+                </div>
+                <div style="text-align: center; margin-top: 15px;">
+                    <a href="#" id="printLink" class="btn-primary" style="display: none; text-decoration: none;">
+                        <i class="fas fa-print"></i> نسخه چاپ/PDF
+                    </a>
                 </div>
             </div>
 
@@ -587,16 +406,80 @@
             return cookieValue;
         }
 
+        // متغیر global برای CSRF token
+        let csrfToken = null;
+        // Promise برای جلوگیری از race condition در دریافت همزمان
+        let csrfTokenPromise = null;
+
+        // تابع دریافت CSRF token (بهبود یافته با Promise-based locking)
+        async function getCSRFToken() {
+            // اگر قبلاً دریافت شده، آن را برگردان
+            if (csrfToken) {
+                return csrfToken;
+            }
+            
+            // اگر یک Promise در حال انجام است، منتظر آن بمان
+            if (csrfTokenPromise) {
+                return await csrfTokenPromise;
+            }
+            
+            // ایجاد Promise جدید برای دریافت token
+            csrfTokenPromise = (async () => {
+                try {
+                    // ابتدا از window.csrfToken بررسی کن (از سرور)
+                    if (window.csrfToken) {
+                        csrfToken = window.csrfToken;
+                        return csrfToken;
+                    }
+                    
+                    // سپس از cookie بررسی کن
+                    const cookieToken = getCookie('csrftoken');
+                    if (cookieToken) {
+                        csrfToken = cookieToken;
+                        return csrfToken;
+                    }
+                    
+                    // اگر هیچکدام موجود نبود، از API endpoint دریافت کن
+                    const response = await fetch('/api/v1/auth/csrf/', {
+                        method: 'GET',
+                        credentials: 'include'
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.csrf_token) {
+                            csrfToken = data.csrf_token;
+                            return csrfToken;
+                        }
+                    }
+                    
+                    return null;
+                } catch (error) {
+                    console.error('خطا در دریافت CSRF token:', error);
+                    return null;
+                } finally {
+                    // پاک کردن Promise بعد از اتمام (برای امکان retry در صورت خطا)
+                    csrfTokenPromise = null;
+                }
+            })();
+            
+            // منتظر ماندن برای نتیجه Promise
+            return await csrfTokenPromise;
+        }
+
         function formatNumber(num) {
             return new Intl.NumberFormat('en-US').format(Math.round(num));
         }
 
         async function loadInitialData() {
             try {
+                // دریافت CSRF token
+                const csrfToken = await getCSRFToken();
+                
                 // Load current project
                 try {
                     const currentProjectResponse = await fetch(`${API_BASE}Project/current/`, {
-                        headers: {'X-CSRFToken': getCookie('csrftoken') || ''}
+                        headers: {'X-CSRFToken': csrfToken || ''}
                     });
                     if (currentProjectResponse.ok) {
                         const currentProject = await currentProjectResponse.json();
@@ -626,10 +509,21 @@
                 expenseTypeSelect.addEventListener('change', function() {
                     if (this.value) {
                         loadTrendData();
+                        // فعال کردن لینک چاپ
+                        const printLink = document.getElementById('printLink');
+                        if (printLink) {
+                            printLink.href = `/dashboard/petty-cash/period/print/?expense_type=${this.value}`;
+                            printLink.style.display = 'inline-flex';
+                        }
                     } else {
                         // اگر هیچ عاملی انتخاب نشده باشد، محتوا را پنهان کن
                         document.getElementById('loading').style.display = 'none';
                         document.getElementById('content').style.display = 'none';
+                        // پنهان کردن لینک چاپ
+                        const printLink = document.getElementById('printLink');
+                        if (printLink) {
+                            printLink.style.display = 'none';
+                        }
                     }
                 });
             } catch (error) {
@@ -652,13 +546,17 @@
 
                 const url = `${API_BASE}PettyCashTransaction/balance_trend/?expense_type=${expenseType}`;
 
+                // دریافت CSRF token
+                const csrfToken = await getCSRFToken();
+
                 const response = await fetch(url, {
-                    headers: {'X-CSRFToken': getCookie('csrftoken') || ''}
+                    headers: {'X-CSRFToken': csrfToken || ''}
                 });
 
                 const result = await response.json();
                 if (result.success) {
-                    displayTrendData(result.data);
+                    // ارسال کل response شامل data و summary (Single Source of Truth)
+                    displayTrendData(result);
                     document.getElementById('loading').style.display = 'none';
                     document.getElementById('content').style.display = 'block';
                 } else {
@@ -671,7 +569,11 @@
             }
         }
 
-        function displayTrendData(data) {
+        function displayTrendData(responseData) {
+            // دریافت داده‌ها و آمار از سرور (Single Source of Truth)
+            const data = responseData.data || [];
+            const summary = responseData.summary || {};
+            
             if (!data || data.length === 0) {
                 document.getElementById('trendTable').innerHTML = 
                     '<p style="text-align: center; padding: 20px; color: var(--text-secondary);">داده‌ای برای نمایش وجود ندارد</p>';
@@ -679,22 +581,11 @@
                 return;
             }
 
-            // محاسبه آمار کلی
-            let statsTotalReceipts = 0;
-            let statsTotalReturns = 0;
-            let statsTotalExpenses = 0;
-            let finalBalance = 0;
-
-            data.forEach(item => {
-                statsTotalReceipts += parseFloat(item.period_receipts || 0);
-                statsTotalReturns += parseFloat(item.period_returns || 0);
-                statsTotalExpenses += parseFloat(item.period_expenses || 0);
-            });
-
-            // مانده نهایی (آخرین مانده تجمعی)
-            if (data.length > 0) {
-                finalBalance = parseFloat(data[data.length - 1].cumulative_balance || data[data.length - 1].balance || 0);
-            }
+            // استفاده از آمار محاسبه شده در سرور
+            const statsTotalReceipts = summary.total_receipts || 0;
+            const statsTotalReturns = summary.total_returns || 0;
+            const statsTotalExpenses = summary.total_expenses || 0;
+            const finalBalance = summary.final_balance || 0;
 
             // نمایش کارت‌های آماری
             displayStatsCards(statsTotalReceipts, statsTotalReturns, statsTotalExpenses, finalBalance);
@@ -706,21 +597,13 @@
             const expenses = data.map(item => parseFloat(item.period_expenses || 0));
 
             // دریافت رنگ‌ها از CSS Variables
-            const depositColor = getComputedStyle(document.documentElement).getPropertyValue('--deposit-color').trim();
-            const refundColor = getComputedStyle(document.documentElement).getPropertyValue('--refund-color').trim();
+            const depositColor = getComputedStyle(document.documentElement).getPropertyValue('--petty-cash-received-color').trim();
+            const refundColor = getComputedStyle(document.documentElement).getPropertyValue('--petty-cash-returned-color').trim();
             const expenseColor = getComputedStyle(document.documentElement).getPropertyValue('--expense-color').trim();
-            const depositColorLight = getComputedStyle(document.documentElement).getPropertyValue('--deposit-color-light').trim();
-            const refundColorLight = getComputedStyle(document.documentElement).getPropertyValue('--refund-color-light').trim();
+            const depositColorLight = getComputedStyle(document.documentElement).getPropertyValue('--petty-cash-received-color-light').trim();
+            const refundColorLight = getComputedStyle(document.documentElement).getPropertyValue('--petty-cash-returned-color-light').trim();
             const expenseColorLight = getComputedStyle(document.documentElement).getPropertyValue('--expense-color-light').trim();
-
-            // تعیین رنگ خط بر اساس میانگین balance
-            const avgBalance = balances.reduce((a, b) => a + b, 0) / balances.length;
             let lineColor = getComputedStyle(document.documentElement).getPropertyValue('--balance-color').trim();
-            if (avgBalance > 0) {
-                lineColor = getComputedStyle(document.documentElement).getPropertyValue('--withdrawal-color').trim();
-            } else if (avgBalance < 0) {
-                lineColor = getComputedStyle(document.documentElement).getPropertyValue('--profit-color').trim();
-            }
 
             // Create combo chart
             const ctx = document.getElementById('trendChart').getContext('2d');
@@ -946,10 +829,10 @@
             let tableHTML = '<div style="overflow-x: auto;"><table class="trend-table">';
             tableHTML += '<thead><tr>';
             tableHTML += '<th><i class="fas fa-calendar"></i> دوره</th>';
-            tableHTML += '<th style="background-color: var(--deposit-color-light); border-left: 3px solid var(--deposit-color);">';
+            tableHTML += '<th style="background-color: var(--petty-cash-received-color-light); border-left: 3px solid var(--petty-cash-received-color);">';
             tableHTML += '<i class="fas fa-plus-circle"></i> تنخواه دریافتی';
             tableHTML += '</th>';
-            tableHTML += '<th style="background-color: var(--refund-color-light); border-left: 3px solid var(--refund-color);">';
+            tableHTML += '<th style="background-color: var(--petty-cash-returned-color-light); border-left: 3px solid var(--petty-cash-returned-color);">';
             tableHTML += '<i class="fas fa-undo"></i> عودت تنخواه';
             tableHTML += '</th>';
             tableHTML += '<th style="background-color: var(--expense-color-light); border-left: 3px solid var(--expense-color);">';
@@ -963,11 +846,12 @@
             tableHTML += '</th>';
             tableHTML += '</tr></thead><tbody>';
             
-            // محاسبه مجموع‌ها
-            let totalReceipts = 0;
-            let totalReturns = 0;
-            let totalExpenses = 0;
-            let totalPeriodBalance = 0;
+            // استفاده از آمار محاسبه شده در سرور (Single Source of Truth)
+            const totalReceipts = summary.total_receipts || 0;
+            const totalReturns = summary.total_returns || 0;
+            const totalExpenses = summary.total_expenses || 0;
+            const totalPeriodBalance = summary.total_period_balance || 0;
+            const finalCumulativeBalance = summary.final_balance || 0;
             
             data.forEach(item => {
                 const receipts = parseFloat(item.period_receipts || 0);
@@ -975,11 +859,6 @@
                 const expenses = parseFloat(item.period_expenses || 0);
                 const periodBalance = parseFloat(item.period_balance || 0);
                 const cumulativeBalance = parseFloat(item.cumulative_balance || item.balance || 0);
-                
-                totalReceipts += receipts;
-                totalReturns += returns;
-                totalExpenses += expenses;
-                totalPeriodBalance += periodBalance;
                 
                 // تعیین کلاس برای مانده ماهانه
                 const periodBalancePositive = periodBalance > 0;
@@ -995,26 +874,20 @@
                 if (cumulativeBalancePositive) cumulativeBalanceClass = 'balance-positive';
                 else if (cumulativeBalanceNegative) cumulativeBalanceClass = 'balance-negative';
                 
-                const periodSign = periodBalancePositive ? '+' : '';
-                const cumulativeSign = cumulativeBalancePositive ? '+' : '';
-                
                 tableHTML += `<tr>
                     <td style="direction: rtl; text-align: right;"><strong>${item.period_label}</strong></td>
                     <td class="receipt-amount">${formatNumber(receipts)}</td>
                     <td class="return-amount">${formatNumber(returns)}</td>
                     <td class="expense-amount">${formatNumber(expenses)}</td>
-                    <td class="${periodBalanceClass}">${periodSign}${formatNumber(periodBalance)}</td>
-                    <td class="${cumulativeBalanceClass}">${cumulativeSign}${formatNumber(cumulativeBalance)}</td>
+                    <td class="${periodBalanceClass}">${formatNumber(periodBalance)}</td>
+                    <td class="${cumulativeBalanceClass}">${formatNumber(cumulativeBalance)}</td>
                 </tr>`;
             });
             
-            // محاسبه مجموع نهایی
-            const finalCumulativeBalance = data.length > 0 ? parseFloat(data[data.length - 1].cumulative_balance || data[data.length - 1].balance || 0) : 0;
+            // استفاده از مانده نهایی از سرور (Single Source of Truth)
             const finalCumulativeClass = finalCumulativeBalance > 0 ? 'balance-positive' : finalCumulativeBalance < 0 ? 'balance-negative' : 'balance-zero';
-            const finalCumulativeSign = finalCumulativeBalance >= 0 ? '+' : '';
             
             const totalPeriodBalanceClass = totalPeriodBalance > 0 ? 'balance-positive' : totalPeriodBalance < 0 ? 'balance-negative' : 'balance-zero';
-            const totalPeriodBalanceSign = totalPeriodBalance >= 0 ? '+' : '';
             
             tableHTML += '<tfoot>';
             tableHTML += `<tr>
@@ -1022,8 +895,8 @@
                 <td class="receipt-amount">${formatNumber(totalReceipts)}</td>
                 <td class="return-amount">${formatNumber(totalReturns)}</td>
                 <td class="expense-amount">${formatNumber(totalExpenses)}</td>
-                <td class="${totalPeriodBalanceClass}">${totalPeriodBalanceSign}${formatNumber(totalPeriodBalance)}</td>
-                <td class="${finalCumulativeClass}">${finalCumulativeSign}${formatNumber(finalCumulativeBalance)}</td>
+                <td class="${totalPeriodBalanceClass}">${formatNumber(totalPeriodBalance)}</td>
+                <td class="${finalCumulativeClass}">${formatNumber(finalCumulativeBalance)}</td>
             </tr>`;
             tableHTML += '</tfoot>';
             tableHTML += '</tbody></table></div>';
@@ -1046,11 +919,11 @@
             if (balancePositive) {
                 balanceCardClass = 'balance-positive';
                 balanceIcon = 'fa-exclamation-circle';
-                balanceStatus = 'بدهکار (باید برگرداند)';
+                balanceStatus = 'بدهکار';
             } else if (balanceNegative) {
                 balanceCardClass = 'balance-negative';
                 balanceIcon = 'fa-check-circle';
-                balanceStatus = 'بستانکار (صندوق باید بدهد)';
+                balanceStatus = 'بستانکار';
             }
 
             const balanceSign = balancePositive ? '+' : '';
@@ -1095,15 +968,15 @@
                             <i class="fas ${balanceIcon}"></i>
                         </div>
                         <div class="stat-number">${balanceSign}${formatNumber(Math.abs(finalBalance))}</div>
-                        <div class="stat-label">مانده نهایی</div>
+                        <div class="stat-label"> مانده نهایی(تومان)</div>
                         <div class="stat-subtitle">${balanceStatus}</div>
                     </div>
                 </div>
             `;
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            loadInitialData();
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadInitialData();
         });
     </script>
     

@@ -12,6 +12,9 @@
     <!-- Vazir Font CSS -->
     <link rel="stylesheet" href="/static/fonts/vazir.css">
     
+    <!-- Dashboard Common CSS -->
+    <link rel="stylesheet" href="/static/css/dashboard-common.css">
+    
     <style>
         :root {
             /* رنگ‌های استاندارد مالی پروژه */
@@ -49,6 +52,180 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+        }
+
+        /* استایل‌های نمایش محتوای Quill Editor */
+        #projectDescription,
+        #investorDescription {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            white-space: normal;
+        }
+
+        /* استایل‌های Quill Editor برای نمایش محتوا */
+        #projectDescription.ql-editor,
+        #investorDescription.ql-editor {
+            box-sizing: border-box;
+            line-height: 1.42;
+            height: 100%;
+            outline: none;
+            overflow-y: auto;
+            padding: 0;
+            tab-size: 4;
+            -moz-tab-size: 4;
+            text-align: right;
+            direction: rtl;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        #projectDescription.ql-editor p,
+        #investorDescription.ql-editor p {
+            margin: 0 0 1em 0;
+            display: block;
+        }
+
+        #projectDescription.ql-editor p:last-child,
+        #investorDescription.ql-editor p:last-child {
+            margin-bottom: 0;
+        }
+
+        #projectDescription.ql-editor > *,
+        #investorDescription.ql-editor > * {
+            cursor: text;
+        }
+
+        #projectDescription.ql-editor p,
+        #projectDescription.ql-editor ol,
+        #projectDescription.ql-editor ul,
+        #projectDescription.ql-editor pre,
+        #projectDescription.ql-editor blockquote,
+        #projectDescription.ql-editor h1,
+        #projectDescription.ql-editor h2,
+        #projectDescription.ql-editor h3,
+        #projectDescription.ql-editor h4,
+        #projectDescription.ql-editor h5,
+        #projectDescription.ql-editor h6,
+        #investorDescription.ql-editor p,
+        #investorDescription.ql-editor ol,
+        #investorDescription.ql-editor ul,
+        #investorDescription.ql-editor pre,
+        #investorDescription.ql-editor blockquote,
+        #investorDescription.ql-editor h1,
+        #investorDescription.ql-editor h2,
+        #investorDescription.ql-editor h3,
+        #investorDescription.ql-editor h4,
+        #investorDescription.ql-editor h5,
+        #investorDescription.ql-editor h6 {
+            margin: 0;
+            padding: 0;
+            counter-reset: list-1 list-2 list-3 list-4 list-5 list-6 list-7 list-8 list-9;
+        }
+
+        #projectDescription.ql-editor ol,
+        #projectDescription.ql-editor ul,
+        #investorDescription.ql-editor ol,
+        #investorDescription.ql-editor ul {
+            padding-right: 1.5em;
+            padding-left: 0;
+        }
+
+        #projectDescription.ql-editor ol > li,
+        #projectDescription.ql-editor ul > li,
+        #investorDescription.ql-editor ol > li,
+        #investorDescription.ql-editor ul > li {
+            list-style-type: none;
+        }
+
+        #projectDescription.ql-editor ul > li::before,
+        #investorDescription.ql-editor ul > li::before {
+            content: '\2022';
+        }
+
+        #projectDescription.ql-editor ol {
+            counter-reset: list-1;
+        }
+
+        #investorDescription.ql-editor ol {
+            counter-reset: list-1;
+        }
+
+        #projectDescription.ql-editor ol > li,
+        #investorDescription.ql-editor ol > li {
+            counter-increment: list-1;
+        }
+
+        #projectDescription.ql-editor ol > li::before,
+        #investorDescription.ql-editor ol > li::before {
+            content: counter(list-1, decimal) '. ';
+        }
+
+        #projectDescription.ql-editor br,
+        #investorDescription.ql-editor br {
+            display: block;
+        }
+
+        #projectDescription h1,
+        #projectDescription h2,
+        #projectDescription h3,
+        #projectDescription h4,
+        #projectDescription h5,
+        #projectDescription h6,
+        #investorDescription h1,
+        #investorDescription h2,
+        #investorDescription h3,
+        #investorDescription h4,
+        #investorDescription h5,
+        #investorDescription h6 {
+            margin: 1em 0 0.5em 0;
+            display: block;
+            font-weight: bold;
+        }
+
+        #projectDescription ul,
+        #projectDescription ol,
+        #investorDescription ul,
+        #investorDescription ol {
+            margin: 1em 0;
+            padding-right: 2em;
+            display: block;
+        }
+
+        #projectDescription li,
+        #investorDescription li {
+            margin: 0.5em 0;
+            display: list-item;
+        }
+
+        #projectDescription strong,
+        #investorDescription strong {
+            font-weight: bold;
+        }
+
+        #projectDescription em,
+        #investorDescription em {
+            font-style: italic;
+        }
+
+        #projectDescription u,
+        #investorDescription u {
+            text-decoration: underline;
+        }
+
+        #projectDescription s,
+        #investorDescription s {
+            text-decoration: line-through;
+        }
+
+        #projectDescription a,
+        #investorDescription a {
+            color: var(--primary-color);
+            text-decoration: underline;
+        }
+
+        #projectDescription a:hover,
+        #investorDescription a:hover {
+            color: var(--secondary-color);
         }
 
         body {
@@ -902,7 +1079,7 @@
                     توضیحات پروژه
                 </h3>
                 <div style="background: var(--bg-card); padding: 20px; border-radius: 10px; border: 1px solid var(--border-color);">
-                    <p id="projectDescription" style="color: var(--text-primary); line-height: 1.8; margin: 0; white-space: pre-wrap;"></p>
+                    <div id="projectDescription" class="ql-editor" style="color: var(--text-primary); line-height: 1.8; margin: 0; direction: rtl; text-align: right;"></div>
                 </div>
             </div>
             <!-- بخش توضیحات سرمایه‌گذار -->
@@ -912,7 +1089,7 @@
                     توضیحات مشارکت کننده
                 </h3>
                 <div style="background: var(--bg-card); padding: 20px; border-radius: 10px; border: 1px solid var(--border-color);">
-                    <p id="investorDescription" style="color: var(--text-primary); line-height: 1.8; margin: 0; white-space: pre-wrap;"></p>
+                    <div id="investorDescription" class="ql-editor" style="color: var(--text-primary); line-height: 1.8; margin: 0; direction: rtl; text-align: right;"></div>
                 </div>
             </div>
             <!-- Project Overview Section -->
@@ -945,10 +1122,10 @@
                         <h4 id="projectNetCapital">-</h4>
                         <p>کل سرمایه (تومان)</p>
                     </div>
-                    <div class="stat-card project-overview expense">
+                    <!-- <div class="stat-card project-overview expense">
                         <h4 id="projectTotalExpenses">-</h4>
                         <p>برآورد کل هزینه ساختمان(تومان)</p>
-                    </div>
+                    </div> -->
                     <div class="stat-card project-overview sales">
                         <h4 id="projectTotalSales">-</h4>
                         <p>کل مرجوعی (تومان)</p>
@@ -1216,6 +1393,7 @@
                             <th>تاریخ</th>
                             <th>نوع تراکنش</th>
                             <th>مبلغ (تومان)</th>
+                            <th id="profitColumnHeader" style="display: none;">سود (تومان)</th>
                             <th>توضیحات</th>
                         </tr>
                     </thead>
@@ -1279,6 +1457,30 @@
             return urlParams.get('investor_id');
         }
 
+        // تنظیمات حالت نمایش تراکنش‌ها (همانند transaction_manager.html)
+        const TRANSACTION_DISPLAY_MODE = {
+            COMBINED: 'combined',      // تراکنش اصلی + سود در یک رکورد
+            SEPARATE: 'separate'        // تراکنش‌های سود جداگانه
+        };
+
+        // خواندن حالت از localStorage (پیش‌فرض: combined)
+        function getTransactionDisplayMode() {
+            return localStorage.getItem('transactionDisplayMode') || TRANSACTION_DISPLAY_MODE.COMBINED;
+        }
+
+        // تعیین endpoint بر اساس حالت
+        function getTransactionsEndpoint(investorId) {
+            const mode = getTransactionDisplayMode();
+            const baseEndpoint = `/api/v1/Transaction/`;
+            if (mode === TRANSACTION_DISPLAY_MODE.COMBINED) {
+                // در حالت combined، باید از endpoint combined استفاده کنیم
+                // اما باید investor filter را هم اعمال کنیم
+                return `${baseEndpoint}combined/?investor=${investorId}`;
+            } else {
+                return `${baseEndpoint}?investor=${investorId}`;
+            }
+        }
+
         // متغیر سراسری برای نام پروژه
         let projectName = '';
 
@@ -1300,7 +1502,7 @@
                             const projectDescriptionEl = document.getElementById('projectDescription');
                             const projectDescriptionSection = document.getElementById('projectDescriptionSection');
                             if (projectDescriptionEl && projectDescriptionSection && currentProject.description && currentProject.description.trim()) {
-                                projectDescriptionEl.textContent = currentProject.description;
+                                projectDescriptionEl.innerHTML = currentProject.description;
                                 projectDescriptionSection.style.display = 'block';
                             } else if (projectDescriptionSection) {
                                 projectDescriptionSection.style.display = 'none';
@@ -1327,7 +1529,7 @@
                         const projectDescriptionEl = document.getElementById('projectDescription');
                         const projectDescriptionSection = document.getElementById('projectDescriptionSection');
                         if (projectDescriptionEl && projectDescriptionSection && projects[0].description && projects[0].description.trim()) {
-                            projectDescriptionEl.textContent = projects[0].description;
+                            projectDescriptionEl.innerHTML = projects[0].description;
                             projectDescriptionSection.style.display = 'block';
                         } else if (projectDescriptionSection) {
                             projectDescriptionSection.style.display = 'none';
@@ -1384,7 +1586,7 @@
                 document.getElementById('projectTotalDeposits').textContent = formatNumber(transactionStats.total_deposits || 0);
                 document.getElementById('projectTotalWithdrawals').textContent = formatNumber(Math.abs(transactionStats.total_withdrawals || 0));
                 document.getElementById('projectNetCapital').textContent = formatNumber(transactionStats.net_capital || 0);
-                document.getElementById('projectTotalExpenses').textContent = formatNumber(costMetrics.total_expenses || 0);
+                // document.getElementById('projectTotalExpenses').textContent = formatNumber(costMetrics.total_expenses || 0);
                 document.getElementById('projectTotalSales').textContent = formatNumber(costMetrics.total_sales || 0);
                 document.getElementById('projectNetCost').textContent = formatNumber(costMetrics.final_cost || 0);
 
@@ -1475,8 +1677,8 @@
                 if (!investorResponse.ok) throw new Error('خطا در دریافت اطلاعات مشارکت کننده');
                 const investor = await investorResponse.json();
 
-                // Fetch transactions
-                const transactionsResponse = await fetch(`/api/v1/Transaction/?investor=${investorId}`);
+                // Fetch transactions - استفاده از endpoint بر اساس حالت نمایش
+                const transactionsResponse = await fetch(getTransactionsEndpoint(investorId));
                 if (!transactionsResponse.ok) throw new Error('خطا در دریافت تراکنش‌ها');
                 const transactions = await transactionsResponse.json();
 
@@ -1535,17 +1737,31 @@
                     netPrincipal = investorStatsData.amounts_toman.net_principal || 0;
                     totalBalance = investorStatsData.amounts_toman.total_balance || 0;
                 } else {
-                    // محاسبه محلی (fallback)
+                    // محاسبه محلی (fallback) - فقط در صورت خطای API
+                    // رعایت SSOT: این محاسبات فقط fallback است، اولویت با API است
+                    const mode = getTransactionDisplayMode();
+                    
                     const principalDeposits = transactions.filter(t => t.transaction_type === 'principal_deposit');
                     const loanDeposits = transactions.filter(t => t.transaction_type === 'loan_deposit');
                     const principalWithdrawals = transactions.filter(t => t.transaction_type === 'principal_withdrawal');
-                    const profitAccruals = transactions.filter(t => t.transaction_type === 'profit_accrual');
-
+                    
                     totalPrincipalDeposit = principalDeposits.reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
                     totalLoanDeposit = loanDeposits.reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
                     totalPrincipal = totalPrincipalDeposit + totalLoanDeposit;
                     totalWithdrawal = Math.abs(principalWithdrawals.reduce((sum, t) => sum + parseFloat(t.amount || 0), 0));
-                    totalProfit = profitAccruals.reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
+                    
+                    // محاسبه سود بر اساس حالت نمایش
+                    if (mode === TRANSACTION_DISPLAY_MODE.COMBINED) {
+                        // حالت ترکیبی: از profit_transaction
+                        totalProfit = transactions
+                            .filter(t => t.profit_transaction && t.profit_transaction.amount !== null && t.profit_transaction.amount !== undefined)
+                            .reduce((sum, t) => sum + parseFloat(t.profit_transaction.amount || 0), 0);
+                    } else {
+                        // حالت جداگانه: از transaction_type
+                        const profitAccruals = transactions.filter(t => t.transaction_type === 'profit_accrual');
+                        totalProfit = profitAccruals.reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
+                    }
+                    
                     netPrincipal = totalPrincipal - totalWithdrawal;
                     totalBalance = netPrincipal + totalProfit;
                 }
@@ -1635,7 +1851,7 @@
                 const descriptionSection = document.getElementById('descriptionSection');
                 if (descriptionEl && descriptionSection) {
                     if (investor.description && investor.description.trim()) {
-                        descriptionEl.textContent = investor.description;
+                        descriptionEl.innerHTML = investor.description;
                         descriptionSection.style.display = 'block';
                     } else {
                         descriptionSection.style.display = 'none';
@@ -1733,9 +1949,26 @@
 
                 // Load transactions table with sorting
                 const tableBody = document.getElementById('transactionsTableBody');
+                const mode = getTransactionDisplayMode();
+                const showProfitColumn = mode === TRANSACTION_DISPLAY_MODE.COMBINED;
+                
+                // نمایش/مخفی کردن ستون سود
+                const profitHeader = document.getElementById('profitColumnHeader');
+                if (profitHeader) {
+                    profitHeader.style.display = showProfitColumn ? '' : 'none';
+                }
+                
                 if (transactions.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="5">هیچ تراکنشی ثبت نشده است</td></tr>';
+                    const colspan = showProfitColumn ? 6 : 5;
+                    tableBody.innerHTML = `<tr><td colspan="${colspan}">هیچ تراکنشی ثبت نشده است</td></tr>`;
                 } else {
+                    // فیلتر کردن تراکنش‌ها بر اساس حالت
+                    let displayTransactions = transactions;
+                    if (mode === TRANSACTION_DISPLAY_MODE.COMBINED) {
+                        // فقط تراکنش‌های اصلی (غیر سود)
+                        displayTransactions = transactions.filter(t => t.transaction_type !== 'profit_accrual');
+                    }
+                    
                     // Define transaction type priority
                     const transactionTypePriority = {
                         'principal_deposit': 1,
@@ -1745,7 +1978,7 @@
                     };
 
                     // Sort transactions by Shamsi date, day_from_start, then by transaction type
-                    const sortedTransactions = [...transactions].sort((a, b) => {
+                    const sortedTransactions = [...displayTransactions].sort((a, b) => {
                         // Compare by day_from_start (روز از شروع)
                         const dayFromStartA = parseInt(a.day_from_start) || 0;
                         const dayFromStartB = parseInt(b.day_from_start) || 0;
@@ -1771,15 +2004,26 @@
                         return priorityA - priorityB;
                     });
 
-                    tableBody.innerHTML = sortedTransactions.map((t, index) => `
-                        <tr class="row-${t.transaction_type}">
-                            <td>${index + 1}</td>
-                            <td>${t.date_shamsi || t.date}</td>
-                            <td><span class="transaction-type ${t.transaction_type}">${getTransactionTypeLabel(t.transaction_type)}</span></td>
-                            <td>${formatNumber(Math.abs(t.amount))}</td>
-                            <td>${t.description || '-'}</td>
-                        </tr>
-                    `).join('');
+                    tableBody.innerHTML = sortedTransactions.map((t, index) => {
+                        const profitCell = showProfitColumn ? `
+                            <td style="color: var(--profit-color, #21ba45); font-weight: 600;">
+                                ${t.profit_transaction && t.profit_transaction.amount !== null && t.profit_transaction.amount !== undefined
+                                    ? formatNumber(Math.abs(t.profit_transaction.amount))
+                                    : '-'}
+                            </td>
+                        ` : '';
+                        
+                        return `
+                            <tr class="row-${t.transaction_type}">
+                                <td>${index + 1}</td>
+                                <td>${t.date_shamsi || t.date}</td>
+                                <td><span class="transaction-type ${t.transaction_type}">${getTransactionTypeLabel(t.transaction_type)}</span></td>
+                                <td>${formatNumber(Math.abs(t.amount))}</td>
+                                ${profitCell}
+                                <td>${t.description || '-'}</td>
+                            </tr>
+                        `;
+                    }).join('');
                 }
 
                 // نمایش اطلاعات جامع پروژه
@@ -1850,9 +2094,22 @@
         const BASE_AMOUNT = 1000000; // میلیون تومان
 
         function createActivityDistributionChart(investorTransactions) {
+            const mode = getTransactionDisplayMode();
+            
             const principalData = investorTransactions.filter(row => ['principal_deposit','loan_deposit'].includes(row.transaction_type));
             const withdrawalData = investorTransactions.filter(row => row.transaction_type === 'principal_withdrawal');
-            const profitData = investorTransactions.filter(row => row.transaction_type === 'profit_accrual');
+            
+            // محاسبه سود بر اساس حالت نمایش (رعایت SSOT)
+            let profitData;
+            if (mode === TRANSACTION_DISPLAY_MODE.COMBINED) {
+                // حالت ترکیبی: از profit_transaction
+                profitData = investorTransactions
+                    .filter(row => row.profit_transaction && row.profit_transaction.amount !== null && row.profit_transaction.amount !== undefined)
+                    .map(row => ({ amount: row.profit_transaction.amount }));
+            } else {
+                // حالت جداگانه: از transaction_type
+                profitData = investorTransactions.filter(row => row.transaction_type === 'profit_accrual');
+            }
 
             const totalPrincipal = principalData.reduce((s, r) => s + parseFloat(r.amount || 0), 0);
             const totalWithdrawal = Math.abs(withdrawalData.reduce((s, r) => s + parseFloat(r.amount || 0), 0));

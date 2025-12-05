@@ -8,12 +8,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Project Switcher CSS -->
     <link rel="stylesheet" href="/static/css/project-switcher.css">
+    
+    <!-- Dashboard Common CSS -->
+    <link rel="stylesheet" href="/static/css/dashboard-common.css">
+    
 <style>
-    body {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
-        font-family: 'Vazir', 'Tahoma', sans-serif;
-    }
+    /* استایل‌های خاص این صفحه - استایل‌های مشترک در dashboard-common.css هستند */
     
     .dashboard-container {
         max-width: 1200px;
@@ -24,29 +24,6 @@
     /* Project Switcher */
     .project-switcher-container {
         /* text-align: left; */
-        margin-bottom: 20px;
-    }
-    
-    .dashboard-header {
-        background: rgba(255, 255, 255, 0.95);
-        padding: 30px;
-        border-radius: 20px;
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-        backdrop-filter: blur(10px);
-        margin-bottom: 30px;
-        text-align: center;
-    }
-    
-    .dashboard-header h1 {
-        color: #333;
-        font-size: 2.5rem;
-        margin-bottom: 10px;
-        font-weight: 300;
-    }
-    
-    .dashboard-header p {
-        color: #666;
-        font-size: 1.1rem;
         margin-bottom: 20px;
     }
     
@@ -296,10 +273,6 @@
         margin-bottom: 25px;
     }
     
-    .section-header.petty-cash-header h2 {
-        color: #ff6f00;
-        text-shadow: 0 2px 4px rgba(255, 152, 0, 0.2);
-    }
     
     .dashboard-card.petty-cash-card {
         position: relative;
@@ -465,14 +438,6 @@
     @media (max-width: 768px) {
         .dashboard-container {
             padding: 15px;
-        }
-        
-        .dashboard-header {
-            padding: 20px;
-        }
-        
-        .dashboard-header h1 {
-            font-size: 2rem;
         }
         
         .dashboard-grid {
@@ -713,7 +678,7 @@
                 </div>
             </div>
             
-            <div class="dashboard-card petty-cash-card">
+            <div class="dashboard-card">
                 <span class="card-icon">💼</span>
                 <h3 class="card-title">داشبورد تنخواه</h3>
                 <p class="card-description">
@@ -724,18 +689,18 @@
                 </a>
             </div>
             
-            <div class="dashboard-card petty-cash-card">
+            <div class="dashboard-card">
                 <span class="card-icon">📊</span>
                 <h3 class="card-title">گزارش مانده تنخواه</h3>
                 <p class="card-description">
-                    مشاهده مانده فعلی تنخواه به تفکیک نوع هزینه
+                    مشاهده مانده فعلی تنخواه به تفکیک هزینه
                 </p>
                 <a href="/dashboard/petty-cash/balance/" class="card-btn">
                     گزارش مانده
                 </a>
             </div>
             
-            <div class="dashboard-card petty-cash-card">
+            <div class="dashboard-card">
                 <span class="card-icon">📅</span>
                 <h3 class="card-title">گزارش دوره‌ای تنخواه</h3>
                 <p class="card-description">
@@ -746,7 +711,7 @@
                 </a>
             </div>
             
-            <div class="dashboard-card petty-cash-card">
+            <div class="dashboard-card">
                 <span class="card-icon">📋</span>
                 <h3 class="card-title">گزارش تفصیلی تنخواه</h3>
                 <p class="card-description">
@@ -757,7 +722,7 @@
                 </a>
             </div>
             
-            <div class="dashboard-card petty-cash-card">
+            <div class="dashboard-card">
                 <span class="card-icon">💳</span>
                 <h3 class="card-title">مدیریت تراکنش‌های تنخواه</h3>
                 <p class="card-description">
@@ -776,7 +741,7 @@
                 <p>دسترسی به بخش‌های کاربران نهایی</p>
             </div>
             <div class="dashboard-card">
-                <span class="card-icon">📋 <!-- <i class="fas fa-project-diagram" style="margin-right: 10px;"></i> --></span>
+                <span class="card-icon">🏗️ <!-- <i class="fas fa-project-diagram" style="margin-right: 10px;"></i> --></span>
                 <h3 class="card-title">مدیریت پروژه‌ها</h3>
                 <p class="card-description">
                     مشاهده، ایجاد و مدیریت پروژه‌های ساختمانی
@@ -914,7 +879,7 @@
                 </div>
             </div>
             
-            <div class="dashboard-card petty-cash-card">
+            <div class="dashboard-card">
                 <span class="card-icon">💼</span>
                 <h3 class="card-title">مدیریت تراکنش‌های تنخواه                </h3>
                 <p class="card-description">
@@ -925,18 +890,18 @@
                 </a>
             </div>
             
-            <div class="dashboard-card petty-cash-card">
+            <div class="dashboard-card">
                 <span class="card-icon">📊</span>
                 <h3 class="card-title">گزارش مانده تنخواه</h3>
                 <p class="card-description">
-                    مشاهده مانده فعلی تنخواه به تفکیک نوع هزینه
+                    مشاهده مانده فعلی تنخواه به تفکیک هزینه
                 </p>
                 <a href="/dashboard/petty-cash/balance/" class="card-btn">
                     گزارش مانده
                 </a>
             </div>
             
-            <div class="dashboard-card petty-cash-card">
+            <div class="dashboard-card">
                 <span class="card-icon">📅</span>
                 <h3 class="card-title">گزارش دوره‌ای تنخواه</h3>
                 <p class="card-description">

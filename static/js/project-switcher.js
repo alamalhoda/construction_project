@@ -167,6 +167,7 @@ document.addEventListener('keydown', function(e) {
 // بارگذاری اطلاعات پروژه‌ها از API
 let currentProjectData = null;
 let allProjectsData = [];
+let projectDataLoaded = false; // فلگ برای نشان دادن اینکه آیا loadProjectData کامل شده است
 
 async function loadProjectData() {
     try {
@@ -179,21 +180,29 @@ async function loadProjectData() {
         
         // دریافت پروژه جاری از API
         let currentProjectFromAPI = null;
+        let hasActiveProject = false;
         try {
             const currentResponse = await fetch('/api/v1/Project/current/');
             if (currentResponse.ok) {
                 currentProjectFromAPI = await currentResponse.json();
+                hasActiveProject = true;
                 // ذخیره در localStorage برای استفاده بعدی
                 if (currentProjectFromAPI && currentProjectFromAPI.id) {
                     setCurrentProjectId(currentProjectFromAPI.id);
                 }
+            } else if (currentResponse.status === 404) {
+                // اگر API 404 برگرداند، یعنی هیچ پروژه فعالی وجود ندارد
+                // باید localStorage را پاک کنیم تا پروژه قدیمی نمایش داده نشود
+                hasActiveProject = false;
+                localStorage.removeItem('current_project_id');
             }
         } catch (err) {
             console.warn('Could not fetch current project from API:', err);
+            hasActiveProject = false;
         }
         
         // اگر پروژه جاری از API گرفته شد، از allProjectsData کامل‌ش کن (برای اطمینان از وجود color و icon)
-        if (currentProjectFromAPI && currentProjectFromAPI.id) {
+        if (hasActiveProject && currentProjectFromAPI && currentProjectFromAPI.id) {
             const fullProjectData = allProjectsData.find(p => p.id === currentProjectFromAPI.id);
             if (fullProjectData) {
                 // استفاده از داده‌های کامل از allProjectsData (که شامل color و icon است)
@@ -202,22 +211,49 @@ async function loadProjectData() {
                 // اگر در allProjectsData پیدا نشد، از داده API استفاده کن
                 currentProjectData = currentProjectFromAPI;
             }
+            
+            // اعمال رنگ‌های گرادیانت از پروژه جاری
+            const primaryColor = currentProjectData.gradient_primary_color || '#667eea';
+            const secondaryColor = currentProjectData.gradient_secondary_color || '#764ba2';
+            
+            // اعمال به CSS variables
+            document.documentElement.style.setProperty('--gradient-primary', primaryColor);
+            document.documentElement.style.setProperty('--gradient-secondary', secondaryColor);
+            
+            // اعمال مستقیم به body (برای سازگاری با کدهای موجود)
+            document.body.style.background = `linear-gradient(90deg, ${primaryColor} 0%, ${secondaryColor} 100%)`;
+            
+            // اعمال به unified-header (اگر موجود باشد)
+            const unifiedHeaders = document.querySelectorAll('.unified-header');
+            unifiedHeaders.forEach(header => {
+                header.style.background = `linear-gradient(90deg, ${primaryColor} 0%, ${secondaryColor} 100%)`;
+            });
         } else {
-            // اگر API کار نکرد، از localStorage استفاده می‌کنیم
-            const storedId = getCurrentProjectId();
-            if (storedId) {
-                currentProjectData = allProjectsData.find(p => p.id === storedId) || null;
-            } else if (allProjectsData.length > 0) {
-                // اگر هیچ پروژه جاری نبود، از اولین پروژه استفاده کن
-                currentProjectData = allProjectsData[0];
-            }
+            // اگر API پروژه جاری را برنگرداند (404) یا خطا رخ داد، یعنی هیچ پروژه فعالی وجود ندارد
+            // در این صورت نباید به صورت پیش‌فرض اولین پروژه را انتخاب کنیم
+            // و نباید از localStorage استفاده کنیم چون ممکن است پروژه قدیمی باشد
+            currentProjectData = null;
+            
+            // استفاده از رنگ‌های پیش‌فرض
+            const defaultPrimary = '#dc3545';
+            const defaultSecondary = '#764ba2';
+            document.documentElement.style.setProperty('--gradient-primary', defaultPrimary);
+            document.documentElement.style.setProperty('--gradient-secondary', defaultSecondary);
+            document.body.style.background = `linear-gradient(90deg, ${defaultPrimary} 0%, ${defaultSecondary} 100%)`;
         }
+        
+        // علامت‌گذاری که loadProjectData کامل شده است
+        projectDataLoaded = true;
         
         // رندر کردن component
         renderProjectSwitcher();
     } catch (error) {
         console.error('Error loading project data:', error);
-        // در صورت خطا، component پیش‌فرض را نمایش می‌دهیم
+        // در صورت خطا، currentProjectData را null می‌گذاریم تا پیام "هیچ پروژه‌ای انتخاب نشده" نمایش داده شود
+        currentProjectData = null;
+        // علامت‌گذاری که loadProjectData کامل شده است (حتی با خطا)
+        projectDataLoaded = true;
+        // رندر کردن component
         renderProjectSwitcher();
     }
 }
@@ -227,11 +263,20 @@ function renderProjectSwitcher() {
     const switcherContainer = document.getElementById('projectSwitcherContainer');
     if (!switcherContainer) return;
     
-    // اگر currentProjectData هنوز تنظیم نشده، از allProjectsData پیدا کن
-    if (!currentProjectData) {
+    // اگر currentProjectData هنوز تنظیم نشده و loadProjectData هنوز کامل نشده، از localStorage چک می‌کنیم
+    // اما اگر loadProjectData کامل شده و currentProjectData null است، یعنی واقعاً هیچ پروژه فعالی وجود ندارد
+    if (!currentProjectData && !projectDataLoaded) {
+        // فقط قبل از کامل شدن loadProjectData از localStorage استفاده می‌کنیم
         const currentProjectId = getCurrentProjectId();
-        currentProjectData = allProjectsData.find(p => p.id === currentProjectId) || allProjectsData[0] || null;
+        if (currentProjectId) {
+            currentProjectData = allProjectsData.find(p => p.id === currentProjectId) || null;
+        } else {
+            // اگر هیچ پروژه جاری نبود، null می‌گذاریم
+            currentProjectData = null;
+        }
     }
+    // اگر projectDataLoaded = true و currentProjectData = null، یعنی واقعاً هیچ پروژه فعالی وجود ندارد
+    // و نباید از localStorage استفاده کنیم
     
     // اطمینان از وجود color و icon در currentProjectData
     if (currentProjectData && currentProjectData.id) {
@@ -364,17 +409,16 @@ function updateProjectWarning() {
 
 // دریافت ID پروژه جاری
 function getCurrentProjectId() {
-    // اول از localStorage چک می‌کنیم
+    // فقط از localStorage چک می‌کنیم
+    // نباید به صورت پیش‌فرض اولین پروژه را برگردانیم
+    // چون ممکن است هیچ پروژه فعالی وجود نداشته باشد
     const stored = localStorage.getItem('current_project_id');
     if (stored) {
         return parseInt(stored);
     }
     
-    // اگر نبود، از اولین پروژه استفاده می‌کنیم
-    if (allProjectsData.length > 0) {
-        return allProjectsData[0].id;
-    }
-    
+    // اگر در localStorage نبود، null برمی‌گردانیم
+    // تا پیام "هیچ پروژه‌ای انتخاب نشده" نمایش داده شود
     return null;
 }
 

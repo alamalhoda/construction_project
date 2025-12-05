@@ -20,72 +20,11 @@
     <!-- Project Switcher CSS -->
     <link rel="stylesheet" href="/static/css/project-switcher.css">
     
+    <!-- Dashboard Common CSS -->
+    <link rel="stylesheet" href="/static/css/dashboard-common.css">
+    
     <style>
-        :root {
-            --primary-color: #667eea;
-            --secondary-color: #764ba2;
-            --deposit-color: #2185d0;
-            --withdrawal-color: #db2828;
-            --bg-primary: #f8f9fa;
-            --bg-secondary: #ffffff;
-            --bg-card: #ffffff;
-            --text-primary: #2c3e50;
-            --border-color: #e9ecef;
-            --shadow-md: 0 8px 25px rgba(0, 0, 0, 0.08);
-            --shadow-lg: 0 15px 35px rgba(0, 0, 0, 0.12);
-        }
-
-        body {
-            font-family: 'Vazir','Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            min-height: 100vh;
-            padding: 20px;
-            direction: rtl;
-            color: var(--text-primary);
-        }
-
-        .main-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: var(--bg-card);
-            border-radius: 20px;
-            box-shadow: var(--shadow-lg);
-            overflow: hidden;
-            border: 1px solid var(--border-color);
-        }
-
-        .unified-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 40px 30px;
-            border-radius: 20px 20px 0 0;
-            margin-bottom: 30px;
-            position: relative;
-        }
-
-        .unified-header-content {
-            position: relative;
-            z-index: 2;
-            text-align: center;
-        }
-
-        .unified-header h1 {
-            font-size: 2.8rem;
-            margin-bottom: 15px;
-            font-weight: 300;
-        }
-
-        .unified-header .nav-link {
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-            padding: 12px 25px;
-            border-radius: 25px;
-            text-decoration: none;
-            margin: 5px;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
+        /* استایل‌های خاص این صفحه - استایل‌های مشترک در dashboard-common.css هستند */
 
         .content-section {
             padding: 30px;
@@ -216,10 +155,10 @@
                     <strong>تعداد تراکنش‌ها:</strong> <span id="totalCount">0</span>
                 </div>
                 <div class="summary-item">
-                    <strong>مجموع دریافت‌ها:</strong> <span id="totalReceipts" style="color: var(--deposit-color);">0</span>
+                    <strong>مجموع دریافت‌ها:</strong> <span id="totalReceipts" style="color: var(--petty-cash-received-color);">0</span>
                 </div>
                 <div class="summary-item">
-                    <strong>مجموع عودت‌ها:</strong> <span id="totalReturns" style="color: var(--withdrawal-color);">0</span>
+                    <strong>مجموع عودت‌ها:</strong> <span id="totalReturns" style="color: var(--petty-cash-returned-color);">0</span>
                 </div>
                 <div class="summary-item">
                     <strong>خالص:</strong> <span id="netAmount">0</span>
@@ -261,6 +200,67 @@
             return cookieValue;
         }
 
+        // متغیر global برای CSRF token
+        let csrfToken = null;
+        // Promise برای جلوگیری از race condition در دریافت همزمان
+        let csrfTokenPromise = null;
+
+        // تابع دریافت CSRF token (بهبود یافته با Promise-based locking)
+        async function getCSRFToken() {
+            // اگر قبلاً دریافت شده، آن را برگردان
+            if (csrfToken) {
+                return csrfToken;
+            }
+            
+            // اگر یک Promise در حال انجام است، منتظر آن بمان
+            if (csrfTokenPromise) {
+                return await csrfTokenPromise;
+            }
+            
+            // ایجاد Promise جدید برای دریافت token
+            csrfTokenPromise = (async () => {
+                try {
+                    // ابتدا از window.csrfToken بررسی کن (از سرور)
+                    if (window.csrfToken) {
+                        csrfToken = window.csrfToken;
+                        return csrfToken;
+                    }
+                    
+                    // سپس از cookie بررسی کن
+                    const cookieToken = getCookie('csrftoken');
+                    if (cookieToken) {
+                        csrfToken = cookieToken;
+                        return csrfToken;
+                    }
+                    
+                    // اگر هیچکدام موجود نبود، از API endpoint دریافت کن
+                    const response = await fetch('/api/v1/auth/csrf/', {
+                        method: 'GET',
+                        credentials: 'include'
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.csrf_token) {
+                            csrfToken = data.csrf_token;
+                            return csrfToken;
+                        }
+                    }
+                    
+                    return null;
+                } catch (error) {
+                    console.error('خطا در دریافت CSRF token:', error);
+                    return null;
+                } finally {
+                    // پاک کردن Promise بعد از اتمام (برای امکان retry در صورت خطا)
+                    csrfTokenPromise = null;
+                }
+            })();
+            
+            // منتظر ماندن برای نتیجه Promise
+            return await csrfTokenPromise;
+        }
+
         function formatNumber(num) {
             return new Intl.NumberFormat('en-US').format(Math.round(num));
         }
@@ -293,8 +293,11 @@
                     url += '?' + params.toString();
                 }
 
+                // دریافت CSRF token
+                const csrfToken = await getCSRFToken();
+
                 const response = await fetch(url, {
-                    headers: {'X-CSRFToken': getCookie('csrftoken') || ''}
+                    headers: {'X-CSRFToken': csrfToken || ''}
                 });
 
                 const result = await response.json();
@@ -340,8 +343,8 @@
                     formatter: function(cell) {
                         const value = cell.getValue();
                         const formatted = formatNumber(Math.abs(value));
-                        return value >= 0 ? `<span style="color: var(--deposit-color);">+${formatted}</span>` : 
-                               `<span style="color: var(--withdrawal-color);">${formatted}</span>`;
+                        return value >= 0 ? `<span style="color: var(--petty-cash-received-color);">+${formatted}</span>` : 
+                               `<span style="color: var(--petty-cash-returned-color);">${formatted}</span>`;
                     }
                 },
                 {title: 'شماره فیش', field: 'receipt_number', width: 120},
