@@ -746,6 +746,343 @@ from django.conf import settings
             print(f"   ✓ کدهای وضعیت پاسخ")
         
         return all_code
+    
+    def build_tool_document_content(self, tool_info: Dict[str, Any]) -> str:
+        """
+        ساخت محتوای بهینه برای RAG از اطلاعات tool
+        
+        Args:
+            tool_info: اطلاعات Tool از OpenAPI schema
+        
+        Returns:
+            محتوای متنی بهینه برای semantic search
+        """
+        tool_name = tool_info['name']
+        description = tool_info.get('description', '')
+        method = tool_info.get('method', 'GET')
+        path = tool_info.get('path', '')
+        params = tool_info.get('params', [])
+        tags = tool_info.get('tags', [])
+        operation_id = tool_info.get('operation_id', '')
+        security = tool_info.get('security', [])
+        responses = tool_info.get('responses', [])
+        
+        content_parts = []
+        
+        # 1. عنوان و توضیحات اصلی
+        content_parts.append(f"Tool: {tool_name}")
+        if description:
+            # استخراج عنوان کوتاه و توضیحات کامل
+            desc_lines = description.split('\n')
+            short_title = desc_lines[0].strip() if desc_lines else ""
+            detailed_desc = '\n'.join(desc_lines[1:]).strip() if len(desc_lines) > 1 else ""
+            
+            content_parts.append(f"Description: {short_title}")
+            if detailed_desc:
+                content_parts.append(f"\n{detailed_desc}")
+        
+        # 2. استخراج قابلیت‌ها از description
+        if description:
+            # جستجوی بخش "قابلیت‌ها" یا "Capabilities"
+            desc_lower = description.lower()
+            if 'قابلیت' in desc_lower or 'capabilit' in desc_lower:
+                lines = description.split('\n')
+                in_capabilities = False
+                capabilities = []
+                for line in lines:
+                    line_lower = line.lower()
+                    if 'قابلیت' in line_lower or 'capabilit' in line_lower:
+                        in_capabilities = True
+                        continue
+                    if in_capabilities:
+                        if line.strip().startswith('-') or line.strip().startswith('*'):
+                            capabilities.append(line.strip())
+                        elif line.strip() and not line.strip().startswith('سناریو') and not line.strip().startswith('مثال'):
+                            if not any(keyword in line_lower for keyword in ['سناریو', 'مثال', 'نکات', 'scenario', 'example', 'note']):
+                                capabilities.append(line.strip())
+                        else:
+                            if line.strip() and any(keyword in line_lower for keyword in ['سناریو', 'مثال', 'نکات', 'scenario', 'example', 'note']):
+                                break
+                
+                if capabilities:
+                    content_parts.append("\nقابلیت‌ها:")
+                    for cap in capabilities[:10]:  # محدود کردن به 10 مورد
+                        content_parts.append(f"- {cap}")
+        
+        # 3. استخراج سناریوهای استفاده
+        if description:
+            lines = description.split('\n')
+            in_use_cases = False
+            use_cases = []
+            for line in lines:
+                line_lower = line.lower()
+                if 'سناریو' in line_lower or 'use case' in line_lower or 'scenario' in line_lower:
+                    in_use_cases = True
+                    continue
+                if in_use_cases:
+                    if line.strip().startswith('-') or line.strip().startswith('*'):
+                        use_cases.append(line.strip())
+                    elif line.strip() and not line.strip().startswith('مثال') and not line.strip().startswith('نکات'):
+                        if not any(keyword in line_lower for keyword in ['مثال', 'نکات', 'example', 'note']):
+                            use_cases.append(line.strip())
+                    else:
+                        if line.strip() and any(keyword in line_lower for keyword in ['مثال', 'نکات', 'example', 'note']):
+                            break
+            
+            if use_cases:
+                content_parts.append("\nسناریوهای استفاده:")
+                for use_case in use_cases[:10]:  # محدود کردن به 10 مورد
+                    content_parts.append(f"- {use_case}")
+        
+        # 4. پارامترها با توضیحات کامل
+        if params:
+            content_parts.append("\nپارامترها:")
+            for param in params:
+                param_name = param.get('name', '')
+                param_type = param.get('type', 'string')
+                param_desc = param.get('description', '')
+                required = param.get('required', False)
+                param_format = param.get('format', '')
+                param_in = param.get('in', 'body')
+                
+                # تبدیل نوع OpenAPI به Python
+                type_mapping = {
+                    'integer': 'int',
+                    'number': 'float',
+                    'boolean': 'bool',
+                    'string': 'str',
+                    'array': 'list',
+                    'object': 'dict'
+                }
+                python_type = type_mapping.get(param_type, 'str')
+                
+                # ساخت توضیحات پارامتر
+                param_line = f"- {param_name} ({python_type}"
+                if not required:
+                    param_line += ", optional"
+                param_line += ")"
+                
+                if param_desc:
+                    param_line += f": {param_desc}"
+                
+                if param_format:
+                    if param_format == 'date':
+                        param_line += " (فرمت: YYYY-MM-DD)"
+                    elif param_format == 'date-time':
+                        param_line += " (فرمت: ISO 8601)"
+                    elif param_format == 'email':
+                        param_line += " (ایمیل)"
+                
+                if required:
+                    param_line += " [required]"
+                
+                content_parts.append(param_line)
+        
+        # 5. مثال‌های استفاده
+        if description:
+            lines = description.split('\n')
+            in_examples = False
+            examples = []
+            for line in lines:
+                line_lower = line.lower()
+                if 'مثال' in line_lower or 'example' in line_lower:
+                    in_examples = True
+                    continue
+                if in_examples:
+                    if line.strip().startswith('-') or line.strip().startswith('*'):
+                        examples.append(line.strip())
+                    elif line.strip() and not line.strip().startswith('نکات'):
+                        if not any(keyword in line_lower for keyword in ['نکات', 'note', 'important']):
+                            examples.append(line.strip())
+                    else:
+                        if line.strip() and any(keyword in line_lower for keyword in ['نکات', 'note', 'important']):
+                            break
+            
+            if not examples:
+                # ساخت مثال ساده از tool_name و params
+                example_parts = [tool_name + "("]
+                param_examples = []
+                for param in params[:5]:  # فقط 5 پارامتر اول
+                    param_name = param.get('name', '')
+                    if param_name != 'request':
+                        param_type = param.get('type', 'string')
+                        if param_type == 'string':
+                            param_examples.append(f"{param_name}='value'")
+                        elif param_type == 'integer':
+                            param_examples.append(f"{param_name}=1")
+                        elif param_type == 'boolean':
+                            param_examples.append(f"{param_name}=True")
+                        else:
+                            param_examples.append(f"{param_name}=value")
+                example_parts.append(", ".join(param_examples))
+                example_parts.append(")")
+                examples.append("".join(example_parts))
+            
+            if examples:
+                content_parts.append("\nمثال‌های استفاده:")
+                for example in examples[:5]:  # محدود کردن به 5 مثال
+                    content_parts.append(f"- {example}")
+        
+        # 6. نکات مهم
+        if description:
+            lines = description.split('\n')
+            in_notes = False
+            notes = []
+            for line in lines:
+                line_lower = line.lower()
+                if 'نکات' in line_lower or 'note' in line_lower or 'important' in line_lower:
+                    in_notes = True
+                    continue
+                if in_notes:
+                    if line.strip().startswith('-') or line.strip().startswith('*'):
+                        notes.append(line.strip())
+                    elif line.strip():
+                        notes.append(line.strip())
+            
+            if not notes and security:
+                notes.append("نیاز به احراز هویت دارد")
+            
+            if notes:
+                content_parts.append("\nنکات مهم:")
+                for note in notes[:10]:  # محدود کردن به 10 نکته
+                    content_parts.append(f"- {note}")
+        
+        # 7. API endpoint
+        if path:
+            content_parts.append(f"\nAPI Endpoint: {method} {path}")
+        
+        if operation_id:
+            content_parts.append(f"Operation ID: {operation_id}")
+        
+        if tags:
+            content_parts.append(f"دسته‌بندی: {', '.join(tags)}")
+        
+        return "\n".join(content_parts)
+    
+    def _save_json_with_multiline_strings(self, output_file: str, documents: List[Dict[str, Any]]):
+        """
+        ذخیره JSON با فرمت چند خطی برای page_content
+        
+        این متد JSON را به صورت چند خطی ذخیره می‌کند تا خواندن آن راحت‌تر باشد.
+        برای page_content از array از خطوط استفاده می‌کند که خوانایی بهتری دارد.
+        
+        توجه: برای استفاده در RAG، باید page_content را از array به string تبدیل کنید:
+        page_content = '\\n'.join(doc['page_content']) if isinstance(doc['page_content'], list) else doc['page_content']
+        
+        Args:
+            output_file: مسیر فایل خروجی
+            documents: لیست Documents
+        """
+        # تبدیل page_content از string به array از خطوط برای خوانایی بهتر
+        formatted_documents = []
+        for doc in documents:
+            formatted_doc = doc.copy()
+            if 'page_content' in formatted_doc and isinstance(formatted_doc['page_content'], str):
+                # تبدیل string به array از خطوط
+                formatted_doc['page_content'] = formatted_doc['page_content'].split('\n')
+            formatted_documents.append(formatted_doc)
+        
+        # ذخیره با indent
+        with open(output_file, 'w', encoding='utf-8') as f:
+            json.dump(formatted_documents, f, ensure_ascii=False, indent=2)
+    
+    def generate_tool_documents_for_rag(self, output_file: Optional[str] = None) -> List[Dict[str, Any]]:
+        """
+        تولید مستندات Tools برای استفاده در RAG/Vector Database
+        
+        این متد اطلاعات کامل tools را استخراج کرده و به فرمت LangChain Document
+        تبدیل می‌کند که مناسب برای استفاده در RAG pipeline است.
+        
+        هر Document شامل:
+        - page_content: محتوای متنی بهینه برای semantic search
+          شامل: نام tool، توضیحات، قابلیت‌ها، سناریوها، پارامترها، مثال‌ها، نکات
+        - metadata: اطلاعات ساختاریافته برای فیلتر و دسته‌بندی
+          شامل: tool_name, category, method, path, operation_id, tags, parameters
+        
+        Args:
+            output_file: مسیر فایل JSON خروجی (اختیاری)
+        
+        Returns:
+            لیست Documents برای RAG (هر Document شامل page_content و metadata)
+        
+        مثال استفاده:
+            >>> generator = SchemaToolGenerator()
+            >>> documents = generator.generate_tool_documents_for_rag('tool_docs.json')
+            >>> # استفاده در RAG pipeline
+            >>> from langchain_core.documents import Document
+            >>> from langchain_community.vectorstores import Chroma
+            >>> 
+            >>> # تبدیل به Document objects
+            >>> langchain_docs = [
+            ...     Document(page_content=doc['page_content'], metadata=doc['metadata'])
+            ...     for doc in documents
+            ... ]
+            >>> 
+            >>> # ایجاد vector store
+            >>> vector_store = Chroma.from_documents(
+            ...     documents=langchain_docs,
+            ...     embedding=embeddings,
+            ...     persist_directory='tool_rag_db'
+            ... )
+        """
+        tools_info = self.analyze_openapi_schema()
+        
+        documents = []
+        
+        for tool_info in tools_info:
+            # ساخت محتوای قابل جستجو
+            page_content = self.build_tool_document_content(tool_info)
+            
+            # استخراج پارامترها برای metadata
+            params_metadata = []
+            for param in tool_info.get('params', []):
+                if param.get('name') != 'request':  # حذف request از metadata
+                    params_metadata.append({
+                        'name': param.get('name', ''),
+                        'type': param.get('type', 'string'),
+                        'required': param.get('required', False),
+                        'description': param.get('description', '')
+                    })
+            
+            # ساخت metadata
+            tags = tool_info.get('tags', [])
+            category = tags[0] if tags else 'other'
+            
+            metadata = {
+                'tool_name': tool_info['name'],
+                'category': category,
+                'method': tool_info.get('method', 'GET'),
+                'path': tool_info.get('path', ''),
+                'operation_id': tool_info.get('operation_id', ''),
+                'tags': tags,
+                'has_auth': len(tool_info.get('security', [])) > 0,
+                'parameters': params_metadata,
+                'response_codes': tool_info.get('responses', [])
+            }
+            
+            documents.append({
+                'page_content': page_content,
+                'metadata': metadata
+            })
+        
+        # ذخیره در فایل JSON با فرمت چند خطی برای page_content
+        if output_file:
+            self._save_json_with_multiline_strings(output_file, documents)
+            
+            print(f"✅ مستندات RAG در فایل {output_file} ذخیره شد")
+            print(f"📊 تعداد کل Documents: {len(documents)}")
+            
+            # نمایش خلاصه
+            categories = {}
+            for doc in documents:
+                cat = doc['metadata'].get('category', 'other')
+                categories[cat] = categories.get(cat, 0) + 1
+            
+            print(f"\n📁 دسته‌بندی Documents:")
+            for cat, count in sorted(categories.items()):
+                print(f"   - {cat}: {count} tool")
+        
+        return documents
 
 
 def main():
@@ -756,30 +1093,63 @@ def main():
         description='تولید خودکار Tools از OpenAPI Schema',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-مثال:
+مثال‌ها:
+  # تولید tools
   python schema_tool_generator.py --output generated_tools_from_schema.py
+  
+  # تولید مستندات RAG
+  python schema_tool_generator.py --rag --rag-output tool_documents.json
+  
+  # تولید هر دو
+  python schema_tool_generator.py --output tools.py --rag --rag-output rag_docs.json
         """
     )
     parser.add_argument('--schema', type=str, default=None,
                        help='مسیر فایل schema.json (پیش‌فرض: schema.json در root پروژه)')
     parser.add_argument('--output', type=str, default=None,
-                       help='مسیر فایل خروجی (پیش‌فرض: generated_tools_from_schema.py)')
+                       help='مسیر فایل خروجی برای tools (پیش‌فرض: generated_tools_from_schema.py)')
+    parser.add_argument('--rag', action='store_true',
+                       help='تولید مستندات RAG از tools')
+    parser.add_argument('--rag-output', type=str, default=None,
+                       help='مسیر فایل JSON خروجی برای مستندات RAG (پیش‌فرض: tool_documents_for_rag.json)')
     
     args = parser.parse_args()
     
     generator = SchemaToolGenerator(schema_path=args.schema)
     
-    if not args.output:
-        args.output = str(project_root / 'assistant' / 'generated' / 'generated_tools_from_schema.py')
+    # تولید tools (اگر output مشخص شده یا rag مشخص نشده)
+    if args.output or not args.rag:
+        if not args.output:
+            args.output = str(project_root / 'assistant' / 'generated' / 'generated_tools_from_schema.py')
+        
+        print("🔧 در حال تولید Tools از OpenAPI Schema...")
+        print("   ✅ استفاده از schema کامل drf-spectacular")
+        print("   ✅ شامل تمام endpoints، parameters، requestBody و schemas\n")
+        
+        code = generator.generate_all_tools(output_file=args.output)
+        
+        print(f"\n📁 فایل خروجی Tools: {args.output}")
+        print("\n⚠️  توجه: این Tools به صورت خودکار تولید شده‌اند و نیاز به بررسی و تکمیل دارند.")
     
-    print("🔧 در حال تولید Tools از OpenAPI Schema...")
-    print("   ✅ استفاده از schema کامل drf-spectacular")
-    print("   ✅ شامل تمام endpoints، parameters، requestBody و schemas\n")
-    
-    code = generator.generate_all_tools(output_file=args.output)
-    
-    print(f"\n📁 فایل خروجی: {args.output}")
-    print("\n⚠️  توجه: این Tools به صورت خودکار تولید شده‌اند و نیاز به بررسی و تکمیل دارند.")
+    # تولید مستندات RAG
+    if args.rag:
+        if not args.rag_output:
+            args.rag_output = str(project_root / 'assistant' / 'generated' / 'tool_documents_for_rag.json')
+        
+        print("\n" + "="*80)
+        print("📚 در حال تولید مستندات RAG از Tools...")
+        print("   ✅ فرمت: LangChain Document")
+        print("   ✅ شامل: page_content (semantic search) + metadata (filtering)\n")
+        
+        documents = generator.generate_tool_documents_for_rag(output_file=args.rag_output)
+        
+        print(f"\n📁 فایل خروجی RAG: {args.rag_output}")
+        print(f"✅ {len(documents)} Document برای استفاده در RAG pipeline آماده است")
+        print("\n💡 نحوه استفاده:")
+        print("   from assistant.generators.schema_tool_generator import SchemaToolGenerator")
+        print("   generator = SchemaToolGenerator()")
+        print("   documents = generator.generate_tool_documents_for_rag()")
+        print("   # سپس از documents در RAG pipeline استفاده کنید")
 
 
 if __name__ == "__main__":

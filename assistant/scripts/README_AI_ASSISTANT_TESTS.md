@@ -31,6 +31,32 @@ source env/bin/activate
 python3 assistant/scripts/test_all_providers.py
 ```
 
+### 4. `test_rag_documents.py`
+اسکریپت تست برای بررسی خروجی تولید مستندات RAG از Tools. این اسکریپت:
+- مستندات RAG را از tools تولید می‌کند
+- ساختار و محتوای Documents را بررسی می‌کند
+- نمونه‌ای از Documents را نمایش می‌دهد
+- آماده بودن برای استفاده در RAG pipeline را تست می‌کند
+
+**استفاده:**
+```bash
+# روش 1: اجرای مستقیم اسکریپت
+source env/bin/activate
+python3 assistant/scripts/test_rag_documents.py
+
+# روش 2: استفاده از Django management command (پیشنهادی)
+source env/bin/activate
+python3 manage.py test_rag_documents
+
+# با گزینه‌های بیشتر
+python3 manage.py test_rag_documents --output custom_output.json --sample 5 --verbose
+```
+
+**گزینه‌های Django command:**
+- `--output`: مسیر فایل JSON خروجی (پیش‌فرض: `assistant/generated/test_tool_documents.json`)
+- `--sample`: تعداد نمونه Documents برای نمایش (پیش‌فرض: 3)
+- `--verbose`: نمایش جزئیات بیشتر محتوا
+
 ## 📚 مستندات
 
 برای اطلاعات بیشتر درباره تست دسترسی به مدل‌های مختلف، به فایل زیر مراجعه کنید:
