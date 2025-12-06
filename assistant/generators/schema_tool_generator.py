@@ -986,6 +986,35 @@ from django.conf import settings
         with open(output_file, 'w', encoding='utf-8') as f:
             json.dump(formatted_documents, f, ensure_ascii=False, indent=2)
     
+    def _save_json_for_rag(self, output_file: str, documents: List[Dict[str, Any]]):
+        """
+        ذخیره JSON به صورت فشرده و مناسب برای استفاده در RAG
+        
+        این متد JSON را به صورت compact ذخیره می‌کند و page_content را
+        به صورت string نگه می‌دارد (نه array) که مناسب برای استفاده مستقیم
+        در سیستم‌های RAG و Vector Database است.
+        
+        Args:
+            output_file: مسیر فایل خروجی
+            documents: لیست Documents
+        """
+        # اطمینان از اینکه page_content به صورت string است
+        formatted_documents = []
+        for doc in documents:
+            formatted_doc = doc.copy()
+            if 'page_content' in formatted_doc:
+                # اگر array است، به string تبدیل کن
+                if isinstance(formatted_doc['page_content'], list):
+                    formatted_doc['page_content'] = '\n'.join(formatted_doc['page_content'])
+                # اطمینان از اینکه string است
+                elif not isinstance(formatted_doc['page_content'], str):
+                    formatted_doc['page_content'] = str(formatted_doc['page_content'])
+            formatted_documents.append(formatted_doc)
+        
+        # ذخیره به صورت compact (بدون indent)
+        with open(output_file, 'w', encoding='utf-8') as f:
+            json.dump(formatted_documents, f, ensure_ascii=False, separators=(',', ':'))
+    
     def generate_tool_documents_for_rag(self, output_file: Optional[str] = None) -> List[Dict[str, Any]]:
         """
         تولید مستندات Tools برای استفاده در RAG/Vector Database
@@ -1001,6 +1030,9 @@ from django.conf import settings
         
         Args:
             output_file: مسیر فایل JSON خروجی (اختیاری)
+                       اگر مشخص شود، دو فایل ایجاد می‌شود:
+                       - {output_file}_readable.json: فرمت چند خطی برای خواندن انسان
+                       - {output_file}: فرمت فشرده با page_content به صورت string برای RAG
         
         Returns:
             لیست Documents برای RAG (هر Document شامل page_content و metadata)
@@ -1065,11 +1097,23 @@ from django.conf import settings
                 'metadata': metadata
             })
         
-        # ذخیره در فایل JSON با فرمت چند خطی برای page_content
+        # ذخیره در دو فایل: یکی خوانا برای انسان، یکی فشرده برای RAG
         if output_file:
-            self._save_json_with_multiline_strings(output_file, documents)
+            # تعیین نام فایل خوانا
+            if output_file.endswith('.json'):
+                readable_file = output_file.replace('.json', '_readable.json')
+            else:
+                readable_file = f"{output_file}_readable.json"
             
-            print(f"✅ مستندات RAG در فایل {output_file} ذخیره شد")
+            # ذخیره فایل خوانا (چند خطی با array)
+            self._save_json_with_multiline_strings(readable_file, documents)
+            
+            # ذخیره فایل RAG (فشرده با string)
+            self._save_json_for_rag(output_file, documents)
+            
+            print(f"✅ مستندات RAG در دو فایل ذخیره شد:")
+            print(f"   📖 خوانا (برای انسان): {readable_file}")
+            print(f"   🤖 فشرده (برای RAG): {output_file}")
             print(f"📊 تعداد کل Documents: {len(documents)}")
             
             # نمایش خلاصه
