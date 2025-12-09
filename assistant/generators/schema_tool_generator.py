@@ -8,8 +8,11 @@
 import os
 import sys
 import json
+import re
 from typing import List, Dict, Optional, Any
 from pathlib import Path
+from dataclasses import dataclass, asdict
+from enum import Enum
 
 # تنظیم Django
 project_root = Path(__file__).resolve().parent.parent.parent
@@ -35,6 +38,451 @@ try:
 except Exception:
     pass  # Django setup optional for schema generator
 
+
+# ============================================================================
+# کلاس‌های پایه برای Parameter و Endpoint
+# ============================================================================
+
+class ParameterLocation(Enum):
+    """موقعیت پارامتر در درخواست HTTP"""
+    PATH = "path"  # /api/v1/Expense/{id}/
+    QUERY = "query"  # ?page=1&page_size=10
+    BODY = "body"  # JSON body
+    HEADER = "header"  # HTTP headers
+
+
+@dataclass
+class Parameter:
+    """تعریف پارامتر با اطلاعات کامل"""
+    name: str  # نام انگلیسی
+    name_fa: str  # نام فارسی
+    location: ParameterLocation  # موقعیت
+    type: str  # نوع داده (string, integer, boolean, etc)
+    required: bool  # الزامی؟
+    description: str  # توضیح فارسی
+    example: Any = None  # مثال
+    enum_values: Optional[List[str]] = None  # مقادیر ممکن
+    pattern: Optional[str] = None  # regex pattern
+    min_length: Optional[int] = None  # حداقل طول
+    max_length: Optional[int] = None  # حداکثر طول
+    min_value: Optional[float] = None  # حداقل مقدار (برای عدد)
+    max_value: Optional[float] = None  # حداکثر مقدار (برای عدد)
+    format: Optional[str] = None  # format (date, email, etc)
+    nullable: bool = False  # آیا می‌تواند null باشد
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """تبدیل به dictionary"""
+        data = asdict(self)
+        data['location'] = self.location.value
+        return data
+    
+    def get_python_type_hint(self) -> str:
+        """بدست آوردن Python type hint"""
+        type_mapping = {
+            'string': 'str',
+            'integer': 'int',
+            'number': 'float',
+            'boolean': 'bool',
+            'array': 'list',
+            'object': 'dict',
+        }
+        python_type = type_mapping.get(self.type, 'str')
+        
+        # اگر optional است
+        if not self.required or self.nullable:
+            python_type = f"Optional[{python_type}]"
+        
+        return python_type
+    
+    def get_validation_code(self) -> str:
+        """تولید کد validation برای این پارامتر"""
+        validations = []
+        
+        # بررسی required (فقط اگر required است و nullable نیست)
+        if self.required and not self.nullable:
+            validations.append(f"if {self.name} is None: raise ValueError('{self.name_fa} الزامی است')")
+        
+        # بررسی length (فقط برای string)
+        if self.type == 'string':
+            if self.min_length:
+                validations.append(f"if {self.name} is not None and len({self.name}) < {self.min_length}: raise ValueError('{self.name_fa} حداقل {self.min_length} کاراکتر باید باشد')")
+            
+            if self.max_length:
+                validations.append(f"if {self.name} is not None and len({self.name}) > {self.max_length}: raise ValueError('{self.name_fa} حداکثر {self.max_length} کاراکتر می‌تواند باشد')")
+        
+        # بررسی مقدار (برای integer و number)
+        if self.type in ['integer', 'number']:
+            if self.min_value is not None:
+                validations.append(f"if {self.name} is not None and {self.name} < {self.min_value}: raise ValueError('{self.name_fa} حداقل {self.min_value} باید باشد')")
+            
+            if self.max_value is not None:
+                validations.append(f"if {self.name} is not None and {self.name} > {self.max_value}: raise ValueError('{self.name_fa} حداکثر {self.max_value} می‌تواند باشد')")
+        
+        # بررسی enum
+        if self.enum_values:
+            enum_str = "', '".join(map(str, self.enum_values))
+            validations.append(f"if {self.name} is not None and {self.name} not in ['{enum_str}']: raise ValueError('{self.name_fa} باید یکی از این باشد: {enum_str}')")
+        
+        # بررسی pattern
+        if self.pattern:
+            validations.append(f"if {self.name} is not None and not re.match(r'{self.pattern}', str({self.name})): raise ValueError('{self.name_fa} فرمت نامعتبر است')")
+        
+        # برگرداندن کد validation بدون indentation (indentation در generate_tool_code اضافه می‌شود)
+        return '\n'.join(validations)
+
+
+@dataclass
+class Endpoint:
+    """تعریف endpoint کامل"""
+    path: str  # /api/v1/Expense/
+    method: str  # GET, POST, PUT, DELETE, PATCH
+    operation_id: str  # Expense_list
+    name_en: str  # expense_list
+    name_fa: str  # لیست هزینه‌ها
+    description: str  # توضیح کامل
+    tags: List[str]  # دسته‌بندی‌ها
+    parameters: List[Parameter]  # پارامترها
+    required_params: List[Parameter]  # پارامترهای الزامی
+    optional_params: List[Parameter]  # پارامترهای اختیاری
+    security: List[str]  # نیاز به احراز هویت
+    request_body: Optional[Dict[str, Any]] = None  # JSON body schema
+    responses: Optional[Dict[str, Any]] = None  # پاسخ‌های احتمالی
+    examples: Optional[List[Dict[str, Any]]] = None  # مثال‌های عملی
+    
+    def get_path_params(self) -> List[Parameter]:
+        """بدست آوردن path parameters"""
+        return [p for p in self.parameters if p.location == ParameterLocation.PATH]
+    
+    def get_query_params(self) -> List[Parameter]:
+        """بدست آوردن query parameters"""
+        return [p for p in self.parameters if p.location == ParameterLocation.QUERY]
+    
+    def get_body_params(self) -> List[Parameter]:
+        """بدست آوردن body parameters"""
+        return [p for p in self.parameters if p.location == ParameterLocation.BODY]
+    
+    def get_path_with_params(self) -> str:
+        """بدست آوردن path با جایگزاری parameters"""
+        path = self.path
+        for param in self.get_path_params():
+            path = path.replace(f"{{{param.name}}}", f"{{{{self.{param.name}}}}}")
+        return path
+
+
+# ============================================================================
+# SmartParameterExtractor - استخراج هوشمند پارامترها
+# ============================================================================
+
+class SmartParameterExtractor:
+    """
+    استخراج هوشمند پارامترها از OpenAPI schema
+    
+    وظایف:
+    - تفکیک کامل path, query, body parameters
+    - بدست آوردن توضیحات دقیق هر پارامتر
+    - تعیین required/optional
+    - استخراج examples و validation rules
+    """
+    
+    def __init__(self, schema: Dict[str, Any]):
+        self.schema = schema
+        self.components = schema.get('components', {}).get('schemas', {})
+    
+    def resolve_schema_ref(self, ref: str) -> dict:
+        """حل کردن $ref به schema واقعی"""
+        if ref.startswith('#/components/schemas/'):
+            schema_name = ref.split('/')[-1]
+            return self.components.get(schema_name, {})
+        return {}
+    
+    def extract_path_parameters(self, path: str, endpoint_data: Dict[str, Any]) -> List[Parameter]:
+        """استخراج path parameters از {id}، {pk}، etc"""
+        path_params = []
+        
+        # یافتن تمام {xxx} در path
+        pattern = r'\{([^}]+)\}'
+        matches = re.findall(pattern, path)
+        
+        for match in matches:
+            param_name = match
+            
+            # یافتن توصیف در parameters list
+            param_info = None
+            if 'parameters' in endpoint_data:
+                for param in endpoint_data['parameters']:
+                    if param.get('name') == param_name and param.get('in') == 'path':
+                        param_info = param
+                        break
+            
+            # استخراج schema
+            schema_info = {}
+            if param_info:
+                schema_info = param_info.get('schema', {})
+                # حل کردن $ref
+                if '$ref' in schema_info:
+                    schema_info = self.resolve_schema_ref(schema_info['$ref'])
+            
+            # تولید Parameter object
+            param = Parameter(
+                name=param_name,
+                name_fa=self._get_persian_name(param_name),
+                location=ParameterLocation.PATH,
+                type=schema_info.get('type', 'string') if schema_info else 'string',
+                required=True,  # path parameters همیشه required هستند
+                description=param_info.get('description', f'شناسه {param_name}') if param_info else f'شناسه {param_name}',
+                example=param_info.get('example') if param_info and 'example' in param_info else (schema_info.get('example', 1) if schema_info else 1),
+                format=schema_info.get('format') if schema_info else None,
+            )
+            path_params.append(param)
+        
+        return path_params
+    
+    def extract_query_parameters(self, endpoint_data: Dict[str, Any]) -> List[Parameter]:
+        """استخراج query parameters"""
+        query_params = []
+        
+        if 'parameters' not in endpoint_data:
+            return query_params
+        
+        for param_info in endpoint_data['parameters']:
+            if param_info.get('in') != 'query':
+                continue
+            
+            param_name = param_info.get('name', '')
+            schema_info = param_info.get('schema', {})
+            
+            # حل کردن $ref
+            if '$ref' in schema_info:
+                schema_info = self.resolve_schema_ref(schema_info['$ref'])
+            
+            param = Parameter(
+                name=param_name,
+                name_fa=self._get_persian_name(param_name),
+                location=ParameterLocation.QUERY,
+                type=schema_info.get('type', 'string'),
+                required=param_info.get('required', False),
+                description=param_info.get('description', ''),
+                example=schema_info.get('example') if 'example' in schema_info else param_info.get('example'),
+                enum_values=schema_info.get('enum', None),
+                format=schema_info.get('format', None),
+                min_value=schema_info.get('minimum'),
+                max_value=schema_info.get('maximum'),
+                min_length=schema_info.get('minLength'),
+                max_length=schema_info.get('maxLength'),
+                pattern=schema_info.get('pattern'),
+                nullable=schema_info.get('nullable', False),
+            )
+            query_params.append(param)
+        
+        return query_params
+    
+    def extract_body_parameters(self, endpoint_data: Dict[str, Any]) -> List[Parameter]:
+        """استخراج body parameters از requestBody"""
+        body_params = []
+        
+        if 'requestBody' not in endpoint_data:
+            return body_params
+        
+        request_body = endpoint_data['requestBody']
+        
+        # یافتن schema
+        schema_obj = None
+        if 'content' in request_body:
+            for content_type, content_data in request_body['content'].items():
+                if 'schema' in content_data:
+                    schema_obj = content_data['schema']
+                    break
+        
+        if not schema_obj:
+            return body_params
+        
+        # حل کردن $ref
+        if '$ref' in schema_obj:
+            schema_obj = self.resolve_schema_ref(schema_obj['$ref'])
+        
+        # استخراج properties
+        properties = schema_obj.get('properties', {})
+        required_fields = schema_obj.get('required', [])
+        
+        for prop_name, prop_schema in properties.items():
+            # حل کردن $ref در property
+            if '$ref' in prop_schema:
+                prop_schema = self.resolve_schema_ref(prop_schema['$ref'])
+            
+            # بررسی readOnly
+            if prop_schema.get('readOnly', False):
+                continue  # فیلدهای readOnly را در requestBody نادیده بگیر
+            
+            param = Parameter(
+                name=prop_name,
+                name_fa=self._get_persian_name(prop_name),
+                location=ParameterLocation.BODY,
+                type=prop_schema.get('type', 'string'),
+                required=prop_name in required_fields,
+                description=prop_schema.get('description', ''),
+                example=prop_schema.get('example', None),
+                enum_values=prop_schema.get('enum', None),
+                format=prop_schema.get('format', None),
+                min_value=prop_schema.get('minimum'),
+                max_value=prop_schema.get('maximum'),
+                min_length=prop_schema.get('minLength'),
+                max_length=prop_schema.get('maxLength'),
+                pattern=prop_schema.get('pattern'),
+                nullable=prop_schema.get('nullable', False),
+            )
+            body_params.append(param)
+        
+        return body_params
+    
+    def _get_persian_name(self, english_name: str) -> str:
+        """تبدیل نام انگلیسی به فارسی"""
+        # یک dictionary ساده برای تبدیل‌های معمول
+        translations = {
+            'id': 'شناسه',
+            'pk': 'شناسه',
+            'page': 'صفحه',
+            'page_size': 'اندازه صفحه',
+            'ordering': 'مرتب‌سازی',
+            'period': 'دوره',
+            'expense_type': 'نوع هزینه',
+            'amount': 'مبلغ',
+            'description': 'توضیحات',
+            'created_at': 'تاریخ ایجاد',
+            'updated_at': 'تاریخ آخرین به‌روزرسانی',
+            'name': 'نام',
+            'email': 'ایمیل',
+            'phone': 'تلفن',
+            'investor': 'سرمایه‌گذار',
+            'project': 'پروژه',
+            'date': 'تاریخ',
+            'status': 'وضعیت',
+            'type': 'نوع',
+        }
+        return translations.get(english_name.lower(), english_name)
+
+
+# ============================================================================
+# ToolTemplateGenerator - تولید docstring بهتر
+# ============================================================================
+
+class ToolTemplateGenerator:
+    """
+    تولید templates بهتر برای tools
+    
+    وظایف:
+    - تولید docstring غنی‌تر
+    - تولید validation code
+    - تولید request handling
+    - تولید error handling
+    """
+    
+    def generate_tool_docstring(self, endpoint: Endpoint) -> str:
+        """تولید docstring کامل برای tool"""
+        lines = [
+            f'    {endpoint.name_fa}',
+            "",
+        ]
+        
+        # اضافه کردن description
+        if endpoint.description:
+            desc_lines = endpoint.description.split('\n')
+            for line in desc_lines:
+                lines.append(f"    {line}")
+            lines.append("")
+        
+        # پارامترهای درخواست
+        has_params = bool(endpoint.get_path_params() or endpoint.get_query_params() or endpoint.get_body_params())
+        if has_params:
+            lines.append("    پارامترهای درخواست:")
+            lines.append("")
+            
+            # Path parameters
+            path_params = endpoint.get_path_params()
+            if path_params:
+                lines.append("        * مسیر (URL Path):")
+                for param in path_params:
+                    lines.append(f"            - {param.name} ({param.name_fa}): {param.type}")
+                    if param.description:
+                        lines.append(f"              {param.description}")
+                    lines.append(f"              الزامی: {'بله' if param.required else 'خیر'}")
+                    if param.example is not None:
+                        lines.append(f"              مثال: {param.example}")
+                lines.append("")
+            
+            # Query parameters
+            query_params = endpoint.get_query_params()
+            if query_params:
+                lines.append("        * کوئری (Query String):")
+                for param in query_params:
+                    lines.append(f"            - {param.name} ({param.name_fa}): {param.type}")
+                    if param.description:
+                        lines.append(f"              {param.description}")
+                    lines.append(f"              الزامی: {'بله' if param.required else 'خیر'}")
+                    if param.example is not None:
+                        lines.append(f"              مثال: {param.example}")
+                    if param.enum_values:
+                        lines.append(f"              مقادیر معتبر: {', '.join(map(str, param.enum_values))}")
+                    if param.min_value is not None or param.max_value is not None:
+                        range_str = []
+                        if param.min_value is not None:
+                            range_str.append(f"حداقل: {param.min_value}")
+                        if param.max_value is not None:
+                            range_str.append(f"حداکثر: {param.max_value}")
+                        if range_str:
+                            lines.append(f"              محدوده: {', '.join(range_str)}")
+                lines.append("")
+            
+            # Body parameters
+            body_params = endpoint.get_body_params()
+            if body_params:
+                lines.append("        * بدنه (Request Body):")
+                for param in body_params:
+                    lines.append(f"            - {param.name} ({param.name_fa}): {param.type}")
+                    if param.description:
+                        lines.append(f"              {param.description}")
+                    lines.append(f"              الزامی: {'بله' if param.required else 'خیر'}")
+                    if param.example is not None:
+                        lines.append(f"              مثال: {param.example}")
+                    if param.enum_values:
+                        lines.append(f"              مقادیر معتبر: {', '.join(map(str, param.enum_values))}")
+                    if param.min_value is not None or param.max_value is not None:
+                        range_str = []
+                        if param.min_value is not None:
+                            range_str.append(f"حداقل: {param.min_value}")
+                        if param.max_value is not None:
+                            range_str.append(f"حداکثر: {param.max_value}")
+                        if range_str:
+                            lines.append(f"              محدوده: {', '.join(range_str)}")
+                lines.append("")
+        
+        # Returns
+        lines.append("    Returns:")
+        lines.append("        str: نتیجه عملیات به صورت رشته متنی")
+        lines.append("")
+        
+        # مثال‌های کاربردی
+        if endpoint.examples:
+            lines.append("    مثال‌های کاربردی:")
+            for i, example in enumerate(endpoint.examples, 1):
+                lines.append(f"        {i}. {example.get('description', '')}")
+                lines.append(f"           {example.get('request', '')}")
+            lines.append("")
+        
+        # نکات مهم
+        lines.append("    نکات مهم:")
+        lines.append(f"        - روش HTTP: {endpoint.method}")
+        lines.append(f"        - مسیر: {endpoint.path}")
+        if endpoint.security:
+            lines.append(f"        - نیاز به احراز هویت: {', '.join(endpoint.security)}")
+        else:
+            lines.append("        - نیاز به احراز هویت: خیر")
+        
+        return "\n".join(lines)
+
+
+# ============================================================================
+# SchemaToolGenerator - کلاس اصلی
+# ============================================================================
 
 class SchemaToolGenerator:
     """کلاس برای تولید خودکار Tools از OpenAPI Schema"""
@@ -239,9 +687,9 @@ class SchemaToolGenerator:
         
         return params
     
-    def analyze_openapi_schema(self) -> List[Dict[str, Any]]:
+    def analyze_openapi_schema(self) -> List[Endpoint]:
         """
-        تحلیل OpenAPI schema و تولید Tools
+        تحلیل OpenAPI schema و تولید Endpoint objects
         
         این متد از OpenAPI schema کامل استفاده می‌کند که شامل:
         - تمام endpoints (standard و custom actions)
@@ -250,12 +698,15 @@ class SchemaToolGenerator:
         - components/schemas با تمام جزئیات
         
         Returns:
-            لیست اطلاعات Tools
+            لیست Endpoint objects
         """
         if not self.schema:
             self.load_schema()
         
-        tools = []
+        # ایجاد SmartParameterExtractor
+        extractor = SmartParameterExtractor(self.schema)
+        
+        endpoints = []
         
         # تحلیل paths
         if 'paths' in self.schema:
@@ -263,48 +714,20 @@ class SchemaToolGenerator:
                 for method, details in methods.items():
                     if method.lower() in ['get', 'post', 'put', 'patch', 'delete']:
                         operation_id = details.get('operationId', '')
-                        description = details.get('description', details.get('summary', ''))
+                        description = details.get('description', details.get('summary', '')) or f"{method.upper()} {path}"
                         tags = details.get('tags', [])
                         
-                        # استخراج پارامترهای path و query
-                        params = []
-                        if 'parameters' in details:
-                            for param in details['parameters']:
-                                param_name = param.get('name', '')
-                                param_schema = param.get('schema', {})
-                                
-                                # حل کردن $ref در schema
-                                if '$ref' in param_schema:
-                                    param_schema = self.resolve_schema_ref(param_schema['$ref'])
-                                
-                                param_type = param_schema.get('type', 'string')
-                                required = param.get('required', False)
-                                
-                                if param_name:
-                                    params.append({
-                                        'name': param_name,
-                                        'type': param_type,
-                                        'required': required,
-                                        'description': param.get('description', ''),
-                                        'in': param.get('in', 'query'),  # path, query, header
-                                        'format': param_schema.get('format')
-                                    })
+                        # استخراج پارامترها با SmartParameterExtractor
+                        path_params = extractor.extract_path_parameters(path, details)
+                        query_params = extractor.extract_query_parameters(details)
+                        body_params = extractor.extract_body_parameters(details)
                         
-                        # استخراج request body (برای POST, PUT, PATCH)
-                        if 'requestBody' in details:
-                            content = details['requestBody'].get('content', {})
-                            if 'application/json' in content:
-                                request_schema = content['application/json'].get('schema', {})
-                                
-                                # استخراج properties از requestBody schema
-                                body_params = self.extract_properties_from_schema(request_schema)
-                                
-                                # اضافه کردن به params (بدون تکرار) و مشخص کردن in='body'
-                                existing_names = {p['name'] for p in params}
-                                for body_param in body_params:
-                                    if body_param['name'] not in existing_names:
-                                        body_param['in'] = 'body'  # مشخص کردن که این body parameter است
-                                        params.append(body_param)
+                        # ترکیب تمام پارامترها
+                        all_params = path_params + query_params + body_params
+                        
+                        # تفکیک required و optional
+                        required_params = [p for p in all_params if p.required and not p.nullable]
+                        optional_params = [p for p in all_params if not p.required or p.nullable]
                         
                         # تولید نام Tool با نرمال‌سازی
                         tool_name = self.normalize_tool_name(operation_id, max_length=64)
@@ -315,6 +738,11 @@ class SchemaToolGenerator:
                             fallback_name = f"{method.lower()}_{resource}".replace('-', '_').replace('{', '').replace('}', '')
                             tool_name = self.normalize_tool_name(fallback_name, max_length=64)
                         
+                        # استخراج نام فارسی از description یا tags
+                        name_fa = description.split('\n')[0].strip() if description else tool_name
+                        if len(name_fa) > 50:  # اگر خیلی طولانی است، کوتاه کن
+                            name_fa = name_fa[:50] + "..."
+                        
                         # استخراج اطلاعات security
                         security = details.get('security', [])
                         security_info = []
@@ -322,250 +750,90 @@ class SchemaToolGenerator:
                             if isinstance(sec, dict):
                                 security_info.extend(list(sec.keys()))
                         
-                        # استخراج اطلاعات response (برای docstring)
-                        responses = details.get('responses', {})
-                        response_info = []
-                        for status_code, response_detail in responses.items():
-                            if isinstance(response_detail, dict):
-                                content = response_detail.get('content', {})
-                                if 'application/json' in content:
-                                    response_schema = content['application/json'].get('schema', {})
-                                    if '$ref' in response_schema:
-                                        schema_name = response_schema['$ref'].split('/')[-1]
-                                        response_info.append(f"{status_code}: {schema_name}")
-                                    else:
-                                        response_info.append(f"{status_code}: {response_schema.get('type', 'object')}")
+                        # استخراج requestBody schema
+                        request_body = None
+                        if 'requestBody' in details:
+                            request_body = details['requestBody']
                         
-                        tools.append({
-                            'name': tool_name,
-                            'description': description or f"{method.upper()} {path}",
-                            'method': method.upper(),
-                            'path': path,
-                            'params': params,
-                            'tags': tags,
-                            'operation_id': operation_id,
-                            'security': security_info,
-                            'responses': response_info
-                        })
+                        # استخراج responses
+                        responses = details.get('responses', {})
+                        
+                        # استخراج examples (اگر وجود دارد)
+                        examples = None
+                        if 'x-examples' in details:
+                            examples = details['x-examples']
+                        elif isinstance(examples, list):
+                            pass  # قبلاً list است
+                        else:
+                            examples = []
+                        
+                        # ساخت Endpoint object
+                        endpoint = Endpoint(
+                            path=path,
+                            method=method.upper(),
+                            operation_id=operation_id,
+                            name_en=tool_name,
+                            name_fa=name_fa,
+                            description=description,
+                            tags=tags,
+                            parameters=all_params,
+                            required_params=required_params,
+                            optional_params=optional_params,
+                            security=security_info,
+                            request_body=request_body,
+                            responses=responses,
+                            examples=examples
+                        )
+                        
+                        endpoints.append(endpoint)
         
-        return tools
+        return endpoints
     
-    def generate_tool_code(self, tool_info: Dict[str, Any]) -> str:
+    def generate_tool_code(self, endpoint: Endpoint) -> str:
         """
-        تولید کد Tool از اطلاعات OpenAPI
+        تولید کد Tool از Endpoint object
         
         Args:
-            tool_info: اطلاعات Tool از OpenAPI schema
+            endpoint: Endpoint object با اطلاعات کامل
         
         Returns:
             کد Python برای Tool
         """
-        tool_name = tool_info['name']
-        description = tool_info['description']
-        params = tool_info.get('params', [])
-        path = tool_info.get('path', '')
-        method = tool_info.get('method', 'GET')
+        tool_name = endpoint.name_en
+        method = endpoint.method
+        path = endpoint.path
         
-        # ساخت signature - جدا کردن required و optional
+        # ایجاد ToolTemplateGenerator برای docstring
+        template_generator = ToolTemplateGenerator()
+        docstring = template_generator.generate_tool_docstring(endpoint)
+        
+        # ساخت signature - جدا کردن required و optional از Parameter objects
         required_params = []
         optional_params = []
-        param_docs = []
-        path_params = []  # برای جایگزینی در URL
+        path_params = endpoint.get_path_params()
+        query_params = endpoint.get_query_params()
+        body_params = endpoint.get_body_params()
         
-        for param in params:
-            param_name = param['name']
-            param_type = param['type']
-            param_in = param.get('in', 'query')  # path, query, body
-            required = param.get('required', False) and not param.get('nullable', False)
-            param_desc = param.get('description', '')
-            param_format = param.get('format', '')
-            
-            # تبدیل نوع OpenAPI به Python (با توجه به format)
-            type_mapping = {
-                'integer': 'int',
-                'number': 'float',
-                'boolean': 'bool',
-                'string': 'str',
-                'array': 'list',
-                'object': 'dict'
-            }
-            python_type = type_mapping.get(param_type, 'str')
-            
-            # اگر format دارد، در description اضافه کن
-            if param_format:
-                if param_format == 'date':
-                    param_desc = f"{param_desc} (فرمت: YYYY-MM-DD)" if param_desc else "فرمت: YYYY-MM-DD"
-                elif param_format == 'date-time':
-                    param_desc = f"{param_desc} (فرمت: ISO 8601)" if param_desc else "فرمت: ISO 8601"
-                elif param_format == 'email':
-                    param_desc = f"{param_desc} (ایمیل)" if param_desc else "ایمیل"
-            
-            param_doc = f"        {param_name}: {python_type} - {param_desc or ('(اختیاری)' if not required else '(الزامی)')}"
-            param_docs.append(param_doc)
-            
-            # path parameters همیشه required هستند
-            if param_in == 'path':
-                required_params.append(f"{param_name}: {python_type}")
-                path_params.append(param_name)
-            elif not required:
-                optional_params.append(f"{param_name}: Optional[{python_type}] = None")
-            else:
-                required_params.append(f"{param_name}: {python_type}")
+        # ساخت signature برای path parameters (همیشه required)
+        for param in path_params:
+            python_type = param.get_python_type_hint()
+            required_params.append(f"{param.name}: {python_type}")
+        
+        # ساخت signature برای required query/body parameters
+        for param in query_params + body_params:
+            if param.required and not param.nullable:
+                python_type = param.get_python_type_hint()
+                required_params.append(f"{param.name}: {python_type}")
+        
+        # ساخت signature برای optional parameters
+        for param in query_params + body_params:
+            if not param.required or param.nullable:
+                python_type = param.get_python_type_hint()
+                optional_params.append(f"{param.name}: {python_type} = None")
         
         # اضافه کردن request در آخر
         param_signatures = required_params + optional_params + ["request=None"]
         signature = ", ".join(param_signatures)
-        
-        # استخراج اطلاعات اضافی
-        tags = tool_info.get('tags', [])
-        security = tool_info.get('security', [])
-        responses = tool_info.get('responses', [])
-        operation_id = tool_info.get('operation_id', '')
-        
-        # ساخت docstring کامل با فرمت استاندارد
-        # استخراج عنوان کوتاه از description (اولین خط)
-        description_lines = description.split('\n') if description else ['']
-        short_title = description_lines[0].strip() if description_lines else f"{method} {path}"
-        detailed_description = '\n'.join(description_lines[1:]).strip() if len(description_lines) > 1 else ""
-        
-        docstring_parts = [f"    {short_title}"]
-        
-        # اگر توضیحات کامل‌تری وجود دارد
-        if detailed_description:
-            docstring_parts.append("")
-            # تقسیم به خطوط و اضافه کردن با indent
-            for line in detailed_description.split('\n'):
-                docstring_parts.append(f"    {line}")
-        
-        # اضافه کردن اطلاعات تکنیکی
-        docstring_parts.append("")
-        docstring_parts.append(f"    این Tool از API endpoint {method} {path} استفاده می‌کند.")
-        
-        if operation_id:
-            docstring_parts.append(f"    Operation ID: {operation_id}")
-        
-        if tags:
-            docstring_parts.append(f"    دسته‌بندی: {', '.join(tags)}")
-        
-        # Args با فرمت استاندارد Python docstring - استخراج خودکار از schema
-        docstring_parts.append("")
-        docstring_parts.append("    Args:")
-        if param_docs:
-            # تبدیل فرمت param_docs به فرمت استاندارد
-            for param_doc in param_docs:
-                # param_doc به صورت "        param_name: type - description" است
-                # تبدیل به "        param_name (type): description"
-                if ' - ' in param_doc:
-                    parts = param_doc.split(' - ', 1)
-                    param_part = parts[0].strip()  # "        param_name: type"
-                    desc_part = parts[1].strip() if len(parts) > 1 else ""  # "description"
-                    # استخراج نام و نوع
-                    if ':' in param_part:
-                        param_name = param_part.split(':', 1)[0].strip()  # "param_name"
-                        type_part = param_part.split(':', 1)[1].strip() if ':' in param_part else 'str'
-                        # اگر Optional است
-                        if 'Optional[' in type_part:
-                            type_part = type_part.replace('Optional[', '').replace(']', '').strip()
-                            if desc_part:
-                                docstring_parts.append(f"        {param_name} ({type_part}, optional): {desc_part}")
-                            else:
-                                docstring_parts.append(f"        {param_name} ({type_part}, optional): (اختیاری)")
-                        else:
-                            if desc_part:
-                                docstring_parts.append(f"        {param_name} ({type_part}): {desc_part}")
-                            else:
-                                docstring_parts.append(f"        {param_name} ({type_part}): (الزامی)")
-                    else:
-                        docstring_parts.append(f"    {param_doc}")
-                else:
-                    docstring_parts.append(f"    {param_doc}")
-        else:
-            docstring_parts.append("        (بدون پارامتر)")
-        docstring_parts.append("        request (optional): درخواست HTTP برای احراز هویت (برای استفاده داخلی)")
-        
-        # Returns با فرمت استاندارد - استخراج خودکار از schema
-        docstring_parts.append("")
-        docstring_parts.append("    Returns:")
-        if responses:
-            docstring_parts.append("        str: نتیجه عملیات به صورت رشته متنی")
-            if len(responses) > 1:
-                docstring_parts.append("        کدهای وضعیت ممکن:")
-                for resp in responses:
-                    docstring_parts.append(f"        - {resp}")
-            else:
-                # اگر فقط یک response داریم، جزئیات بیشتری بدهیم
-                resp = responses[0]
-                if ':' in resp:
-                    status_code, schema_name = resp.split(':', 1)
-                    docstring_parts.append(f"        - {status_code}: {schema_name.strip()}")
-        else:
-            docstring_parts.append("        str: نتیجه عملیات به صورت رشته متنی")
-        
-        # Raises (اگر خطاهای احتمالی وجود دارد)
-        if method in ['POST', 'PUT', 'PATCH', 'DELETE']:
-            docstring_parts.append("")
-            docstring_parts.append("    Raises:")
-            docstring_parts.append("        ValidationError: اگر ورودی‌ها نامعتبر باشند")
-            docstring_parts.append("        PermissionDenied: اگر کاربر دسترسی نداشته باشد")
-        
-        # مثال استفاده
-        docstring_parts.append("")
-        docstring_parts.append("    مثال استفاده:")
-        if method == 'GET':
-            example_path = path.replace('{id}', '1') if '{id}' in path else path
-            docstring_parts.append(f"        {method} {example_path}")
-        else:
-            docstring_parts.append(f"        {method} {path}")
-        
-        # نکات مهم
-        if security:
-            docstring_parts.append("")
-            docstring_parts.append("    نکات مهم:")
-            security_str = ', '.join(security)
-            docstring_parts.append(f"        - نیاز به احراز هویت: {security_str}")
-        
-        docstring = '\n'.join(docstring_parts)
-        
-        # ساخت URL با جایگزینی path parameters
-        url_path = path
-        for path_param in path_params:
-            url_path = url_path.replace(f"{{{path_param}}}", f"{{{{'{path_param}'}}}}")
-        
-        # تعیین action name از operation_id یا method
-        action_name = None
-        if operation_id:
-            # استخراج action از operation_id (مثل Expense_list -> list)
-            parts = operation_id.split('_')
-            if len(parts) >= 2:
-                action_name = '_'.join(parts[1:])  # list, create, retrieve, etc.
-                
-                # حذف suffix های DRF از custom actions
-                # مثال: active_retrieve -> active, dashboard_data_retrieve -> dashboard_data
-                drf_suffixes = ['_list', '_retrieve', '_create', '_update', '_partial_update', '_destroy']
-                for suffix in drf_suffixes:
-                    if action_name.endswith(suffix):
-                        # اگر action فقط suffix است (مثل list, retrieve)، نگه دار
-                        if action_name == suffix[1:]:  # حذف _ اول
-                            break
-                        # اگر action custom است (مثل active_retrieve)، suffix را حذف کن
-                        action_name = action_name[:-len(suffix)]
-                        break
-        
-        # اگر action_name پیدا نشد، از method و path استخراج کن
-        if not action_name:
-            if method == 'GET':
-                if path_params:
-                    action_name = 'retrieve'
-                else:
-                    action_name = 'list'
-            elif method == 'POST':
-                action_name = 'create'
-            elif method == 'PUT':
-                action_name = 'update'
-            elif method == 'PATCH':
-                action_name = 'partial_update'
-            elif method == 'DELETE':
-                action_name = 'destroy'
         
         # ساخت URL کامل با جایگزینی path parameters
         url_builder_parts = []
@@ -573,39 +841,54 @@ class SchemaToolGenerator:
         url_builder_parts.append(f"        url = '{path}'")
         
         # جایگزینی path parameters در URL
-        for path_param in path_params:
-            url_builder_parts.append(f"        if {path_param} is not None:")
-            url_builder_parts.append(f"            url = url.replace('{{{path_param}}}', str({path_param}))")
+        for param in path_params:
+            url_builder_parts.append(f"        if {param.name} is not None:")
+            url_builder_parts.append(f"            url = url.replace('{{{param.name}}}', str({param.name}))")
         
         url_builder_str = '\n'.join(url_builder_parts)
         
+        # ساخت کد validation برای تمام پارامترها
+        validation_code_parts = []
+        for param in endpoint.parameters:
+            validation = param.get_validation_code()
+            if validation:
+                validation_code_parts.append(validation)
+        
+        # join کردن validation codes (بدون indentation اضافی)
+        validation_code_str = '\n'.join(validation_code_parts) if validation_code_parts else ""
+        
         # ساخت کد برای query parameters (برای GET)
         query_params_code = []
-        for p in params:
-            param_in = p.get('in', 'query')
-            if param_in == 'query':
-                query_params_code.append(f"        if {p['name']} is not None:\n            kwargs['{p['name']}'] = {p['name']}")
+        for param in query_params:
+            query_params_code.append(f"        if {param.name} is not None:\n            kwargs['{param.name}'] = {param.name}")
         
         query_params_str = '\n'.join(query_params_code) if query_params_code else ""
         
         # ساخت کد برای body parameters (برای POST, PUT, PATCH)
         body_params_code = []
-        for p in params:
-            param_in = p.get('in', 'body')  # پیش‌فرض body برای requestBody
-            if param_in == 'body' or param_in not in ['path', 'query']:  # body parameters
-                body_params_code.append(f"        if {p['name']} is not None:\n            data['{p['name']}'] = {p['name']}")
+        for param in body_params:
+            body_params_code.append(f"        if {param.name} is not None:\n            data['{param.name}'] = {param.name}")
         
         body_params_str = '\n'.join(body_params_code) if body_params_code else ""
         
-        # ساخت body بر اساس method
+        # ساخت body بر اساس method (با validation)
+        if validation_code_str:
+            validation_import = "        import re\n"
+            # اضافه کردن indentation 8 space به هر خط validation
+            validation_lines = validation_code_str.split('\n')
+            indented_validation = '\n'.join(f"        {line}" if line.strip() else "" for line in validation_lines if line.strip())
+            # validation_block باید در خط جدید و با indentation درست باشد
+            validation_block = f"\n        # Validation\n{indented_validation}\n" if indented_validation else ""
+        else:
+            validation_import = ""
+            validation_block = ""
+        
         if method == 'GET':
             body = f'''    try:
-        from assistant.viewset_helper import (
+{validation_import}        from assistant.viewset_helper import (
             call_api_via_http,
             response_to_string
-        )
-        
-{url_builder_str}
+        ){validation_block}{url_builder_str}
         
         # ساخت kwargs برای query parameters
         kwargs = {{}}
@@ -625,12 +908,10 @@ class SchemaToolGenerator:
         return f"❌ خطا: {{str(e)}}"'''
         else:
             body = f'''    try:
-        from assistant.viewset_helper import (
+{validation_import}        from assistant.viewset_helper import (
             call_api_via_http,
             response_to_string
-        )
-        
-{url_builder_str}
+        ){validation_block}{url_builder_str}
         
         # ساخت data برای request body
         data = {{}}
@@ -669,12 +950,12 @@ def {tool_name}({signature}) -> str:
         Returns:
             کد کامل Tools
         """
-        tools_info = self.analyze_openapi_schema()
+        endpoints = self.analyze_openapi_schema()
         
         # شمارش اطلاعات استخراج شده
-        total_endpoints = len(tools_info)
-        total_params = sum(len(t.get('params', [])) for t in tools_info)
-        tags_count = len(set(tag for tool in tools_info for tag in tool.get('tags', [])))
+        total_endpoints = len(endpoints)
+        total_params = sum(len(e.parameters) for e in endpoints)
+        tags_count = len(set(tag for endpoint in endpoints for tag in endpoint.tags))
         
         all_code = f'''"""
 Tools تولید شده خودکار از OpenAPI Schema
@@ -689,10 +970,11 @@ Tools تولید شده خودکار از OpenAPI Schema
    - توضیحات کامل endpoint (description)
    - مسیر API (path)
    - متد HTTP (GET, POST, PUT, DELETE, PATCH)
-   - تمام پارامترها (path, query, body)
+   - تمام پارامترها (path, query, body) با نام فارسی
    - توضیحات کامل هر فیلد (description, type, format)
    - فیلدهای الزامی و اختیاری (required)
    - مقادیر enum (اگر وجود داشته باشد)
+   - Validation rules (min/max, pattern, etc)
    - نیاز به احراز هویت (security)
    - کدهای وضعیت پاسخ (responses)
    - Operation ID
@@ -704,25 +986,26 @@ Tools تولید شده خودکار از OpenAPI Schema
 from langchain.tools import tool
 from typing import Optional, Dict, Any
 import requests
+import re
 from django.conf import settings
 
 '''
         
         # گروه‌بندی بر اساس tags
         tools_by_tag = {}
-        for tool_info in tools_info:
-            tags = tool_info.get('tags', ['other'])
+        for endpoint in endpoints:
+            tags = endpoint.tags or ['other']
             tag = tags[0] if tags else 'other'
             if tag not in tools_by_tag:
                 tools_by_tag[tag] = []
-            tools_by_tag[tag].append(tool_info)
+            tools_by_tag[tag].append(endpoint)
         
         # تولید کد برای هر گروه
-        for tag, tools in tools_by_tag.items():
-            all_code += f"\n# ===== Tools for {tag} ({len(tools)} endpoint) =====\n\n"
+        for tag, endpoint_list in tools_by_tag.items():
+            all_code += f"\n# ===== Tools for {tag} ({len(endpoint_list)} endpoint) =====\n\n"
             
-            for tool_info in tools:
-                tool_code = self.generate_tool_code(tool_info)
+            for endpoint in endpoint_list:
+                tool_code = self.generate_tool_code(endpoint)
                 all_code += tool_code + "\n"
         
         # ذخیره در فایل
@@ -747,25 +1030,24 @@ from django.conf import settings
         
         return all_code
     
-    def build_tool_document_content(self, tool_info: Dict[str, Any]) -> str:
+    def build_tool_document_content(self, endpoint: Endpoint) -> str:
         """
-        ساخت محتوای بهینه برای RAG از اطلاعات tool
+        ساخت محتوای بهینه برای RAG از Endpoint object
         
         Args:
-            tool_info: اطلاعات Tool از OpenAPI schema
+            endpoint: Endpoint object با اطلاعات کامل
         
         Returns:
             محتوای متنی بهینه برای semantic search
         """
-        tool_name = tool_info['name']
-        description = tool_info.get('description', '')
-        method = tool_info.get('method', 'GET')
-        path = tool_info.get('path', '')
-        params = tool_info.get('params', [])
-        tags = tool_info.get('tags', [])
-        operation_id = tool_info.get('operation_id', '')
-        security = tool_info.get('security', [])
-        responses = tool_info.get('responses', [])
+        tool_name = endpoint.name_en
+        description = endpoint.description
+        method = endpoint.method
+        path = endpoint.path
+        tags = endpoint.tags
+        operation_id = endpoint.operation_id
+        security = endpoint.security
+        params = endpoint.parameters
         
         content_parts = []
         
@@ -838,114 +1120,110 @@ from django.conf import settings
         if params:
             content_parts.append("\nپارامترها:")
             for param in params:
-                param_name = param.get('name', '')
-                param_type = param.get('type', 'string')
-                param_desc = param.get('description', '')
-                required = param.get('required', False)
-                param_format = param.get('format', '')
-                param_in = param.get('in', 'body')
-                
-                # تبدیل نوع OpenAPI به Python
-                type_mapping = {
-                    'integer': 'int',
-                    'number': 'float',
-                    'boolean': 'bool',
-                    'string': 'str',
-                    'array': 'list',
-                    'object': 'dict'
-                }
-                python_type = type_mapping.get(param_type, 'str')
+                python_type = param.get_python_type_hint()
                 
                 # ساخت توضیحات پارامتر
-                param_line = f"- {param_name} ({python_type}"
-                if not required:
+                param_line = f"- {param.name} ({param.name_fa}) ({python_type}"
+                if not param.required or param.nullable:
                     param_line += ", optional"
                 param_line += ")"
                 
-                if param_desc:
-                    param_line += f": {param_desc}"
+                if param.description:
+                    param_line += f": {param.description}"
                 
-                if param_format:
-                    if param_format == 'date':
+                if param.format:
+                    if param.format == 'date':
                         param_line += " (فرمت: YYYY-MM-DD)"
-                    elif param_format == 'date-time':
+                    elif param.format == 'date-time':
                         param_line += " (فرمت: ISO 8601)"
-                    elif param_format == 'email':
+                    elif param.format == 'email':
                         param_line += " (ایمیل)"
                 
-                if required:
+                if param.enum_values:
+                    param_line += f" [مقادیر معتبر: {', '.join(map(str, param.enum_values))}]"
+                
+                if param.min_value is not None or param.max_value is not None:
+                    range_parts = []
+                    if param.min_value is not None:
+                        range_parts.append(f"حداقل: {param.min_value}")
+                    if param.max_value is not None:
+                        range_parts.append(f"حداکثر: {param.max_value}")
+                    if range_parts:
+                        param_line += f" [{', '.join(range_parts)}]"
+                
+                if param.required and not param.nullable:
                     param_line += " [required]"
                 
                 content_parts.append(param_line)
         
-        # 5. مثال‌های استفاده
+        # 5. مثال‌های استفاده - بررسی اینکه آیا در description وجود دارد یا نه
+        has_examples_in_desc = False
         if description:
-            lines = description.split('\n')
-            in_examples = False
-            examples = []
-            for line in lines:
-                line_lower = line.lower()
-                if 'مثال' in line_lower or 'example' in line_lower:
-                    in_examples = True
-                    continue
-                if in_examples:
-                    if line.strip().startswith('-') or line.strip().startswith('*'):
-                        examples.append(line.strip())
-                    elif line.strip() and not line.strip().startswith('نکات'):
-                        if not any(keyword in line_lower for keyword in ['نکات', 'note', 'important']):
-                            examples.append(line.strip())
+            desc_lower = description.lower()
+            # بررسی اینکه آیا در description "مثال:" یا "مثال‌های استفاده:" وجود دارد
+            if ('مثال:' in desc_lower or 'example:' in desc_lower or 
+                'مثال‌های استفاده:' in desc_lower or 'examples:' in desc_lower):
+                has_examples_in_desc = True
+        
+        # اگر مثال در description نبود، از endpoint.examples یا ساخت ساده استفاده کن
+        examples_to_add = []
+        if not has_examples_in_desc:
+            if endpoint.examples:
+                for example in endpoint.examples[:5]:
+                    if isinstance(example, dict):
+                        desc = example.get('description', '')
+                        req = example.get('request', '')
+                        if desc and req:
+                            examples_to_add.append(f"{desc}: {req}")
+                        elif req:
+                            examples_to_add.append(req)
                     else:
-                        if line.strip() and any(keyword in line_lower for keyword in ['نکات', 'note', 'important']):
-                            break
+                        examples_to_add.append(str(example))
             
-            if not examples:
-                # ساخت مثال ساده از tool_name و params
+            # اگر هنوز مثال نداریم، یک مثال ساده بساز
+            if not examples_to_add:
                 example_parts = [tool_name + "("]
                 param_examples = []
                 for param in params[:5]:  # فقط 5 پارامتر اول
-                    param_name = param.get('name', '')
-                    if param_name != 'request':
-                        param_type = param.get('type', 'string')
-                        if param_type == 'string':
-                            param_examples.append(f"{param_name}='value'")
-                        elif param_type == 'integer':
-                            param_examples.append(f"{param_name}=1")
-                        elif param_type == 'boolean':
-                            param_examples.append(f"{param_name}=True")
+                    if param.name != 'request':
+                        if param.type == 'string':
+                            param_examples.append(f"{param.name}='value'")
+                        elif param.type == 'integer':
+                            param_examples.append(f"{param.name}=1")
+                        elif param.type == 'boolean':
+                            param_examples.append(f"{param.name}=True")
                         else:
-                            param_examples.append(f"{param_name}=value")
+                            param_examples.append(f"{param.name}=value")
                 example_parts.append(", ".join(param_examples))
                 example_parts.append(")")
-                examples.append("".join(example_parts))
-            
-            if examples:
-                content_parts.append("\nمثال‌های استفاده:")
-                for example in examples[:5]:  # محدود کردن به 5 مثال
-                    content_parts.append(f"- {example}")
+                examples_to_add.append("".join(example_parts))
         
-        # 6. نکات مهم
+        # اضافه کردن مثال‌ها (فقط اگر در description نبودند)
+        if examples_to_add and not has_examples_in_desc:
+            content_parts.append("\nمثال‌های استفاده:")
+            for example in examples_to_add[:5]:  # محدود کردن به 5 مثال
+                content_parts.append(f"- {example}")
+        
+        # 6. نکات مهم - بررسی اینکه آیا در description وجود دارد یا نه
+        has_notes_in_desc = False
         if description:
-            lines = description.split('\n')
-            in_notes = False
-            notes = []
-            for line in lines:
-                line_lower = line.lower()
-                if 'نکات' in line_lower or 'note' in line_lower or 'important' in line_lower:
-                    in_notes = True
-                    continue
-                if in_notes:
-                    if line.strip().startswith('-') or line.strip().startswith('*'):
-                        notes.append(line.strip())
-                    elif line.strip():
-                        notes.append(line.strip())
-            
-            if not notes and security:
-                notes.append("نیاز به احراز هویت دارد")
-            
-            if notes:
-                content_parts.append("\nنکات مهم:")
-                for note in notes[:10]:  # محدود کردن به 10 نکته
-                    content_parts.append(f"- {note}")
+            desc_lower = description.lower()
+            # بررسی اینکه آیا در description "نکات:" یا "نکات مهم:" وجود دارد
+            if ('نکات:' in desc_lower or 'note:' in desc_lower or 'important:' in desc_lower or
+                'نکات مهم:' in desc_lower or 'notes:' in desc_lower):
+                has_notes_in_desc = True
+        
+        # اگر نکات در description نبود، از security استفاده کن
+        notes_to_add = []
+        if not has_notes_in_desc:
+            if security:
+                notes_to_add.append("نیاز به احراز هویت دارد")
+        
+        # اضافه کردن نکات (فقط اگر در description نبودند)
+        if notes_to_add and not has_notes_in_desc:
+            content_parts.append("\nنکات مهم:")
+            for note in notes_to_add[:10]:  # محدود کردن به 10 نکته
+                content_parts.append(f"- {note}")
         
         # 7. API endpoint
         if path:
@@ -1057,39 +1335,44 @@ from django.conf import settings
             ...     persist_directory='tool_rag_db'
             ... )
         """
-        tools_info = self.analyze_openapi_schema()
+        endpoints = self.analyze_openapi_schema()
         
         documents = []
         
-        for tool_info in tools_info:
+        for endpoint in endpoints:
             # ساخت محتوای قابل جستجو
-            page_content = self.build_tool_document_content(tool_info)
+            page_content = self.build_tool_document_content(endpoint)
             
             # استخراج پارامترها برای metadata
             params_metadata = []
-            for param in tool_info.get('params', []):
-                if param.get('name') != 'request':  # حذف request از metadata
+            for param in endpoint.parameters:
+                if param.name != 'request':  # حذف request از metadata
                     params_metadata.append({
-                        'name': param.get('name', ''),
-                        'type': param.get('type', 'string'),
-                        'required': param.get('required', False),
-                        'description': param.get('description', '')
+                        'name': param.name,
+                        'name_fa': param.name_fa,
+                        'type': param.type,
+                        'required': param.required and not param.nullable,
+                        'description': param.description,
+                        'location': param.location.value,
+                        'enum_values': param.enum_values,
+                        'min_value': param.min_value,
+                        'max_value': param.max_value,
                     })
             
             # ساخت metadata
-            tags = tool_info.get('tags', [])
+            tags = endpoint.tags or []
             category = tags[0] if tags else 'other'
             
             metadata = {
-                'tool_name': tool_info['name'],
+                'tool_name': endpoint.name_en,
                 'category': category,
-                'method': tool_info.get('method', 'GET'),
-                'path': tool_info.get('path', ''),
-                'operation_id': tool_info.get('operation_id', ''),
+                'method': endpoint.method,
+                'path': endpoint.path,
+                'operation_id': endpoint.operation_id,
                 'tags': tags,
-                'has_auth': len(tool_info.get('security', [])) > 0,
+                'has_auth': len(endpoint.security) > 0,
                 'parameters': params_metadata,
-                'response_codes': tool_info.get('responses', [])
+                'response_codes': list(endpoint.responses.keys()) if endpoint.responses else []
             }
             
             documents.append({
