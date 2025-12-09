@@ -13,10 +13,33 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from django.db import transaction
 from django.middleware.csrf import get_token
+from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiParameter
+from drf_spectacular.types import OpenApiTypes
 import logging
 
 logger = logging.getLogger('django.security')
 
+@extend_schema(
+    summary='دریافت CSRF Token',
+    description='دریافت CSRF Token برای استفاده در درخواست‌های بعدی',
+    responses={
+        200: OpenApiResponse(
+            response={
+                'type': 'object',
+                'properties': {
+                    'success': {'type': 'boolean'},
+                    'csrf_token': {'type': 'string'}
+                }
+            },
+            description='CSRF Token با موفقیت دریافت شد'
+        ),
+        500: OpenApiResponse(
+            response={'type': 'object', 'properties': {'success': {'type': 'boolean'}, 'error': {'type': 'string'}}},
+            description='خطا در دریافت CSRF token'
+        )
+    },
+    tags=['Authentication']
+)
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def api_csrf_token(request):
@@ -36,6 +59,56 @@ def api_csrf_token(request):
             'error': 'خطا در دریافت CSRF token'
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+@extend_schema(
+    summary='ورود به API',
+    description='ورود کاربر به سیستم و دریافت token',
+    request={
+        'type': 'object',
+        'properties': {
+            'username': {'type': 'string'},
+            'password': {'type': 'string'}
+        },
+        'required': ['username', 'password']
+    },
+    responses={
+        200: OpenApiResponse(
+            response={
+                'type': 'object',
+                'properties': {
+                    'success': {'type': 'boolean'},
+                    'message': {'type': 'string'},
+                    'token': {'type': 'string'},
+                    'user': {
+                        'type': 'object',
+                        'properties': {
+                            'id': {'type': 'integer'},
+                            'username': {'type': 'string'},
+                            'email': {'type': 'string'},
+                            'first_name': {'type': 'string'},
+                            'last_name': {'type': 'string'},
+                            'is_staff': {'type': 'boolean'},
+                            'is_superuser': {'type': 'boolean'}
+                        }
+                    }
+                }
+            },
+            description='ورود موفقیت‌آمیز'
+        ),
+        400: OpenApiResponse(
+            response={'type': 'object', 'properties': {'error': {'type': 'string'}}},
+            description='نام کاربری یا رمز عبور ارسال نشده'
+        ),
+        401: OpenApiResponse(
+            response={'type': 'object', 'properties': {'error': {'type': 'string'}}},
+            description='نام کاربری یا رمز عبور اشتباه است'
+        ),
+        500: OpenApiResponse(
+            response={'type': 'object', 'properties': {'error': {'type': 'string'}}},
+            description='خطا در ورود به سیستم'
+        )
+    },
+    tags=['Authentication']
+)
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def api_login(request):
@@ -96,6 +169,28 @@ def api_login(request):
             'error': 'خطا در ورود به سیستم'
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+@extend_schema(
+    summary='خروج از API',
+    description='خروج کاربر از سیستم و حذف token',
+    request=None,
+    responses={
+        200: OpenApiResponse(
+            response={
+                'type': 'object',
+                'properties': {
+                    'success': {'type': 'boolean'},
+                    'message': {'type': 'string'}
+                }
+            },
+            description='خروج موفقیت‌آمیز'
+        ),
+        500: OpenApiResponse(
+            response={'type': 'object', 'properties': {'error': {'type': 'string'}}},
+            description='خطا در خروج از سیستم'
+        )
+    },
+    tags=['Authentication']
+)
 @api_view(['POST'])
 def api_logout(request):
     """
@@ -126,6 +221,43 @@ def api_logout(request):
             'error': 'خطا در خروج از سیستم'
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+@extend_schema(
+    summary='دریافت اطلاعات کاربر فعلی',
+    description='دریافت اطلاعات کاربر احراز هویت شده',
+    responses={
+        200: OpenApiResponse(
+            response={
+                'type': 'object',
+                'properties': {
+                    'user': {
+                        'type': 'object',
+                        'properties': {
+                            'id': {'type': 'integer'},
+                            'username': {'type': 'string'},
+                            'email': {'type': 'string'},
+                            'first_name': {'type': 'string'},
+                            'last_name': {'type': 'string'},
+                            'is_staff': {'type': 'boolean'},
+                            'is_superuser': {'type': 'boolean'},
+                            'last_login': {'type': 'string', 'format': 'date-time'},
+                            'date_joined': {'type': 'string', 'format': 'date-time'}
+                        }
+                    }
+                }
+            },
+            description='اطلاعات کاربر'
+        ),
+        401: OpenApiResponse(
+            response={'type': 'object', 'properties': {'error': {'type': 'string'}}},
+            description='کاربر احراز هویت نشده است'
+        ),
+        500: OpenApiResponse(
+            response={'type': 'object', 'properties': {'error': {'type': 'string'}}},
+            description='خطا در دریافت اطلاعات کاربر'
+        )
+    },
+    tags=['Authentication']
+)
 @api_view(['GET'])
 def api_user_info(request):
     """
@@ -157,6 +289,43 @@ def api_user_info(request):
             'error': 'خطا در دریافت اطلاعات کاربر'
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+@extend_schema(
+    summary='تغییر رمز عبور',
+    description='تغییر رمز عبور کاربر',
+    request={
+        'type': 'object',
+        'properties': {
+            'old_password': {'type': 'string'},
+            'new_password': {'type': 'string'}
+        },
+        'required': ['old_password', 'new_password']
+    },
+    responses={
+        200: OpenApiResponse(
+            response={
+                'type': 'object',
+                'properties': {
+                    'success': {'type': 'boolean'},
+                    'message': {'type': 'string'}
+                }
+            },
+            description='رمز عبور با موفقیت تغییر کرد'
+        ),
+        400: OpenApiResponse(
+            response={'type': 'object', 'properties': {'error': {'type': 'string'}, 'details': {'type': 'array'}}},
+            description='رمز عبور قدیمی اشتباه است یا رمز عبور جدید ضعیف است'
+        ),
+        401: OpenApiResponse(
+            response={'type': 'object', 'properties': {'error': {'type': 'string'}}},
+            description='کاربر احراز هویت نشده است'
+        ),
+        500: OpenApiResponse(
+            response={'type': 'object', 'properties': {'error': {'type': 'string'}}},
+            description='خطا در تغییر رمز عبور'
+        )
+    },
+    tags=['Authentication']
+)
 @api_view(['POST'])
 def api_change_password(request):
     """
@@ -209,6 +378,57 @@ def api_change_password(request):
             'error': 'خطا در تغییر رمز عبور'
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+@extend_schema(
+    summary='ثبت‌نام کاربر جدید',
+    description='ثبت‌نام کاربر جدید (فقط برای ادمین‌ها)',
+    request={
+        'type': 'object',
+        'properties': {
+            'username': {'type': 'string'},
+            'password': {'type': 'string'},
+            'email': {'type': 'string'},
+            'first_name': {'type': 'string'},
+            'last_name': {'type': 'string'}
+        },
+        'required': ['username', 'password']
+    },
+    responses={
+        201: OpenApiResponse(
+            response={
+                'type': 'object',
+                'properties': {
+                    'success': {'type': 'boolean'},
+                    'message': {'type': 'string'},
+                    'user': {
+                        'type': 'object',
+                        'properties': {
+                            'id': {'type': 'integer'},
+                            'username': {'type': 'string'},
+                            'email': {'type': 'string'},
+                            'first_name': {'type': 'string'},
+                            'last_name': {'type': 'string'}
+                        }
+                    },
+                    'token': {'type': 'string'}
+                }
+            },
+            description='کاربر با موفقیت ایجاد شد'
+        ),
+        400: OpenApiResponse(
+            response={'type': 'object', 'properties': {'error': {'type': 'string'}, 'details': {'type': 'array'}}},
+            description='نام کاربری قبلاً استفاده شده یا رمز عبور ضعیف است'
+        ),
+        403: OpenApiResponse(
+            response={'type': 'object', 'properties': {'error': {'type': 'string'}}},
+            description='فقط ادمین‌ها می‌توانند کاربر جدید ثبت کنند'
+        ),
+        500: OpenApiResponse(
+            response={'type': 'object', 'properties': {'error': {'type': 'string'}}},
+            description='خطا در ایجاد کاربر'
+        )
+    },
+    tags=['Authentication']
+)
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def api_register(request):
@@ -283,6 +503,36 @@ def api_register(request):
             'error': 'خطا در ایجاد کاربر'
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+@extend_schema(
+    summary='بررسی وضعیت API',
+    description='بررسی وضعیت API و اطلاعات کاربر',
+    responses={
+        200: OpenApiResponse(
+            response={
+                'type': 'object',
+                'properties': {
+                    'status': {'type': 'string'},
+                    'message': {'type': 'string'},
+                    'timestamp': {'type': 'string', 'format': 'date-time'},
+                    'user': {
+                        'type': 'object',
+                        'properties': {
+                            'authenticated': {'type': 'boolean'},
+                            'username': {'type': 'string', 'nullable': True},
+                            'is_staff': {'type': 'boolean'}
+                        }
+                    }
+                }
+            },
+            description='وضعیت API'
+        ),
+        500: OpenApiResponse(
+            response={'type': 'object', 'properties': {'error': {'type': 'string'}}},
+            description='خطا در بررسی وضعیت API'
+        )
+    },
+    tags=['Authentication']
+)
 @api_view(['GET'])
 def api_status(request):
     """
