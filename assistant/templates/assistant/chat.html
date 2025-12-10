@@ -1041,12 +1041,55 @@
 <div id="toast" class="toast" style="display: none;"></div>
 
 <script>
+    // بررسی اینکه آیا دستیار فعال است
+    const ASSISTANT_ENABLED = {{ assistant_enabled|yesno:"true,false" }};
+    const ASSISTANT_URL = "{{ assistant_url|default:'' }}";
+    
     const messagesDiv = document.getElementById('messages');
     const messageInput = document.getElementById('messageInput');
     const sendButton = document.getElementById('sendButton');
     const sendButtonText = document.getElementById('sendButtonText');
     const sendButtonIcon = document.getElementById('sendButtonIcon');
     const STORAGE_KEY = 'chat_history';
+    
+    // اگر دستیار فعال نیست، UI را غیرفعال کن
+    if (!ASSISTANT_ENABLED) {
+        // نمایش پیام
+        if (messagesDiv) {
+            messagesDiv.innerHTML = `
+                <div class="message-wrapper">
+                    <div class="message assistant-message">
+                        <div class="message-header">
+                            <i class="fas fa-robot"></i>
+                            <span>دستیار هوشمند</span>
+                        </div>
+                        <div class="message-content">
+                            <div style="padding: 20px; text-align: center; color: #6c757d;">
+                                <i class="fas fa-info-circle" style="font-size: 48px; margin-bottom: 15px; color: #667eea;"></i>
+                                <h3 style="margin-bottom: 10px;">دستیار هوشمند در حال حاضر در دسترس نیست</h3>
+                                <p style="margin-bottom: 15px;">لطفاً از سایر قابلیت‌های سیستم استفاده کنید.</p>
+                                <p style="font-size: 0.9em; color: #8e9297;">
+                                    برای فعال‌سازی دستیار، لطفاً با مدیر سیستم تماس بگیرید.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // غیرفعال کردن input و button
+        if (messageInput) {
+            messageInput.disabled = true;
+            messageInput.placeholder = 'دستیار هوشمند در دسترس نیست';
+        }
+        if (sendButton) {
+            sendButton.disabled = true;
+        }
+        
+        // جلوگیری از اجرای بقیه کد
+        console.warn('AI Assistant is not enabled');
+    }
     
     // متغیرهای بهینه‌سازی عملکرد
     let reprocessScheduled = false;
@@ -1628,6 +1671,12 @@
     }
     
     async function sendMessage() {
+        // بررسی اینکه آیا دستیار فعال است
+        if (!ASSISTANT_ENABLED) {
+            showToast('دستیار هوشمند در دسترس نیست', 'error');
+            return;
+        }
+        
         const message = messageInput.value.trim();
         
         if (!message) return;
@@ -1666,8 +1715,18 @@
                 
                 // اگر JSON parse شد، از آن استفاده می‌کنیم
                 const errorMessage = errorData.error || errorData.message || `خطای HTTP ${response.status}`;
-                addMessage(`❌ خطا: ${errorMessage}`, false);
-                showToast('خطا در دریافت پاسخ', 'error');
+                
+                // بررسی اینکه آیا دستیار در دسترس نیست
+                if (errorData.assistant_unavailable || response.status === 503) {
+                    addMessage(`⚠️ سرویس دستیار هوشمند در حال حاضر در دسترس نیست. لطفاً بعداً تلاش کنید.`, false);
+                    showToast('دستیار در دسترس نیست', 'warning');
+                    // غیرفعال کردن input و button
+                    if (messageInput) messageInput.disabled = true;
+                    if (sendButton) sendButton.disabled = true;
+                } else {
+                    addMessage(`❌ خطا: ${errorMessage}`, false);
+                    showToast('خطا در دریافت پاسخ', 'error');
+                }
                 return;
             }
             
