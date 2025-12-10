@@ -5,6 +5,7 @@ import pytest
 from django.test import TestCase
 from datetime import date
 from jdatetime import datetime as jdatetime
+from types import SimpleNamespace
 
 from construction.models import Transaction, Investor, Project, Period
 from construction.serializers import (
@@ -20,13 +21,6 @@ class TransactionSerializerTestCase(TestCase):
     
     def setUp(self):
         """تنظیمات اولیه"""
-        self.investor = Investor.objects.create(
-            first_name='احمد',
-            last_name='محمدی',
-            phone='09123456789',
-            email='ahmad@test.com'
-        )
-        
         self.project = Project.objects.create(
             name='پروژه تست',
             start_date_shamsi='1400-01-01',
@@ -34,6 +28,17 @@ class TransactionSerializerTestCase(TestCase):
             start_date_gregorian='2021-03-21',
             end_date_gregorian='2027-03-20'
         )
+        
+        self.investor = Investor.objects.create(
+            project=self.project,
+            first_name='احمد',
+            last_name='محمدی',
+            phone='09123456789',
+            email='ahmad@test.com'
+        )
+        
+        # درخواست ساختگی با session شامل پروژه جاری برای context serializer
+        self.request = SimpleNamespace(session={'current_project_id': self.project.id})
         
         self.period = Period.objects.create(
             project=self.project,
@@ -60,7 +65,7 @@ class TransactionSerializerTestCase(TestCase):
             'description': 'تست معتبر'
         }
         
-        serializer = TransactionSerializer(data=data)
+        serializer = TransactionSerializer(data=data, context={'request': self.request})
         self.assertTrue(serializer.is_valid())
     
     def test_persian_digits_conversion(self):
@@ -75,7 +80,7 @@ class TransactionSerializerTestCase(TestCase):
             'description': 'تست اعداد فارسی'
         }
         
-        serializer = TransactionSerializer(data=data)
+        serializer = TransactionSerializer(data=data, context={'request': self.request})
         self.assertTrue(serializer.is_valid())
         
         transaction = serializer.save()
@@ -95,7 +100,7 @@ class TransactionSerializerTestCase(TestCase):
             'description': 'تست تبدیل تاریخ'
         }
         
-        serializer = TransactionSerializer(data=data)
+        serializer = TransactionSerializer(data=data, context={'request': self.request})
         self.assertTrue(serializer.is_valid())
         
         transaction = serializer.save()
@@ -116,7 +121,7 @@ class TransactionSerializerTestCase(TestCase):
             'description': 'تست نوع نامعتبر'
         }
         
-        serializer = TransactionSerializer(data=data)
+        serializer = TransactionSerializer(data=data, context={'request': self.request})
         self.assertFalse(serializer.is_valid())
         self.assertIn('transaction_type', serializer.errors)
     
@@ -131,7 +136,7 @@ class TransactionSerializerTestCase(TestCase):
             'date_shamsi_input': '1404-06-01',
         }
         
-        serializer = TransactionSerializer(data=data)
+        serializer = TransactionSerializer(data=data, context={'request': self.request})
         # با تغییرات جدید، serializer باید معتبر باشد چون project اختیاری شده
         # اما در model level باید بررسی شود
         if serializer.is_valid():
@@ -161,7 +166,7 @@ class TransactionSerializerTestCase(TestCase):
             'description': 'تست مبلغ منفی'
         }
         
-        serializer = TransactionSerializer(data=data)
+        serializer = TransactionSerializer(data=data, context={'request': self.request})
         # Serializer باید معتبر باشد چون اعتبارسنجی مبلغ در frontend انجام می‌شود
         # اما در backend باید بررسی شود
         if serializer.is_valid():
@@ -239,9 +244,19 @@ class TransactionSerializerTestCase(TestCase):
 class InvestorSerializerTestCase(TestCase):
     """تست‌های InvestorSerializer"""
     
+    def setUp(self):
+        self.project = Project.objects.create(
+            name='پروژه تست Investor',
+            start_date_shamsi='1400-01-01',
+            end_date_shamsi='1405-12-29',
+            start_date_gregorian='2021-03-21',
+            end_date_gregorian='2027-03-20'
+        )
+    
     def test_investor_serialization(self):
         """تست سریالایز کردن investor"""
         investor = Investor.objects.create(
+            project=self.project,
             first_name='علی',
             last_name='احمدی',
             phone='09123456788',
@@ -261,6 +276,7 @@ class InvestorSerializerTestCase(TestCase):
     def test_investor_deserialization(self):
         """تست deserialization investor"""
         data = {
+            'project': self.project.id,
             'first_name': 'محمد',
             'last_name': 'رضایی',
             'phone': '09123456787',

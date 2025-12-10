@@ -9,6 +9,7 @@ from rest_framework import status
 from django.contrib.auth.models import User
 from datetime import date, datetime
 from jdatetime import datetime as jdatetime
+from types import SimpleNamespace
 
 from construction.models import Transaction, Investor, Project, Period
 from construction.serializers import TransactionSerializer
@@ -52,19 +53,20 @@ class TransactionAPITestCase(TestUserMixin, APITestCase):
         super().setUp()  # فراخوانی setUp از TestUserMixin
         
         # ایجاد داده‌های تست
-        self.investor = Investor.objects.create(
-            first_name='احمد',
-            last_name='محمدی',
-            phone='09123456789',
-            email='ahmad@test.com'
-        )
-        
         self.project = Project.objects.create(
             name='پروژه تست',
             start_date_shamsi='1400-01-01',
             end_date_shamsi='1405-12-29',
             start_date_gregorian='2021-03-21',
             end_date_gregorian='2027-03-20'
+        )
+        
+        self.investor = Investor.objects.create(
+            project=self.project,
+            first_name='احمد',
+            last_name='محمدی',
+            phone='09123456789',
+            email='ahmad@test.com'
         )
         
         self.period = Period.objects.create(
@@ -79,6 +81,12 @@ class TransactionAPITestCase(TestUserMixin, APITestCase):
             start_date_gregorian='2025-08-23',
             end_date_gregorian='2025-09-21'
         )
+        
+        # درخواست و سشن شامل پروژه جاری برای serializer/context
+        self.request = SimpleNamespace(session={'current_project_id': self.project.id})
+        session = self.client.session
+        session['current_project_id'] = self.project.id
+        session.save()
     
     def test_transaction_serializer_validation(self):
         """تست اعتبارسنجی serializer"""
@@ -107,7 +115,7 @@ class TransactionAPITestCase(TestUserMixin, APITestCase):
             'description': 'تست با اعداد فارسی'
         }
         
-        serializer = TransactionSerializer(data=data)
+        serializer = TransactionSerializer(data=data, context={'request': self.request})
         self.assertTrue(serializer.is_valid(), f"Serializer errors: {serializer.errors}")
         
         transaction = serializer.save()
@@ -130,7 +138,7 @@ class TransactionAPITestCase(TestUserMixin, APITestCase):
             'description': 'تست تبدیل تاریخ'
         }
         
-        serializer = TransactionSerializer(data=data)
+        serializer = TransactionSerializer(data=data, context={'request': self.request})
         self.assertTrue(serializer.is_valid())
         
         transaction = serializer.save()
@@ -151,7 +159,7 @@ class TransactionAPITestCase(TestUserMixin, APITestCase):
             'description': 'تست محاسبه روزها'
         }
         
-        serializer = TransactionSerializer(data=data)
+        serializer = TransactionSerializer(data=data, context={'request': self.request})
         self.assertTrue(serializer.is_valid())
         
         transaction = serializer.save()
@@ -193,7 +201,7 @@ class TransactionAPITestCase(TestUserMixin, APITestCase):
             'date_shamsi_input': 'invalid_date',  # تاریخ نامعتبر
         }
         
-        serializer = TransactionSerializer(data=invalid_data)
+        serializer = TransactionSerializer(data=invalid_data, context={'request': self.request})
         self.assertFalse(serializer.is_valid())
         # بررسی اینکه حداقل یکی از خطاها وجود دارد
         self.assertTrue(len(serializer.errors) > 0)
@@ -240,19 +248,20 @@ class TransactionModelTestCase(TestCase):
     
     def setUp(self):
         """تنظیمات اولیه"""
-        self.investor = Investor.objects.create(
-            first_name='علی',
-            last_name='احمدی',
-            phone='09123456788',
-            email='ali@test.com'
-        )
-        
         self.project = Project.objects.create(
             name='پروژه مدل تست',
             start_date_shamsi='1400-01-01',
             end_date_shamsi='1405-12-29',
             start_date_gregorian='2021-03-21',
             end_date_gregorian='2027-03-20'
+        )
+        
+        self.investor = Investor.objects.create(
+            project=self.project,
+            first_name='علی',
+            last_name='احمدی',
+            phone='09123456788',
+            email='ali@test.com'
         )
         
         self.period = Period.objects.create(
@@ -322,19 +331,20 @@ class TransactionIntegrationTestCase(TestUserMixin, APITestCase):
     def test_full_transaction_workflow(self):
         """تست کامل workflow تراکنش"""
         # 1. ایجاد داده‌های اولیه
-        investor = Investor.objects.create(
-            first_name='محمد',
-            last_name='رضایی',
-            phone='09123456787',
-            email='mohammad@test.com'
-        )
-        
         project = Project.objects.create(
             name='پروژه یکپارچگی',
             start_date_shamsi='1400-01-01',
             end_date_shamsi='1405-12-29',
             start_date_gregorian='2021-03-21',
             end_date_gregorian='2027-03-20'
+        )
+        
+        investor = Investor.objects.create(
+            project=project,
+            first_name='محمد',
+            last_name='رضایی',
+            phone='09123456787',
+            email='mohammad@test.com'
         )
         
         period = Period.objects.create(
@@ -362,6 +372,9 @@ class TransactionIntegrationTestCase(TestUserMixin, APITestCase):
         }
         
         url = reverse('transaction-list')
+        session = self.client.session
+        session['current_project_id'] = project.id
+        session.save()
         response = self.client.post(url, data, format='json')
         
         # 3. بررسی موفقیت ایجاد
