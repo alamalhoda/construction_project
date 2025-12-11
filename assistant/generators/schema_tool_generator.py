@@ -789,15 +789,25 @@ class SchemaToolGenerator:
         
         return endpoints
     
-    def generate_tool_code(self, endpoint: Endpoint) -> str:
+    def generate_tool_code(self, endpoint: Endpoint, target_service: str = 'django') -> str:
         """
         تولید کد Tool از Endpoint object
         
         Args:
             endpoint: Endpoint object با اطلاعات کامل
+            target_service: 'django' یا 'standalone' (برای سرویس مستقل)
         
         Returns:
             کد Python برای Tool
+        """
+        if target_service == 'standalone':
+            return self._generate_standalone_tool_code(endpoint)
+        else:
+            return self._generate_django_tool_code(endpoint)
+    
+    def _generate_django_tool_code(self, endpoint: Endpoint) -> str:
+        """
+        تولید کد Tool برای Django (نسخه فعلی)
         """
         tool_name = endpoint.name_en
         method = endpoint.method
@@ -940,12 +950,183 @@ def {tool_name}({signature}) -> str:
         
         return code
     
-    def generate_all_tools(self, output_file: Optional[str] = None) -> str:
+    def _generate_standalone_tool_code(self, endpoint: Endpoint) -> str:
+        """
+        تولید کد Tool برای سرویس مستقل (standalone)
+        
+        این نسخه:
+        - از HTTPToolsExecutor استفاده می‌کند
+        - async است
+        - api_token را به عنوان parameter دریافت می‌کند
+        """
+        tool_name = endpoint.name_en
+        method = endpoint.method
+        path = endpoint.path
+        
+        # ایجاد ToolTemplateGenerator برای docstring
+        template_generator = ToolTemplateGenerator()
+        docstring = template_generator.generate_tool_docstring(endpoint)
+        
+        # ساخت signature - جدا کردن required و optional از Parameter objects
+        required_params = []
+        optional_params = []
+        path_params = endpoint.get_path_params()
+        query_params = endpoint.get_query_params()
+        body_params = endpoint.get_body_params()
+        
+        # اضافه کردن api_token به عنوان اولین parameter (required)
+        required_params.append("api_token: str")
+        
+        # ساخت signature برای path parameters (همیشه required)
+        for param in path_params:
+            python_type = param.get_python_type_hint()
+            required_params.append(f"{param.name}: {python_type}")
+        
+        # ساخت signature برای required query/body parameters
+        for param in query_params + body_params:
+            if param.required and not param.nullable:
+                python_type = param.get_python_type_hint()
+                required_params.append(f"{param.name}: {python_type}")
+        
+        # ساخت signature برای optional parameters
+        for param in query_params + body_params:
+            if not param.required or param.nullable:
+                python_type = param.get_python_type_hint()
+                optional_params.append(f"{param.name}: {python_type} = None")
+        
+        param_signatures = required_params + optional_params
+        signature = ", ".join(param_signatures)
+        
+        # ساخت path با جایگزینی path parameters
+        path_replacements = []
+        for param in path_params:
+            path_replacements.append(f"        if {param.name} is not None:\n            path = path.replace('{{{param.name}}}', str({param.name}))")
+        
+        path_builder_str = '\n'.join(path_replacements) if path_replacements else ""
+        if path_builder_str:
+            path_builder_str = f"        path = '{path}'\n{path_builder_str}"
+        else:
+            path_builder_str = f"        path = '{path}'"
+        
+        # ساخت کد validation برای تمام پارامترها (به جز api_token)
+        validation_code_parts = []
+        for param in endpoint.parameters:
+            if param.name != 'api_token':  # api_token نیازی به validation ندارد
+                validation = param.get_validation_code()
+                if validation:
+                    validation_code_parts.append(validation)
+        
+        # join کردن validation codes
+        validation_code_str = '\n'.join(validation_code_parts) if validation_code_parts else ""
+        
+        # ساخت کد برای query parameters (برای GET)
+        query_params_code = []
+        for param in query_params:
+            query_params_code.append(f"        if {param.name} is not None:\n            params['{param.name}'] = {param.name}")
+        
+        query_params_str = '\n'.join(query_params_code) if query_params_code else ""
+        
+        # ساخت کد برای body parameters (برای POST, PUT, PATCH)
+        body_params_code = []
+        for param in body_params:
+            body_params_code.append(f"        if {param.name} is not None:\n            data['{param.name}'] = {param.name}")
+        
+        body_params_str = '\n'.join(body_params_code) if body_params_code else ""
+        
+        # ساخت body بر اساس method (با validation)
+        if validation_code_str:
+            validation_import = "        import re\n"
+            validation_lines = validation_code_str.split('\n')
+            indented_validation = '\n'.join(f"        {line}" if line.strip() else "" for line in validation_lines if line.strip())
+            validation_block = f"\n        # Validation\n{indented_validation}\n" if indented_validation else ""
+        else:
+            validation_import = ""
+            validation_block = ""
+        
+        if method == 'GET':
+            body = f'''    try:
+{validation_import}        from assistant_service.tools.executor import HTTPToolsExecutor
+        from assistant_service.tools.response_formatter import format_response
+        from django.conf import settings
+        
+        # ایجاد executor
+        executor = HTTPToolsExecutor(
+            base_url=getattr(settings, 'MAIN_APP_URL', 'http://localhost:8000'),
+            api_token=api_token
+        )
+        
+{validation_block}        # ساخت path با جایگزینی path parameters
+{path_builder_str}
+        
+        # ساخت params برای query parameters
+        params = {{}}
+{query_params_str}
+        
+        # فراخوانی API endpoint از طریق HTTP
+        result = await executor.execute(
+            method='{method}',
+            path=path,
+            params=params if params else None
+        )
+        
+        # بستن executor
+        await executor.close()
+        
+        # تبدیل response به string
+        return format_response(result)
+    except Exception as e:
+        return f"❌ خطا: {{str(e)}}"'''
+        else:
+            body = f'''    try:
+{validation_import}        from assistant_service.tools.executor import HTTPToolsExecutor
+        from assistant_service.tools.response_formatter import format_response
+        from django.conf import settings
+        
+        # ایجاد executor
+        executor = HTTPToolsExecutor(
+            base_url=getattr(settings, 'MAIN_APP_URL', 'http://localhost:8000'),
+            api_token=api_token
+        )
+        
+{validation_block}        # ساخت path با جایگزینی path parameters
+{path_builder_str}
+        
+        # ساخت data برای request body
+        data = {{}}
+{body_params_str}
+        
+        # فراخوانی API endpoint از طریق HTTP
+        result = await executor.execute(
+            method='{method}',
+            path=path,
+            data=data if data else None
+        )
+        
+        # بستن executor
+        await executor.close()
+        
+        # تبدیل response به string
+        return format_response(result)
+    except Exception as e:
+        return f"❌ خطا: {{str(e)}}"'''
+        
+        code = f'''@tool
+async def {tool_name}({signature}) -> str:
+    """
+{docstring}
+    """
+{body}
+'''
+        
+        return code
+    
+    def generate_all_tools(self, output_file: Optional[str] = None, target_service: str = 'django') -> str:
         """
         تولید Tools از OpenAPI schema
         
         Args:
             output_file: مسیر فایل خروجی
+            target_service: 'django' یا 'standalone' (برای سرویس مستقل)
         
         Returns:
             کد کامل Tools
@@ -957,9 +1138,30 @@ def {tool_name}({signature}) -> str:
         total_params = sum(len(e.parameters) for e in endpoints)
         tags_count = len(set(tag for endpoint in endpoints for tag in endpoint.tags))
         
+        # تعیین imports و توضیحات بر اساس target_service
+        if target_service == 'standalone':
+            imports = '''from langchain.tools import tool
+from typing import Optional, Dict, Any
+import re
+from django.conf import settings
+
+'''
+            service_note = "نسخه مستقل - برای استفاده در سرویس دستیار هوش مصنوعی مستقل"
+        else:
+            imports = '''from langchain.tools import tool
+from typing import Optional, Dict, Any
+import requests
+import re
+from django.conf import settings
+
+'''
+            service_note = "نسخه Django - برای استفاده در برنامه اصلی"
+        
         all_code = f'''"""
 Tools تولید شده خودکار از OpenAPI Schema
 این فایل به صورت خودکار از schema.json تولید شده است.
+
+{service_note}
 
 📊 آمار استخراج شده:
    - تعداد کل Endpoints: {total_endpoints}
@@ -983,13 +1185,7 @@ Tools تولید شده خودکار از OpenAPI Schema
 ⚠️  توجه: این Tools نیاز به پیاده‌سازی کامل دارند.
 """
 
-from langchain.tools import tool
-from typing import Optional, Dict, Any
-import requests
-import re
-from django.conf import settings
-
-'''
+{imports}'''
         
         # گروه‌بندی بر اساس tags
         tools_by_tag = {}
@@ -1005,7 +1201,7 @@ from django.conf import settings
             all_code += f"\n# ===== Tools for {tag} ({len(endpoint_list)} endpoint) =====\n\n"
             
             for endpoint in endpoint_list:
-                tool_code = self.generate_tool_code(endpoint)
+                tool_code = self.generate_tool_code(endpoint, target_service=target_service)
                 all_code += tool_code + "\n"
         
         # ذخیره در فایل
@@ -1019,6 +1215,7 @@ from django.conf import settings
             print(f"   - تعداد کل Endpoints: {total_endpoints}")
             print(f"   - تعداد کل پارامترها: {total_params}")
             print(f"   - تعداد دسته‌بندی‌ها: {tags_count}")
+            print(f"   - نوع سرویس: {target_service}")
             print(f"\n✅ هر Tool شامل:")
             print(f"   ✓ توضیحات کامل endpoint")
             print(f"   ✓ مسیر API و متد HTTP")
@@ -1421,20 +1618,25 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 مثال‌ها:
-  # تولید tools
+  # تولید tools برای Django (پیش‌فرض)
   python schema_tool_generator.py --output generated_tools_from_schema.py
+  
+  # تولید tools برای سرویس مستقل
+  python schema_tool_generator.py --output generated_tools_from_schema.py --target standalone
   
   # تولید مستندات RAG
   python schema_tool_generator.py --rag --rag-output tool_documents.json
   
-  # تولید هر دو
-  python schema_tool_generator.py --output tools.py --rag --rag-output rag_docs.json
+  # تولید هر دو برای سرویس مستقل
+  python schema_tool_generator.py --output tools.py --rag --rag-output rag_docs.json --target standalone
         """
     )
     parser.add_argument('--schema', type=str, default=None,
                        help='مسیر فایل schema.json (پیش‌فرض: schema.json در root پروژه)')
     parser.add_argument('--output', type=str, default=None,
                        help='مسیر فایل خروجی برای tools (پیش‌فرض: generated_tools_from_schema.py)')
+    parser.add_argument('--target', type=str, default='django', choices=['django', 'standalone'],
+                       help='نوع سرویس هدف: django (پیش‌فرض) یا standalone (برای سرویس مستقل)')
     parser.add_argument('--rag', action='store_true',
                        help='تولید مستندات RAG از tools')
     parser.add_argument('--rag-output', type=str, default=None,
@@ -1447,36 +1649,60 @@ def main():
     # تولید tools (اگر output مشخص شده یا rag مشخص نشده)
     if args.output or not args.rag:
         if not args.output:
-            args.output = str(project_root / 'assistant' / 'generated' / 'generated_tools_from_schema.py')
+            # تعیین مسیر خروجی بر اساس target
+            if args.target == 'standalone':
+                # برای standalone، در پوشه سرویس مستقل ذخیره می‌شود
+                args.output = str(project_root.parent / 'django_ai_assistant_service' / 'assistant_service' / 'tools' / 'generated' / 'generated_tools_from_schema.py')
+            else:
+                args.output = str(project_root / 'assistant' / 'generated' / 'generated_tools_from_schema.py')
         
         print("🔧 در حال تولید Tools از OpenAPI Schema...")
         print("   ✅ استفاده از schema کامل drf-spectacular")
-        print("   ✅ شامل تمام endpoints، parameters، requestBody و schemas\n")
+        print("   ✅ شامل تمام endpoints، parameters، requestBody و schemas")
+        print(f"   ✅ نوع سرویس: {args.target}\n")
         
-        code = generator.generate_all_tools(output_file=args.output)
+        code = generator.generate_all_tools(output_file=args.output, target_service=args.target)
         
         print(f"\n📁 فایل خروجی Tools: {args.output}")
+        if args.target == 'standalone':
+            print("   ✅ نسخه مستقل - برای استفاده در سرویس دستیار هوش مصنوعی")
+            print("   ✅ از HTTPToolsExecutor استفاده می‌کند")
+            print("   ✅ async functions")
+        else:
+            print("   ✅ نسخه Django - برای استفاده در برنامه اصلی")
         print("\n⚠️  توجه: این Tools به صورت خودکار تولید شده‌اند و نیاز به بررسی و تکمیل دارند.")
     
     # تولید مستندات RAG
     if args.rag:
         if not args.rag_output:
-            args.rag_output = str(project_root / 'assistant' / 'generated' / 'tool_documents_for_rag.json')
+            # تعیین مسیر خروجی RAG بر اساس target
+            if args.target == 'standalone':
+                args.rag_output = str(project_root.parent / 'django_ai_assistant_service' / 'assistant_service' / 'tools' / 'generated' / 'tool_documents_for_rag.json')
+            else:
+                args.rag_output = str(project_root / 'assistant' / 'generated' / 'tool_documents_for_rag.json')
         
         print("\n" + "="*80)
         print("📚 در حال تولید مستندات RAG از Tools...")
         print("   ✅ فرمت: LangChain Document")
-        print("   ✅ شامل: page_content (semantic search) + metadata (filtering)\n")
+        print("   ✅ شامل: page_content (semantic search) + metadata (filtering)")
+        print(f"   ✅ نوع سرویس: {args.target}\n")
         
         documents = generator.generate_tool_documents_for_rag(output_file=args.rag_output)
         
         print(f"\n📁 فایل خروجی RAG: {args.rag_output}")
         print(f"✅ {len(documents)} Document برای استفاده در RAG pipeline آماده است")
+        if args.target == 'standalone':
+            print("   ✅ مناسب برای استفاده در سرویس دستیار هوش مصنوعی مستقل")
         print("\n💡 نحوه استفاده:")
-        print("   from assistant.generators.schema_tool_generator import SchemaToolGenerator")
-        print("   generator = SchemaToolGenerator()")
-        print("   documents = generator.generate_tool_documents_for_rag()")
-        print("   # سپس از documents در RAG pipeline استفاده کنید")
+        if args.target == 'standalone':
+            print("   from assistant_service.rag.pipeline import RAGPipeline")
+            print("   rag = RAGPipeline()")
+            print("   # بارگذاری documents از JSON و استفاده در vector store")
+        else:
+            print("   from assistant.generators.schema_tool_generator import SchemaToolGenerator")
+            print("   generator = SchemaToolGenerator()")
+            print("   documents = generator.generate_tool_documents_for_rag()")
+            print("   # سپس از documents در RAG pipeline استفاده کنید")
 
 
 if __name__ == "__main__":
