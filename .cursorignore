@@ -39,7 +39,7 @@ backups/
 *.old
 
 # Log files
-*.log
+# *.log
 logs/
 
 # Temporary files
