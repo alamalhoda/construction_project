@@ -955,8 +955,8 @@ def {tool_name}({signature}) -> str:
         تولید کد Tool برای سرویس مستقل (standalone)
         
         این نسخه:
-        - از HTTPToolsExecutor استفاده می‌کند
-        - async است
+        - از assistant_service.viewset_helper استفاده می‌کند (که executor مشترک را استفاده می‌کند)
+        - sync است (برای سازگاری با ابزارهای generated)
         - api_token را به عنوان parameter دریافت می‌کند
         """
         tool_name = endpoint.name_en
@@ -997,16 +997,17 @@ def {tool_name}({signature}) -> str:
         param_signatures = required_params + optional_params
         signature = ", ".join(param_signatures)
         
-        # ساخت path با جایگزینی path parameters
-        path_replacements = []
-        for param in path_params:
-            path_replacements.append(f"        if {param.name} is not None:\n            path = path.replace('{{{param.name}}}', str({param.name}))")
+        # ساخت URL کامل (مشابه django version)
+        url_builder_parts = []
+        url_builder_parts.append("        # ساخت URL کامل")
+        url_builder_parts.append(f"        url = '{path}'")
         
-        path_builder_str = '\n'.join(path_replacements) if path_replacements else ""
-        if path_builder_str:
-            path_builder_str = f"        path = '{path}'\n{path_builder_str}"
-        else:
-            path_builder_str = f"        path = '{path}'"
+        # جایگزینی path parameters در URL
+        for param in path_params:
+            url_builder_parts.append(f"        if {param.name} is not None:")
+            url_builder_parts.append(f"            url = url.replace('{{{param.name}}}', str({param.name}))")
+        
+        url_builder_str = '\n'.join(url_builder_parts)
         
         # ساخت کد validation برای تمام پارامترها (به جز api_token)
         validation_code_parts = []
@@ -1019,14 +1020,14 @@ def {tool_name}({signature}) -> str:
         # join کردن validation codes
         validation_code_str = '\n'.join(validation_code_parts) if validation_code_parts else ""
         
-        # ساخت کد برای query parameters (برای GET)
+        # ساخت کد برای query parameters (برای GET) - مشابه django version
         query_params_code = []
         for param in query_params:
-            query_params_code.append(f"        if {param.name} is not None:\n            params['{param.name}'] = {param.name}")
+            query_params_code.append(f"        if {param.name} is not None:\n            kwargs['{param.name}'] = {param.name}")
         
         query_params_str = '\n'.join(query_params_code) if query_params_code else ""
         
-        # ساخت کد برای body parameters (برای POST, PUT, PATCH)
+        # ساخت کد برای body parameters (برای POST, PUT, PATCH) - مشابه django version
         body_params_code = []
         for param in body_params:
             body_params_code.append(f"        if {param.name} is not None:\n            data['{param.name}'] = {param.name}")
@@ -1045,73 +1046,53 @@ def {tool_name}({signature}) -> str:
         
         if method == 'GET':
             body = f'''    try:
-{validation_import}        from assistant_service.tools.executor import HTTPToolsExecutor
-        from assistant_service.tools.response_formatter import format_response
-        from django.conf import settings
+{validation_import}        from assistant_service.viewset_helper import (
+            call_api_via_http,
+            response_to_string
+        ){validation_block}{url_builder_str}
         
-        # ایجاد executor
-        executor = HTTPToolsExecutor(
-            base_url=getattr(settings, 'MAIN_APP_URL', 'http://localhost:8000'),
-            api_token=api_token
-        )
-        
-{validation_block}        # ساخت path با جایگزینی path parameters
-{path_builder_str}
-        
-        # ساخت params برای query parameters
-        params = {{}}
+        # ساخت kwargs برای query parameters
+        kwargs = {{}}
 {query_params_str}
         
         # فراخوانی API endpoint از طریق HTTP
-        result = await executor.execute(
+        response = call_api_via_http(
+            url=url,
+            request=None,
             method='{method}',
-            path=path,
-            params=params if params else None
+            **kwargs
         )
         
-        # بستن executor
-        await executor.close()
-        
         # تبدیل response به string
-        return format_response(result)
+        return response_to_string(response)
     except Exception as e:
         return f"❌ خطا: {{str(e)}}"'''
         else:
             body = f'''    try:
-{validation_import}        from assistant_service.tools.executor import HTTPToolsExecutor
-        from assistant_service.tools.response_formatter import format_response
-        from django.conf import settings
-        
-        # ایجاد executor
-        executor = HTTPToolsExecutor(
-            base_url=getattr(settings, 'MAIN_APP_URL', 'http://localhost:8000'),
-            api_token=api_token
-        )
-        
-{validation_block}        # ساخت path با جایگزینی path parameters
-{path_builder_str}
+{validation_import}        from assistant_service.viewset_helper import (
+            call_api_via_http,
+            response_to_string
+        ){validation_block}{url_builder_str}
         
         # ساخت data برای request body
         data = {{}}
 {body_params_str}
         
         # فراخوانی API endpoint از طریق HTTP
-        result = await executor.execute(
+        response = call_api_via_http(
+            url=url,
+            request=None,
             method='{method}',
-            path=path,
-            data=data if data else None
+            data=data
         )
         
-        # بستن executor
-        await executor.close()
-        
         # تبدیل response به string
-        return format_response(result)
+        return response_to_string(response)
     except Exception as e:
         return f"❌ خطا: {{str(e)}}"'''
         
         code = f'''@tool
-async def {tool_name}({signature}) -> str:
+def {tool_name}({signature}) -> str:
     """
 {docstring}
     """
