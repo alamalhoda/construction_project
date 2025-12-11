@@ -1688,6 +1688,10 @@
         setLoading(true);
         
         try {
+            // ایجاد AbortController برای مدیریت timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 200000); // 200 ثانیه (3.3 دقیقه)
+            
             const response = await fetch('{% url "assistant:chat_api" %}', {
                 method: 'POST',
                 headers: {
@@ -1695,11 +1699,15 @@
                     'X-CSRFToken': getCookie('csrftoken')
                 },
                 credentials: 'include',
+                signal: controller.signal, // اضافه کردن signal برای timeout
                 body: JSON.stringify({ 
                     message: message,
                     use_rag: false
                 })
             });
+            
+            // پاک کردن timeout بعد از دریافت response
+            clearTimeout(timeoutId);
             
             // بررسی وضعیت HTTP response
             if (!response.ok) {
@@ -1768,8 +1776,11 @@
             console.error('Error:', error);
             const errorMessage = error.message || 'خطا در ارتباط با سرور';
             
-            // بررسی اینکه آیا این یک خطای واقعی شبکه است یا خطای دیگر
-            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            // بررسی اینکه آیا این یک خطای timeout است
+            if (error.name === 'AbortError' || errorMessage.includes('aborted') || errorMessage.includes('timeout')) {
+                addMessage('⏱️ زمان انتظار به پایان رسید. درخواست شما در حال پردازش است و ممکن است چند لحظه دیگر پاسخ دریافت کنید. لطفاً صبر کنید.', false);
+                showToast('زمان انتظار به پایان رسید - در حال پردازش', 'warning');
+            } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
                 addMessage('❌ خطا در ارتباط با سرور. لطفاً اتصال اینترنت خود را بررسی کنید.', false);
                 showToast('خطا در ارتباط با سرور', 'error');
             } else {

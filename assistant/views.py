@@ -98,7 +98,8 @@ def chat_api(request):
             import asyncio
             
             async def send_request():
-                async with httpx.AsyncClient(timeout=60.0) as client:
+                # افزایش timeout به 180 ثانیه (3 دقیقه) برای درخواست‌های طولانی
+                async with httpx.AsyncClient(timeout=180.0) as client:
                     response = await client.post(
                         f"{assistant_url}/api/v1/chat",
                         json={
@@ -106,10 +107,11 @@ def chat_api(request):
                             "user_id": request.user.id,
                             "project_id": current_project.id if current_project else None,
                             "chat_history": chat_history,
-                            "api_token": api_token
+                            "api_token": api_token  # برای backward compatibility
                         },
                         headers={
-                            "Content-Type": "application/json"
+                            "Content-Type": "application/json",
+                            "Authorization": f"Bearer {api_token}"  # ارسال token در header (اولویت اول)
                         }
                     )
                     return response
