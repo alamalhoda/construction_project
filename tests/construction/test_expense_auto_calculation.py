@@ -17,7 +17,6 @@ class ExpenseAutoCalculationTestCase(TestCase):
             end_date_shamsi=jdatetime.date(1403, 12, 29),
             start_date_gregorian=jdatetime.date(1403, 1, 1).togregorian(),
             end_date_gregorian=jdatetime.date(1403, 12, 29).togregorian(),
-            is_active=True
         )
         
         # ایجاد دوره تست

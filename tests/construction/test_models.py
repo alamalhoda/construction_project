@@ -15,19 +15,20 @@ class TransactionModelTestCase(TestCase):
     
     def setUp(self):
         """تنظیمات اولیه"""
-        self.investor = Investor.objects.create(
-            first_name='احمد',
-            last_name='محمدی',
-            phone='09123456789',
-            email='ahmad@test.com'
-        )
-        
         self.project = Project.objects.create(
             name='پروژه تست',
             start_date_shamsi='1400-01-01',
             end_date_shamsi='1405-12-29',
             start_date_gregorian='2021-03-21',
             end_date_gregorian='2027-03-20'
+        )
+        
+        self.investor = Investor.objects.create(
+            project=self.project,
+            first_name='احمد',
+            last_name='محمدی',
+            phone='09123456789',
+            email='ahmad@test.com'
         )
         
         self.period = Period.objects.create(
@@ -212,9 +213,19 @@ class TransactionModelTestCase(TestCase):
 class InvestorModelTestCase(TestCase):
     """تست‌های مدل Investor"""
     
+    def setUp(self):
+        self.project = Project.objects.create(
+            name='پروژه تست Investor',
+            start_date_shamsi='1400-01-01',
+            end_date_shamsi='1405-12-29',
+            start_date_gregorian='2021-03-21',
+            end_date_gregorian='2027-03-20'
+        )
+    
     def test_investor_creation(self):
         """تست ایجاد investor"""
         investor = Investor.objects.create(
+            project=self.project,
             first_name='علی',
             last_name='احمدی',
             phone='09123456788',
@@ -230,6 +241,7 @@ class InvestorModelTestCase(TestCase):
     def test_investor_str_method(self):
         """تست متد __str__"""
         investor = Investor.objects.create(
+            project=self.project,
             first_name='محمد',
             last_name='رضایی',
             phone='09123456787',
@@ -244,6 +256,7 @@ class InvestorModelTestCase(TestCase):
         """تست اعتبارسنجی email"""
         # تست email معتبر
         investor = Investor.objects.create(
+            project=self.project,
             first_name='تست',
             last_name='ایمیل',
             phone='09123456786',
@@ -254,6 +267,7 @@ class InvestorModelTestCase(TestCase):
     def test_investor_phone_validation(self):
         """تست اعتبارسنجی phone"""
         investor = Investor.objects.create(
+            project=self.project,
             first_name='تست',
             last_name='تلفن',
             phone='09123456785',
@@ -393,21 +407,22 @@ class ModelIntegrationTestCase(TestCase):
     
     def test_full_transaction_workflow(self):
         """تست کامل workflow با مدل‌ها"""
-        # 1. ایجاد investor
-        investor = Investor.objects.create(
-            first_name='تست',
-            last_name='یکپارچگی',
-            phone='09123456784',
-            email='integration@test.com'
-        )
-        
-        # 2. ایجاد project
+        # 1. ایجاد project
         project = Project.objects.create(
             name='پروژه یکپارچگی',
             start_date_shamsi='1400-01-01',
             end_date_shamsi='1405-12-29',
             start_date_gregorian='2021-03-21',
             end_date_gregorian='2027-03-20'
+        )
+        
+        # 2. ایجاد investor مرتبط با پروژه
+        investor = Investor.objects.create(
+            project=project,
+            first_name='تست',
+            last_name='یکپارچگی',
+            phone='09123456784',
+            email='integration@test.com'
         )
         
         # 3. ایجاد period
@@ -453,7 +468,7 @@ class ModelIntegrationTestCase(TestCase):
         with self.assertRaises(Transaction.DoesNotExist):
             Transaction.objects.get(id=transaction.id)
         
-        # بررسی اینکه investor باقی مانده باشد
-        self.assertTrue(Investor.objects.filter(id=investor.id).exists())
+        # با توجه به ForeignKey به پروژه، investor هم حذف می‌شود
+        self.assertFalse(Investor.objects.filter(id=investor.id).exists())
         # period باید حذف شده باشد چون project حذف شده
         self.assertFalse(Period.objects.filter(id=period.id).exists())

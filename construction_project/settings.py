@@ -82,8 +82,10 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'django_filters',
+    'drf_spectacular',  # برای تولید OpenAPI schema
 
     'construction.apps.ConstructionConfig',  # استفاده از apps.py
+    'assistant',  # AI Assistant app
     'dashboard',
     'backup',
     'django_extensions',
@@ -244,6 +246,105 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
     ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+# AI Assistant Settings
+ai_assistant_provider_raw = os.getenv('AI_ASSISTANT_PROVIDER', 'openai')
+# پاک کردن کامنت‌ها از provider (اگر وجود داشته باشد)
+if ai_assistant_provider_raw:
+    AI_ASSISTANT_PROVIDER = str(ai_assistant_provider_raw).split('#')[0].strip()
+else:
+    AI_ASSISTANT_PROVIDER = 'openai'
+# تنظیمات Provider بر اساس نوع provider انتخاب شده
+provider_type = AI_ASSISTANT_PROVIDER.lower()
+
+if provider_type == 'gemini' or provider_type == 'google':
+    # برای Google Gemini
+    gemini_model_raw = os.getenv('GEMINI_MODEL', 'gemini-2.0-flash')
+    # پاک کردن کامنت‌ها از نام مدل (اگر وجود داشته باشد)
+    if gemini_model_raw:
+        gemini_model = str(gemini_model_raw).split('#')[0].strip()
+    else:
+        gemini_model = 'gemini-2.0-flash'
+    AI_ASSISTANT_PROVIDER_CONFIG = {
+        'api_key': os.getenv('GOOGLE_API_KEY') or os.getenv('GEMINI_API_KEY'),
+        'model': gemini_model,
+    }
+elif provider_type == 'openrouter':
+    # برای OpenRouter
+    openrouter_model_raw = os.getenv('OPENROUTER_MODEL', 'deepseek/deepseek-chat:free')
+    # پاک کردن کامنت‌ها از نام مدل (اگر وجود داشته باشد)
+    if openrouter_model_raw:
+        openrouter_model = str(openrouter_model_raw).split('#')[0].strip()
+    else:
+        openrouter_model = 'deepseek/deepseek-chat:free'
+    AI_ASSISTANT_PROVIDER_CONFIG = {
+        'api_key': os.getenv('OPENROUTER_API_KEY'),
+        'model': openrouter_model,
+    }
+elif provider_type == 'huggingface':
+    # برای Hugging Face
+    AI_ASSISTANT_PROVIDER_CONFIG = {
+        'model_id': os.getenv('HUGGINGFACE_MODEL_ID', 'mistralai/Mistral-7B-Instruct-v0.2'),
+        'api_key': os.getenv('HUGGINGFACE_API_KEY'),
+        'endpoint': os.getenv('HUGGINGFACE_ENDPOINT'),
+    }
+elif provider_type == 'local':
+    # برای مدل‌های محلی (Ollama)
+    AI_ASSISTANT_PROVIDER_CONFIG = {
+        'base_url': os.getenv('LOCAL_MODEL_URL', 'http://localhost:11434'),
+        'model': os.getenv('LOCAL_MODEL', 'llama2'),
+    }
+elif provider_type == 'openai':
+    # برای OpenAI
+    AI_ASSISTANT_PROVIDER_CONFIG = {
+        'api_key': os.getenv('OPENAI_API_KEY'),
+        'model': os.getenv('OPENAI_MODEL', 'gpt-4'),
+    }
+else:
+    # پیش‌فرض: OpenAI
+    AI_ASSISTANT_PROVIDER_CONFIG = {
+        'api_key': os.getenv('OPENAI_API_KEY'),
+        'model': os.getenv('OPENAI_MODEL', 'gpt-4'),
+    }
+
+# تنظیمات قدیمی (برای سازگاری - غیرفعال شده)
+# AI_ASSISTANT_PROVIDER_CONFIG = {
+#     # برای OpenAI
+#     # 'api_key': os.getenv('OPENAI_API_KEY'),
+#     # 'model': os.getenv('OPENAI_MODEL', 'gpt-4'),
+#     
+#     # برای Anthropic
+#     # 'api_key': os.getenv('ANTHROPIC_API_KEY'),
+#     # 'model': os.getenv('ANTHROPIC_MODEL', 'claude-3-sonnet-20240229'),
+#     
+#     # برای Google Gemini
+#     # 'api_key': os.getenv('GOOGLE_API_KEY') or os.getenv('GEMINI_API_KEY'),
+#     # 'model': os.getenv('GEMINI_MODEL', 'gemini-1.5-flash'),
+#     
+#     # برای OpenRouter
+#     # 'api_key': os.getenv('OPENROUTER_API_KEY'),
+#     # 'model': os.getenv('OPENROUTER_MODEL', 'google/gemini-2.0-flash-exp:free'),
+#     
+#     # برای Hugging Face
+#     # 'model_id': os.getenv('HUGGINGFACE_MODEL_ID', 'mistralai/Mistral-7B-Instruct-v0.2'),
+#     # 'endpoint': os.getenv('HUGGINGFACE_ENDPOINT'),
+#     
+#     # برای Local models
+#     # 'base_url': os.getenv('LOCAL_MODEL_URL', 'http://localhost:11434'),
+#     # 'model': os.getenv('LOCAL_MODEL_NAME', 'llama2'),
+# }
+
+# drf-spectacular settings (برای RAG و API Documentation)
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Construction Project API',
+    'DESCRIPTION': 'API documentation for Construction Project Management System',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'SERVE_PERMISSIONS': ['rest_framework.permissions.AllowAny'],  # برای دسترسی به مستندات
+    'COMPONENT_SPLIT_REQUEST': True,  # برای جدا کردن request و response
+    'SCHEMA_PATH_PREFIX': '/api/v1/',  # پیشوند مسیر API
 }
 
 # تنظیمات Logging
@@ -363,6 +464,16 @@ LOGGING = {
         'construction.calculations': {
             'handlers': ['console', 'calculations_file'],
             'level': CALCULATIONS_LOG_LEVEL,
+            'propagate': False,
+        },
+        'assistant': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'assistant.viewset_helper': {
+            'handlers': ['console'],
+            'level': 'INFO',
             'propagate': False,
         },
     },

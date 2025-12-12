@@ -21,25 +21,6 @@
             "justMyCode": false,
             "python": "/Users/alamalhoda/Projects/Arash_Project/djangobuilder/construction_project/env/bin/python",
             "stopOnEntry": false
-        },
-        {
-            "name": "Django Shell",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/manage.py",
-            "args": [
-                "shell"
-            ],
-            "django": true,
-            "cwd": "${workspaceFolder}",
-            "env": {
-                "PYTHONPATH": "${workspaceFolder}",
-                "DJANGO_SETTINGS_MODULE": "construction_project.settings",
-                "VIRTUAL_ENV": "/Users/alamalhoda/Projects/Arash_Project/djangobuilder/construction_project/env"
-            },
-            "console": "integratedTerminal",
-            "justMyCode": false,
-            "python": "/Users/alamalhoda/Projects/Arash_Project/djangobuilder/construction_project/env/bin/python"
         }
     ]
 }

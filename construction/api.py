@@ -5,6 +5,9 @@ from rest_framework.authentication import SessionAuthentication, TokenAuthentica
 from django.db.models import Sum, Q, Count
 from django.db import connection
 import logging
+from drf_spectacular.extensions import OpenApiAuthenticationExtension
+from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiParameter
+from drf_spectacular.types import OpenApiTypes
 
 from . import serializers
 from . import models
@@ -37,13 +40,224 @@ class CsrfExemptSessionAuthentication(SessionAuthentication):
         return super().enforce_csrf(request)
 
 
+class CsrfExemptSessionAuthenticationScheme(OpenApiAuthenticationExtension):
+    """
+    OpenAPI schema extension برای CsrfExemptSessionAuthentication
+    """
+    target_class = 'construction.api.CsrfExemptSessionAuthentication'
+    name = 'SessionAuthentication'
+    
+    def get_security_definition(self, auto_schema):
+        return {
+            'type': 'apiKey',
+            'in': 'cookie',
+            'name': 'sessionid',
+            'description': 'Session-based authentication (CSRF exempt in DEBUG mode)'
+        }
+
+
 class ExpenseViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
-    """ViewSet for the Expense class"""
+    """
+    ViewSet برای مدیریت هزینه‌های پروژه
+    
+    این ViewSet امکان مدیریت کامل هزینه‌های پروژه را فراهم می‌کند.
+    
+    قابلیت‌ها:
+    - ایجاد، خواندن، به‌روزرسانی و حذف هزینه‌ها
+    - دریافت آمار و گزارش‌های مالی
+    - محاسبه مجموع هزینه‌ها بر اساس نوع و دوره
+    - مدیریت هزینه‌های دوره‌ای
+    
+    سناریوهای استفاده:
+    - ثبت هزینه‌های مواد اولیه (material)
+    - ثبت هزینه‌های نیروی کار (labor)
+    - ثبت هزینه‌های اداری و عمومی (administrative)
+    - دریافت گزارش‌های مالی برای تحلیل پروژه
+    - محاسبه هزینه‌های تجمعی برای هر دوره
+    
+    مثال‌های کاربرد:
+    - برای ثبت خرید سیمان و آجر: expense_type='material', amount='5000000'
+    - برای ثبت حقوق کارگران: expense_type='labor', amount='3000000'
+    - برای دریافت لیست تمام هزینه‌ها: GET /api/v1/Expense/
+    - برای دریافت آمار هزینه‌ها: GET /api/v1/Expense/dashboard_data/
+    
+    نکات مهم:
+    - تمام عملیات بر اساس پروژه جاری (active project) انجام می‌شود
+    - هزینه‌ها می‌توانند به یک دوره خاص مرتبط باشند
+    - انواع هزینه: project_manager, facilities_manager, procurement, warehouse, construction_contractor, other
+    """
 
     queryset = models.Expense.objects.all()
     serializer_class = serializers.ExpenseSerializer
     authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
     permission_classes = [APISecurityPermission]
+
+    # ===== عملیات CRUD با توضیحات جداگانه =====
+
+    def list(self, request, *args, **kwargs):
+        """
+        دریافت لیست تمام هزینه‌های پروژه جاری
+
+        این متد لیست هزینه‌های مرتبط با پروژه فعال را برمی‌گرداند.
+        نتایج به صورت صفحه‌بندی شده و قابل مرتب‌سازی هستند.
+
+        Query Parameters:
+            - page: شماره صفحه (پیش‌فرض: 1)
+            - page_size: تعداد رکورد در هر صفحه (پیش‌فرض: 10)
+            - ordering: فیلد مرتب‌سازی با پیشوند "-" برای نزولی (پیش‌فرض: -created_at)
+
+        Returns:
+            Response با ساختار paginated شامل results, count, next, previous
+
+        مثال:
+            GET /api/v1/Expense/?page=1&page_size=20&ordering=-amount
+
+        نکات:
+            - فقط هزینه‌های پروژه جاری برگردانده می‌شود
+            - نیاز به احراز هویت دارد
+        """
+        return super().list(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        """
+        ایجاد هزینه جدید برای پروژه جاری
+
+        این متد هزینه جدید را برای پروژه فعال ثبت می‌کند.
+        پروژه به صورت خودکار از session کاربر تعیین می‌شود.
+
+        Request Body:
+            - period (الزامی): شناسه دوره متعلق به پروژه جاری
+            - expense_type (الزامی): نوع هزینه (project_manager, facilities_manager, procurement, warehouse, construction_contractor, other)
+            - amount (الزامی): مبلغ هزینه به تومان (به صورت string)
+            - description (اختیاری): توضیحات تکمیلی
+
+        Returns:
+            Response با اطلاعات هزینه ایجاد شده (status 201)
+
+        مثال:
+            POST /api/v1/Expense/
+            {
+                "period": 1,
+                "expense_type": "project_manager",
+                "amount": "5000000",
+                "description": "حقوق مدیر پروژه برای ماه دسامبر"
+            }
+
+        نکات:
+            - جزئیات فیلدها در serializer descriptions موجود است
+            - پروژه به صورت خودکار از session تنظیم می‌شود
+            - نیاز به احراز هویت و دسترسی APISecurityPermission دارد
+        """
+        return super().create(request, *args, **kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        """
+        دریافت جزئیات یک هزینه خاص
+
+        این متد اطلاعات کامل هزینه با شناسه مشخص شده را برمی‌گرداند.
+
+        URL Parameters:
+            - pk: شناسه یکتای هزینه
+
+        Returns:
+            Response با اطلاعات کامل هزینه شامل period_data و period_weight
+
+        مثال:
+            GET /api/v1/Expense/1/
+
+        نکات:
+            - فقط هزینه‌های پروژه جاری قابل دسترسی هستند
+            - در صورت عدم دسترسی، خطای 403 برگردانده می‌شود
+            - نیاز به احراز هویت دارد
+        """
+        return super().retrieve(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        """
+        به‌روزرسانی کامل هزینه
+
+        این متد امکان تغییر همه فیلدهای یک هزینه را فراهم می‌کند.
+        تمام فیلدهای قابل ویرایش باید ارسال شوند.
+
+        URL Parameters:
+            - pk: شناسه یکتای هزینه
+
+        Request Body:
+            - تمام فیلدهای قابل ویرایش (period, expense_type, amount, description)
+
+        Returns:
+            Response با اطلاعات به‌روزرسانی شده هزینه (status 200)
+
+        مثال:
+            PUT /api/v1/Expense/1/
+            {
+                "period": 1,
+                "expense_type": "project_manager",
+                "amount": "6000000",
+                "description": "حقوق مدیر پروژه - به‌روزرسانی شده"
+            }
+
+        نکات:
+            - همه فیلدها باید ارسال شوند (به جز project که خودکار تنظیم می‌شود)
+            - برای به‌روزرسانی جزئی از PATCH استفاده کنید
+            - جزئیات فیلدها در serializer descriptions موجود است
+            - نیاز به احراز هویت دارد
+        """
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        """
+        به‌روزرسانی جزئی هزینه
+
+        این متد امکان تغییر بخشی از فیلدهای هزینه را فراهم می‌کند.
+        فقط فیلدهای ارسال شده تغییر می‌کنند.
+
+        URL Parameters:
+            - pk: شناسه یکتای هزینه
+
+        Request Body:
+            - فیلدهای انتخابی برای به‌روزرسانی (period, expense_type, amount, description)
+
+        Returns:
+            Response با اطلاعات به‌روزرسانی شده هزینه (status 200)
+
+        مثال:
+            PATCH /api/v1/Expense/1/
+            {
+                "amount": "7000000"
+            }
+
+        نکات:
+            - فقط فیلدهای ارسال شده تغییر می‌کنند
+            - فیلدهای ارسال نشده حفظ می‌شوند
+            - انعطاف بیشتری نسبت به PUT دارد
+            - جزئیات فیلدها در serializer descriptions موجود است
+            - نیاز به احراز هویت دارد
+        """
+        return super().partial_update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        حذف هزینه
+
+        این متد هزینه را به‌طور کامل و برگشت‌ناپذیری حذف می‌کند.
+
+        URL Parameters:
+            - pk: شناسه یکتای هزینه
+
+        Returns:
+            Response خالی با status 204 No Content در صورت موفقیت
+
+        مثال:
+            DELETE /api/v1/Expense/1/
+
+        نکات:
+            - حذف برگشت‌ناپذیر است
+            - فقط هزینه‌های پروژه جاری قابل حذف هستند
+            - نیاز به احراز هویت و دسترسی APISecurityPermission دارد
+            - در صورت وجود وابستگی، ممکن است حذف ناموفق باشد
+        """
+        return super().destroy(request, *args, **kwargs)
 
     @action(detail=False, methods=['get'])
     def with_periods(self, request):
@@ -90,7 +304,28 @@ class ExpenseViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def dashboard_data(self, request):
-        """دریافت داده‌های لیست هزینه ها"""
+        """
+        دریافت داده‌های لیست هزینه‌ها
+        
+        این endpoint داده‌های کامل داشبورد هزینه‌ها را بر اساس دوره‌ها و انواع هزینه
+        برمی‌گرداند. شامل:
+        - لیست تمام دوره‌ها با هزینه‌های هر نوع
+        - مجموع تجمعی هزینه‌ها
+        - مجموع هر ستون (هر نوع هزینه)
+        - مجموع کل همه هزینه‌ها
+        
+        Returns:
+            Response: شامل:
+                - periods: لیست دوره‌ها با هزینه‌های هر نوع
+                - expense_types: انواع هزینه‌ها
+                - column_totals: مجموع هر نوع هزینه در تمام دوره‌ها
+                - grand_total: مجموع کل همه هزینه‌ها
+        
+        نکات مهم:
+        - فقط هزینه‌های پروژه جاری را برمی‌گرداند
+        - اگر پروژه جاری وجود نداشته باشد، خطای 400 برمی‌گرداند
+        - داده‌ها بر اساس دوره مرتب می‌شوند
+        """
         logger.info("User %s requesting expense dashboard data", request.user.username)
         try:
             # دریافت پروژه جاری از session
@@ -203,7 +438,30 @@ class ExpenseViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'])
     def update_expense(self, request):
-        """به‌روزرسانی هزینه"""
+        """
+        به‌روزرسانی یا ایجاد هزینه برای یک دوره و نوع خاص
+        
+        این endpoint امکان به‌روزرسانی یا ایجاد هزینه برای یک دوره و نوع خاص را فراهم می‌کند.
+        اگر هزینه وجود داشته باشد، به‌روزرسانی می‌شود؛ در غیر این صورت ایجاد می‌شود.
+        
+        Parameters:
+            period_id (int): شناسه دوره
+            expense_type (str): نوع هزینه (project_manager, facilities_manager, ...)
+            amount (float/str): مبلغ هزینه
+            description (str, optional): توضیحات هزینه
+        
+        Returns:
+            Response: شامل:
+                - success: وضعیت موفقیت
+                - message: پیام پاسخ
+                - data: شامل expense_id, amount, description, created
+        
+        نکات مهم:
+        - هزینه بر اساس پروژه جاری (active project) از session شناسایی می‌شود
+        - اگر هزینه وجود داشته باشد، به‌روزرسانی می‌شود؛ در غیر این صورت ایجاد می‌شود
+        - مبلغ باید به صورت string ارسال شود تا از مشکلات precision جلوگیری شود
+        - نیاز به احراز هویت دارد (IsAuthenticated)
+        """
         logger.info("User %s updating expense", request.user.username)
         try:
             period_id = request.data.get('period_id')  # شناسه دوره
@@ -411,16 +669,265 @@ class ExpenseViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
 
 class InvestorViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
-    """ViewSet for the Investor class"""
+    """
+    ViewSet برای مدیریت سرمایه‌گذاران پروژه
+    
+    این ViewSet امکان مدیریت کامل سرمایه‌گذاران و مالکان پروژه را فراهم می‌کند.
+    
+    قابلیت‌ها:
+    - ایجاد، خواندن، به‌روزرسانی و حذف سرمایه‌گذاران
+    - دریافت خلاصه مالی سرمایه‌گذاران
+    - مدیریت واحدهای مرتبط با هر سرمایه‌گذار
+    - مدیریت نوع مشارکت (مالک یا سرمایه‌گذار)
+    
+    سناریوهای استفاده:
+    - ثبت اطلاعات مالکان واحدها
+    - ثبت اطلاعات سرمایه‌گذاران
+    - دریافت خلاصه مالی سرمایه‌گذاران
+    - مدیریت واحدهای هر سرمایه‌گذار
+    
+    مثال‌های کاربرد:
+    - برای ثبت مالک جدید: participation_type='owner', first_name='علی', last_name='احمدی'
+    - برای دریافت خلاصه مالی: GET /api/v1/Investor/summary/
+    
+    نکات مهم:
+    - تمام عملیات بر اساس پروژه جاری (active project) انجام می‌شود
+    - سرمایه‌گذاران می‌توانند مالک چندین واحد باشند
+    - انواع مشارکت: owner (مالک), investor (سرمایه‌گذار)
+    """
 
     queryset = models.Investor.objects.all()
     serializer_class = serializers.InvestorSerializer
     authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
     permission_classes = [APISecurityPermission]
 
+    # ===== عملیات CRUD با توضیحات جداگانه =====
+
+    def list(self, request, *args, **kwargs):
+        """
+        دریافت لیست تمام سرمایه‌گذاران پروژه جاری
+
+        این متد لیست سرمایه‌گذاران مرتبط با پروژه فعال را برمی‌گرداند.
+        نتایج به صورت صفحه‌بندی شده و قابل مرتب‌سازی هستند.
+
+        Query Parameters:
+            - page: شماره صفحه (پیش‌فرض: 1)
+            - page_size: تعداد رکورد در هر صفحه (پیش‌فرض: 10)
+            - ordering: فیلد مرتب‌سازی با پیشوند "-" برای نزولی
+
+        Returns:
+            Response با ساختار paginated شامل results, count, next, previous
+
+        مثال:
+            GET /api/v1/Investor/?page=1&page_size=20
+
+        نکات:
+            - فقط سرمایه‌گذاران پروژه جاری برگردانده می‌شود
+            - نیاز به احراز هویت دارد
+        """
+        return super().list(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        """
+        ایجاد سرمایه‌گذار جدید برای پروژه جاری
+
+        این متد سرمایه‌گذار جدید را برای پروژه فعال ثبت می‌کند.
+        پروژه به صورت خودکار از session کاربر تعیین می‌شود.
+
+        Request Body:
+            - first_name (الزامی): نام سرمایه‌گذار
+            - last_name (الزامی): نام خانوادگی سرمایه‌گذار
+            - phone (الزامی): شماره تماس
+            - email (اختیاری): آدرس ایمیل
+            - participation_type (اختیاری): نوع مشارکت (owner, investor)
+            - contract_date_shamsi (اختیاری): تاریخ قرارداد شمسی
+            - description (اختیاری): توضیحات
+
+        Returns:
+            Response با اطلاعات سرمایه‌گذار ایجاد شده (status 201)
+
+        مثال:
+            POST /api/v1/Investor/
+            {
+                "first_name": "علی",
+                "last_name": "احمدی",
+                "phone": "09123456789",
+                "email": "ali@example.com",
+                "participation_type": "owner",
+                "description": "مالک واحد 101"
+            }
+
+        نکات:
+            - جزئیات فیلدها در serializer descriptions موجود است
+            - پروژه به صورت خودکار از session تنظیم می‌شود
+            - نیاز به احراز هویت و دسترسی APISecurityPermission دارد
+        """
+        return super().create(request, *args, **kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        """
+        دریافت جزئیات یک سرمایه‌گذار خاص
+
+        این متد اطلاعات کامل سرمایه‌گذار با شناسه مشخص شده را برمی‌گرداند.
+
+        URL Parameters:
+            - pk: شناسه یکتای سرمایه‌گذار
+
+        Returns:
+            Response با اطلاعات کامل سرمایه‌گذار شامل units
+
+        مثال:
+            GET /api/v1/Investor/1/
+
+        نکات:
+            - فقط سرمایه‌گذاران پروژه جاری قابل دسترسی هستند
+            - در صورت عدم دسترسی، خطای 403 برگردانده می‌شود
+            - نیاز به احراز هویت دارد
+        """
+        return super().retrieve(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        """
+        به‌روزرسانی کامل سرمایه‌گذار
+
+        این متد امکان تغییر همه فیلدهای یک سرمایه‌گذار را فراهم می‌کند.
+        تمام فیلدهای قابل ویرایش باید ارسال شوند.
+
+        URL Parameters:
+            - pk: شناسه یکتای سرمایه‌گذار
+
+        Request Body:
+            - تمام فیلدهای قابل ویرایش
+
+        Returns:
+            Response با اطلاعات به‌روزرسانی شده سرمایه‌گذار (status 200)
+
+        مثال:
+            PUT /api/v1/Investor/1/
+            {
+                "first_name": "علی",
+                "last_name": "احمدی",
+                "phone": "09123456789",
+                "participation_type": "owner"
+            }
+
+        نکات:
+            - همه فیلدها باید ارسال شوند
+            - برای به‌روزرسانی جزئی از PATCH استفاده کنید
+            - جزئیات فیلدها در serializer descriptions موجود است
+            - نیاز به احراز هویت دارد
+        """
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        """
+        به‌روزرسانی جزئی سرمایه‌گذار
+
+        این متد امکان تغییر بخشی از فیلدهای سرمایه‌گذار را فراهم می‌کند.
+        فقط فیلدهای ارسال شده تغییر می‌کنند.
+
+        URL Parameters:
+            - pk: شناسه یکتای سرمایه‌گذار
+
+        Request Body:
+            - فیلدهای انتخابی برای به‌روزرسانی
+
+        Returns:
+            Response با اطلاعات به‌روزرسانی شده سرمایه‌گذار (status 200)
+
+        مثال:
+            PATCH /api/v1/Investor/1/
+            {
+                "phone": "09123456789"
+            }
+
+        نکات:
+            - فقط فیلدهای ارسال شده تغییر می‌کنند
+            - فیلدهای ارسال نشده حفظ می‌شوند
+            - انعطاف بیشتری نسبت به PUT دارد
+            - جزئیات فیلدها در serializer descriptions موجود است
+            - نیاز به احراز هویت دارد
+        """
+        return super().partial_update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        حذف سرمایه‌گذار
+
+        این متد سرمایه‌گذار را به‌طور کامل و برگشت‌ناپذیری حذف می‌کند.
+
+        URL Parameters:
+            - pk: شناسه یکتای سرمایه‌گذار
+
+        Returns:
+            Response خالی با status 204 No Content در صورت موفقیت
+
+        مثال:
+            DELETE /api/v1/Investor/1/
+
+        نکات:
+            - حذف برگشت‌ناپذیر است
+            - فقط سرمایه‌گذاران پروژه جاری قابل حذف هستند
+            - نیاز به احراز هویت و دسترسی APISecurityPermission دارد
+            - در صورت وجود وابستگی، ممکن است حذف ناموفق باشد
+        """
+        return super().destroy(request, *args, **kwargs)
+
     @action(detail=False, methods=['get'])
     def summary(self, request):
-        """خلاصه مالی تمام سرمایه‌گذاران - نسخه مرجع واحد (جایگزین SQL خام)"""
+        """
+        خلاصه مالی تمام سرمایه‌گذاران پروژه
+        
+        این endpoint خلاصه مالی تمام سرمایه‌گذاران پروژه جاری را محاسبه و برمی‌گرداند.
+        
+        خروجی شامل:
+        - شناسه و نام هر سرمایه‌گذار
+        - نوع مشارکت (مالک یا سرمایه‌گذار)
+        - مجموع آورده‌ها
+        - مجموع برداشت‌ها
+        - سرمایه خالص
+        - مجموع سود
+        - مجموع کل (سرمایه + سود)
+        
+        سناریوهای استفاده:
+        - نمایش لیست خلاصه تمام سرمایه‌گذاران
+        - مقایسه عملکرد سرمایه‌گذاران
+        - تهیه گزارش‌های مدیریتی
+        - نمایش داشبورد سرمایه‌گذاران
+        
+        مثال استفاده:
+        GET /api/v1/Investor/summary/
+        
+        مثال خروجی:
+        [
+            {
+                "investor_id": 1,
+                "name": "علی احمدی",
+                "participation_type": "owner",
+                "total_deposits": 100000000,
+                "total_withdrawals": 0,
+                "net_principal": 100000000,
+                "total_profit": 15000000,
+                "grand_total": 115000000
+            },
+            {
+                "investor_id": 2,
+                "name": "محمد رضایی",
+                "participation_type": "investor",
+                "total_deposits": 50000000,
+                "total_withdrawals": 10000000,
+                "net_principal": 40000000,
+                "total_profit": 7500000,
+                "grand_total": 47500000
+            }
+        ]
+        
+        نکات مهم:
+        - نتایج بر اساس سرمایه خالص (net_principal) به صورت نزولی مرتب می‌شوند
+        - فقط سرمایه‌گذاران پروژه جاری را شامل می‌شود
+        - اگر پروژه جاری وجود نداشته باشد، تمام سرمایه‌گذاران را برمی‌گرداند
+        - تمام مبالغ به تومان هستند
+        """
         try:
             def norm_num(x):  # تابع نرمال‌سازی عدد (حذف اعشار در صورت امکان)
                 try:
@@ -553,7 +1060,33 @@ class InvestorViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'])
     def detailed_statistics(self, request, pk=None):
-        """دریافت آمار تفصیلی سرمایه‌گذار"""
+        """
+        دریافت آمار تفصیلی سرمایه‌گذار
+        
+        این endpoint آمار کامل و تفصیلی برای یک سرمایه‌گذار خاص را محاسبه و برمی‌گرداند.
+        شامل اطلاعات مالی، سرمایه، سود، نسبت‌ها و سایر متریک‌های مرتبط.
+        
+        Parameters:
+            pk (int): شناسه سرمایه‌گذار
+            project_id (int, optional): شناسه پروژه (از query parameter یا پروژه جاری)
+        
+        Returns:
+            Response: شامل آمار تفصیلی سرمایه‌گذار
+        
+        مثال Response:
+        {
+            "total_investment": 50000000,
+            "total_profit": 15000000,
+            "grand_total": 115000000,
+            "ownership_percentage": 25.5,
+            "unit_cost": 5000000
+        }
+        
+        نکات مهم:
+        - اگر سرمایه‌گذار یافت نشود، خطای 404 برمی‌گرداند
+        - محاسبات بر اساس پروژه جاری یا project_id ارسالی انجام می‌شود
+        - تمام مبالغ به تومان هستند
+        """
         logger.info("User %s requesting detailed statistics for investor %s", request.user.username, pk)
         try:
             # دریافت project_id از query parameter یا از پروژه جاری از session
@@ -746,9 +1279,56 @@ class ComprehensiveAnalysisViewSet(viewsets.ViewSet):
     authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
     permission_classes = [APISecurityPermission]
     
+    @extend_schema(
+        summary='تحلیل جامع پروژه',
+        description='دریافت تحلیل جامع پروژه شامل تمام محاسبات مالی',
+        parameters=[
+            OpenApiParameter(
+                name='project_id',
+                type=OpenApiTypes.INT,
+                location=OpenApiParameter.QUERY,
+                description='شناسه پروژه (اختیاری - اگر مشخص نشود از پروژه جاری استفاده می‌شود)',
+                required=False
+            )
+        ],
+        responses={
+            200: OpenApiResponse(
+                response={
+                    'type': 'object',
+                    'description': 'تحلیل جامع پروژه شامل تمام محاسبات مالی'
+                },
+                description='تحلیل جامع پروژه'
+            ),
+            400: OpenApiResponse(
+                response={'type': 'object', 'properties': {'error': {'type': 'string'}}},
+                description='خطا در دریافت تحلیل (پروژه یافت نشد یا شناسه نامعتبر)'
+            ),
+            500: OpenApiResponse(
+                response={'type': 'object', 'properties': {'error': {'type': 'string'}}},
+                description='خطا در دریافت تحلیل جامع'
+            )
+        },
+        tags=['Analysis']
+    )
     @action(detail=False, methods=['get'])
     def comprehensive_analysis(self, request):
-        """دریافت تحلیل جامع پروژه"""
+        """
+        دریافت تحلیل جامع پروژه شامل تمام محاسبات مالی
+        
+        این endpoint تحلیل کامل و جامع پروژه را با تمام محاسبات مالی
+        شامل سرمایه، سود، هزینه‌ها، فروش‌ها و سایر متریک‌های مرتبط برمی‌گرداند.
+        
+        Parameters:
+            project_id (int, optional): شناسه پروژه (از query parameter یا پروژه جاری)
+        
+        Returns:
+            Response: شامل تحلیل جامع پروژه
+        
+        نکات مهم:
+        - اگر پروژه جاری وجود نداشته باشد، خطای 400 برمی‌گرداند
+        - تمام محاسبات بر اساس داده‌های واقعی انجام می‌شود
+        - مبالغ به تومان هستند
+        """
         logger.info("User %s requesting comprehensive analysis", request.user.username)
         try:
             project_id = request.query_params.get('project_id')  # شناسه پروژه از پارامترهای درخواست
@@ -791,12 +1371,216 @@ class ComprehensiveAnalysisViewSet(viewsets.ViewSet):
 
 
 class PeriodViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
-    """ViewSet for the Period class"""
+    """
+    ViewSet برای مدیریت دوره‌های زمانی پروژه
+    
+    این ViewSet امکان مدیریت کامل دوره‌های ماهانه پروژه را فراهم می‌کند.
+    
+    قابلیت‌ها:
+    - ایجاد، خواندن، به‌روزرسانی و حذف دوره‌ها
+    - دریافت داده‌های دوره‌ای برای نمودارها
+    - مدیریت وزن دوره‌ها برای محاسبات مالی
+    - مرتب‌سازی دوره‌ها بر اساس سال و ماه
+    
+    سناریوهای استفاده:
+    - تعریف دوره‌های ماهانه پروژه
+    - تنظیم وزن دوره‌ها برای محاسبات
+    - دریافت داده‌های نمودار برای تحلیل مالی
+    - مدیریت تاریخ‌های شمسی و میلادی
+    
+    مثال‌های کاربرد:
+    - برای ایجاد دوره جدید: label='مهر 1403', year=1403, month_number=7
+    - برای دریافت داده‌های نمودار: GET /api/v1/Period/chart_data/
+    
+    نکات مهم:
+    - تمام عملیات بر اساس پروژه جاری (active project) انجام می‌شود
+    - هر دوره باید یکتا باشد (project, year, month_number)
+    - وزن دوره برای محاسبات مالی مهم است
+    """
 
     queryset = models.Period.objects.all().order_by('-year', '-month_number')
     serializer_class = serializers.PeriodSerializer
     authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
     permission_classes = [APISecurityPermission]
+
+    # ===== عملیات CRUD با توضیحات جداگانه =====
+
+    def list(self, request, *args, **kwargs):
+        """
+        دریافت لیست تمام دوره‌های پروژه جاری
+
+        این متد لیست دوره‌های مرتبط با پروژه فعال را برمی‌گرداند.
+        نتایج به صورت مرتب شده بر اساس سال و ماه (نزولی) هستند.
+
+        Query Parameters:
+            - page: شماره صفحه (پیش‌فرض: 1)
+            - page_size: تعداد رکورد در هر صفحه (پیش‌فرض: 10)
+            - ordering: فیلد مرتب‌سازی
+
+        Returns:
+            Response با ساختار paginated شامل results, count, next, previous
+
+        مثال:
+            GET /api/v1/Period/?page=1&page_size=12
+
+        نکات:
+            - فقط دوره‌های پروژه جاری برگردانده می‌شود
+            - دوره‌ها به صورت نزولی (جدیدترین اول) مرتب می‌شوند
+            - نیاز به احراز هویت دارد
+        """
+        return super().list(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        """
+        ایجاد دوره جدید برای پروژه جاری
+
+        این متد دوره جدید را برای پروژه فعال ثبت می‌کند.
+        پروژه به صورت خودکار از session کاربر تعیین می‌شود.
+
+        Request Body:
+            - label (الزامی): عنوان دوره
+            - year (الزامی): سال شمسی
+            - month_number (الزامی): شماره ماه (1-12)
+            - month_name (الزامی): نام ماه
+            - weight (الزامی): وزن دوره
+            - start_date_shamsi (الزامی): تاریخ شروع شمسی
+            - end_date_shamsi (الزامی): تاریخ پایان شمسی
+            - start_date_gregorian (الزامی): تاریخ شروع میلادی
+            - end_date_gregorian (الزامی): تاریخ پایان میلادی
+
+        Returns:
+            Response با اطلاعات دوره ایجاد شده (status 201)
+
+        مثال:
+            POST /api/v1/Period/
+            {
+                "label": "مهر 1403",
+                "year": 1403,
+                "month_number": 7,
+                "month_name": "مهر",
+                "weight": 1,
+                "start_date_shamsi": "1403-07-01",
+                "end_date_shamsi": "1403-07-29",
+                "start_date_gregorian": "2024-09-22",
+                "end_date_gregorian": "2024-10-20"
+            }
+
+        نکات:
+            - جزئیات فیلدها در serializer descriptions موجود است
+            - پروژه به صورت خودکار از session تنظیم می‌شود
+            - هر ترکیب (project, year, month_number) باید یکتا باشد
+            - نیاز به احراز هویت و دسترسی APISecurityPermission دارد
+        """
+        return super().create(request, *args, **kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        """
+        دریافت جزئیات یک دوره خاص
+
+        این متد اطلاعات کامل دوره با شناسه مشخص شده را برمی‌گرداند.
+
+        URL Parameters:
+            - pk: شناسه یکتای دوره
+
+        Returns:
+            Response با اطلاعات کامل دوره
+
+        مثال:
+            GET /api/v1/Period/1/
+
+        نکات:
+            - فقط دوره‌های پروژه جاری قابل دسترسی هستند
+            - در صورت عدم دسترسی، خطای 403 برگردانده می‌شود
+            - نیاز به احراز هویت دارد
+        """
+        return super().retrieve(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        """
+        به‌روزرسانی کامل دوره
+
+        این متد امکان تغییر همه فیلدهای یک دوره را فراهم می‌کند.
+        تمام فیلدهای قابل ویرایش باید ارسال شوند.
+
+        URL Parameters:
+            - pk: شناسه یکتای دوره
+
+        Request Body:
+            - تمام فیلدهای قابل ویرایش
+
+        Returns:
+            Response با اطلاعات به‌روزرسانی شده دوره (status 200)
+
+        مثال:
+            PUT /api/v1/Period/1/
+            {
+                "label": "مهر 1403",
+                "year": 1403,
+                "month_number": 7,
+                "weight": 2
+            }
+
+        نکات:
+            - همه فیلدها باید ارسال شوند
+            - برای به‌روزرسانی جزئی از PATCH استفاده کنید
+            - جزئیات فیلدها در serializer descriptions موجود است
+            - نیاز به احراز هویت دارد
+        """
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        """
+        به‌روزرسانی جزئی دوره
+
+        این متد امکان تغییر بخشی از فیلدهای دوره را فراهم می‌کند.
+        فقط فیلدهای ارسال شده تغییر می‌کنند.
+
+        URL Parameters:
+            - pk: شناسه یکتای دوره
+
+        Request Body:
+            - فیلدهای انتخابی برای به‌روزرسانی
+
+        Returns:
+            Response با اطلاعات به‌روزرسانی شده دوره (status 200)
+
+        مثال:
+            PATCH /api/v1/Period/1/
+            {
+                "weight": 2
+            }
+
+        نکات:
+            - فقط فیلدهای ارسال شده تغییر می‌کنند
+            - فیلدهای ارسال نشده حفظ می‌شوند
+            - انعطاف بیشتری نسبت به PUT دارد
+            - جزئیات فیلدها در serializer descriptions موجود است
+            - نیاز به احراز هویت دارد
+        """
+        return super().partial_update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        حذف دوره
+
+        این متد دوره را به‌طور کامل و برگشت‌ناپذیری حذف می‌کند.
+
+        URL Parameters:
+            - pk: شناسه یکتای دوره
+
+        Returns:
+            Response خالی با status 204 No Content در صورت موفقیت
+
+        مثال:
+            DELETE /api/v1/Period/1/
+
+        نکات:
+            - حذف برگشت‌ناپذیر است
+            - فقط دوره‌های پروژه جاری قابل حذف هستند
+            - نیاز به احراز هویت و دسترسی APISecurityPermission دارد
+            - در صورت وجود وابستگی (هزینه‌ها، تراکنش‌ها)، ممکن است حذف ناموفق باشد
+        """
+        return super().destroy(request, *args, **kwargs)
 
     @action(detail=False, methods=['get'])
     def chart_data(self, request):
@@ -869,7 +1653,24 @@ class PeriodViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def period_summary(self, request):
-        """دریافت خلاصه کامل دوره‌ای شامل تمام فاکتورها و مقادیر تجمعی"""
+        """
+        دریافت خلاصه کامل دوره‌ای شامل تمام فاکتورها و مقادیر تجمعی
+        
+        این endpoint خلاصه کامل تمام دوره‌های پروژه را با تمام اطلاعات مالی
+        شامل آورده‌ها، برداشت‌ها، سرمایه خالص، سود، هزینه‌ها و فروش‌ها برمی‌گرداند.
+        
+        Returns:
+            Response: شامل:
+                - data: لیست خلاصه هر دوره
+                - totals: مجموع‌های کلی
+                - current: خلاصه دوره جاری
+        
+        نکات مهم:
+        - فقط دوره‌های پروژه جاری را شامل می‌شود
+        - اگر پروژه جاری وجود نداشته باشد، خطای 400 برمی‌گرداند
+        - دوره‌ها به ترتیب زمانی مرتب می‌شوند
+        - تمام مبالغ به تومان هستند
+        """
         logger.info("User %s requesting period summary", request.user.username)
         try:
             # دریافت پروژه جاری از session
@@ -1063,12 +1864,212 @@ class PeriodViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
 
 class ProjectViewSet(viewsets.ModelViewSet):
-    """ViewSet for the Project class"""
+    """
+    ViewSet برای مدیریت پروژه‌های ساختمانی
+    
+    این ViewSet امکان مدیریت کامل پروژه‌های ساختمانی را فراهم می‌کند.
+    
+    قابلیت‌ها:
+    - ایجاد، خواندن، به‌روزرسانی و حذف پروژه‌ها
+    - دریافت پروژه جاری (active project)
+    - دریافت آمار کامل پروژه
+    - دریافت تحلیل جامع پروژه
+    - دریافت متریک‌های سود و هزینه
+    - مدیریت تنظیمات پروژه (رنگ، آیکون، گرادیانت)
+    
+    سناریوهای استفاده:
+    - ایجاد پروژه جدید
+    - انتخاب پروژه جاری
+    - دریافت آمار و گزارش‌های مالی
+    - تحلیل عملکرد پروژه
+    - تنظیم پارامترهای محاسباتی
+    
+    مثال‌های کاربرد:
+    - برای دریافت پروژه جاری: GET /api/v1/Project/active/
+    - برای دریافت آمار: GET /api/v1/Project/statistics/
+    - برای دریافت تحلیل جامع: GET /api/v1/Project/comprehensive_analysis/
+    
+    نکات مهم:
+    - پروژه جاری از session کاربر تعیین می‌شود
+    - تمام محاسبات مالی بر اساس پروژه جاری انجام می‌شود
+    - تنظیمات پروژه (رنگ، آیکون) برای نمایش در UI استفاده می‌شود
+    """
 
     queryset = models.Project.objects.all()
     serializer_class = serializers.ProjectSerializer
     authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
     permission_classes = [APISecurityPermission]
+
+    # ===== عملیات CRUD با توضیحات جداگانه =====
+
+    def list(self, request, *args, **kwargs):
+        """
+        دریافت لیست تمام پروژه‌ها
+
+        این متد لیست تمام پروژه‌های موجود را برمی‌گرداند.
+        نتایج به صورت صفحه‌بندی شده و قابل مرتب‌سازی هستند.
+
+        Query Parameters:
+            - page: شماره صفحه (پیش‌فرض: 1)
+            - page_size: تعداد رکورد در هر صفحه (پیش‌فرض: 10)
+            - ordering: فیلد مرتب‌سازی
+
+        Returns:
+            Response با ساختار paginated شامل results, count, next, previous
+
+        مثال:
+            GET /api/v1/Project/?page=1&page_size=10
+
+        نکات:
+            - تمام پروژه‌ها برگردانده می‌شوند
+            - نیاز به احراز هویت دارد
+        """
+        return super().list(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        """
+        ایجاد پروژه جدید
+
+        این متد پروژه جدید را ثبت می‌کند.
+
+        Request Body:
+            - name (الزامی): نام پروژه
+            - start_date_shamsi (الزامی): تاریخ شروع شمسی
+            - end_date_shamsi (الزامی): تاریخ پایان شمسی
+            - start_date_gregorian (الزامی): تاریخ شروع میلادی
+            - end_date_gregorian (الزامی): تاریخ پایان میلادی
+            - total_infrastructure (اختیاری): زیر بنای کل
+            - correction_factor (اختیاری): ضریب اصلاحی
+            - construction_contractor_percentage (اختیاری): درصد پیمان ساخت
+            - description (اختیاری): توضیحات
+            - color (اختیاری): رنگ پروژه
+            - icon (اختیاری): آیکون پروژه
+
+        Returns:
+            Response با اطلاعات پروژه ایجاد شده (status 201)
+
+        مثال:
+            POST /api/v1/Project/
+            {
+                "name": "پروژه ساختمانی نمونه",
+                "start_date_shamsi": "1403-01-01",
+                "end_date_shamsi": "1405-12-29",
+                "start_date_gregorian": "2024-03-20",
+                "end_date_gregorian": "2027-03-19",
+                "total_infrastructure": "5000.00",
+                "correction_factor": "1.0000000000"
+            }
+
+        نکات:
+            - جزئیات فیلدها در serializer descriptions موجود است
+            - نیاز به احراز هویت و دسترسی APISecurityPermission دارد
+        """
+        return super().create(request, *args, **kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        """
+        دریافت جزئیات یک پروژه خاص
+
+        این متد اطلاعات کامل پروژه با شناسه مشخص شده را برمی‌گرداند.
+
+        URL Parameters:
+            - pk: شناسه یکتای پروژه
+
+        Returns:
+            Response با اطلاعات کامل پروژه
+
+        مثال:
+            GET /api/v1/Project/1/
+
+        نکات:
+            - نیاز به احراز هویت دارد
+        """
+        return super().retrieve(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        """
+        به‌روزرسانی کامل پروژه
+
+        این متد امکان تغییر همه فیلدهای یک پروژه را فراهم می‌کند.
+        تمام فیلدهای قابل ویرایش باید ارسال شوند.
+
+        URL Parameters:
+            - pk: شناسه یکتای پروژه
+
+        Request Body:
+            - تمام فیلدهای قابل ویرایش
+
+        Returns:
+            Response با اطلاعات به‌روزرسانی شده پروژه (status 200)
+
+        مثال:
+            PUT /api/v1/Project/1/
+            {
+                "name": "پروژه به‌روزرسانی شده",
+                "start_date_shamsi": "1403-01-01",
+                "end_date_shamsi": "1405-12-29"
+            }
+
+        نکات:
+            - همه فیلدها باید ارسال شوند
+            - برای به‌روزرسانی جزئی از PATCH استفاده کنید
+            - جزئیات فیلدها در serializer descriptions موجود است
+            - نیاز به احراز هویت دارد
+        """
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        """
+        به‌روزرسانی جزئی پروژه
+
+        این متد امکان تغییر بخشی از فیلدهای پروژه را فراهم می‌کند.
+        فقط فیلدهای ارسال شده تغییر می‌کنند.
+
+        URL Parameters:
+            - pk: شناسه یکتای پروژه
+
+        Request Body:
+            - فیلدهای انتخابی برای به‌روزرسانی
+
+        Returns:
+            Response با اطلاعات به‌روزرسانی شده پروژه (status 200)
+
+        مثال:
+            PATCH /api/v1/Project/1/
+            {
+                "name": "نام جدید پروژه"
+            }
+
+        نکات:
+            - فقط فیلدهای ارسال شده تغییر می‌کنند
+            - فیلدهای ارسال نشده حفظ می‌شوند
+            - انعطاف بیشتری نسبت به PUT دارد
+            - جزئیات فیلدها در serializer descriptions موجود است
+            - نیاز به احراز هویت دارد
+        """
+        return super().partial_update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        حذف پروژه
+
+        این متد پروژه را به‌طور کامل و برگشت‌ناپذیری حذف می‌کند.
+
+        URL Parameters:
+            - pk: شناسه یکتای پروژه
+
+        Returns:
+            Response خالی با status 204 No Content در صورت موفقیت
+
+        مثال:
+            DELETE /api/v1/Project/1/
+
+        نکات:
+            - حذف برگشت‌ناپذیر است
+            - نیاز به احراز هویت و دسترسی APISecurityPermission دارد
+            - در صورت وجود وابستگی (هزینه‌ها، تراکنش‌ها، واحدها)، ممکن است حذف ناموفق باشد
+        """
+        return super().destroy(request, *args, **kwargs)
 
     @action(detail=False, methods=['get'])
     def active(self, request):
@@ -1270,7 +2271,6 @@ class ProjectViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def comprehensive_analysis(self, request):
         """دریافت تحلیل جامع پروژه شامل تمام محاسبات مالی"""
-        logger.info("User %s requesting comprehensive analysis", request.user.username)
         try:
             project_id = request.query_params.get('project_id')  # شناسه پروژه از پارامترهای درخواست
             
@@ -1302,7 +2302,23 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def profit_metrics(self, request):
-        """دریافت متریک‌های سود (کل، سالانه، ماهانه، روزانه)"""
+        """
+        دریافت متریک‌های سود (کل، سالانه، ماهانه، روزانه)
+        
+        این endpoint متریک‌های مختلف سود شامل سود کل، سالانه، ماهانه و روزانه
+        را برای پروژه محاسبه و برمی‌گرداند.
+        
+        Parameters:
+            project_id (int, optional): شناسه پروژه (از query parameter یا پروژه جاری)
+        
+        Returns:
+            Response: شامل متریک‌های سود
+        
+        نکات مهم:
+        - اگر پروژه جاری وجود نداشته باشد، خطای 400 برمی‌گرداند
+        - محاسبات بر اساس تاریخ شروع و پایان پروژه انجام می‌شود
+        - مبالغ به تومان هستند
+        """
         logger.info("User %s requesting profit metrics", request.user.username)
         try:
             project_id = request.query_params.get('project_id')  # شناسه پروژه از پارامترهای درخواست
@@ -1524,12 +2540,199 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
 
 class SaleViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
-    """ViewSet for the Sale class"""
+    """
+    ViewSet برای مدیریت فروش/مرجوعی‌های پروژه
+    
+    این ViewSet امکان مدیریت کامل فروش و مرجوعی‌های پروژه را فراهم می‌کند.
+    
+    قابلیت‌ها:
+    - ایجاد، خواندن، به‌روزرسانی و حذف فروش/مرجوعی‌ها
+    - دریافت مجموع فروش/مرجوعی‌ها
+    - مدیریت فروش/مرجوعی‌های دوره‌ای
+    
+    سناریوهای استفاده:
+    - ثبت فروش واحدها
+    - ثبت مرجوعی واحدها
+    - دریافت آمار فروش/مرجوعی
+    - تحلیل روند فروش در دوره‌های مختلف
+    
+    مثال‌های کاربرد:
+    - برای ثبت فروش: period=1, amount='100000000'
+    - برای دریافت مجموع: GET /api/v1/Sale/total_sales/
+    
+    نکات مهم:
+    - تمام عملیات بر اساس پروژه جاری (active project) انجام می‌شود
+    - فروش/مرجوعی‌ها به یک دوره خاص مرتبط هستند
+    - مبلغ می‌تواند مثبت (فروش) یا منفی (مرجوعی) باشد
+    """
 
     queryset = models.Sale.objects.all()
     serializer_class = serializers.SaleSerializer
     authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
     permission_classes = [APISecurityPermission]
+
+    # ===== عملیات CRUD با توضیحات جداگانه =====
+
+    def list(self, request, *args, **kwargs):
+        """
+        دریافت لیست تمام فروش/مرجوعی‌های پروژه جاری
+
+        این متد لیست فروش/مرجوعی‌های مرتبط با پروژه فعال را برمی‌گرداند.
+        نتایج به صورت صفحه‌بندی شده و قابل مرتب‌سازی هستند.
+
+        Query Parameters:
+            - page: شماره صفحه (پیش‌فرض: 1)
+            - page_size: تعداد رکورد در هر صفحه (پیش‌فرض: 10)
+            - ordering: فیلد مرتب‌سازی
+
+        Returns:
+            Response با ساختار paginated شامل results, count, next, previous
+
+        مثال:
+            GET /api/v1/Sale/?page=1&page_size=20
+
+        نکات:
+            - فقط فروش/مرجوعی‌های پروژه جاری برگردانده می‌شود
+            - نیاز به احراز هویت دارد
+        """
+        return super().list(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        """
+        ایجاد فروش/مرجوعی جدید برای پروژه جاری
+
+        این متد فروش/مرجوعی جدید را برای پروژه فعال ثبت می‌کند.
+        پروژه به صورت خودکار از session کاربر تعیین می‌شود.
+
+        Request Body:
+            - period (الزامی): شناسه دوره
+            - amount (الزامی): مبلغ فروش/مرجوعی (به صورت string)
+            - description (اختیاری): توضیحات
+
+        Returns:
+            Response با اطلاعات فروش/مرجوعی ایجاد شده (status 201)
+
+        مثال:
+            POST /api/v1/Sale/
+            {
+                "period": 1,
+                "amount": "100000000",
+                "description": "فروش واحد 101"
+            }
+
+        نکات:
+            - جزئیات فیلدها در serializer descriptions موجود است
+            - پروژه به صورت خودکار از session تنظیم می‌شود
+            - نیاز به احراز هویت و دسترسی APISecurityPermission دارد
+        """
+        return super().create(request, *args, **kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        """
+        دریافت جزئیات یک فروش/مرجوعی خاص
+
+        این متد اطلاعات کامل فروش/مرجوعی با شناسه مشخص شده را برمی‌گرداند.
+
+        URL Parameters:
+            - pk: شناسه یکتای فروش/مرجوعی
+
+        Returns:
+            Response با اطلاعات کامل فروش/مرجوعی شامل project_data و period_data
+
+        مثال:
+            GET /api/v1/Sale/1/
+
+        نکات:
+            - فقط فروش/مرجوعی‌های پروژه جاری قابل دسترسی هستند
+            - در صورت عدم دسترسی، خطای 403 برگردانده می‌شود
+            - نیاز به احراز هویت دارد
+        """
+        return super().retrieve(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        """
+        به‌روزرسانی کامل فروش/مرجوعی
+
+        این متد امکان تغییر همه فیلدهای یک فروش/مرجوعی را فراهم می‌کند.
+        تمام فیلدهای قابل ویرایش باید ارسال شوند.
+
+        URL Parameters:
+            - pk: شناسه یکتای فروش/مرجوعی
+
+        Request Body:
+            - تمام فیلدهای قابل ویرایش (period, amount, description)
+
+        Returns:
+            Response با اطلاعات به‌روزرسانی شده فروش/مرجوعی (status 200)
+
+        مثال:
+            PUT /api/v1/Sale/1/
+            {
+                "period": 1,
+                "amount": "120000000",
+                "description": "فروش واحد 101 - به‌روزرسانی شده"
+            }
+
+        نکات:
+            - همه فیلدها باید ارسال شوند
+            - برای به‌روزرسانی جزئی از PATCH استفاده کنید
+            - جزئیات فیلدها در serializer descriptions موجود است
+            - نیاز به احراز هویت دارد
+        """
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        """
+        به‌روزرسانی جزئی فروش/مرجوعی
+
+        این متد امکان تغییر بخشی از فیلدهای فروش/مرجوعی را فراهم می‌کند.
+        فقط فیلدهای ارسال شده تغییر می‌کنند.
+
+        URL Parameters:
+            - pk: شناسه یکتای فروش/مرجوعی
+
+        Request Body:
+            - فیلدهای انتخابی برای به‌روزرسانی
+
+        Returns:
+            Response با اطلاعات به‌روزرسانی شده فروش/مرجوعی (status 200)
+
+        مثال:
+            PATCH /api/v1/Sale/1/
+            {
+                "amount": "120000000"
+            }
+
+        نکات:
+            - فقط فیلدهای ارسال شده تغییر می‌کنند
+            - فیلدهای ارسال نشده حفظ می‌شوند
+            - انعطاف بیشتری نسبت به PUT دارد
+            - جزئیات فیلدها در serializer descriptions موجود است
+            - نیاز به احراز هویت دارد
+        """
+        return super().partial_update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        حذف فروش/مرجوعی
+
+        این متد فروش/مرجوعی را به‌طور کامل و برگشت‌ناپذیری حذف می‌کند.
+
+        URL Parameters:
+            - pk: شناسه یکتای فروش/مرجوعی
+
+        Returns:
+            Response خالی با status 204 No Content در صورت موفقیت
+
+        مثال:
+            DELETE /api/v1/Sale/1/
+
+        نکات:
+            - حذف برگشت‌ناپذیر است
+            - فقط فروش/مرجوعی‌های پروژه جاری قابل حذف هستند
+            - نیاز به احراز هویت و دسترسی APISecurityPermission دارد
+        """
+        return super().destroy(request, *args, **kwargs)
 
     @action(detail=False, methods=['get'])
     def total_sales(self, request):
@@ -1593,7 +2796,35 @@ class SaleViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
 
 class TransactionViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
-    """ViewSet for the Transaction class"""
+    """
+    ViewSet برای مدیریت تراکنش‌های مالی پروژه
+    
+    این ViewSet امکان مدیریت کامل تراکنش‌های مالی سرمایه‌گذاران را فراهم می‌کند.
+    
+    قابلیت‌ها:
+    - ایجاد، خواندن، به‌روزرسانی و حذف تراکنش‌ها
+    - دریافت آمار کلی تراکنش‌ها
+    - مدیریت انواع تراکنش (آورده، برداشت، سود)
+    - محاسبه خودکار روز مانده و روز از شروع
+    - فیلتر بر اساس سرمایه‌گذار، دوره و نوع تراکنش
+    
+    سناریوهای استفاده:
+    - ثبت آورده سرمایه‌گذاران
+    - ثبت برداشت از سرمایه
+    - ثبت سود تعلق گرفته
+    - دریافت آمار تراکنش‌ها
+    - تحلیل روند تراکنش‌ها
+    
+    مثال‌های کاربرد:
+    - برای ثبت آورده: transaction_type='principal_deposit', amount='50000000'
+    - برای دریافت آمار: GET /api/v1/Transaction/statistics/
+    
+    نکات مهم:
+    - تمام عملیات بر اساس پروژه جاری (active project) انجام می‌شود
+    - تراکنش‌ها به یک سرمایه‌گذار و دوره خاص مرتبط هستند
+    - انواع تراکنش: principal_deposit, loan_deposit, principal_withdrawal, profit_accrual
+    - روز مانده و روز از شروع به صورت خودکار محاسبه می‌شوند
+    """
 
     queryset = models.Transaction.objects.all()
     serializer_class = serializers.TransactionSerializer
@@ -1601,9 +2832,225 @@ class TransactionViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
     permission_classes = [APISecurityPermission]
     filterset_fields = ['investor', 'project', 'period', 'transaction_type']
 
+    # ===== عملیات CRUD با توضیحات جداگانه =====
+
+    def list(self, request, *args, **kwargs):
+        """
+        دریافت لیست تمام تراکنش‌های پروژه جاری
+
+        این متد لیست تراکنش‌های مرتبط با پروژه فعال را برمی‌گرداند.
+        نتایج به صورت صفحه‌بندی شده و قابل فیلتر و مرتب‌سازی هستند.
+
+        Query Parameters:
+            - page: شماره صفحه (پیش‌فرض: 1)
+            - page_size: تعداد رکورد در هر صفحه (پیش‌فرض: 10)
+            - ordering: فیلد مرتب‌سازی
+            - investor: فیلتر بر اساس شناسه سرمایه‌گذار
+            - period: فیلتر بر اساس شناسه دوره
+            - transaction_type: فیلتر بر اساس نوع تراکنش
+
+        Returns:
+            Response با ساختار paginated شامل results, count, next, previous
+
+        مثال:
+            GET /api/v1/Transaction/?investor=1&transaction_type=principal_deposit
+
+        نکات:
+            - فقط تراکنش‌های پروژه جاری برگردانده می‌شود
+            - امکان فیلتر بر اساس سرمایه‌گذار، دوره و نوع تراکنش
+            - نیاز به احراز هویت دارد
+        """
+        return super().list(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        """
+        ایجاد تراکنش جدید برای پروژه جاری
+
+        این متد تراکنش جدید را برای پروژه فعال ثبت می‌کند.
+        پروژه به صورت خودکار از session کاربر تعیین می‌شود.
+
+        Request Body:
+            - investor/investor_id (الزامی): شناسه سرمایه‌گذار
+            - period/period_id (الزامی): شناسه دوره
+            - date_shamsi_input یا date_shamsi_raw (الزامی): تاریخ شمسی
+            - amount (الزامی): مبلغ تراکنش (به صورت string)
+            - transaction_type (الزامی): نوع تراکنش
+            - description (اختیاری): توضیحات
+
+        Returns:
+            Response با اطلاعات تراکنش ایجاد شده (status 201)
+
+        مثال:
+            POST /api/v1/Transaction/
+            {
+                "investor": 1,
+                "period": 1,
+                "date_shamsi_input": "1403-07-15",
+                "amount": "50000000",
+                "transaction_type": "principal_deposit",
+                "description": "آورده اولیه"
+            }
+
+        نکات:
+            - جزئیات فیلدها در serializer descriptions موجود است
+            - پروژه به صورت خودکار از session تنظیم می‌شود
+            - روز مانده و روز از شروع به صورت خودکار محاسبه می‌شوند
+            - نیاز به احراز هویت و دسترسی APISecurityPermission دارد
+        """
+        return super().create(request, *args, **kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        """
+        دریافت جزئیات یک تراکنش خاص
+
+        این متد اطلاعات کامل تراکنش با شناسه مشخص شده را برمی‌گرداند.
+
+        URL Parameters:
+            - pk: شناسه یکتای تراکنش
+
+        Returns:
+            Response با اطلاعات کامل تراکنش شامل investor_data, period_data, project_data
+
+        مثال:
+            GET /api/v1/Transaction/1/
+
+        نکات:
+            - فقط تراکنش‌های پروژه جاری قابل دسترسی هستند
+            - در صورت عدم دسترسی، خطای 403 برگردانده می‌شود
+            - نیاز به احراز هویت دارد
+        """
+        return super().retrieve(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        """
+        به‌روزرسانی کامل تراکنش
+
+        این متد امکان تغییر همه فیلدهای یک تراکنش را فراهم می‌کند.
+        تمام فیلدهای قابل ویرایش باید ارسال شوند.
+
+        URL Parameters:
+            - pk: شناسه یکتای تراکنش
+
+        Request Body:
+            - تمام فیلدهای قابل ویرایش
+
+        Returns:
+            Response با اطلاعات به‌روزرسانی شده تراکنش (status 200)
+
+        مثال:
+            PUT /api/v1/Transaction/1/
+            {
+                "investor": 1,
+                "period": 1,
+                "date_shamsi_input": "1403-07-15",
+                "amount": "60000000",
+                "transaction_type": "principal_deposit"
+            }
+
+        نکات:
+            - همه فیلدها باید ارسال شوند
+            - برای به‌روزرسانی جزئی از PATCH استفاده کنید
+            - جزئیات فیلدها در serializer descriptions موجود است
+            - نیاز به احراز هویت دارد
+        """
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        """
+        به‌روزرسانی جزئی تراکنش
+
+        این متد امکان تغییر بخشی از فیلدهای تراکنش را فراهم می‌کند.
+        فقط فیلدهای ارسال شده تغییر می‌کنند.
+
+        URL Parameters:
+            - pk: شناسه یکتای تراکنش
+
+        Request Body:
+            - فیلدهای انتخابی برای به‌روزرسانی
+
+        Returns:
+            Response با اطلاعات به‌روزرسانی شده تراکنش (status 200)
+
+        مثال:
+            PATCH /api/v1/Transaction/1/
+            {
+                "amount": "60000000"
+            }
+
+        نکات:
+            - فقط فیلدهای ارسال شده تغییر می‌کنند
+            - فیلدهای ارسال نشده حفظ می‌شوند
+            - انعطاف بیشتری نسبت به PUT دارد
+            - جزئیات فیلدها در serializer descriptions موجود است
+            - نیاز به احراز هویت دارد
+        """
+        return super().partial_update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        حذف تراکنش
+
+        این متد تراکنش را به‌طور کامل و برگشت‌ناپذیری حذف می‌کند.
+
+        URL Parameters:
+            - pk: شناسه یکتای تراکنش
+
+        Returns:
+            Response خالی با status 204 No Content در صورت موفقیت
+
+        مثال:
+            DELETE /api/v1/Transaction/1/
+
+        نکات:
+            - حذف برگشت‌ناپذیر است
+            - فقط تراکنش‌های پروژه جاری قابل حذف هستند
+            - نیاز به احراز هویت و دسترسی APISecurityPermission دارد
+        """
+        return super().destroy(request, *args, **kwargs)
+
     @action(detail=False, methods=['get'])
     def statistics(self, request):
-        """آمار کلی تراکنش‌ها برای پروژه جاری"""
+        """
+        دریافت آمار کلی تراکنش‌های پروژه
+        
+        این endpoint آمار جامع و کلی تمام تراکنش‌های پروژه جاری را برمی‌گرداند.
+        
+        خروجی شامل:
+        - تعداد کل تراکنش‌ها
+        - مجموع آورده‌ها (deposits)
+        - مجموع برداشت‌ها (withdrawals)
+        - مجموع سود (profits)
+        - سرمایه خالص (net principal)
+        - مجموع کل (grand total)
+        - تعداد سرمایه‌گذاران منحصر به فرد
+        
+        سناریوهای استفاده:
+        - نمایش خلاصه مالی پروژه
+        - نمایش داشبورد تراکنش‌ها
+        - تحلیل جریان نقدی پروژه
+        - محاسبه شاخص‌های مالی کلیدی
+        - تهیه گزارش‌های مدیریتی
+        
+        مثال استفاده:
+        GET /api/v1/Transaction/statistics/
+        
+        مثال خروجی:
+        {
+            "total_transactions": 150,
+            "total_deposits": 500000000,
+            "total_withdrawals": -20000000,
+            "total_profits": 75000000,
+            "net_principal": 480000000,
+            "grand_total": 555000000,
+            "unique_investors": 5
+        }
+        
+        نکات مهم:
+        - فقط تراکنش‌های پروژه جاری را شامل می‌شود
+        - اگر پروژه جاری وجود نداشته باشد، خطای 400 برمی‌گرداند
+        - مجموع برداشت‌ها به صورت منفی محاسبه می‌شود
+        - تمام مبالغ به تومان هستند
+        """
         from django.db.models import Count, Sum, Q
         
         # دریافت پروژه جاری از session
@@ -1832,12 +3279,204 @@ class TransactionViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
 
 class InterestRateViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
-    """ViewSet for the InterestRate class"""
+    """
+    ViewSet برای مدیریت نرخ‌های سود پروژه
+    
+    این ViewSet امکان مدیریت کامل نرخ‌های سود روزانه پروژه را فراهم می‌کند.
+    
+    قابلیت‌ها:
+    - ایجاد، خواندن، به‌روزرسانی و حذف نرخ‌های سود
+    - دریافت نرخ سود فعال فعلی
+    - مدیریت تاریخ اعمال نرخ‌های سود
+    - فعال/غیرفعال کردن نرخ‌های سود
+    
+    سناریوهای استفاده:
+    - تعریف نرخ سود جدید برای پروژه
+    - تغییر نرخ سود در تاریخ مشخص
+    - دریافت نرخ سود فعال
+    - مدیریت تاریخچه تغییرات نرخ سود
+    
+    مثال‌های کاربرد:
+    - برای ایجاد نرخ سود: rate='0.000481925679775', effective_date='1403-01-01'
+    - برای دریافت نرخ فعال: GET /api/v1/InterestRate/current/
+    
+    نکات مهم:
+    - تمام عملیات بر اساس پروژه جاری (active project) انجام می‌شود
+    - نرخ سود به صورت روزانه محاسبه می‌شود
+    - فقط یک نرخ سود می‌تواند در هر زمان فعال باشد
+    """
 
     queryset = models.InterestRate.objects.all()
     serializer_class = serializers.InterestRateSerializer
     authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
     permission_classes = [APISecurityPermission]
+
+    # ===== عملیات CRUD با توضیحات جداگانه =====
+
+    def list(self, request, *args, **kwargs):
+        """
+        دریافت لیست تمام نرخ‌های سود پروژه جاری
+
+        این متد لیست نرخ‌های سود مرتبط با پروژه فعال را برمی‌گرداند.
+        نتایج به صورت صفحه‌بندی شده و قابل مرتب‌سازی هستند.
+
+        Query Parameters:
+            - page: شماره صفحه (پیش‌فرض: 1)
+            - page_size: تعداد رکورد در هر صفحه (پیش‌فرض: 10)
+            - ordering: فیلد مرتب‌سازی
+
+        Returns:
+            Response با ساختار paginated شامل results, count, next, previous
+
+        مثال:
+            GET /api/v1/InterestRate/?page=1
+
+        نکات:
+            - فقط نرخ‌های سود پروژه جاری برگردانده می‌شود
+            - نیاز به احراز هویت دارد
+        """
+        return super().list(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        """
+        ایجاد نرخ سود جدید برای پروژه جاری
+
+        این متد نرخ سود جدید را برای پروژه فعال ثبت می‌کند.
+        پروژه به صورت خودکار از session کاربر تعیین می‌شود.
+
+        Request Body:
+            - rate (الزامی): نرخ سود روزانه (به صورت string)
+            - effective_date (الزامی): تاریخ اعمال شمسی (YYYY-MM-DD)
+            - description (اختیاری): توضیحات
+            - is_active (اختیاری): فعال/غیرفعال (پیش‌فرض: True)
+
+        Returns:
+            Response با اطلاعات نرخ سود ایجاد شده (status 201)
+
+        مثال:
+            POST /api/v1/InterestRate/
+            {
+                "rate": "0.000481925679775",
+                "effective_date": "1403-01-01",
+                "description": "نرخ سود جدید از ابتدای سال 1403",
+                "is_active": true
+            }
+
+        نکات:
+            - جزئیات فیلدها در serializer descriptions موجود است
+            - پروژه به صورت خودکار از session تنظیم می‌شود
+            - تاریخ میلادی به صورت خودکار محاسبه می‌شود
+            - نیاز به احراز هویت و دسترسی APISecurityPermission دارد
+        """
+        return super().create(request, *args, **kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        """
+        دریافت جزئیات یک نرخ سود خاص
+
+        این متد اطلاعات کامل نرخ سود با شناسه مشخص شده را برمی‌گرداند.
+
+        URL Parameters:
+            - pk: شناسه یکتای نرخ سود
+
+        Returns:
+            Response با اطلاعات کامل نرخ سود
+
+        مثال:
+            GET /api/v1/InterestRate/1/
+
+        نکات:
+            - فقط نرخ‌های سود پروژه جاری قابل دسترسی هستند
+            - در صورت عدم دسترسی، خطای 403 برگردانده می‌شود
+            - نیاز به احراز هویت دارد
+        """
+        return super().retrieve(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        """
+        به‌روزرسانی کامل نرخ سود
+
+        این متد امکان تغییر همه فیلدهای یک نرخ سود را فراهم می‌کند.
+        تمام فیلدهای قابل ویرایش باید ارسال شوند.
+
+        URL Parameters:
+            - pk: شناسه یکتای نرخ سود
+
+        Request Body:
+            - تمام فیلدهای قابل ویرایش
+
+        Returns:
+            Response با اطلاعات به‌روزرسانی شده نرخ سود (status 200)
+
+        مثال:
+            PUT /api/v1/InterestRate/1/
+            {
+                "rate": "0.000500000000000",
+                "effective_date": "1403-07-01",
+                "is_active": true
+            }
+
+        نکات:
+            - همه فیلدها باید ارسال شوند
+            - برای به‌روزرسانی جزئی از PATCH استفاده کنید
+            - جزئیات فیلدها در serializer descriptions موجود است
+            - نیاز به احراز هویت دارد
+        """
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        """
+        به‌روزرسانی جزئی نرخ سود
+
+        این متد امکان تغییر بخشی از فیلدهای نرخ سود را فراهم می‌کند.
+        فقط فیلدهای ارسال شده تغییر می‌کنند.
+
+        URL Parameters:
+            - pk: شناسه یکتای نرخ سود
+
+        Request Body:
+            - فیلدهای انتخابی برای به‌روزرسانی
+
+        Returns:
+            Response با اطلاعات به‌روزرسانی شده نرخ سود (status 200)
+
+        مثال:
+            PATCH /api/v1/InterestRate/1/
+            {
+                "is_active": false
+            }
+
+        نکات:
+            - فقط فیلدهای ارسال شده تغییر می‌کنند
+            - فیلدهای ارسال نشده حفظ می‌شوند
+            - انعطاف بیشتری نسبت به PUT دارد
+            - جزئیات فیلدها در serializer descriptions موجود است
+            - نیاز به احراز هویت دارد
+        """
+        return super().partial_update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        حذف نرخ سود
+
+        این متد نرخ سود را به‌طور کامل و برگشت‌ناپذیری حذف می‌کند.
+
+        URL Parameters:
+            - pk: شناسه یکتای نرخ سود
+
+        Returns:
+            Response خالی با status 204 No Content در صورت موفقیت
+
+        مثال:
+            DELETE /api/v1/InterestRate/1/
+
+        نکات:
+            - حذف برگشت‌ناپذیر است
+            - فقط نرخ‌های سود پروژه جاری قابل حذف هستند
+            - نیاز به احراز هویت و دسترسی APISecurityPermission دارد
+            - در صورت وجود وابستگی (تراکنش‌ها)، ممکن است حذف ناموفق باشد
+        """
+        return super().destroy(request, *args, **kwargs)
 
     @action(detail=False, methods=['get'])
     def current(self, request):
@@ -1859,12 +3498,205 @@ class InterestRateViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
 
 class UnitViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
-    """ViewSet for the Unit class"""
+    """
+    ViewSet برای مدیریت واحدهای مسکونی پروژه
+    
+    این ViewSet امکان مدیریت کامل واحدهای مسکونی پروژه را فراهم می‌کند.
+    
+    قابلیت‌ها:
+    - ایجاد، خواندن، به‌روزرسانی و حذف واحدها
+    - دریافت آمار واحدها
+    - مدیریت متراژ و قیمت واحدها
+    - ارتباط واحدها با سرمایه‌گذاران
+    
+    سناریوهای استفاده:
+    - تعریف واحدهای مسکونی پروژه
+    - تنظیم متراژ و قیمت واحدها
+    - دریافت آمار کل واحدها
+    - مدیریت مالکیت واحدها
+    
+    مثال‌های کاربرد:
+    - برای ایجاد واحد: name='واحد 101', area='120.5', price_per_meter='5000000'
+    - برای دریافت آمار: GET /api/v1/Unit/statistics/
+    
+    نکات مهم:
+    - تمام عملیات بر اساس پروژه جاری (active project) انجام می‌شود
+    - قیمت نهایی به صورت خودکار محاسبه می‌شود (area × price_per_meter)
+    - واحدها می‌توانند به چندین سرمایه‌گذار مرتبط باشند
+    """
 
     queryset = models.Unit.objects.all()
     serializer_class = serializers.UnitSerializer
     authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
     permission_classes = [APISecurityPermission]
+
+    # ===== عملیات CRUD با توضیحات جداگانه =====
+
+    def list(self, request, *args, **kwargs):
+        """
+        دریافت لیست تمام واحدهای پروژه جاری
+
+        این متد لیست واحدهای مرتبط با پروژه فعال را برمی‌گرداند.
+        نتایج به صورت صفحه‌بندی شده و قابل مرتب‌سازی هستند.
+
+        Query Parameters:
+            - page: شماره صفحه (پیش‌فرض: 1)
+            - page_size: تعداد رکورد در هر صفحه (پیش‌فرض: 10)
+            - ordering: فیلد مرتب‌سازی
+
+        Returns:
+            Response با ساختار paginated شامل results, count, next, previous
+
+        مثال:
+            GET /api/v1/Unit/?page=1&page_size=20
+
+        نکات:
+            - فقط واحدهای پروژه جاری برگردانده می‌شود
+            - نیاز به احراز هویت دارد
+        """
+        return super().list(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        """
+        ایجاد واحد جدید برای پروژه جاری
+
+        این متد واحد جدید را برای پروژه فعال ثبت می‌کند.
+        پروژه به صورت خودکار از session کاربر تعیین می‌شود.
+
+        Request Body:
+            - name (الزامی): نام واحد
+            - area (الزامی): متراژ واحد (به صورت string)
+            - price_per_meter (الزامی): قیمت هر متر (به صورت string)
+            - total_price (الزامی): قیمت نهایی (به صورت string)
+
+        Returns:
+            Response با اطلاعات واحد ایجاد شده (status 201)
+
+        مثال:
+            POST /api/v1/Unit/
+            {
+                "name": "واحد 101",
+                "area": "120.5",
+                "price_per_meter": "5000000",
+                "total_price": "602500000"
+            }
+
+        نکات:
+            - جزئیات فیلدها در serializer descriptions موجود است
+            - پروژه به صورت خودکار از session تنظیم می‌شود
+            - قیمت نهایی باید برابر area × price_per_meter باشد
+            - نیاز به احراز هویت و دسترسی APISecurityPermission دارد
+        """
+        return super().create(request, *args, **kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        """
+        دریافت جزئیات یک واحد خاص
+
+        این متد اطلاعات کامل واحد با شناسه مشخص شده را برمی‌گرداند.
+
+        URL Parameters:
+            - pk: شناسه یکتای واحد
+
+        Returns:
+            Response با اطلاعات کامل واحد
+
+        مثال:
+            GET /api/v1/Unit/1/
+
+        نکات:
+            - فقط واحدهای پروژه جاری قابل دسترسی هستند
+            - در صورت عدم دسترسی، خطای 403 برگردانده می‌شود
+            - نیاز به احراز هویت دارد
+        """
+        return super().retrieve(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        """
+        به‌روزرسانی کامل واحد
+
+        این متد امکان تغییر همه فیلدهای یک واحد را فراهم می‌کند.
+        تمام فیلدهای قابل ویرایش باید ارسال شوند.
+
+        URL Parameters:
+            - pk: شناسه یکتای واحد
+
+        Request Body:
+            - تمام فیلدهای قابل ویرایش
+
+        Returns:
+            Response با اطلاعات به‌روزرسانی شده واحد (status 200)
+
+        مثال:
+            PUT /api/v1/Unit/1/
+            {
+                "name": "واحد 101",
+                "area": "125.0",
+                "price_per_meter": "5500000",
+                "total_price": "687500000"
+            }
+
+        نکات:
+            - همه فیلدها باید ارسال شوند
+            - برای به‌روزرسانی جزئی از PATCH استفاده کنید
+            - جزئیات فیلدها در serializer descriptions موجود است
+            - نیاز به احراز هویت دارد
+        """
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        """
+        به‌روزرسانی جزئی واحد
+
+        این متد امکان تغییر بخشی از فیلدهای واحد را فراهم می‌کند.
+        فقط فیلدهای ارسال شده تغییر می‌کنند.
+
+        URL Parameters:
+            - pk: شناسه یکتای واحد
+
+        Request Body:
+            - فیلدهای انتخابی برای به‌روزرسانی
+
+        Returns:
+            Response با اطلاعات به‌روزرسانی شده واحد (status 200)
+
+        مثال:
+            PATCH /api/v1/Unit/1/
+            {
+                "price_per_meter": "5500000"
+            }
+
+        نکات:
+            - فقط فیلدهای ارسال شده تغییر می‌کنند
+            - فیلدهای ارسال نشده حفظ می‌شوند
+            - انعطاف بیشتری نسبت به PUT دارد
+            - جزئیات فیلدها در serializer descriptions موجود است
+            - نیاز به احراز هویت دارد
+        """
+        return super().partial_update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        حذف واحد
+
+        این متد واحد را به‌طور کامل و برگشت‌ناپذیری حذف می‌کند.
+
+        URL Parameters:
+            - pk: شناسه یکتای واحد
+
+        Returns:
+            Response خالی با status 204 No Content در صورت موفقیت
+
+        مثال:
+            DELETE /api/v1/Unit/1/
+
+        نکات:
+            - حذف برگشت‌ناپذیر است
+            - فقط واحدهای پروژه جاری قابل حذف هستند
+            - نیاز به احراز هویت و دسترسی APISecurityPermission دارد
+            - در صورت وجود وابستگی (سرمایه‌گذاران)، ممکن است حذف ناموفق باشد
+        """
+        return super().destroy(request, *args, **kwargs)
 
     @action(detail=False, methods=['get'])
     def statistics(self, request):
@@ -1903,7 +3735,31 @@ class UnitViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
         })
 
 class UnitSpecificExpenseViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
-    """ViewSet for the UnitSpecificExpense class"""
+    """
+    ViewSet برای مدیریت هزینه‌های اختصاصی واحدها
+    
+    این ViewSet امکان مدیریت کامل هزینه‌های اختصاصی هر واحد را فراهم می‌کند.
+    
+    قابلیت‌ها:
+    - ایجاد، خواندن، به‌روزرسانی و حذف هزینه‌های اختصاصی
+    - مدیریت هزینه‌های هر واحد به صورت جداگانه
+    - فیلتر بر اساس واحد و پروژه
+    
+    سناریوهای استفاده:
+    - ثبت هزینه‌های اختصاصی مالک برای واحد خودش
+    - مدیریت هزینه‌های نصب تجهیزات
+    - ثبت هزینه‌های تعمیرات اختصاصی
+    - دریافت لیست هزینه‌های یک واحد خاص
+    
+    مثال‌های کاربرد:
+    - برای ثبت هزینه نصب کولر: unit=1, title='نصب کولر گازی', amount='5000000'
+    - برای فیلتر بر اساس واحد: GET /api/v1/UnitSpecificExpense/?unit=1
+    
+    نکات مهم:
+    - تمام عملیات بر اساس پروژه جاری (active project) انجام می‌شود
+    - هزینه‌ها به یک واحد خاص مرتبط هستند
+    - این هزینه‌ها جدا از هزینه‌های عمومی پروژه هستند
+    """
 
     queryset = models.UnitSpecificExpense.objects.all()
     serializer_class = serializers.UnitSpecificExpenseSerializer
@@ -1911,14 +3767,383 @@ class UnitSpecificExpenseViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
     permission_classes = [APISecurityPermission]
     filterset_fields = ['unit', 'project']
 
+    # ===== عملیات CRUD با توضیحات جداگانه =====
+
+    def list(self, request, *args, **kwargs):
+        """
+        دریافت لیست تمام هزینه‌های اختصاصی واحدهای پروژه جاری
+
+        این متد لیست هزینه‌های اختصاصی مرتبط با پروژه فعال را برمی‌گرداند.
+        نتایج به صورت صفحه‌بندی شده و قابل فیلتر و مرتب‌سازی هستند.
+
+        Query Parameters:
+            - page: شماره صفحه (پیش‌فرض: 1)
+            - page_size: تعداد رکورد در هر صفحه (پیش‌فرض: 10)
+            - ordering: فیلد مرتب‌سازی
+            - unit: فیلتر بر اساس شناسه واحد
+            - project: فیلتر بر اساس شناسه پروژه
+
+        Returns:
+            Response با ساختار paginated شامل results, count, next, previous
+
+        مثال:
+            GET /api/v1/UnitSpecificExpense/?unit=1&page=1
+
+        نکات:
+            - فقط هزینه‌های اختصاصی پروژه جاری برگردانده می‌شود
+            - امکان فیلتر بر اساس واحد
+            - نیاز به احراز هویت دارد
+        """
+        return super().list(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        """
+        ایجاد هزینه اختصاصی جدید برای واحد
+
+        این متد هزینه اختصاصی جدید را برای یک واحد ثبت می‌کند.
+        پروژه به صورت خودکار از session کاربر تعیین می‌شود.
+
+        Request Body:
+            - unit/unit_id (الزامی): شناسه واحد
+            - title (الزامی): عنوان هزینه
+            - date_shamsi_input (الزامی): تاریخ شمسی (YYYY-MM-DD)
+            - amount (الزامی): مبلغ هزینه (به صورت string)
+            - description (اختیاری): توضیحات
+
+        Returns:
+            Response با اطلاعات هزینه اختصاصی ایجاد شده (status 201)
+
+        مثال:
+            POST /api/v1/UnitSpecificExpense/
+            {
+                "unit": 1,
+                "title": "نصب کولر گازی",
+                "date_shamsi_input": "1403-07-15",
+                "amount": "5000000",
+                "description": "نصب کولر گازی در واحد 101"
+            }
+
+        نکات:
+            - جزئیات فیلدها در serializer descriptions موجود است
+            - پروژه به صورت خودکار از session تنظیم می‌شود
+            - تاریخ میلادی به صورت خودکار محاسبه می‌شود
+            - نیاز به احراز هویت و دسترسی APISecurityPermission دارد
+        """
+        return super().create(request, *args, **kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        """
+        دریافت جزئیات یک هزینه اختصاصی خاص
+
+        این متد اطلاعات کامل هزینه اختصاصی با شناسه مشخص شده را برمی‌گرداند.
+
+        URL Parameters:
+            - pk: شناسه یکتای هزینه اختصاصی
+
+        Returns:
+            Response با اطلاعات کامل هزینه اختصاصی شامل unit_data و project_data
+
+        مثال:
+            GET /api/v1/UnitSpecificExpense/1/
+
+        نکات:
+            - فقط هزینه‌های اختصاصی پروژه جاری قابل دسترسی هستند
+            - در صورت عدم دسترسی، خطای 403 برگردانده می‌شود
+            - نیاز به احراز هویت دارد
+        """
+        return super().retrieve(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        """
+        به‌روزرسانی کامل هزینه اختصاصی
+
+        این متد امکان تغییر همه فیلدهای یک هزینه اختصاصی را فراهم می‌کند.
+        تمام فیلدهای قابل ویرایش باید ارسال شوند.
+
+        URL Parameters:
+            - pk: شناسه یکتای هزینه اختصاصی
+
+        Request Body:
+            - تمام فیلدهای قابل ویرایش
+
+        Returns:
+            Response با اطلاعات به‌روزرسانی شده هزینه اختصاصی (status 200)
+
+        مثال:
+            PUT /api/v1/UnitSpecificExpense/1/
+            {
+                "unit": 1,
+                "title": "نصب کولر گازی - به‌روزرسانی شده",
+                "date_shamsi_input": "1403-07-15",
+                "amount": "6000000"
+            }
+
+        نکات:
+            - همه فیلدها باید ارسال شوند
+            - برای به‌روزرسانی جزئی از PATCH استفاده کنید
+            - جزئیات فیلدها در serializer descriptions موجود است
+            - نیاز به احراز هویت دارد
+        """
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        """
+        به‌روزرسانی جزئی هزینه اختصاصی
+
+        این متد امکان تغییر بخشی از فیلدهای هزینه اختصاصی را فراهم می‌کند.
+        فقط فیلدهای ارسال شده تغییر می‌کنند.
+
+        URL Parameters:
+            - pk: شناسه یکتای هزینه اختصاصی
+
+        Request Body:
+            - فیلدهای انتخابی برای به‌روزرسانی
+
+        Returns:
+            Response با اطلاعات به‌روزرسانی شده هزینه اختصاصی (status 200)
+
+        مثال:
+            PATCH /api/v1/UnitSpecificExpense/1/
+            {
+                "amount": "6000000"
+            }
+
+        نکات:
+            - فقط فیلدهای ارسال شده تغییر می‌کنند
+            - فیلدهای ارسال نشده حفظ می‌شوند
+            - انعطاف بیشتری نسبت به PUT دارد
+            - جزئیات فیلدها در serializer descriptions موجود است
+            - نیاز به احراز هویت دارد
+        """
+        return super().partial_update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        حذف هزینه اختصاصی
+
+        این متد هزینه اختصاصی را به‌طور کامل و برگشت‌ناپذیری حذف می‌کند.
+
+        URL Parameters:
+            - pk: شناسه یکتای هزینه اختصاصی
+
+        Returns:
+            Response خالی با status 204 No Content در صورت موفقیت
+
+        مثال:
+            DELETE /api/v1/UnitSpecificExpense/1/
+
+        نکات:
+            - حذف برگشت‌ناپذیر است
+            - فقط هزینه‌های اختصاصی پروژه جاری قابل حذف هستند
+            - نیاز به احراز هویت و دسترسی APISecurityPermission دارد
+        """
+        return super().destroy(request, *args, **kwargs)
+
 
 class PettyCashTransactionViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
-    """ViewSet برای مدیریت تراکنش‌های تنخواه"""
+    """
+    ViewSet برای مدیریت تراکنش‌های تنخواه عوامل اجرایی
+    
+    این ViewSet امکان مدیریت کامل تراکنش‌های تنخواه عوامل اجرایی را فراهم می‌کند.
+    
+    قابلیت‌ها:
+    - ایجاد، خواندن، به‌روزرسانی و حذف تراکنش‌های تنخواه
+    - دریافت وضعیت مالی همه عوامل اجرایی
+    - مدیریت دریافت و عودت تنخواه
+    - ردیابی تراکنش‌های تنخواه هر عامل اجرایی
+    
+    سناریوهای استفاده:
+    - ثبت دریافت تنخواه توسط عوامل اجرایی
+    - ثبت عودت تنخواه به صندوق
+    - دریافت وضعیت مالی عوامل اجرایی
+    - مدیریت تنخواه مدیر پروژه، سرپرست کارگاه و...
+    
+    مثال‌های کاربرد:
+    - برای ثبت دریافت تنخواه: expense_type='project_manager', transaction_type='receipt', amount='10000000'
+    - برای دریافت وضعیت مالی: GET /api/v1/PettyCashTransaction/balances/
+    
+    نکات مهم:
+    - تمام عملیات بر اساس پروژه جاری (active project) انجام می‌شود
+    - تراکنش‌ها به یک عامل اجرایی (expense_type) مرتبط هستند
+    - انواع تراکنش: receipt (دریافت از صندوق), return (عودت به صندوق)
+    - هزینه‌های عوامل اجرایی در Expense ثبت می‌شوند، نه در اینجا
+    """
   
     queryset = models.PettyCashTransaction.objects.all()
     authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
     permission_classes = [APISecurityPermission]
     serializer_class = serializers.PettyCashTransactionSerializer
+
+    # ===== عملیات CRUD با توضیحات جداگانه =====
+
+    def list(self, request, *args, **kwargs):
+        """
+        دریافت لیست تمام تراکنش‌های تنخواه پروژه جاری
+
+        این متد لیست تراکنش‌های تنخواه مرتبط با پروژه فعال را برمی‌گرداند.
+        نتایج به صورت صفحه‌بندی شده و قابل مرتب‌سازی هستند.
+
+        Query Parameters:
+            - page: شماره صفحه (پیش‌فرض: 1)
+            - page_size: تعداد رکورد در هر صفحه (پیش‌فرض: 10)
+            - ordering: فیلد مرتب‌سازی
+
+        Returns:
+            Response با ساختار paginated شامل results, count, next, previous
+
+        مثال:
+            GET /api/v1/PettyCashTransaction/?page=1&page_size=20
+
+        نکات:
+            - فقط تراکنش‌های تنخواه پروژه جاری برگردانده می‌شود
+            - نیاز به احراز هویت دارد
+        """
+        return super().list(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        """
+        ایجاد تراکنش تنخواه جدید برای پروژه جاری
+
+        این متد تراکنش تنخواه جدید را برای پروژه فعال ثبت می‌کند.
+        پروژه به صورت خودکار از session کاربر تعیین می‌شود.
+
+        Request Body:
+            - expense_type (الزامی): عامل اجرایی (project_manager, facilities_manager, procurement, warehouse, construction_contractor, other)
+            - transaction_type (الزامی): نوع تراکنش (receipt, return)
+            - amount (الزامی): مبلغ تراکنش (به صورت string)
+            - date_shamsi_input (اختیاری): تاریخ شمسی (YYYY-MM-DD)
+            - description (اختیاری): توضیحات
+            - receipt_number (اختیاری): شماره فیش/رسید
+
+        Returns:
+            Response با اطلاعات تراکنش تنخواه ایجاد شده (status 201)
+
+        مثال:
+            POST /api/v1/PettyCashTransaction/
+            {
+                "expense_type": "project_manager",
+                "transaction_type": "receipt",
+                "amount": "10000000",
+                "date_shamsi_input": "1403-07-15",
+                "description": "دریافت تنخواه برای خرید مواد اولیه",
+                "receipt_number": "F-12345"
+            }
+
+        نکات:
+            - جزئیات فیلدها در serializer descriptions موجود است
+            - پروژه به صورت خودکار از session تنظیم می‌شود
+            - تاریخ میلادی به صورت خودکار محاسبه می‌شود
+            - نیاز به احراز هویت و دسترسی APISecurityPermission دارد
+        """
+        return super().create(request, *args, **kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        """
+        دریافت جزئیات یک تراکنش تنخواه خاص
+
+        این متد اطلاعات کامل تراکنش تنخواه با شناسه مشخص شده را برمی‌گرداند.
+
+        URL Parameters:
+            - pk: شناسه یکتای تراکنش تنخواه
+
+        Returns:
+            Response با اطلاعات کامل تراکنش تنخواه شامل signed_amount
+
+        مثال:
+            GET /api/v1/PettyCashTransaction/1/
+
+        نکات:
+            - فقط تراکنش‌های تنخواه پروژه جاری قابل دسترسی هستند
+            - در صورت عدم دسترسی، خطای 403 برگردانده می‌شود
+            - نیاز به احراز هویت دارد
+        """
+        return super().retrieve(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        """
+        به‌روزرسانی کامل تراکنش تنخواه
+
+        این متد امکان تغییر همه فیلدهای یک تراکنش تنخواه را فراهم می‌کند.
+        تمام فیلدهای قابل ویرایش باید ارسال شوند.
+
+        URL Parameters:
+            - pk: شناسه یکتای تراکنش تنخواه
+
+        Request Body:
+            - تمام فیلدهای قابل ویرایش
+
+        Returns:
+            Response با اطلاعات به‌روزرسانی شده تراکنش تنخواه (status 200)
+
+        مثال:
+            PUT /api/v1/PettyCashTransaction/1/
+            {
+                "expense_type": "project_manager",
+                "transaction_type": "receipt",
+                "amount": "12000000",
+                "description": "به‌روزرسانی شده"
+            }
+
+        نکات:
+            - همه فیلدها باید ارسال شوند
+            - برای به‌روزرسانی جزئی از PATCH استفاده کنید
+            - جزئیات فیلدها در serializer descriptions موجود است
+            - نیاز به احراز هویت دارد
+        """
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        """
+        به‌روزرسانی جزئی تراکنش تنخواه
+
+        این متد امکان تغییر بخشی از فیلدهای تراکنش تنخواه را فراهم می‌کند.
+        فقط فیلدهای ارسال شده تغییر می‌کنند.
+
+        URL Parameters:
+            - pk: شناسه یکتای تراکنش تنخواه
+
+        Request Body:
+            - فیلدهای انتخابی برای به‌روزرسانی
+
+        Returns:
+            Response با اطلاعات به‌روزرسانی شده تراکنش تنخواه (status 200)
+
+        مثال:
+            PATCH /api/v1/PettyCashTransaction/1/
+            {
+                "amount": "12000000"
+            }
+
+        نکات:
+            - فقط فیلدهای ارسال شده تغییر می‌کنند
+            - فیلدهای ارسال نشده حفظ می‌شوند
+            - انعطاف بیشتری نسبت به PUT دارد
+            - جزئیات فیلدها در serializer descriptions موجود است
+            - نیاز به احراز هویت دارد
+        """
+        return super().partial_update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        حذف تراکنش تنخواه
+
+        این متد تراکنش تنخواه را به‌طور کامل و برگشت‌ناپذیری حذف می‌کند.
+
+        URL Parameters:
+            - pk: شناسه یکتای تراکنش تنخواه
+
+        Returns:
+            Response خالی با status 204 No Content در صورت موفقیت
+
+        مثال:
+            DELETE /api/v1/PettyCashTransaction/1/
+
+        نکات:
+            - حذف برگشت‌ناپذیر است
+            - فقط تراکنش‌های تنخواه پروژه جاری قابل حذف هستند
+            - نیاز به احراز هویت و دسترسی APISecurityPermission دارد
+        """
+        return super().destroy(request, *args, **kwargs)
   
     @action(detail=False, methods=['get'])
     def balances(self, request):
@@ -1939,11 +4164,35 @@ class PettyCashTransactionViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
   
     @action(detail=False, methods=['get'])
     def balance_detail(self, request):
-        """دریافت وضعیت مالی یک عامل اجرایی خاص"""
+        """
+        دریافت وضعیت مالی یک عامل اجرایی خاص
+        
+        این endpoint وضعیت مالی کامل یک عامل اجرایی (expense_type) را
+        شامل مانده، مجموع دریافت‌ها، هزینه‌ها و مرجوعی‌ها برمی‌گرداند.
+        
+        Parameters:
+            expense_type (str): نوع عامل اجرایی (الزامی)
+        
+        Returns:
+            Response: شامل:
+                - expense_type: نوع عامل اجرایی
+                - expense_type_label: برچسب نوع عامل
+                - balance: مانده فعلی
+                - total_receipts: مجموع دریافت‌ها
+                - total_expenses: مجموع هزینه‌ها
+                - total_returns: مجموع مرجوعی‌ها
+        
+        نکات مهم:
+        - فقط تراکنش‌های پروژه جاری را شامل می‌شود
+        - اگر پروژه جاری وجود نداشته باشد، خطای 400 برمی‌گرداند
+        - اگر expense_type ارسال نشود، خطای 400 برمی‌گرداند
+        - مانده مثبت = بدهکار (پول در دست دارد)
+        - مانده منفی = بستانکار (بدهکار است)
+        - تمام مبالغ به تومان هستند
+        """
         expense_type = request.query_params.get('expense_type')
         logger.info("User %s requesting balance detail for expense_type: %s", request.user.username, expense_type)
         try:
-            expense_type = request.query_params.get('expense_type')
             if not expense_type:
                 return Response({'error': 'expense_type الزامی است'}, status=400)
           

@@ -109,6 +109,9 @@ urlpatterns = (
     path("construction/active-project/set/", views.set_active_project_view, name="construction_set_active_project"),
     path("api/active-project/", views.active_project_api, name="construction_active_project_api"),
     path("api/active-project/set/", views.set_active_project_api, name="construction_set_active_project_api"),
+    
+    # AI Assistant URLs
+    path("assistant/", include('assistant.urls')),
 
 
 )

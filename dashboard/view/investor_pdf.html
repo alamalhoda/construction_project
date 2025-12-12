@@ -1218,7 +1218,7 @@
                     </div>
                     <div class="stat-card loan-deposit-card" style="border-color: var(--loan-deposit-color); background: linear-gradient(135deg, var(--loan-deposit-color-light), rgba(92, 165, 232, 0.05));">
                         <h4 id="totalLoanDeposit">-</h4>
-                        <p>آورده وام (تومان)</p>
+                        <p> وام (تومان)</p>
                     </div>
                     <div class="stat-card deposit" style="border: 3px solid var(--deposit-color); background: linear-gradient(135deg, var(--deposit-color-light), rgba(33, 133, 208, 0.15));">
                         <h4 id="totalPrincipal">-</h4>
@@ -1234,7 +1234,7 @@
                     </div>
                     <div class="stat-card profit">
                         <h4 id="totalProfit">-</h4>
-                        <p>کل سود (تومان)</p>
+                        <p>کل سود مشارکت (تومان)</p>
                     </div>
                     <div class="stat-card">
                         <h4 id="totalBalance">-</h4>
@@ -1393,7 +1393,7 @@
                             <th>تاریخ</th>
                             <th>نوع تراکنش</th>
                             <th>مبلغ (تومان)</th>
-                            <th id="profitColumnHeader" style="display: none;">سود (تومان)</th>
+                            <th id="profitColumnHeader" style="display: none;">سود مشارکت (تومان)</th>
                             <th>توضیحات</th>
                         </tr>
                     </thead>
@@ -1545,7 +1545,7 @@
         function getTransactionTypeLabel(type) {
             const types = {
                 'principal_deposit': 'آورده',
-                'loan_deposit': 'آورده وام',
+                'loan_deposit': 'وام',
                 'principal_withdrawal': 'برداشت',
                 'profit_accrual': 'سود مشارکت'
             };
@@ -2119,7 +2119,7 @@
             charts.activityDistributionChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['آورده', 'برداشت', 'سود'],
+                    labels: ['آورده', 'برداشت', 'سود مشارکت'],
                     datasets: [{
                         data: [totalPrincipal, totalWithdrawal, totalProfit].map(a => a / BASE_AMOUNT),
                         backgroundColor: [

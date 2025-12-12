@@ -120,7 +120,7 @@ class SecurityHeadersMiddleware(MiddlewareMixin):
             response['Content-Security-Policy'] = (
                 "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; "
                 "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com; "
-                "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; "
+                "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://fonts.googleapis.com; "
                 "img-src 'self' data: https: http:; "
                 "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com https://stackpath.bootstrapcdn.com data: blob:; "
                 "connect-src 'self' https: http:; "

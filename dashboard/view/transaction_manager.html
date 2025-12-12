@@ -11,7 +11,6 @@
     
     <!-- Semantic UI CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.css" rel="stylesheet">
-    
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
@@ -25,6 +24,32 @@
     
     <!-- Dashboard Common CSS -->
     <link rel="stylesheet" href="/static/css/dashboard-common.css">
+    
+    <style>
+        /* Fallback toast styles when semantic-ui-toast CDN در دسترس نباشد */
+        .custom-toast-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+        .custom-toast {
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            pointer-events: auto;
+            min-width: 260px;
+        }
+        .custom-toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
     
     <style>
         /* استایل‌های خاص این صفحه - استایل‌های مشترک در dashboard-common.css هستند */
@@ -1048,6 +1073,39 @@
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.js"></script>
+    
+    <script>
+        // Fallback: در صورت در دسترس نبودن پلاگین toast
+        (function($) {
+            if (!$ || $.fn.toast) return;
+            const defaults = {
+                message: '',
+                class: 'info',
+                position: 'top center',
+                displayTime: 3000,
+                icon: null
+            };
+            $.fn.toast = function(options) {
+                const settings = $.extend({}, defaults, options);
+                let container = $('.custom-toast-container');
+                if (!container.length) {
+                    container = $('<div class="custom-toast-container"></div>').appendTo('body');
+                }
+                const toast = $(`<div class="ui ${settings.class} message custom-toast"></div>`);
+                if (settings.icon) {
+                    toast.append(`<i class="${settings.icon} icon"></i>`);
+                }
+                toast.append($('<div class="content"></div>').html(settings.message));
+                container.append(toast);
+                requestAnimationFrame(() => toast.addClass('show'));
+                setTimeout(() => {
+                    toast.removeClass('show');
+                    setTimeout(() => toast.remove(), 300);
+                }, settings.displayTime || 3000);
+                return this;
+            };
+        })(window.jQuery);
+    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/js/tabulator.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/persian-datepicker/dist/js/persian-datepicker.min.js"></script>
@@ -1088,7 +1146,10 @@
         }
         
         const ENDPOINTS = {
-            transactions: getTransactionsEndpoint(),  // استفاده از تابع
+            // خواندن تراکنش‌ها مطابق حالت نمایش
+            transactions: getTransactionsEndpoint(),
+            // نوشتن/ویرایش/حذف همیشه روی endpoint اصلی
+            transactionsWrite: 'Transaction/',
             investors: 'Investor/',
             projects: 'Project/',
             periods: 'Period/'
@@ -1292,7 +1353,7 @@
             
             // Load all data in parallel
             Promise.all([
-                fetchData(ENDPOINTS.transactions),
+            fetchData(ENDPOINTS.transactions),
                 fetchData(ENDPOINTS.investors),
                 fetchData(ENDPOINTS.projects),
                 fetchData(ENDPOINTS.periods)
@@ -1733,7 +1794,7 @@
                 },
                 // اضافه کردن ستون سود فقط در حالت combined
                 ...(getTransactionDisplayMode() === TRANSACTION_DISPLAY_MODE.COMBINED ? [{
-                    title: 'سود (تومان)',
+                    title: 'سود مشارکت(تومان)',
                     field: 'profit_transaction',
                     width: 150,
                     formatter: function(cell) {
@@ -3005,11 +3066,11 @@
             saveButton.innerHTML = '<i class="spinner loading icon"></i> در حال ذخیره...';
             saveButton.classList.add('loading');
             
-            console.log('Sending API request to:', API_BASE + ENDPOINTS.transactions);
+            console.log('Sending API request to:', API_BASE + ENDPOINTS.transactionsWrite);
             console.log('Request data:', formData);
             
             // Send to API
-            fetch(API_BASE + ENDPOINTS.transactions, {
+            fetch(API_BASE + ENDPOINTS.transactionsWrite, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -3239,7 +3300,7 @@
             }
             
             // Send to API
-            fetch(API_BASE + ENDPOINTS.transactions + id + '/', {
+            fetch(API_BASE + ENDPOINTS.transactionsWrite + id + '/', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -3283,7 +3344,7 @@
                 return;
             }
             
-            fetch(API_BASE + ENDPOINTS.transactions + id + '/', {
+            fetch(API_BASE + ENDPOINTS.transactionsWrite + id + '/', {
                 method: 'DELETE',
                 headers: {
                     'X-CSRFToken': csrfToken
