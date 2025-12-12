@@ -2,7 +2,7 @@
 Tools تولید شده خودکار از OpenAPI Schema
 این فایل به صورت خودکار از schema.json تولید شده است.
 
-نسخه Django - برای استفاده در برنامه اصلی
+نسخه مستقل - برای استفاده در سرویس دستیار هوش مصنوعی مستقل
 
 📊 آمار استخراج شده:
    - تعداد کل Endpoints: 107
@@ -28,7 +28,6 @@ Tools تولید شده خودکار از OpenAPI Schema
 
 from langchain.tools import tool
 from typing import Optional, Dict, Any
-import requests
 import re
 from django.conf import settings
 
@@ -36,7 +35,7 @@ from django.conf import settings
 # ===== Tools for Expense (11 endpoint) =====
 
 @tool
-def expense_list(request=None) -> str:
+def expense_list(api_token: str) -> str:
     """
     دریافت لیست تمام هزینه‌های پروژه جاری
 
@@ -69,7 +68,7 @@ def expense_list(request=None) -> str:
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -82,7 +81,7 @@ def expense_list(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -93,7 +92,7 @@ def expense_list(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def expense_create(expense_type: str, amount: str, period: int, project: Optional[int] = None, description: Optional[str] = None, request=None) -> str:
+def expense_create(api_token: str, expense_type: str, amount: str, period: int, project: Optional[int] = None, description: Optional[str] = None) -> str:
     """
     ایجاد هزینه جدید برای پروژه جاری
 
@@ -161,7 +160,7 @@ def expense_create(expense_type: str, amount: str, period: int, project: Optiona
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -189,7 +188,7 @@ def expense_create(expense_type: str, amount: str, period: int, project: Optiona
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='POST',
             data=data
         )
@@ -200,7 +199,7 @@ def expense_create(expense_type: str, amount: str, period: int, project: Optiona
         return f"❌ خطا: {str(e)}"
 
 @tool
-def expense_retrieve(id: int, request=None) -> str:
+def expense_retrieve(api_token: str, id: int) -> str:
     """
     دریافت جزئیات یک هزینه خاص
 
@@ -240,7 +239,7 @@ def expense_retrieve(id: int, request=None) -> str:
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -258,7 +257,7 @@ def expense_retrieve(id: int, request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -269,7 +268,7 @@ def expense_retrieve(id: int, request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def expense_update(id: int, expense_type: str, amount: str, period: int, project: Optional[int] = None, description: Optional[str] = None, request=None) -> str:
+def expense_update(api_token: str, id: int, expense_type: str, amount: str, period: int, project: Optional[int] = None, description: Optional[str] = None) -> str:
     """
     به‌روزرسانی کامل هزینه
 
@@ -344,7 +343,7 @@ def expense_update(id: int, expense_type: str, amount: str, period: int, project
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -375,7 +374,7 @@ def expense_update(id: int, expense_type: str, amount: str, period: int, project
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='PUT',
             data=data
         )
@@ -386,7 +385,7 @@ def expense_update(id: int, expense_type: str, amount: str, period: int, project
         return f"❌ خطا: {str(e)}"
 
 @tool
-def expense_partial_update(id: int, project: Optional[int] = None, expense_type: Optional[str] = None, amount: Optional[str] = None, description: Optional[str] = None, period: Optional[int] = None, request=None) -> str:
+def expense_partial_update(api_token: str, id: int, project: Optional[int] = None, expense_type: Optional[str] = None, amount: Optional[str] = None, description: Optional[str] = None, period: Optional[int] = None) -> str:
     """
     به‌روزرسانی جزئی هزینه
 
@@ -459,7 +458,7 @@ def expense_partial_update(id: int, project: Optional[int] = None, expense_type:
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -487,7 +486,7 @@ def expense_partial_update(id: int, project: Optional[int] = None, expense_type:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='PATCH',
             data=data
         )
@@ -498,7 +497,7 @@ def expense_partial_update(id: int, project: Optional[int] = None, expense_type:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def expense_destroy(id: int, request=None) -> str:
+def expense_destroy(api_token: str, id: int) -> str:
     """
     حذف هزینه
 
@@ -539,7 +538,7 @@ def expense_destroy(id: int, request=None) -> str:
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -557,7 +556,7 @@ def expense_destroy(id: int, request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='DELETE',
             data=data
         )
@@ -568,7 +567,7 @@ def expense_destroy(id: int, request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def expense_dashboard_data_retrieve(request=None) -> str:
+def expense_dashboard_data_retrieve(api_token: str) -> str:
     """
     دریافت داده‌های لیست هزینه‌ها
 
@@ -602,7 +601,7 @@ def expense_dashboard_data_retrieve(request=None) -> str:
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -615,7 +614,7 @@ def expense_dashboard_data_retrieve(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -626,7 +625,7 @@ def expense_dashboard_data_retrieve(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def expense_get_expense_details_retrieve(request=None) -> str:
+def expense_get_expense_details_retrieve(api_token: str) -> str:
     """
     دریافت جزئیات هزینه برای ویرایش
 
@@ -641,7 +640,7 @@ def expense_get_expense_details_retrieve(request=None) -> str:
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -654,7 +653,7 @@ def expense_get_expense_details_retrieve(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -665,7 +664,7 @@ def expense_get_expense_details_retrieve(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def expense_total_expenses_retrieve(request=None) -> str:
+def expense_total_expenses_retrieve(api_token: str) -> str:
     """
     دریافت مجموع کل هزینه‌های پروژه
 
@@ -680,7 +679,7 @@ def expense_total_expenses_retrieve(request=None) -> str:
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -693,7 +692,7 @@ def expense_total_expenses_retrieve(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -704,7 +703,7 @@ def expense_total_expenses_retrieve(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def expense_update_expense_create(expense_type: str, amount: str, period: int, project: Optional[int] = None, description: Optional[str] = None, request=None) -> str:
+def expense_update_expense_create(api_token: str, expense_type: str, amount: str, period: int, project: Optional[int] = None, description: Optional[str] = None) -> str:
     """
     به‌روزرسانی یا ایجاد هزینه برای یک دوره و نوع خاص
 
@@ -767,7 +766,7 @@ def expense_update_expense_create(expense_type: str, amount: str, period: int, p
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -795,7 +794,7 @@ def expense_update_expense_create(expense_type: str, amount: str, period: int, p
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='POST',
             data=data
         )
@@ -806,7 +805,7 @@ def expense_update_expense_create(expense_type: str, amount: str, period: int, p
         return f"❌ خطا: {str(e)}"
 
 @tool
-def expense_with_periods_retrieve(request=None) -> str:
+def expense_with_periods_retrieve(api_token: str) -> str:
     """
     دریافت هزینه‌ها با اطلاعات دوره‌ها برای محاسبه دور...
 
@@ -821,7 +820,7 @@ def expense_with_periods_retrieve(request=None) -> str:
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -834,7 +833,7 @@ def expense_with_periods_retrieve(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -848,7 +847,7 @@ def expense_with_periods_retrieve(request=None) -> str:
 # ===== Tools for InterestRate (7 endpoint) =====
 
 @tool
-def interestrate_list(request=None) -> str:
+def interestrate_list(api_token: str) -> str:
     """
     دریافت لیست تمام نرخ‌های سود پروژه جاری
 
@@ -881,7 +880,7 @@ def interestrate_list(request=None) -> str:
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -894,7 +893,7 @@ def interestrate_list(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -905,7 +904,7 @@ def interestrate_list(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def interestrate_create(rate: str, effective_date: str, project: Optional[int] = None, description: Optional[str] = None, is_active: Optional[bool] = None, request=None) -> str:
+def interestrate_create(api_token: str, rate: str, effective_date: str, project: Optional[int] = None, description: Optional[str] = None, is_active: Optional[bool] = None) -> str:
     """
     ایجاد نرخ سود جدید برای پروژه جاری
 
@@ -967,7 +966,7 @@ def interestrate_create(rate: str, effective_date: str, project: Optional[int] =
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -995,7 +994,7 @@ def interestrate_create(rate: str, effective_date: str, project: Optional[int] =
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='POST',
             data=data
         )
@@ -1006,7 +1005,7 @@ def interestrate_create(rate: str, effective_date: str, project: Optional[int] =
         return f"❌ خطا: {str(e)}"
 
 @tool
-def interestrate_retrieve(id: int, request=None) -> str:
+def interestrate_retrieve(api_token: str, id: int) -> str:
     """
     دریافت جزئیات یک نرخ سود خاص
 
@@ -1046,7 +1045,7 @@ def interestrate_retrieve(id: int, request=None) -> str:
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -1064,7 +1063,7 @@ def interestrate_retrieve(id: int, request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -1075,7 +1074,7 @@ def interestrate_retrieve(id: int, request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def interestrate_update(id: int, rate: str, effective_date: str, project: Optional[int] = None, description: Optional[str] = None, is_active: Optional[bool] = None, request=None) -> str:
+def interestrate_update(api_token: str, id: int, rate: str, effective_date: str, project: Optional[int] = None, description: Optional[str] = None, is_active: Optional[bool] = None) -> str:
     """
     به‌روزرسانی کامل نرخ سود
 
@@ -1142,7 +1141,7 @@ def interestrate_update(id: int, rate: str, effective_date: str, project: Option
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -1173,7 +1172,7 @@ def interestrate_update(id: int, rate: str, effective_date: str, project: Option
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='PUT',
             data=data
         )
@@ -1184,7 +1183,7 @@ def interestrate_update(id: int, rate: str, effective_date: str, project: Option
         return f"❌ خطا: {str(e)}"
 
 @tool
-def interestrate_partial_update(id: int, project: Optional[int] = None, rate: Optional[str] = None, effective_date: Optional[str] = None, description: Optional[str] = None, is_active: Optional[bool] = None, request=None) -> str:
+def interestrate_partial_update(api_token: str, id: int, project: Optional[int] = None, rate: Optional[str] = None, effective_date: Optional[str] = None, description: Optional[str] = None, is_active: Optional[bool] = None) -> str:
     """
     به‌روزرسانی جزئی نرخ سود
 
@@ -1250,7 +1249,7 @@ def interestrate_partial_update(id: int, project: Optional[int] = None, rate: Op
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -1279,7 +1278,7 @@ def interestrate_partial_update(id: int, project: Optional[int] = None, rate: Op
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='PATCH',
             data=data
         )
@@ -1290,7 +1289,7 @@ def interestrate_partial_update(id: int, project: Optional[int] = None, rate: Op
         return f"❌ خطا: {str(e)}"
 
 @tool
-def interestrate_destroy(id: int, request=None) -> str:
+def interestrate_destroy(api_token: str, id: int) -> str:
     """
     حذف نرخ سود
 
@@ -1331,7 +1330,7 @@ def interestrate_destroy(id: int, request=None) -> str:
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -1349,7 +1348,7 @@ def interestrate_destroy(id: int, request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='DELETE',
             data=data
         )
@@ -1360,7 +1359,7 @@ def interestrate_destroy(id: int, request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def interestrate_current_retrieve(request=None) -> str:
+def interestrate_current_retrieve(api_token: str) -> str:
     """
     دریافت نرخ سود فعال فعلی برای پروژه فعال
 
@@ -1375,7 +1374,7 @@ def interestrate_current_retrieve(request=None) -> str:
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -1388,7 +1387,7 @@ def interestrate_current_retrieve(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -1402,7 +1401,7 @@ def interestrate_current_retrieve(request=None) -> str:
 # ===== Tools for Investor (14 endpoint) =====
 
 @tool
-def investor_list(request=None) -> str:
+def investor_list(api_token: str) -> str:
     """
     دریافت لیست تمام سرمایه‌گذاران پروژه جاری
 
@@ -1435,7 +1434,7 @@ def investor_list(request=None) -> str:
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -1448,7 +1447,7 @@ def investor_list(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -1459,7 +1458,7 @@ def investor_list(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def investor_create(first_name: str, last_name: str, phone: str, project: Optional[int] = None, email: Optional[str] = None, participation_type: Optional[str] = None, contract_date_shamsi: Optional[str] = None, description: Optional[str] = None, request=None) -> str:
+def investor_create(api_token: str, first_name: str, last_name: str, phone: str, project: Optional[int] = None, email: Optional[str] = None, participation_type: Optional[str] = None, contract_date_shamsi: Optional[str] = None, description: Optional[str] = None) -> str:
     """
     ایجاد سرمایه‌گذار جدید برای پروژه جاری
 
@@ -1537,7 +1536,7 @@ def investor_create(first_name: str, last_name: str, phone: str, project: Option
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -1576,7 +1575,7 @@ def investor_create(first_name: str, last_name: str, phone: str, project: Option
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='POST',
             data=data
         )
@@ -1587,7 +1586,7 @@ def investor_create(first_name: str, last_name: str, phone: str, project: Option
         return f"❌ خطا: {str(e)}"
 
 @tool
-def investor_retrieve(id: int, request=None) -> str:
+def investor_retrieve(api_token: str, id: int) -> str:
     """
     دریافت جزئیات یک سرمایه‌گذار خاص
 
@@ -1627,7 +1626,7 @@ def investor_retrieve(id: int, request=None) -> str:
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -1645,7 +1644,7 @@ def investor_retrieve(id: int, request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -1656,7 +1655,7 @@ def investor_retrieve(id: int, request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def investor_update(id: int, first_name: str, last_name: str, phone: str, project: Optional[int] = None, email: Optional[str] = None, participation_type: Optional[str] = None, contract_date_shamsi: Optional[str] = None, description: Optional[str] = None, request=None) -> str:
+def investor_update(api_token: str, id: int, first_name: str, last_name: str, phone: str, project: Optional[int] = None, email: Optional[str] = None, participation_type: Optional[str] = None, contract_date_shamsi: Optional[str] = None, description: Optional[str] = None) -> str:
     """
     به‌روزرسانی کامل سرمایه‌گذار
 
@@ -1736,7 +1735,7 @@ def investor_update(id: int, first_name: str, last_name: str, phone: str, projec
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -1778,7 +1777,7 @@ def investor_update(id: int, first_name: str, last_name: str, phone: str, projec
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='PUT',
             data=data
         )
@@ -1789,7 +1788,7 @@ def investor_update(id: int, first_name: str, last_name: str, phone: str, projec
         return f"❌ خطا: {str(e)}"
 
 @tool
-def investor_partial_update(id: int, project: Optional[int] = None, first_name: Optional[str] = None, last_name: Optional[str] = None, phone: Optional[str] = None, email: Optional[str] = None, participation_type: Optional[str] = None, contract_date_shamsi: Optional[str] = None, description: Optional[str] = None, request=None) -> str:
+def investor_partial_update(api_token: str, id: int, project: Optional[int] = None, first_name: Optional[str] = None, last_name: Optional[str] = None, phone: Optional[str] = None, email: Optional[str] = None, participation_type: Optional[str] = None, contract_date_shamsi: Optional[str] = None, description: Optional[str] = None) -> str:
     """
     به‌روزرسانی جزئی سرمایه‌گذار
 
@@ -1867,7 +1866,7 @@ def investor_partial_update(id: int, project: Optional[int] = None, first_name: 
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -1906,7 +1905,7 @@ def investor_partial_update(id: int, project: Optional[int] = None, first_name: 
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='PATCH',
             data=data
         )
@@ -1917,7 +1916,7 @@ def investor_partial_update(id: int, project: Optional[int] = None, first_name: 
         return f"❌ خطا: {str(e)}"
 
 @tool
-def investor_destroy(id: int, request=None) -> str:
+def investor_destroy(api_token: str, id: int) -> str:
     """
     حذف سرمایه‌گذار
 
@@ -1958,7 +1957,7 @@ def investor_destroy(id: int, request=None) -> str:
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -1976,7 +1975,7 @@ def investor_destroy(id: int, request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='DELETE',
             data=data
         )
@@ -1987,7 +1986,7 @@ def investor_destroy(id: int, request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def investor_detailed_statistics_retrieve(id: int, request=None) -> str:
+def investor_detailed_statistics_retrieve(api_token: str, id: int) -> str:
     """
     دریافت آمار تفصیلی سرمایه‌گذار
 
@@ -2035,7 +2034,7 @@ def investor_detailed_statistics_retrieve(id: int, request=None) -> str:
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -2053,7 +2052,7 @@ def investor_detailed_statistics_retrieve(id: int, request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -2064,7 +2063,7 @@ def investor_detailed_statistics_retrieve(id: int, request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def investor_cumulative_capital_and_unit_cost_chart_retrieve(id: int, request=None) -> str:
+def investor_cumulative_capital_and_unit_cost_chart_retrieve(api_token: str, id: int) -> str:
     """
     دریافت داده‌های نمودار ترند سرمایه موجود و هزینه و...
 
@@ -2092,7 +2091,7 @@ def investor_cumulative_capital_and_unit_cost_chart_retrieve(id: int, request=No
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -2110,7 +2109,7 @@ def investor_cumulative_capital_and_unit_cost_chart_retrieve(id: int, request=No
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -2121,7 +2120,7 @@ def investor_cumulative_capital_and_unit_cost_chart_retrieve(id: int, request=No
         return f"❌ خطا: {str(e)}"
 
 @tool
-def investor_ownership_retrieve(id: int, request=None) -> str:
+def investor_ownership_retrieve(api_token: str, id: int) -> str:
     """
     دریافت مالکیت سرمایه‌گذار به متر مربع
 
@@ -2147,7 +2146,7 @@ def investor_ownership_retrieve(id: int, request=None) -> str:
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -2165,7 +2164,7 @@ def investor_ownership_retrieve(id: int, request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -2176,7 +2175,7 @@ def investor_ownership_retrieve(id: int, request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def investor_ratios_retrieve(id: int, request=None) -> str:
+def investor_ratios_retrieve(api_token: str, id: int) -> str:
     """
     دریافت نسبت‌های سرمایه‌گذار
 
@@ -2200,7 +2199,7 @@ def investor_ratios_retrieve(id: int, request=None) -> str:
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -2218,7 +2217,7 @@ def investor_ratios_retrieve(id: int, request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -2229,7 +2228,7 @@ def investor_ratios_retrieve(id: int, request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def investor_all_investors_summary_retrieve(request=None) -> str:
+def investor_all_investors_summary_retrieve(api_token: str) -> str:
     """
     دریافت خلاصه آمار تمام سرمایه‌گذاران
 
@@ -2247,7 +2246,7 @@ def investor_all_investors_summary_retrieve(request=None) -> str:
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -2260,7 +2259,7 @@ def investor_all_investors_summary_retrieve(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -2271,7 +2270,7 @@ def investor_all_investors_summary_retrieve(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def investor_participation_stats_retrieve(request=None) -> str:
+def investor_participation_stats_retrieve(api_token: str) -> str:
     """
     دریافت آمار مشارکت کنندگان بر اساس نوع (مالک و سرم...
 
@@ -2286,7 +2285,7 @@ def investor_participation_stats_retrieve(request=None) -> str:
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -2299,7 +2298,7 @@ def investor_participation_stats_retrieve(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -2310,7 +2309,7 @@ def investor_participation_stats_retrieve(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def investor_summary_retrieve(request=None) -> str:
+def investor_summary_retrieve(api_token: str) -> str:
     """
     خلاصه مالی تمام سرمایه‌گذاران پروژه
 
@@ -2375,7 +2374,7 @@ def investor_summary_retrieve(request=None) -> str:
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -2388,7 +2387,7 @@ def investor_summary_retrieve(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -2399,7 +2398,7 @@ def investor_summary_retrieve(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def investor_summary_ssot_retrieve(request=None) -> str:
+def investor_summary_ssot_retrieve(api_token: str) -> str:
     """
     خلاصه مالی تمام سرمایه‌گذاران با مرجع واحد (بدون S...
 
@@ -2414,7 +2413,7 @@ def investor_summary_ssot_retrieve(request=None) -> str:
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -2427,7 +2426,7 @@ def investor_summary_ssot_retrieve(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -2441,7 +2440,7 @@ def investor_summary_ssot_retrieve(request=None) -> str:
 # ===== Tools for Period (8 endpoint) =====
 
 @tool
-def period_list(request=None) -> str:
+def period_list(api_token: str) -> str:
     """
     دریافت لیست تمام دوره‌های پروژه جاری
 
@@ -2475,7 +2474,7 @@ def period_list(request=None) -> str:
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -2488,7 +2487,7 @@ def period_list(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -2499,7 +2498,7 @@ def period_list(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def period_create(label: str, year: int, month_number: int, month_name: str, weight: int, start_date_shamsi: str, end_date_shamsi: str, start_date_gregorian: str, end_date_gregorian: str, project: Optional[int] = None, request=None) -> str:
+def period_create(api_token: str, label: str, year: int, month_number: int, month_name: str, weight: int, start_date_shamsi: str, end_date_shamsi: str, start_date_gregorian: str, end_date_gregorian: str, project: Optional[int] = None) -> str:
     """
     ایجاد دوره جدید برای پروژه جاری
 
@@ -2586,7 +2585,7 @@ def period_create(label: str, year: int, month_number: int, month_name: str, wei
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -2633,7 +2632,7 @@ def period_create(label: str, year: int, month_number: int, month_name: str, wei
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='POST',
             data=data
         )
@@ -2644,7 +2643,7 @@ def period_create(label: str, year: int, month_number: int, month_name: str, wei
         return f"❌ خطا: {str(e)}"
 
 @tool
-def period_retrieve(id: int, request=None) -> str:
+def period_retrieve(api_token: str, id: int) -> str:
     """
     دریافت جزئیات یک دوره خاص
 
@@ -2684,7 +2683,7 @@ def period_retrieve(id: int, request=None) -> str:
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -2702,7 +2701,7 @@ def period_retrieve(id: int, request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -2713,7 +2712,7 @@ def period_retrieve(id: int, request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def period_update(id: int, label: str, year: int, month_number: int, month_name: str, weight: int, start_date_shamsi: str, end_date_shamsi: str, start_date_gregorian: str, end_date_gregorian: str, project: Optional[int] = None, request=None) -> str:
+def period_update(api_token: str, id: int, label: str, year: int, month_number: int, month_name: str, weight: int, start_date_shamsi: str, end_date_shamsi: str, start_date_gregorian: str, end_date_gregorian: str, project: Optional[int] = None) -> str:
     """
     به‌روزرسانی کامل دوره
 
@@ -2796,7 +2795,7 @@ def period_update(id: int, label: str, year: int, month_number: int, month_name:
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -2846,7 +2845,7 @@ def period_update(id: int, label: str, year: int, month_number: int, month_name:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='PUT',
             data=data
         )
@@ -2857,7 +2856,7 @@ def period_update(id: int, label: str, year: int, month_number: int, month_name:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def period_partial_update(id: int, label: Optional[str] = None, year: Optional[int] = None, month_number: Optional[int] = None, month_name: Optional[str] = None, weight: Optional[int] = None, start_date_shamsi: Optional[str] = None, end_date_shamsi: Optional[str] = None, start_date_gregorian: Optional[str] = None, end_date_gregorian: Optional[str] = None, project: Optional[int] = None, request=None) -> str:
+def period_partial_update(api_token: str, id: int, label: Optional[str] = None, year: Optional[int] = None, month_number: Optional[int] = None, month_name: Optional[str] = None, weight: Optional[int] = None, start_date_shamsi: Optional[str] = None, end_date_shamsi: Optional[str] = None, start_date_gregorian: Optional[str] = None, end_date_gregorian: Optional[str] = None, project: Optional[int] = None) -> str:
     """
     به‌روزرسانی جزئی دوره
 
@@ -2938,7 +2937,7 @@ def period_partial_update(id: int, label: Optional[str] = None, year: Optional[i
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -2979,7 +2978,7 @@ def period_partial_update(id: int, label: Optional[str] = None, year: Optional[i
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='PATCH',
             data=data
         )
@@ -2990,7 +2989,7 @@ def period_partial_update(id: int, label: Optional[str] = None, year: Optional[i
         return f"❌ خطا: {str(e)}"
 
 @tool
-def period_destroy(id: int, request=None) -> str:
+def period_destroy(api_token: str, id: int) -> str:
     """
     حذف دوره
 
@@ -3031,7 +3030,7 @@ def period_destroy(id: int, request=None) -> str:
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -3049,7 +3048,7 @@ def period_destroy(id: int, request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='DELETE',
             data=data
         )
@@ -3060,7 +3059,7 @@ def period_destroy(id: int, request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def period_chart_data_retrieve(request=None) -> str:
+def period_chart_data_retrieve(api_token: str) -> str:
     """
     دریافت داده‌های دوره‌ای برای نمودارها (سرمایه، هزی...
 
@@ -3075,7 +3074,7 @@ def period_chart_data_retrieve(request=None) -> str:
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -3088,7 +3087,7 @@ def period_chart_data_retrieve(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -3099,7 +3098,7 @@ def period_chart_data_retrieve(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def period_summary_retrieve(request=None) -> str:
+def period_summary_retrieve(api_token: str) -> str:
     """
     دریافت خلاصه کامل دوره‌ای شامل تمام فاکتورها و مقا...
 
@@ -3129,7 +3128,7 @@ def period_summary_retrieve(request=None) -> str:
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -3142,7 +3141,7 @@ def period_summary_retrieve(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -3156,7 +3155,7 @@ def period_summary_retrieve(request=None) -> str:
 # ===== Tools for PettyCashTransaction (12 endpoint) =====
 
 @tool
-def pettycashtransaction_list(request=None) -> str:
+def pettycashtransaction_list(api_token: str) -> str:
     """
     دریافت لیست تمام تراکنش‌های تنخواه پروژه جاری
 
@@ -3189,7 +3188,7 @@ def pettycashtransaction_list(request=None) -> str:
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -3202,7 +3201,7 @@ def pettycashtransaction_list(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -3213,7 +3212,7 @@ def pettycashtransaction_list(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def pettycashtransaction_create(expense_type: str, transaction_type: str, amount: str, description: Optional[str] = None, receipt_number: Optional[str] = None, date_shamsi_input: Optional[str] = None, request=None) -> str:
+def pettycashtransaction_create(api_token: str, expense_type: str, transaction_type: str, amount: str, description: Optional[str] = None, receipt_number: Optional[str] = None, date_shamsi_input: Optional[str] = None) -> str:
     """
     ایجاد تراکنش تنخواه جدید برای پروژه جاری
 
@@ -3292,7 +3291,7 @@ def pettycashtransaction_create(expense_type: str, transaction_type: str, amount
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -3324,7 +3323,7 @@ def pettycashtransaction_create(expense_type: str, transaction_type: str, amount
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='POST',
             data=data
         )
@@ -3335,7 +3334,7 @@ def pettycashtransaction_create(expense_type: str, transaction_type: str, amount
         return f"❌ خطا: {str(e)}"
 
 @tool
-def pettycashtransaction_retrieve(id: int, request=None) -> str:
+def pettycashtransaction_retrieve(api_token: str, id: int) -> str:
     """
     دریافت جزئیات یک تراکنش تنخواه خاص
 
@@ -3375,7 +3374,7 @@ def pettycashtransaction_retrieve(id: int, request=None) -> str:
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -3393,7 +3392,7 @@ def pettycashtransaction_retrieve(id: int, request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -3404,7 +3403,7 @@ def pettycashtransaction_retrieve(id: int, request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def pettycashtransaction_update(id: int, expense_type: str, transaction_type: str, amount: str, description: Optional[str] = None, receipt_number: Optional[str] = None, date_shamsi_input: Optional[str] = None, request=None) -> str:
+def pettycashtransaction_update(api_token: str, id: int, expense_type: str, transaction_type: str, amount: str, description: Optional[str] = None, receipt_number: Optional[str] = None, date_shamsi_input: Optional[str] = None) -> str:
     """
     به‌روزرسانی کامل تراکنش تنخواه
 
@@ -3485,7 +3484,7 @@ def pettycashtransaction_update(id: int, expense_type: str, transaction_type: st
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -3520,7 +3519,7 @@ def pettycashtransaction_update(id: int, expense_type: str, transaction_type: st
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='PUT',
             data=data
         )
@@ -3531,7 +3530,7 @@ def pettycashtransaction_update(id: int, expense_type: str, transaction_type: st
         return f"❌ خطا: {str(e)}"
 
 @tool
-def pettycashtransaction_partial_update(id: int, expense_type: Optional[str] = None, transaction_type: Optional[str] = None, amount: Optional[str] = None, description: Optional[str] = None, receipt_number: Optional[str] = None, date_shamsi_input: Optional[str] = None, request=None) -> str:
+def pettycashtransaction_partial_update(api_token: str, id: int, expense_type: Optional[str] = None, transaction_type: Optional[str] = None, amount: Optional[str] = None, description: Optional[str] = None, receipt_number: Optional[str] = None, date_shamsi_input: Optional[str] = None) -> str:
     """
     به‌روزرسانی جزئی تراکنش تنخواه
 
@@ -3610,7 +3609,7 @@ def pettycashtransaction_partial_update(id: int, expense_type: Optional[str] = N
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -3642,7 +3641,7 @@ def pettycashtransaction_partial_update(id: int, expense_type: Optional[str] = N
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='PATCH',
             data=data
         )
@@ -3653,7 +3652,7 @@ def pettycashtransaction_partial_update(id: int, expense_type: Optional[str] = N
         return f"❌ خطا: {str(e)}"
 
 @tool
-def pettycashtransaction_destroy(id: int, request=None) -> str:
+def pettycashtransaction_destroy(api_token: str, id: int) -> str:
     """
     حذف تراکنش تنخواه
 
@@ -3693,7 +3692,7 @@ def pettycashtransaction_destroy(id: int, request=None) -> str:
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -3711,7 +3710,7 @@ def pettycashtransaction_destroy(id: int, request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='DELETE',
             data=data
         )
@@ -3722,7 +3721,7 @@ def pettycashtransaction_destroy(id: int, request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def pettycashtransaction_balance_detail_retrieve(request=None) -> str:
+def pettycashtransaction_balance_detail_retrieve(api_token: str) -> str:
     """
     دریافت وضعیت مالی یک عامل اجرایی خاص
 
@@ -3760,7 +3759,7 @@ def pettycashtransaction_balance_detail_retrieve(request=None) -> str:
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -3773,7 +3772,7 @@ def pettycashtransaction_balance_detail_retrieve(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -3784,7 +3783,7 @@ def pettycashtransaction_balance_detail_retrieve(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def pettycashtransaction_balance_trend_retrieve(request=None) -> str:
+def pettycashtransaction_balance_trend_retrieve(api_token: str) -> str:
     """
     ترند زمانی وضعیت مالی عامل اجرایی
 
@@ -3799,7 +3798,7 @@ def pettycashtransaction_balance_trend_retrieve(request=None) -> str:
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -3812,7 +3811,7 @@ def pettycashtransaction_balance_trend_retrieve(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -3823,7 +3822,7 @@ def pettycashtransaction_balance_trend_retrieve(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def pettycashtransaction_balances_retrieve(request=None) -> str:
+def pettycashtransaction_balances_retrieve(api_token: str) -> str:
     """
     دریافت وضعیت مالی همه عوامل اجرایی
 
@@ -3838,7 +3837,7 @@ def pettycashtransaction_balances_retrieve(request=None) -> str:
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -3851,7 +3850,7 @@ def pettycashtransaction_balances_retrieve(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -3862,7 +3861,7 @@ def pettycashtransaction_balances_retrieve(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def pettycashtransaction_detailed_report_retrieve(request=None) -> str:
+def pettycashtransaction_detailed_report_retrieve(api_token: str) -> str:
     """
     گزارش تفصیلی تراکنش‌های تنخواه با فیلتر و جستجو
 
@@ -3877,7 +3876,7 @@ def pettycashtransaction_detailed_report_retrieve(request=None) -> str:
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -3890,7 +3889,7 @@ def pettycashtransaction_detailed_report_retrieve(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -3901,7 +3900,7 @@ def pettycashtransaction_detailed_report_retrieve(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def pettycashtransaction_period_balance_retrieve(request=None) -> str:
+def pettycashtransaction_period_balance_retrieve(api_token: str) -> str:
     """
     دریافت وضعیت مالی عامل اجرایی در یک دوره
 
@@ -3916,7 +3915,7 @@ def pettycashtransaction_period_balance_retrieve(request=None) -> str:
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -3929,7 +3928,7 @@ def pettycashtransaction_period_balance_retrieve(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -3940,7 +3939,7 @@ def pettycashtransaction_period_balance_retrieve(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def pettycashtransaction_statistics_retrieve(request=None) -> str:
+def pettycashtransaction_statistics_retrieve(api_token: str) -> str:
     """
     آمار کلی تراکنش‌های تنخواه (Single Source of Truth...
 
@@ -3955,7 +3954,7 @@ def pettycashtransaction_statistics_retrieve(request=None) -> str:
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -3968,7 +3967,7 @@ def pettycashtransaction_statistics_retrieve(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -3982,7 +3981,7 @@ def pettycashtransaction_statistics_retrieve(request=None) -> str:
 # ===== Tools for Project (16 endpoint) =====
 
 @tool
-def project_list(request=None) -> str:
+def project_list(api_token: str) -> str:
     """
     دریافت لیست تمام پروژه‌ها
 
@@ -4015,7 +4014,7 @@ def project_list(request=None) -> str:
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -4028,7 +4027,7 @@ def project_list(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -4039,7 +4038,7 @@ def project_list(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def project_create(name: str, start_date_shamsi: str, end_date_shamsi: str, start_date_gregorian: str, end_date_gregorian: str, total_infrastructure: Optional[str] = None, correction_factor: Optional[str] = None, construction_contractor_percentage: Optional[str] = None, description: Optional[str] = None, color: Optional[str] = None, icon: Optional[str] = None, gradient_primary_color: Optional[str] = None, gradient_secondary_color: Optional[str] = None, request=None) -> str:
+def project_create(api_token: str, name: str, start_date_shamsi: str, end_date_shamsi: str, start_date_gregorian: str, end_date_gregorian: str, total_infrastructure: Optional[str] = None, correction_factor: Optional[str] = None, construction_contractor_percentage: Optional[str] = None, description: Optional[str] = None, color: Optional[str] = None, icon: Optional[str] = None, gradient_primary_color: Optional[str] = None, gradient_secondary_color: Optional[str] = None) -> str:
     """
     ایجاد پروژه جدید
 
@@ -4132,7 +4131,7 @@ def project_create(name: str, start_date_shamsi: str, end_date_shamsi: str, star
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -4190,7 +4189,7 @@ def project_create(name: str, start_date_shamsi: str, end_date_shamsi: str, star
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='POST',
             data=data
         )
@@ -4201,7 +4200,7 @@ def project_create(name: str, start_date_shamsi: str, end_date_shamsi: str, star
         return f"❌ خطا: {str(e)}"
 
 @tool
-def project_retrieve(id: int, request=None) -> str:
+def project_retrieve(api_token: str, id: int) -> str:
     """
     دریافت جزئیات یک پروژه خاص
 
@@ -4239,7 +4238,7 @@ def project_retrieve(id: int, request=None) -> str:
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -4257,7 +4256,7 @@ def project_retrieve(id: int, request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -4268,7 +4267,7 @@ def project_retrieve(id: int, request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def project_update(id: int, name: str, start_date_shamsi: str, end_date_shamsi: str, start_date_gregorian: str, end_date_gregorian: str, total_infrastructure: Optional[str] = None, correction_factor: Optional[str] = None, construction_contractor_percentage: Optional[str] = None, description: Optional[str] = None, color: Optional[str] = None, icon: Optional[str] = None, gradient_primary_color: Optional[str] = None, gradient_secondary_color: Optional[str] = None, request=None) -> str:
+def project_update(api_token: str, id: int, name: str, start_date_shamsi: str, end_date_shamsi: str, start_date_gregorian: str, end_date_gregorian: str, total_infrastructure: Optional[str] = None, correction_factor: Optional[str] = None, construction_contractor_percentage: Optional[str] = None, description: Optional[str] = None, color: Optional[str] = None, icon: Optional[str] = None, gradient_primary_color: Optional[str] = None, gradient_secondary_color: Optional[str] = None) -> str:
     """
     به‌روزرسانی کامل پروژه
 
@@ -4359,7 +4358,7 @@ def project_update(id: int, name: str, start_date_shamsi: str, end_date_shamsi: 
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -4420,7 +4419,7 @@ def project_update(id: int, name: str, start_date_shamsi: str, end_date_shamsi: 
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='PUT',
             data=data
         )
@@ -4431,7 +4430,7 @@ def project_update(id: int, name: str, start_date_shamsi: str, end_date_shamsi: 
         return f"❌ خطا: {str(e)}"
 
 @tool
-def project_partial_update(id: int, name: Optional[str] = None, start_date_shamsi: Optional[str] = None, end_date_shamsi: Optional[str] = None, start_date_gregorian: Optional[str] = None, end_date_gregorian: Optional[str] = None, total_infrastructure: Optional[str] = None, correction_factor: Optional[str] = None, construction_contractor_percentage: Optional[str] = None, description: Optional[str] = None, color: Optional[str] = None, icon: Optional[str] = None, gradient_primary_color: Optional[str] = None, gradient_secondary_color: Optional[str] = None, request=None) -> str:
+def project_partial_update(api_token: str, id: int, name: Optional[str] = None, start_date_shamsi: Optional[str] = None, end_date_shamsi: Optional[str] = None, start_date_gregorian: Optional[str] = None, end_date_gregorian: Optional[str] = None, total_infrastructure: Optional[str] = None, correction_factor: Optional[str] = None, construction_contractor_percentage: Optional[str] = None, description: Optional[str] = None, color: Optional[str] = None, icon: Optional[str] = None, gradient_primary_color: Optional[str] = None, gradient_secondary_color: Optional[str] = None) -> str:
     """
     به‌روزرسانی جزئی پروژه
 
@@ -4521,7 +4520,7 @@ def project_partial_update(id: int, name: Optional[str] = None, start_date_shams
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -4577,7 +4576,7 @@ def project_partial_update(id: int, name: Optional[str] = None, start_date_shams
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='PATCH',
             data=data
         )
@@ -4588,7 +4587,7 @@ def project_partial_update(id: int, name: Optional[str] = None, start_date_shams
         return f"❌ خطا: {str(e)}"
 
 @tool
-def project_destroy(id: int, request=None) -> str:
+def project_destroy(api_token: str, id: int) -> str:
     """
     حذف پروژه
 
@@ -4628,7 +4627,7 @@ def project_destroy(id: int, request=None) -> str:
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -4646,7 +4645,7 @@ def project_destroy(id: int, request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='DELETE',
             data=data
         )
@@ -4657,7 +4656,7 @@ def project_destroy(id: int, request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def project_active_retrieve(request=None) -> str:
+def project_active_retrieve(api_token: str) -> str:
     """
     دریافت پروژه جاری (از session)
 
@@ -4672,7 +4671,7 @@ def project_active_retrieve(request=None) -> str:
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -4685,7 +4684,7 @@ def project_active_retrieve(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -4696,7 +4695,7 @@ def project_active_retrieve(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def project_comprehensive_analysis_retrieve(request=None) -> str:
+def project_comprehensive_analysis_retrieve(api_token: str) -> str:
     """
     دریافت تحلیل جامع پروژه شامل تمام محاسبات مالی
 
@@ -4711,7 +4710,7 @@ def project_comprehensive_analysis_retrieve(request=None) -> str:
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -4724,7 +4723,7 @@ def project_comprehensive_analysis_retrieve(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -4735,7 +4734,7 @@ def project_comprehensive_analysis_retrieve(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def project_cost_metrics_retrieve(request=None) -> str:
+def project_cost_metrics_retrieve(api_token: str) -> str:
     """
     دریافت متریک‌های هزینه
 
@@ -4750,7 +4749,7 @@ def project_cost_metrics_retrieve(request=None) -> str:
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -4763,7 +4762,7 @@ def project_cost_metrics_retrieve(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -4774,7 +4773,7 @@ def project_cost_metrics_retrieve(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def project_current_retrieve(request=None) -> str:
+def project_current_retrieve(api_token: str) -> str:
     """
     دریافت پروژه جاری کاربر از session
 
@@ -4789,7 +4788,7 @@ def project_current_retrieve(request=None) -> str:
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -4802,7 +4801,7 @@ def project_current_retrieve(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -4813,7 +4812,7 @@ def project_current_retrieve(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def project_profit_metrics_retrieve(request=None) -> str:
+def project_profit_metrics_retrieve(api_token: str) -> str:
     """
     دریافت متریک‌های سود (کل، سالانه، ماهانه، روزانه)
 
@@ -4842,7 +4841,7 @@ def project_profit_metrics_retrieve(request=None) -> str:
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -4855,7 +4854,7 @@ def project_profit_metrics_retrieve(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -4866,7 +4865,7 @@ def project_profit_metrics_retrieve(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def project_statistics_detailed_retrieve(request=None) -> str:
+def project_statistics_detailed_retrieve(api_token: str) -> str:
     """
     دریافت آمار تفصیلی پروژه
 
@@ -4881,7 +4880,7 @@ def project_statistics_detailed_retrieve(request=None) -> str:
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -4894,7 +4893,7 @@ def project_statistics_detailed_retrieve(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -4905,7 +4904,7 @@ def project_statistics_detailed_retrieve(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def project_timeline_retrieve(request=None) -> str:
+def project_timeline_retrieve(api_token: str) -> str:
     """
     محاسبه روزهای مانده و گذشته پروژه بر اساس تاریخ ام...
 
@@ -4920,7 +4919,7 @@ def project_timeline_retrieve(request=None) -> str:
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -4933,7 +4932,7 @@ def project_timeline_retrieve(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -4944,7 +4943,7 @@ def project_timeline_retrieve(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def project_set_active_create(name: str, start_date_shamsi: str, end_date_shamsi: str, start_date_gregorian: str, end_date_gregorian: str, total_infrastructure: Optional[str] = None, correction_factor: Optional[str] = None, construction_contractor_percentage: Optional[str] = None, description: Optional[str] = None, color: Optional[str] = None, icon: Optional[str] = None, gradient_primary_color: Optional[str] = None, gradient_secondary_color: Optional[str] = None, request=None) -> str:
+def project_set_active_create(api_token: str, name: str, start_date_shamsi: str, end_date_shamsi: str, start_date_gregorian: str, end_date_gregorian: str, total_infrastructure: Optional[str] = None, correction_factor: Optional[str] = None, construction_contractor_percentage: Optional[str] = None, description: Optional[str] = None, color: Optional[str] = None, icon: Optional[str] = None, gradient_primary_color: Optional[str] = None, gradient_secondary_color: Optional[str] = None) -> str:
     """
     تنظیم پروژه فعال
 
@@ -5003,7 +5002,7 @@ def project_set_active_create(name: str, start_date_shamsi: str, end_date_shamsi
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -5061,7 +5060,7 @@ def project_set_active_create(name: str, start_date_shamsi: str, end_date_shamsi
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='POST',
             data=data
         )
@@ -5072,7 +5071,7 @@ def project_set_active_create(name: str, start_date_shamsi: str, end_date_shamsi
         return f"❌ خطا: {str(e)}"
 
 @tool
-def project_statistics_retrieve(request=None) -> str:
+def project_statistics_retrieve(api_token: str) -> str:
     """
     دریافت آمار کامل پروژه جاری شامل اطلاعات پروژه و آ...
 
@@ -5087,7 +5086,7 @@ def project_statistics_retrieve(request=None) -> str:
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -5100,7 +5099,7 @@ def project_statistics_retrieve(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -5111,7 +5110,7 @@ def project_statistics_retrieve(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def project_switch_create(name: str, start_date_shamsi: str, end_date_shamsi: str, start_date_gregorian: str, end_date_gregorian: str, total_infrastructure: Optional[str] = None, correction_factor: Optional[str] = None, construction_contractor_percentage: Optional[str] = None, description: Optional[str] = None, color: Optional[str] = None, icon: Optional[str] = None, gradient_primary_color: Optional[str] = None, gradient_secondary_color: Optional[str] = None, request=None) -> str:
+def project_switch_create(api_token: str, name: str, start_date_shamsi: str, end_date_shamsi: str, start_date_gregorian: str, end_date_gregorian: str, total_infrastructure: Optional[str] = None, correction_factor: Optional[str] = None, construction_contractor_percentage: Optional[str] = None, description: Optional[str] = None, color: Optional[str] = None, icon: Optional[str] = None, gradient_primary_color: Optional[str] = None, gradient_secondary_color: Optional[str] = None) -> str:
     """
     تغییر پروژه جاری کاربر
 
@@ -5170,7 +5169,7 @@ def project_switch_create(name: str, start_date_shamsi: str, end_date_shamsi: st
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -5228,7 +5227,7 @@ def project_switch_create(name: str, start_date_shamsi: str, end_date_shamsi: st
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='POST',
             data=data
         )
@@ -5242,7 +5241,7 @@ def project_switch_create(name: str, start_date_shamsi: str, end_date_shamsi: st
 # ===== Tools for Sale (7 endpoint) =====
 
 @tool
-def sale_list(request=None) -> str:
+def sale_list(api_token: str) -> str:
     """
     دریافت لیست تمام فروش/مرجوعی‌های پروژه جاری
 
@@ -5275,7 +5274,7 @@ def sale_list(request=None) -> str:
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -5288,7 +5287,7 @@ def sale_list(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -5299,7 +5298,7 @@ def sale_list(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def sale_create(period: int, amount: str, project: Optional[int] = None, description: Optional[str] = None, request=None) -> str:
+def sale_create(api_token: str, period: int, amount: str, project: Optional[int] = None, description: Optional[str] = None) -> str:
     """
     ایجاد فروش/مرجوعی جدید برای پروژه جاری
 
@@ -5355,7 +5354,7 @@ def sale_create(period: int, amount: str, project: Optional[int] = None, descrip
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -5380,7 +5379,7 @@ def sale_create(period: int, amount: str, project: Optional[int] = None, descrip
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='POST',
             data=data
         )
@@ -5391,7 +5390,7 @@ def sale_create(period: int, amount: str, project: Optional[int] = None, descrip
         return f"❌ خطا: {str(e)}"
 
 @tool
-def sale_retrieve(id: int, request=None) -> str:
+def sale_retrieve(api_token: str, id: int) -> str:
     """
     دریافت جزئیات یک فروش/مرجوعی خاص
 
@@ -5431,7 +5430,7 @@ def sale_retrieve(id: int, request=None) -> str:
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -5449,7 +5448,7 @@ def sale_retrieve(id: int, request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -5460,7 +5459,7 @@ def sale_retrieve(id: int, request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def sale_update(id: int, period: int, amount: str, project: Optional[int] = None, description: Optional[str] = None, request=None) -> str:
+def sale_update(api_token: str, id: int, period: int, amount: str, project: Optional[int] = None, description: Optional[str] = None) -> str:
     """
     به‌روزرسانی کامل فروش/مرجوعی
 
@@ -5524,7 +5523,7 @@ def sale_update(id: int, period: int, amount: str, project: Optional[int] = None
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -5552,7 +5551,7 @@ def sale_update(id: int, period: int, amount: str, project: Optional[int] = None
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='PUT',
             data=data
         )
@@ -5563,7 +5562,7 @@ def sale_update(id: int, period: int, amount: str, project: Optional[int] = None
         return f"❌ خطا: {str(e)}"
 
 @tool
-def sale_partial_update(id: int, project: Optional[int] = None, period: Optional[int] = None, amount: Optional[str] = None, description: Optional[str] = None, request=None) -> str:
+def sale_partial_update(api_token: str, id: int, project: Optional[int] = None, period: Optional[int] = None, amount: Optional[str] = None, description: Optional[str] = None) -> str:
     """
     به‌روزرسانی جزئی فروش/مرجوعی
 
@@ -5626,7 +5625,7 @@ def sale_partial_update(id: int, project: Optional[int] = None, period: Optional
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -5652,7 +5651,7 @@ def sale_partial_update(id: int, project: Optional[int] = None, period: Optional
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='PATCH',
             data=data
         )
@@ -5663,7 +5662,7 @@ def sale_partial_update(id: int, project: Optional[int] = None, period: Optional
         return f"❌ خطا: {str(e)}"
 
 @tool
-def sale_destroy(id: int, request=None) -> str:
+def sale_destroy(api_token: str, id: int) -> str:
     """
     حذف فروش/مرجوعی
 
@@ -5703,7 +5702,7 @@ def sale_destroy(id: int, request=None) -> str:
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -5721,7 +5720,7 @@ def sale_destroy(id: int, request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='DELETE',
             data=data
         )
@@ -5732,7 +5731,7 @@ def sale_destroy(id: int, request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def sale_total_sales_retrieve(request=None) -> str:
+def sale_total_sales_retrieve(api_token: str) -> str:
     """
     دریافت مجموع فروش‌ها
 
@@ -5747,7 +5746,7 @@ def sale_total_sales_retrieve(request=None) -> str:
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -5760,7 +5759,7 @@ def sale_total_sales_retrieve(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -5774,7 +5773,7 @@ def sale_total_sales_retrieve(request=None) -> str:
 # ===== Tools for Transaction (11 endpoint) =====
 
 @tool
-def transaction_list(investor: Optional[int] = None, period: Optional[int] = None, project: Optional[int] = None, transaction_type: Optional[str] = None, request=None) -> str:
+def transaction_list(api_token: str, investor: Optional[int] = None, period: Optional[int] = None, project: Optional[int] = None, transaction_type: Optional[str] = None) -> str:
     """
     دریافت لیست تمام تراکنش‌های پروژه جاری
 
@@ -5829,7 +5828,7 @@ def transaction_list(investor: Optional[int] = None, period: Optional[int] = Non
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -5852,7 +5851,7 @@ def transaction_list(investor: Optional[int] = None, period: Optional[int] = Non
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -5863,7 +5862,7 @@ def transaction_list(investor: Optional[int] = None, period: Optional[int] = Non
         return f"❌ خطا: {str(e)}"
 
 @tool
-def transaction_create(amount: str, transaction_type: str, date_shamsi_input: Optional[str] = None, date_shamsi_raw: Optional[str] = None, description: Optional[str] = None, investor: Optional[int] = None, period: Optional[int] = None, investor_id: Optional[int] = None, period_id: Optional[int] = None, request=None) -> str:
+def transaction_create(api_token: str, amount: str, transaction_type: str, date_shamsi_input: Optional[str] = None, date_shamsi_raw: Optional[str] = None, description: Optional[str] = None, investor: Optional[int] = None, period: Optional[int] = None, investor_id: Optional[int] = None, period_id: Optional[int] = None) -> str:
     """
     ایجاد تراکنش جدید برای پروژه جاری
 
@@ -5946,7 +5945,7 @@ def transaction_create(amount: str, transaction_type: str, date_shamsi_input: Op
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -5983,7 +5982,7 @@ def transaction_create(amount: str, transaction_type: str, date_shamsi_input: Op
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='POST',
             data=data
         )
@@ -5994,7 +5993,7 @@ def transaction_create(amount: str, transaction_type: str, date_shamsi_input: Op
         return f"❌ خطا: {str(e)}"
 
 @tool
-def transaction_retrieve(id: int, request=None) -> str:
+def transaction_retrieve(api_token: str, id: int) -> str:
     """
     دریافت جزئیات یک تراکنش خاص
 
@@ -6034,7 +6033,7 @@ def transaction_retrieve(id: int, request=None) -> str:
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -6052,7 +6051,7 @@ def transaction_retrieve(id: int, request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -6063,7 +6062,7 @@ def transaction_retrieve(id: int, request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def transaction_update(id: int, amount: str, transaction_type: str, date_shamsi_input: Optional[str] = None, date_shamsi_raw: Optional[str] = None, description: Optional[str] = None, investor: Optional[int] = None, period: Optional[int] = None, investor_id: Optional[int] = None, period_id: Optional[int] = None, request=None) -> str:
+def transaction_update(api_token: str, id: int, amount: str, transaction_type: str, date_shamsi_input: Optional[str] = None, date_shamsi_raw: Optional[str] = None, description: Optional[str] = None, investor: Optional[int] = None, period: Optional[int] = None, investor_id: Optional[int] = None, period_id: Optional[int] = None) -> str:
     """
     به‌روزرسانی کامل تراکنش
 
@@ -6149,7 +6148,7 @@ def transaction_update(id: int, amount: str, transaction_type: str, date_shamsi_
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -6189,7 +6188,7 @@ def transaction_update(id: int, amount: str, transaction_type: str, date_shamsi_
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='PUT',
             data=data
         )
@@ -6200,7 +6199,7 @@ def transaction_update(id: int, amount: str, transaction_type: str, date_shamsi_
         return f"❌ خطا: {str(e)}"
 
 @tool
-def transaction_partial_update(id: int, date_shamsi_input: Optional[str] = None, date_shamsi_raw: Optional[str] = None, amount: Optional[str] = None, transaction_type: Optional[str] = None, description: Optional[str] = None, investor: Optional[int] = None, period: Optional[int] = None, investor_id: Optional[int] = None, period_id: Optional[int] = None, request=None) -> str:
+def transaction_partial_update(api_token: str, id: int, date_shamsi_input: Optional[str] = None, date_shamsi_raw: Optional[str] = None, amount: Optional[str] = None, transaction_type: Optional[str] = None, description: Optional[str] = None, investor: Optional[int] = None, period: Optional[int] = None, investor_id: Optional[int] = None, period_id: Optional[int] = None) -> str:
     """
     به‌روزرسانی جزئی تراکنش
 
@@ -6283,7 +6282,7 @@ def transaction_partial_update(id: int, date_shamsi_input: Optional[str] = None,
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -6321,7 +6320,7 @@ def transaction_partial_update(id: int, date_shamsi_input: Optional[str] = None,
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='PATCH',
             data=data
         )
@@ -6332,7 +6331,7 @@ def transaction_partial_update(id: int, date_shamsi_input: Optional[str] = None,
         return f"❌ خطا: {str(e)}"
 
 @tool
-def transaction_destroy(id: int, request=None) -> str:
+def transaction_destroy(api_token: str, id: int) -> str:
     """
     حذف تراکنش
 
@@ -6372,7 +6371,7 @@ def transaction_destroy(id: int, request=None) -> str:
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -6390,7 +6389,7 @@ def transaction_destroy(id: int, request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='DELETE',
             data=data
         )
@@ -6401,7 +6400,7 @@ def transaction_destroy(id: int, request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def transaction_combined_retrieve(request=None) -> str:
+def transaction_combined_retrieve(api_token: str) -> str:
     """
     دریافت تراکنش‌های اصلی به همراه تراکنش‌های سود مرت...
 
@@ -6417,7 +6416,7 @@ def transaction_combined_retrieve(request=None) -> str:
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -6430,7 +6429,7 @@ def transaction_combined_retrieve(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -6441,7 +6440,7 @@ def transaction_combined_retrieve(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def transaction_detailed_statistics_retrieve(request=None) -> str:
+def transaction_detailed_statistics_retrieve(api_token: str) -> str:
     """
     دریافت آمار تفصیلی تراکنش‌ها با فیلترهای پیشرفته
 
@@ -6456,7 +6455,7 @@ def transaction_detailed_statistics_retrieve(request=None) -> str:
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -6469,7 +6468,7 @@ def transaction_detailed_statistics_retrieve(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -6480,7 +6479,7 @@ def transaction_detailed_statistics_retrieve(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def transaction_recalculate_construction_contractor_create(amount: str, transaction_type: str, date_shamsi_input: Optional[str] = None, date_shamsi_raw: Optional[str] = None, description: Optional[str] = None, investor: Optional[int] = None, period: Optional[int] = None, investor_id: Optional[int] = None, period_id: Optional[int] = None, request=None) -> str:
+def transaction_recalculate_construction_contractor_create(api_token: str, amount: str, transaction_type: str, date_shamsi_input: Optional[str] = None, date_shamsi_raw: Optional[str] = None, description: Optional[str] = None, investor: Optional[int] = None, period: Optional[int] = None, investor_id: Optional[int] = None, period_id: Optional[int] = None) -> str:
     """
     محاسبه مجدد همه هزینه‌های پیمان ساختمان
 
@@ -6532,7 +6531,7 @@ def transaction_recalculate_construction_contractor_create(amount: str, transact
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -6569,7 +6568,7 @@ def transaction_recalculate_construction_contractor_create(amount: str, transact
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='POST',
             data=data
         )
@@ -6580,7 +6579,7 @@ def transaction_recalculate_construction_contractor_create(amount: str, transact
         return f"❌ خطا: {str(e)}"
 
 @tool
-def transaction_recalculate_profits_create(amount: str, transaction_type: str, date_shamsi_input: Optional[str] = None, date_shamsi_raw: Optional[str] = None, description: Optional[str] = None, investor: Optional[int] = None, period: Optional[int] = None, investor_id: Optional[int] = None, period_id: Optional[int] = None, request=None) -> str:
+def transaction_recalculate_profits_create(api_token: str, amount: str, transaction_type: str, date_shamsi_input: Optional[str] = None, date_shamsi_raw: Optional[str] = None, description: Optional[str] = None, investor: Optional[int] = None, period: Optional[int] = None, investor_id: Optional[int] = None, period_id: Optional[int] = None) -> str:
     """
     محاسبه مجدد سودها با نرخ سود فعال فعلی برای پروژه ...
 
@@ -6632,7 +6631,7 @@ def transaction_recalculate_profits_create(amount: str, transaction_type: str, d
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -6669,7 +6668,7 @@ def transaction_recalculate_profits_create(amount: str, transaction_type: str, d
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='POST',
             data=data
         )
@@ -6680,7 +6679,7 @@ def transaction_recalculate_profits_create(amount: str, transaction_type: str, d
         return f"❌ خطا: {str(e)}"
 
 @tool
-def transaction_statistics_retrieve(request=None) -> str:
+def transaction_statistics_retrieve(api_token: str) -> str:
     """
     دریافت آمار کلی تراکنش‌های پروژه
 
@@ -6733,7 +6732,7 @@ def transaction_statistics_retrieve(request=None) -> str:
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -6746,7 +6745,7 @@ def transaction_statistics_retrieve(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -6760,7 +6759,7 @@ def transaction_statistics_retrieve(request=None) -> str:
 # ===== Tools for Unit (7 endpoint) =====
 
 @tool
-def unit_list(request=None) -> str:
+def unit_list(api_token: str) -> str:
     """
     دریافت لیست تمام واحدهای پروژه جاری
 
@@ -6793,7 +6792,7 @@ def unit_list(request=None) -> str:
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -6806,7 +6805,7 @@ def unit_list(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -6817,7 +6816,7 @@ def unit_list(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def unit_create(name: str, area: str, price_per_meter: str, total_price: str, project: Optional[int] = None, request=None) -> str:
+def unit_create(api_token: str, name: str, area: str, price_per_meter: str, total_price: str, project: Optional[int] = None) -> str:
     """
     ایجاد واحد جدید برای پروژه جاری
 
@@ -6879,7 +6878,7 @@ def unit_create(name: str, area: str, price_per_meter: str, total_price: str, pr
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -6912,7 +6911,7 @@ def unit_create(name: str, area: str, price_per_meter: str, total_price: str, pr
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='POST',
             data=data
         )
@@ -6923,7 +6922,7 @@ def unit_create(name: str, area: str, price_per_meter: str, total_price: str, pr
         return f"❌ خطا: {str(e)}"
 
 @tool
-def unit_retrieve(id: int, request=None) -> str:
+def unit_retrieve(api_token: str, id: int) -> str:
     """
     دریافت جزئیات یک واحد خاص
 
@@ -6963,7 +6962,7 @@ def unit_retrieve(id: int, request=None) -> str:
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -6981,7 +6980,7 @@ def unit_retrieve(id: int, request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -6992,7 +6991,7 @@ def unit_retrieve(id: int, request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def unit_update(id: int, name: str, area: str, price_per_meter: str, total_price: str, project: Optional[int] = None, request=None) -> str:
+def unit_update(api_token: str, id: int, name: str, area: str, price_per_meter: str, total_price: str, project: Optional[int] = None) -> str:
     """
     به‌روزرسانی کامل واحد
 
@@ -7060,7 +7059,7 @@ def unit_update(id: int, name: str, area: str, price_per_meter: str, total_price
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -7096,7 +7095,7 @@ def unit_update(id: int, name: str, area: str, price_per_meter: str, total_price
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='PUT',
             data=data
         )
@@ -7107,7 +7106,7 @@ def unit_update(id: int, name: str, area: str, price_per_meter: str, total_price
         return f"❌ خطا: {str(e)}"
 
 @tool
-def unit_partial_update(id: int, name: Optional[str] = None, area: Optional[str] = None, price_per_meter: Optional[str] = None, total_price: Optional[str] = None, project: Optional[int] = None, request=None) -> str:
+def unit_partial_update(api_token: str, id: int, name: Optional[str] = None, area: Optional[str] = None, price_per_meter: Optional[str] = None, total_price: Optional[str] = None, project: Optional[int] = None) -> str:
     """
     به‌روزرسانی جزئی واحد
 
@@ -7173,7 +7172,7 @@ def unit_partial_update(id: int, name: Optional[str] = None, area: Optional[str]
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -7205,7 +7204,7 @@ def unit_partial_update(id: int, name: Optional[str] = None, area: Optional[str]
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='PATCH',
             data=data
         )
@@ -7216,7 +7215,7 @@ def unit_partial_update(id: int, name: Optional[str] = None, area: Optional[str]
         return f"❌ خطا: {str(e)}"
 
 @tool
-def unit_destroy(id: int, request=None) -> str:
+def unit_destroy(api_token: str, id: int) -> str:
     """
     حذف واحد
 
@@ -7257,7 +7256,7 @@ def unit_destroy(id: int, request=None) -> str:
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -7275,7 +7274,7 @@ def unit_destroy(id: int, request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='DELETE',
             data=data
         )
@@ -7286,7 +7285,7 @@ def unit_destroy(id: int, request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def unit_statistics_retrieve(request=None) -> str:
+def unit_statistics_retrieve(api_token: str) -> str:
     """
     دریافت آمار کلی واحدها
 
@@ -7301,7 +7300,7 @@ def unit_statistics_retrieve(request=None) -> str:
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -7314,7 +7313,7 @@ def unit_statistics_retrieve(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -7328,7 +7327,7 @@ def unit_statistics_retrieve(request=None) -> str:
 # ===== Tools for UnitSpecificExpense (6 endpoint) =====
 
 @tool
-def unitspecificexpense_list(project: Optional[int] = None, unit: Optional[int] = None, request=None) -> str:
+def unitspecificexpense_list(api_token: str, project: Optional[int] = None, unit: Optional[int] = None) -> str:
     """
     دریافت لیست تمام هزینه‌های اختصاصی واحدهای پروژه ج...
 
@@ -7372,7 +7371,7 @@ def unitspecificexpense_list(project: Optional[int] = None, unit: Optional[int] 
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -7388,7 +7387,7 @@ def unitspecificexpense_list(project: Optional[int] = None, unit: Optional[int] 
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -7399,7 +7398,7 @@ def unitspecificexpense_list(project: Optional[int] = None, unit: Optional[int] 
         return f"❌ خطا: {str(e)}"
 
 @tool
-def unitspecificexpense_create(title: str, amount: str, project: Optional[int] = None, project_id: Optional[int] = None, unit: Optional[int] = None, unit_id: Optional[int] = None, date_shamsi_input: Optional[str] = None, description: Optional[str] = None, request=None) -> str:
+def unitspecificexpense_create(api_token: str, title: str, amount: str, project: Optional[int] = None, project_id: Optional[int] = None, unit: Optional[int] = None, unit_id: Optional[int] = None, date_shamsi_input: Optional[str] = None, description: Optional[str] = None) -> str:
     """
     ایجاد هزینه اختصاصی جدید برای واحد
 
@@ -7472,7 +7471,7 @@ def unitspecificexpense_create(title: str, amount: str, project: Optional[int] =
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -7508,7 +7507,7 @@ def unitspecificexpense_create(title: str, amount: str, project: Optional[int] =
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='POST',
             data=data
         )
@@ -7519,7 +7518,7 @@ def unitspecificexpense_create(title: str, amount: str, project: Optional[int] =
         return f"❌ خطا: {str(e)}"
 
 @tool
-def unitspecificexpense_retrieve(id: int, request=None) -> str:
+def unitspecificexpense_retrieve(api_token: str, id: int) -> str:
     """
     دریافت جزئیات یک هزینه اختصاصی خاص
 
@@ -7559,7 +7558,7 @@ def unitspecificexpense_retrieve(id: int, request=None) -> str:
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -7577,7 +7576,7 @@ def unitspecificexpense_retrieve(id: int, request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -7588,7 +7587,7 @@ def unitspecificexpense_retrieve(id: int, request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def unitspecificexpense_update(id: int, title: str, amount: str, project: Optional[int] = None, project_id: Optional[int] = None, unit: Optional[int] = None, unit_id: Optional[int] = None, date_shamsi_input: Optional[str] = None, description: Optional[str] = None, request=None) -> str:
+def unitspecificexpense_update(api_token: str, id: int, title: str, amount: str, project: Optional[int] = None, project_id: Optional[int] = None, unit: Optional[int] = None, unit_id: Optional[int] = None, date_shamsi_input: Optional[str] = None, description: Optional[str] = None) -> str:
     """
     به‌روزرسانی کامل هزینه اختصاصی
 
@@ -7665,7 +7664,7 @@ def unitspecificexpense_update(id: int, title: str, amount: str, project: Option
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -7704,7 +7703,7 @@ def unitspecificexpense_update(id: int, title: str, amount: str, project: Option
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='PUT',
             data=data
         )
@@ -7715,7 +7714,7 @@ def unitspecificexpense_update(id: int, title: str, amount: str, project: Option
         return f"❌ خطا: {str(e)}"
 
 @tool
-def unitspecificexpense_partial_update(id: int, project: Optional[int] = None, project_id: Optional[int] = None, unit: Optional[int] = None, unit_id: Optional[int] = None, title: Optional[str] = None, date_shamsi_input: Optional[str] = None, amount: Optional[str] = None, description: Optional[str] = None, request=None) -> str:
+def unitspecificexpense_partial_update(api_token: str, id: int, project: Optional[int] = None, project_id: Optional[int] = None, unit: Optional[int] = None, unit_id: Optional[int] = None, title: Optional[str] = None, date_shamsi_input: Optional[str] = None, amount: Optional[str] = None, description: Optional[str] = None) -> str:
     """
     به‌روزرسانی جزئی هزینه اختصاصی
 
@@ -7790,7 +7789,7 @@ def unitspecificexpense_partial_update(id: int, project: Optional[int] = None, p
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -7827,7 +7826,7 @@ def unitspecificexpense_partial_update(id: int, project: Optional[int] = None, p
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='PATCH',
             data=data
         )
@@ -7838,7 +7837,7 @@ def unitspecificexpense_partial_update(id: int, project: Optional[int] = None, p
         return f"❌ خطا: {str(e)}"
 
 @tool
-def unitspecificexpense_destroy(id: int, request=None) -> str:
+def unitspecificexpense_destroy(api_token: str, id: int) -> str:
     """
     حذف هزینه اختصاصی
 
@@ -7878,7 +7877,7 @@ def unitspecificexpense_destroy(id: int, request=None) -> str:
     """
     try:
         import re
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )
@@ -7896,7 +7895,7 @@ def unitspecificexpense_destroy(id: int, request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='DELETE',
             data=data
         )
@@ -7910,7 +7909,7 @@ def unitspecificexpense_destroy(id: int, request=None) -> str:
 # ===== Tools for Authentication (7 endpoint) =====
 
 @tool
-def auth_change_password_create(request=None) -> str:
+def auth_change_password_create(api_token: str) -> str:
     """
     تغییر رمز عبور کاربر
 
@@ -7925,7 +7924,7 @@ def auth_change_password_create(request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -7938,7 +7937,7 @@ def auth_change_password_create(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='POST',
             data=data
         )
@@ -7949,7 +7948,7 @@ def auth_change_password_create(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def auth_csrf_retrieve(request=None) -> str:
+def auth_csrf_retrieve(api_token: str) -> str:
     """
     دریافت CSRF Token برای استفاده در درخواست‌های بعدی
 
@@ -7964,7 +7963,7 @@ def auth_csrf_retrieve(request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -7977,7 +7976,7 @@ def auth_csrf_retrieve(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -7988,7 +7987,7 @@ def auth_csrf_retrieve(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def auth_login_create(request=None) -> str:
+def auth_login_create(api_token: str) -> str:
     """
     ورود کاربر به سیستم و دریافت token
 
@@ -8003,7 +8002,7 @@ def auth_login_create(request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -8016,7 +8015,7 @@ def auth_login_create(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='POST',
             data=data
         )
@@ -8027,7 +8026,7 @@ def auth_login_create(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def auth_logout_create(request=None) -> str:
+def auth_logout_create(api_token: str) -> str:
     """
     خروج کاربر از سیستم و حذف token
 
@@ -8042,7 +8041,7 @@ def auth_logout_create(request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -8055,7 +8054,7 @@ def auth_logout_create(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='POST',
             data=data
         )
@@ -8066,7 +8065,7 @@ def auth_logout_create(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def auth_register_create(request=None) -> str:
+def auth_register_create(api_token: str) -> str:
     """
     ثبت‌نام کاربر جدید (فقط برای ادمین‌ها)
 
@@ -8081,7 +8080,7 @@ def auth_register_create(request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -8094,7 +8093,7 @@ def auth_register_create(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='POST',
             data=data
         )
@@ -8105,7 +8104,7 @@ def auth_register_create(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def auth_user_retrieve(request=None) -> str:
+def auth_user_retrieve(api_token: str) -> str:
     """
     دریافت اطلاعات کاربر احراز هویت شده
 
@@ -8120,7 +8119,7 @@ def auth_user_retrieve(request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -8133,7 +8132,7 @@ def auth_user_retrieve(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -8144,7 +8143,7 @@ def auth_user_retrieve(request=None) -> str:
         return f"❌ خطا: {str(e)}"
 
 @tool
-def status_retrieve(request=None) -> str:
+def status_retrieve(api_token: str) -> str:
     """
     بررسی وضعیت API و اطلاعات کاربر
 
@@ -8159,7 +8158,7 @@ def status_retrieve(request=None) -> str:
         - نیاز به احراز هویت: cookieAuth, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -8172,7 +8171,7 @@ def status_retrieve(request=None) -> str:
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
@@ -8186,7 +8185,7 @@ def status_retrieve(request=None) -> str:
 # ===== Tools for Analysis (1 endpoint) =====
 
 @tool
-def comprehensive_analysis_retrieve(project_id: Optional[int] = None, request=None) -> str:
+def comprehensive_analysis_retrieve(api_token: str, project_id: Optional[int] = None) -> str:
     """
     دریافت تحلیل جامع پروژه شامل تمام محاسبات مالی
 
@@ -8208,7 +8207,7 @@ def comprehensive_analysis_retrieve(project_id: Optional[int] = None, request=No
         - نیاز به احراز هویت: SessionAuthentication, tokenAuth
     """
     try:
-        from assistant.viewset_helper import (
+        from assistant_service.viewset_helper import (
             call_api_via_http,
             response_to_string
         )        # ساخت URL کامل
@@ -8222,7 +8221,7 @@ def comprehensive_analysis_retrieve(project_id: Optional[int] = None, request=No
         # فراخوانی API endpoint از طریق HTTP
         response = call_api_via_http(
             url=url,
-            request=request,
+            request=None,
             method='GET',
             **kwargs
         )
