@@ -1234,7 +1234,7 @@
                     </div>
                     <div class="stat-card profit">
                         <h4 id="totalProfit">-</h4>
-                        <p>کل سود (تومان)</p>
+                        <p>کل سود مشارکت (تومان)</p>
                     </div>
                     <div class="stat-card">
                         <h4 id="totalBalance">-</h4>
@@ -1393,7 +1393,7 @@
                             <th>تاریخ</th>
                             <th>نوع تراکنش</th>
                             <th>مبلغ (تومان)</th>
-                            <th id="profitColumnHeader" style="display: none;">سود (تومان)</th>
+                            <th id="profitColumnHeader" style="display: none;">سود مشارکت (تومان)</th>
                             <th>توضیحات</th>
                         </tr>
                     </thead>
@@ -2119,7 +2119,7 @@
             charts.activityDistributionChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['آورده', 'برداشت', 'سود'],
+                    labels: ['آورده', 'برداشت', 'سود مشارکت'],
                     datasets: [{
                         data: [totalPrincipal, totalWithdrawal, totalProfit].map(a => a / BASE_AMOUNT),
                         backgroundColor: [
