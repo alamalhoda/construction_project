@@ -67,8 +67,10 @@ def save_chat_log(
             input_tokens=token_usage.get('input_tokens', 0),
             output_tokens=token_usage.get('output_tokens', 0),
             total_tokens=token_usage.get('total_tokens', 0),
-            cached_tokens=token_usage.get('cached_tokens', 0) or None,
-            reasoning_tokens=token_usage.get('reasoning_tokens', 0) or None,
+            # استفاده از None فقط اگر کلید وجود نداشته باشد
+            # اگر کلید وجود دارد و مقدار آن 0 است، باید 0 ذخیره شود نه None
+            cached_tokens=token_usage.get('cached_tokens') if 'cached_tokens' in token_usage else None,
+            reasoning_tokens=token_usage.get('reasoning_tokens') if 'reasoning_tokens' in token_usage else None,
             duration_seconds=response_data.get('duration_seconds', 0.0),
             success=response_data.get('success', True),
             error_message=response_data.get('error') if not response_data.get('success', True) else None,
