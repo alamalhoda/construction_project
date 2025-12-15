@@ -535,3 +535,7 @@ EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() == 'true'
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@chabokan.net')
+
+# AI Assistant Configuration
+AI_ASSISTANT_ENABLED = os.environ.get('AI_ASSISTANT_ENABLED', 'false').lower() == 'true'
+AI_ASSISTANT_SERVICE_URL = os.environ.get('AI_ASSISTANT_SERVICE_URL', '')
