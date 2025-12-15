@@ -1209,6 +1209,7 @@ class PettyCashTransactionSerializer(serializers.ModelSerializer):
         help_text='شناسه یکتای تراکنش تنخواه (فقط خواندنی)'
     )
     project = serializers.IntegerField(
+        source='project_id',
         read_only=True,
         help_text='شناسه پروژه (فقط خواندنی - به صورت خودکار از session تنظیم می‌شود)'
     )

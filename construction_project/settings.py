@@ -50,19 +50,39 @@ CSRF_USE_SESSIONS = False
 CSRF_COOKIE_DOMAIN = None
 CSRF_COOKIE_PATH = '/'
 CSRF_FAILURE_VIEW = 'django.views.csrf.csrf_failure'
-CSRF_COOKIE_SECURE = os.environ.get('CSRF_COOKIE_SECURE', 'False').lower() == 'true'
-CSRF_COOKIE_HTTPONLY = os.environ.get('CSRF_COOKIE_HTTPONLY', 'False').lower() == 'true'
-CSRF_COOKIE_SAMESITE = os.environ.get('CSRF_COOKIE_SAMESITE', 'Lax')
-CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if os.environ.get('CSRF_TRUSTED_ORIGINS') else []
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.app.github.dev',
+    'https://*.preview.app.github.dev',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+    'https://localhost:8000',
+    'https://127.0.0.1:8000',
+    'https://organic-winner-p649rx6xwxhr9r9-8000.app.github.dev',
+    'http://*.app.github.dev',
+    'http://*.preview.app.github.dev',
+    'https://django-arash.chbk.dev',
+    'https://*.chbk.dev',
+]
 
-# تنظیمات Content Security Policy برای production
-CSP_DEFAULT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'", "data:", "blob:")
-CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'")
-CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https:", "http:")
-CSP_FONT_SRC = ("'self'", "https:", "http:", "data:", "blob:")
-CSP_IMG_SRC = ("'self'", "data:", "https:", "http:")
-CSP_CONNECT_SRC = ("'self'", "https:", "http:")
-CSP_FRAME_SRC = ("'self'", "https:", "http:")
+# تنظیمات Content Security Policy بر اساس محیط
+if DEBUG:
+    # Development: CSP غیرفعال - همه فونت‌ها مجاز
+    CSP_DEFAULT_SRC = None
+    CSP_SCRIPT_SRC = None
+    CSP_STYLE_SRC = None
+    CSP_FONT_SRC = None
+    CSP_IMG_SRC = None
+    CSP_CONNECT_SRC = None
+    CSP_FRAME_SRC = None
+else:
+    # Production: CSP فعال با تنظیمات مناسب برای فونت‌های base64
+    CSP_DEFAULT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'", "data:", "blob:")
+    CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'")
+    CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https:", "http:")
+    CSP_FONT_SRC = ("'self'", "https:", "http:", "data:", "blob:")
+    CSP_IMG_SRC = ("'self'", "data:", "https:", "http:")
+    CSP_CONNECT_SRC = ("'self'", "https:", "http:")
+    CSP_FRAME_SRC = ("'self'", "https:", "http:")
 
 # تنظیمات احراز هویت
 AUTHENTICATION_BACKENDS = [

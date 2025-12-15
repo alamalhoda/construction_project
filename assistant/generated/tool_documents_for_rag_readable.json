@@ -1,6 +1,10 @@
 [
   {
     "page_content": [
+      "Action: list",
+      "Keywords: لیست، فهرست، نمایش لیست، دریافت لیست، همه، تمام، list، all، get all، fetch all، show all",
+      "Synonyms: لیست هزینهها، فهرست هزینهها، نمایش لیست هزینهها، همه هزینهها، نمایش هزینهها، دریافت هزینهها",
+      "",
       "Tool: expense_list",
       "Description: دریافت لیست تمام هزینه‌های پروژه جاری",
       "",
@@ -44,6 +48,10 @@
   },
   {
     "page_content": [
+      "Action: create",
+      "Keywords: ایجاد، ساخت، ثبت، اضافه کردن، اضافه، جدید، create، add، new، insert، register، post، create new، add new، register new",
+      "Synonyms: ساخت هزینه، ثبت هزینه، اضافه کردن هزینه، ایجاد هزینه جدید، ثبت هزینه جدید",
+      "",
       "Tool: expense_create",
       "Description: ایجاد هزینه جدید برای پروژه جاری",
       "",
@@ -165,6 +173,10 @@
   },
   {
     "page_content": [
+      "Action: retrieve",
+      "Keywords: دریافت، نمایش، گرفتن، دیدن، مشاهده، جزئیات، اطلاعات، دریافت جزئیات، retrieve، get، fetch، read، view، show، details، get details",
+      "Synonyms: دریافت هزینه، نمایش هزینه، دیدن هزینه، مشاهده هزینه، جزئیات هزینه",
+      "",
       "Tool: expense_retrieve",
       "Description: دریافت جزئیات یک هزینه خاص",
       "",
@@ -221,6 +233,10 @@
   },
   {
     "page_content": [
+      "Action: update",
+      "Keywords: به‌روزرسانی، ویرایش، تغییر، اصلاح، تغییر دادن، ویرایش کردن، update، edit، modify، change، put",
+      "Synonyms: ویرایش هزینه، تغییر هزینه، به‌روزرسانی هزینه",
+      "",
       "Tool: expense_update",
       "Description: به‌روزرسانی کامل هزینه",
       "",
@@ -355,6 +371,8 @@
   },
   {
     "page_content": [
+      "Action: partial_update",
+      "",
       "Tool: expense_partial_update",
       "Description: به‌روزرسانی جزئی هزینه",
       "",
@@ -487,6 +505,8 @@
   },
   {
     "page_content": [
+      "Action: delete",
+      "",
       "Tool: expense_destroy",
       "Description: حذف هزینه",
       "",
@@ -544,6 +564,8 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "",
       "Tool: expense_dashboard_data_retrieve",
       "Description: دریافت داده‌های لیست هزینه‌ها",
       "",
@@ -591,6 +613,8 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "",
       "Tool: expense_get_expense_details_retrieve",
       "Description: دریافت جزئیات هزینه برای ویرایش",
       "",
@@ -622,6 +646,8 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "",
       "Tool: expense_total_expenses_retrieve",
       "Description: دریافت مجموع کل هزینه‌های پروژه",
       "",
@@ -653,6 +679,8 @@
   },
   {
     "page_content": [
+      "Action: create",
+      "",
       "Tool: expense_update_expense_create",
       "Description: به‌روزرسانی یا ایجاد هزینه برای یک دوره و نوع خاص",
       "",
@@ -772,6 +800,8 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "",
       "Tool: expense_with_periods_retrieve",
       "Description: دریافت هزینه‌ها با اطلاعات دوره‌ها برای محاسبه دوره متوسط ساخت",
       "",
@@ -803,6 +833,10 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "Keywords: لیست، فهرست، نمایش لیست، دریافت لیست، همه، تمام، list، all، get all، fetch all، show all",
+      "Synonyms: لیست نرخ سودها، فهرست نرخ سودها، نمایش لیست نرخ سودها، همه نرخ سودها، نمایش نرخ سودها، دریافت نرخ سودها",
+      "",
       "Tool: interestrate_list",
       "Description: دریافت لیست تمام نرخ‌های سود پروژه جاری",
       "",
@@ -846,6 +880,10 @@
   },
   {
     "page_content": [
+      "Action: create",
+      "Keywords: ایجاد، ساخت، ثبت، اضافه کردن، اضافه، جدید، create، add، new، insert، register، post، create new، add new، register new",
+      "Synonyms: ساخت نرخ سود، ثبت نرخ سود، اضافه کردن نرخ سود، ایجاد نرخ سود جدید، ثبت نرخ سود جدید",
+      "",
       "Tool: interestrate_create",
       "Description: ایجاد نرخ سود جدید برای پروژه جاری",
       "",
@@ -961,6 +999,10 @@
   },
   {
     "page_content": [
+      "Action: retrieve",
+      "Keywords: دریافت، نمایش، گرفتن، دیدن، مشاهده، جزئیات، اطلاعات، دریافت جزئیات، retrieve، get، fetch، read، view، show، details، get details",
+      "Synonyms: دریافت نرخ سود، نمایش نرخ سود، دیدن نرخ سود، مشاهده نرخ سود، جزئیات نرخ سود",
+      "",
       "Tool: interestrate_retrieve",
       "Description: دریافت جزئیات یک نرخ سود خاص",
       "",
@@ -1017,6 +1059,10 @@
   },
   {
     "page_content": [
+      "Action: update",
+      "Keywords: به‌روزرسانی، ویرایش، تغییر، اصلاح، تغییر دادن، ویرایش کردن، update، edit، modify، change، put",
+      "Synonyms: ویرایش نرخ سود، تغییر نرخ سود، به‌روزرسانی نرخ سود",
+      "",
       "Tool: interestrate_update",
       "Description: به‌روزرسانی کامل نرخ سود",
       "",
@@ -1143,6 +1189,8 @@
   },
   {
     "page_content": [
+      "Action: partial_update",
+      "",
       "Tool: interestrate_partial_update",
       "Description: به‌روزرسانی جزئی نرخ سود",
       "",
@@ -1268,6 +1316,8 @@
   },
   {
     "page_content": [
+      "Action: delete",
+      "",
       "Tool: interestrate_destroy",
       "Description: حذف نرخ سود",
       "",
@@ -1325,6 +1375,8 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "",
       "Tool: interestrate_current_retrieve",
       "Description: دریافت نرخ سود فعال فعلی برای پروژه فعال",
       "",
@@ -1356,6 +1408,10 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "Keywords: لیست، فهرست، نمایش لیست، دریافت لیست، همه، تمام، list، all، get all، fetch all، show all",
+      "Synonyms: لیست سرمایه‌گذارها، فهرست سرمایه‌گذارها، نمایش لیست سرمایه‌گذارها، همه سرمایه‌گذارها، نمایش سرمایه‌گذارها، دریافت سرمایه‌گذارها",
+      "",
       "Tool: investor_list",
       "Description: دریافت لیست تمام سرمایه‌گذاران پروژه جاری",
       "",
@@ -1399,6 +1455,10 @@
   },
   {
     "page_content": [
+      "Action: create",
+      "Keywords: ایجاد، ساخت، ثبت، اضافه کردن، اضافه، جدید، create، add، new، insert، register، post، create new، add new، register new",
+      "Synonyms: ساخت سرمایه‌گذار، ثبت سرمایه‌گذار، اضافه کردن سرمایه‌گذار، ایجاد سرمایه‌گذار جدید، ثبت سرمایه‌گذار جدید",
+      "",
       "Tool: investor_create",
       "Description: ایجاد سرمایه‌گذار جدید برای پروژه جاری",
       "",
@@ -1557,6 +1617,10 @@
   },
   {
     "page_content": [
+      "Action: retrieve",
+      "Keywords: دریافت، نمایش، گرفتن، دیدن، مشاهده، جزئیات، اطلاعات، دریافت جزئیات، retrieve، get، fetch، read، view، show، details، get details",
+      "Synonyms: دریافت سرمایه‌گذار، نمایش سرمایه‌گذار، دیدن سرمایه‌گذار، مشاهده سرمایه‌گذار، جزئیات سرمایه‌گذار",
+      "",
       "Tool: investor_retrieve",
       "Description: دریافت جزئیات یک سرمایه‌گذار خاص",
       "",
@@ -1613,6 +1677,10 @@
   },
   {
     "page_content": [
+      "Action: update",
+      "Keywords: به‌روزرسانی، ویرایش، تغییر، اصلاح، تغییر دادن، ویرایش کردن، update، edit، modify، change، put",
+      "Synonyms: ویرایش سرمایه‌گذار، تغییر سرمایه‌گذار، به‌روزرسانی سرمایه‌گذار",
+      "",
       "Tool: investor_update",
       "Description: به‌روزرسانی کامل سرمایه‌گذار",
       "",
@@ -1779,6 +1847,8 @@
   },
   {
     "page_content": [
+      "Action: partial_update",
+      "",
       "Tool: investor_partial_update",
       "Description: به‌روزرسانی جزئی سرمایه‌گذار",
       "",
@@ -1943,6 +2013,8 @@
   },
   {
     "page_content": [
+      "Action: delete",
+      "",
       "Tool: investor_destroy",
       "Description: حذف سرمایه‌گذار",
       "",
@@ -2000,6 +2072,8 @@
   },
   {
     "page_content": [
+      "Action: retrieve",
+      "",
       "Tool: investor_detailed_statistics_retrieve",
       "Description: دریافت آمار تفصیلی سرمایه‌گذار",
       "",
@@ -2067,6 +2141,8 @@
   },
   {
     "page_content": [
+      "Action: retrieve",
+      "",
       "Tool: investor_cumulative_capital_and_unit_cost_chart_retrieve",
       "Description: دریافت داده‌های نمودار ترند سرمایه موجود و هزینه واحد برای سرمایه‌گذار",
       "",
@@ -2117,6 +2193,8 @@
   },
   {
     "page_content": [
+      "Action: retrieve",
+      "",
       "Tool: investor_ownership_retrieve",
       "Description: دریافت مالکیت سرمایه‌گذار به متر مربع",
       "",
@@ -2165,6 +2243,8 @@
   },
   {
     "page_content": [
+      "Action: retrieve",
+      "",
       "Tool: investor_ratios_retrieve",
       "Description: دریافت نسبت‌های سرمایه‌گذار",
       "",
@@ -2211,6 +2291,8 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "",
       "Tool: investor_all_investors_summary_retrieve",
       "Description: دریافت خلاصه آمار تمام سرمایه‌گذاران",
       "",
@@ -2245,6 +2327,8 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "",
       "Tool: investor_participation_stats_retrieve",
       "Description: دریافت آمار مشارکت کنندگان بر اساس نوع (مالک و سرمایه گذار)",
       "",
@@ -2276,6 +2360,8 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "",
       "Tool: investor_summary_retrieve",
       "Description: خلاصه مالی تمام سرمایه‌گذاران پروژه",
       "",
@@ -2360,6 +2446,8 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "",
       "Tool: investor_summary_ssot_retrieve",
       "Description: خلاصه مالی تمام سرمایه‌گذاران با مرجع واحد (بدون SQL خام)",
       "",
@@ -2391,6 +2479,10 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "Keywords: لیست، فهرست، نمایش لیست، دریافت لیست، همه، تمام، list، all، get all، fetch all، show all",
+      "Synonyms: لیست دورهها، فهرست دورهها، نمایش لیست دورهها، همه دورهها، نمایش دورهها، دریافت دورهها",
+      "",
       "Tool: period_list",
       "Description: دریافت لیست تمام دوره‌های پروژه جاری",
       "",
@@ -2435,6 +2527,10 @@
   },
   {
     "page_content": [
+      "Action: create",
+      "Keywords: ایجاد، ساخت، ثبت، اضافه کردن، اضافه، جدید، create، add، new، insert، register، post، create new، add new، register new",
+      "Synonyms: ساخت دوره، ثبت دوره، اضافه کردن دوره، ایجاد دوره جدید، ثبت دوره جدید",
+      "",
       "Tool: period_create",
       "Description: ایجاد دوره جدید برای پروژه جاری",
       "",
@@ -2620,6 +2716,10 @@
   },
   {
     "page_content": [
+      "Action: retrieve",
+      "Keywords: دریافت، نمایش، گرفتن، دیدن، مشاهده، جزئیات، اطلاعات، دریافت جزئیات، retrieve، get، fetch، read، view، show، details، get details",
+      "Synonyms: دریافت دوره، نمایش دوره، دیدن دوره، مشاهده دوره، جزئیات دوره",
+      "",
       "Tool: period_retrieve",
       "Description: دریافت جزئیات یک دوره خاص",
       "",
@@ -2676,6 +2776,10 @@
   },
   {
     "page_content": [
+      "Action: update",
+      "Keywords: به‌روزرسانی، ویرایش، تغییر، اصلاح، تغییر دادن، ویرایش کردن، update، edit، modify، change، put",
+      "Synonyms: ویرایش دوره، تغییر دوره، به‌روزرسانی دوره",
+      "",
       "Tool: period_update",
       "Description: به‌روزرسانی کامل دوره",
       "",
@@ -2863,6 +2967,8 @@
   },
   {
     "page_content": [
+      "Action: partial_update",
+      "",
       "Tool: period_partial_update",
       "Description: به‌روزرسانی جزئی دوره",
       "",
@@ -3048,6 +3154,8 @@
   },
   {
     "page_content": [
+      "Action: delete",
+      "",
       "Tool: period_destroy",
       "Description: حذف دوره",
       "",
@@ -3105,6 +3213,8 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "",
       "Tool: period_chart_data_retrieve",
       "Description: دریافت داده‌های دوره‌ای برای نمودارها (سرمایه، هزینه، فروش، مانده صندوق)",
       "",
@@ -3136,6 +3246,8 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "",
       "Tool: period_summary_retrieve",
       "Description: دریافت خلاصه کامل دوره‌ای شامل تمام فاکتورها و مقادیر تجمعی",
       "",
@@ -3179,6 +3291,10 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "Keywords: لیست، فهرست، نمایش لیست، دریافت لیست، همه، تمام، list، all، get all، fetch all، show all",
+      "Synonyms: لیست تراکنش تنخواهها، فهرست تراکنش تنخواهها، نمایش لیست تراکنش تنخواهها، همه تراکنش تنخواهها، نمایش تراکنش تنخواهها، دریافت تراکنش تنخواهها",
+      "",
       "Tool: pettycashtransaction_list",
       "Description: دریافت لیست تمام تراکنش‌های تنخواه پروژه جاری",
       "",
@@ -3222,6 +3338,10 @@
   },
   {
     "page_content": [
+      "Action: create",
+      "Keywords: ایجاد، ساخت، ثبت، اضافه کردن، اضافه، جدید، create، add، new، insert، register، post، create new، add new، register new",
+      "Synonyms: ساخت تراکنش تنخواه، ثبت تراکنش تنخواه، اضافه کردن تراکنش تنخواه، ایجاد تراکنش تنخواه جدید، ثبت تراکنش تنخواه جدید",
+      "",
       "Tool: pettycashtransaction_create",
       "Description: ایجاد تراکنش تنخواه جدید برای پروژه جاری",
       "",
@@ -3363,6 +3483,10 @@
   },
   {
     "page_content": [
+      "Action: retrieve",
+      "Keywords: دریافت، نمایش، گرفتن، دیدن، مشاهده، جزئیات، اطلاعات، دریافت جزئیات، retrieve، get، fetch، read، view، show، details، get details",
+      "Synonyms: دریافت تراکنش تنخواه، نمایش تراکنش تنخواه، دیدن تراکنش تنخواه، مشاهده تراکنش تنخواه، جزئیات تراکنش تنخواه",
+      "",
       "Tool: pettycashtransaction_retrieve",
       "Description: دریافت جزئیات یک تراکنش تنخواه خاص",
       "",
@@ -3419,6 +3543,10 @@
   },
   {
     "page_content": [
+      "Action: update",
+      "Keywords: به‌روزرسانی، ویرایش، تغییر، اصلاح، تغییر دادن، ویرایش کردن، update، edit، modify، change، put",
+      "Synonyms: ویرایش تراکنش تنخواه، تغییر تراکنش تنخواه، به‌روزرسانی تراکنش تنخواه",
+      "",
       "Tool: pettycashtransaction_update",
       "Description: به‌روزرسانی کامل تراکنش تنخواه",
       "",
@@ -3568,6 +3696,8 @@
   },
   {
     "page_content": [
+      "Action: partial_update",
+      "",
       "Tool: pettycashtransaction_partial_update",
       "Description: به‌روزرسانی جزئی تراکنش تنخواه",
       "",
@@ -3715,6 +3845,8 @@
   },
   {
     "page_content": [
+      "Action: delete",
+      "",
       "Tool: pettycashtransaction_destroy",
       "Description: حذف تراکنش تنخواه",
       "",
@@ -3771,6 +3903,8 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "",
       "Tool: pettycashtransaction_balance_detail_retrieve",
       "Description: دریافت وضعیت مالی یک عامل اجرایی خاص",
       "",
@@ -3822,6 +3956,8 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "",
       "Tool: pettycashtransaction_balance_trend_retrieve",
       "Description: ترند زمانی وضعیت مالی عامل اجرایی",
       "",
@@ -3853,6 +3989,8 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "",
       "Tool: pettycashtransaction_balances_retrieve",
       "Description: دریافت وضعیت مالی همه عوامل اجرایی",
       "",
@@ -3884,6 +4022,8 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "",
       "Tool: pettycashtransaction_detailed_report_retrieve",
       "Description: گزارش تفصیلی تراکنش‌های تنخواه با فیلتر و جستجو",
       "",
@@ -3915,6 +4055,8 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "",
       "Tool: pettycashtransaction_period_balance_retrieve",
       "Description: دریافت وضعیت مالی عامل اجرایی در یک دوره",
       "",
@@ -3946,6 +4088,8 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "",
       "Tool: pettycashtransaction_statistics_retrieve",
       "Description: آمار کلی تراکنش‌های تنخواه (Single Source of Truth)",
       "",
@@ -3977,6 +4121,10 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "Keywords: لیست، فهرست، نمایش لیست، دریافت لیست، همه، تمام، list، all، get all، fetch all، show all",
+      "Synonyms: لیست پروژهها، فهرست پروژهها، نمایش لیست پروژهها، همه پروژهها، نمایش پروژهها، دریافت پروژهها",
+      "",
       "Tool: project_list",
       "Description: دریافت لیست تمام پروژه‌ها",
       "",
@@ -4020,6 +4168,10 @@
   },
   {
     "page_content": [
+      "Action: create",
+      "Keywords: ایجاد، ساخت، ثبت، اضافه کردن، اضافه، جدید، create، add، new، insert، register، post، create new، add new، register new",
+      "Synonyms: ساخت پروژه، ثبت پروژه، اضافه کردن پروژه، ایجاد پروژه جدید، ثبت پروژه جدید",
+      "",
       "Tool: project_create",
       "Description: ایجاد پروژه جدید",
       "",
@@ -4238,6 +4390,10 @@
   },
   {
     "page_content": [
+      "Action: retrieve",
+      "Keywords: دریافت، نمایش، گرفتن، دیدن، مشاهده، جزئیات، اطلاعات، دریافت جزئیات، retrieve، get، fetch، read، view، show، details، get details",
+      "Synonyms: دریافت پروژه، نمایش پروژه، دیدن پروژه، مشاهده پروژه، جزئیات پروژه",
+      "",
       "Tool: project_retrieve",
       "Description: دریافت جزئیات یک پروژه خاص",
       "",
@@ -4292,6 +4448,10 @@
   },
   {
     "page_content": [
+      "Action: update",
+      "Keywords: به‌روزرسانی، ویرایش، تغییر، اصلاح، تغییر دادن، ویرایش کردن، update، edit، modify، change، put",
+      "Synonyms: ویرایش پروژه، تغییر پروژه، به‌روزرسانی پروژه",
+      "",
       "Tool: project_update",
       "Description: به‌روزرسانی کامل پروژه",
       "",
@@ -4514,6 +4674,8 @@
   },
   {
     "page_content": [
+      "Action: partial_update",
+      "",
       "Tool: project_partial_update",
       "Description: به‌روزرسانی جزئی پروژه",
       "",
@@ -4735,6 +4897,8 @@
   },
   {
     "page_content": [
+      "Action: delete",
+      "",
       "Tool: project_destroy",
       "Description: حذف پروژه",
       "",
@@ -4791,6 +4955,8 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "",
       "Tool: project_active_retrieve",
       "Description: دریافت پروژه جاری (از session)",
       "",
@@ -4822,6 +4988,8 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "",
       "Tool: project_comprehensive_analysis_retrieve",
       "Description: دریافت تحلیل جامع پروژه شامل تمام محاسبات مالی",
       "",
@@ -4853,6 +5021,8 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "",
       "Tool: project_cost_metrics_retrieve",
       "Description: دریافت متریک‌های هزینه",
       "",
@@ -4884,6 +5054,8 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "",
       "Tool: project_current_retrieve",
       "Description: دریافت پروژه جاری کاربر از session",
       "",
@@ -4915,6 +5087,8 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "",
       "Tool: project_profit_metrics_retrieve",
       "Description: دریافت متریک‌های سود (کل، سالانه، ماهانه، روزانه)",
       "",
@@ -4957,6 +5131,8 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "",
       "Tool: project_statistics_detailed_retrieve",
       "Description: دریافت آمار تفصیلی پروژه",
       "",
@@ -4988,6 +5164,8 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "",
       "Tool: project_timeline_retrieve",
       "Description: محاسبه روزهای مانده و گذشته پروژه بر اساس تاریخ امروز",
       "",
@@ -5019,6 +5197,8 @@
   },
   {
     "page_content": [
+      "Action: create",
+      "",
       "Tool: project_set_active_create",
       "Description: تنظیم پروژه فعال",
       "",
@@ -5209,6 +5389,8 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "",
       "Tool: project_statistics_retrieve",
       "Description: دریافت آمار کامل پروژه جاری شامل اطلاعات پروژه و آمار واحدها",
       "",
@@ -5240,6 +5422,8 @@
   },
   {
     "page_content": [
+      "Action: create",
+      "",
       "Tool: project_switch_create",
       "Description: تغییر پروژه جاری کاربر",
       "",
@@ -5430,6 +5614,10 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "Keywords: لیست، فهرست، نمایش لیست، دریافت لیست، همه، تمام، list، all، get all، fetch all، show all",
+      "Synonyms: لیست فروش/مرجوعیها، فهرست فروش/مرجوعیها، نمایش لیست فروش/مرجوعیها، همه فروش/مرجوعیها، نمایش فروش/مرجوعیها، دریافت فروش/مرجوعیها",
+      "",
       "Tool: sale_list",
       "Description: دریافت لیست تمام فروش/مرجوعی‌های پروژه جاری",
       "",
@@ -5473,6 +5661,10 @@
   },
   {
     "page_content": [
+      "Action: create",
+      "Keywords: ایجاد، ساخت، ثبت، اضافه کردن، اضافه، جدید، create، add، new، insert، register، post، create new، add new، register new",
+      "Synonyms: ساخت فروش/مرجوعی، ثبت فروش/مرجوعی، اضافه کردن فروش/مرجوعی، ایجاد فروش/مرجوعی جدید، ثبت فروش/مرجوعی جدید",
+      "",
       "Tool: sale_create",
       "Description: ایجاد فروش/مرجوعی جدید برای پروژه جاری",
       "",
@@ -5573,6 +5765,10 @@
   },
   {
     "page_content": [
+      "Action: retrieve",
+      "Keywords: دریافت، نمایش، گرفتن، دیدن، مشاهده، جزئیات، اطلاعات، دریافت جزئیات، retrieve، get، fetch، read، view، show، details، get details",
+      "Synonyms: دریافت فروش/مرجوعی، نمایش فروش/مرجوعی، دیدن فروش/مرجوعی، مشاهده فروش/مرجوعی، جزئیات فروش/مرجوعی",
+      "",
       "Tool: sale_retrieve",
       "Description: دریافت جزئیات یک فروش/مرجوعی خاص",
       "",
@@ -5629,6 +5825,10 @@
   },
   {
     "page_content": [
+      "Action: update",
+      "Keywords: به‌روزرسانی، ویرایش، تغییر، اصلاح، تغییر دادن، ویرایش کردن، update، edit، modify، change، put",
+      "Synonyms: ویرایش فروش/مرجوعی، تغییر فروش/مرجوعی، به‌روزرسانی فروش/مرجوعی",
+      "",
       "Tool: sale_update",
       "Description: به‌روزرسانی کامل فروش/مرجوعی",
       "",
@@ -5743,6 +5943,8 @@
   },
   {
     "page_content": [
+      "Action: partial_update",
+      "",
       "Tool: sale_partial_update",
       "Description: به‌روزرسانی جزئی فروش/مرجوعی",
       "",
@@ -5856,6 +6058,8 @@
   },
   {
     "page_content": [
+      "Action: delete",
+      "",
       "Tool: sale_destroy",
       "Description: حذف فروش/مرجوعی",
       "",
@@ -5912,6 +6116,8 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "",
       "Tool: sale_total_sales_retrieve",
       "Description: دریافت مجموع فروش‌ها",
       "",
@@ -5943,6 +6149,10 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "Keywords: لیست، فهرست، نمایش لیست، دریافت لیست، همه، تمام، list، all، get all، fetch all، show all",
+      "Synonyms: لیست تراکنشها، فهرست تراکنشها، نمایش لیست تراکنشها، همه تراکنشها، نمایش تراکنشها، دریافت تراکنشها",
+      "",
       "Tool: transaction_list",
       "Description: دریافت لیست تمام تراکنش‌های پروژه جاری",
       "",
@@ -6049,6 +6259,10 @@
   },
   {
     "page_content": [
+      "Action: create",
+      "Keywords: ایجاد، ساخت، ثبت، اضافه کردن، اضافه، جدید، create، add، new، insert، register، post، create new، add new، register new",
+      "Synonyms: ساخت تراکنش، ثبت تراکنش، اضافه کردن تراکنش، ایجاد تراکنش جدید، ثبت تراکنش جدید",
+      "",
       "Tool: transaction_create",
       "Description: ایجاد تراکنش جدید برای پروژه جاری",
       "",
@@ -6221,6 +6435,10 @@
   },
   {
     "page_content": [
+      "Action: retrieve",
+      "Keywords: دریافت، نمایش، گرفتن، دیدن، مشاهده، جزئیات، اطلاعات، دریافت جزئیات، retrieve، get، fetch، read، view، show، details، get details",
+      "Synonyms: دریافت تراکنش، نمایش تراکنش، دیدن تراکنش، مشاهده تراکنش، جزئیات تراکنش",
+      "",
       "Tool: transaction_retrieve",
       "Description: دریافت جزئیات یک تراکنش خاص",
       "",
@@ -6277,6 +6495,10 @@
   },
   {
     "page_content": [
+      "Action: update",
+      "Keywords: به‌روزرسانی، ویرایش، تغییر، اصلاح، تغییر دادن، ویرایش کردن، update، edit، modify، change، put",
+      "Synonyms: ویرایش تراکنش، تغییر تراکنش، به‌روزرسانی تراکنش",
+      "",
       "Tool: transaction_update",
       "Description: به‌روزرسانی کامل تراکنش",
       "",
@@ -6458,6 +6680,8 @@
   },
   {
     "page_content": [
+      "Action: partial_update",
+      "",
       "Tool: transaction_partial_update",
       "Description: به‌روزرسانی جزئی تراکنش",
       "",
@@ -6636,6 +6860,8 @@
   },
   {
     "page_content": [
+      "Action: delete",
+      "",
       "Tool: transaction_destroy",
       "Description: حذف تراکنش",
       "",
@@ -6692,6 +6918,8 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "",
       "Tool: transaction_combined_retrieve",
       "Description: دریافت تراکنش‌های اصلی به همراه تراکنش‌های سود مرتبط در یک رکورد",
       "",
@@ -6725,6 +6953,8 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "",
       "Tool: transaction_detailed_statistics_retrieve",
       "Description: دریافت آمار تفصیلی تراکنش‌ها با فیلترهای پیشرفته",
       "",
@@ -6756,6 +6986,8 @@
   },
   {
     "page_content": [
+      "Action: create",
+      "",
       "Tool: transaction_recalculate_construction_contractor_create",
       "Description: محاسبه مجدد همه هزینه‌های پیمان ساختمان",
       "",
@@ -6903,6 +7135,8 @@
   },
   {
     "page_content": [
+      "Action: create",
+      "",
       "Tool: transaction_recalculate_profits_create",
       "Description: محاسبه مجدد سودها با نرخ سود فعال فعلی برای پروژه فعال",
       "",
@@ -7050,6 +7284,8 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "",
       "Tool: transaction_statistics_retrieve",
       "Description: دریافت آمار کلی تراکنش‌های پروژه",
       "",
@@ -7123,6 +7359,10 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "Keywords: لیست، فهرست، نمایش لیست، دریافت لیست، همه، تمام، list، all، get all، fetch all، show all",
+      "Synonyms: لیست واحدها، فهرست واحدها، نمایش لیست واحدها، همه واحدها، نمایش واحدها، دریافت واحدها",
+      "",
       "Tool: unit_list",
       "Description: دریافت لیست تمام واحدهای پروژه جاری",
       "",
@@ -7166,6 +7406,10 @@
   },
   {
     "page_content": [
+      "Action: create",
+      "Keywords: ایجاد، ساخت، ثبت، اضافه کردن، اضافه، جدید، create، add، new، insert، register، post، create new، add new، register new",
+      "Synonyms: ساخت واحد، ثبت واحد، اضافه کردن واحد، ایجاد واحد جدید، ثبت واحد جدید",
+      "",
       "Tool: unit_create",
       "Description: ایجاد واحد جدید برای پروژه جاری",
       "",
@@ -7281,6 +7525,10 @@
   },
   {
     "page_content": [
+      "Action: retrieve",
+      "Keywords: دریافت، نمایش، گرفتن، دیدن، مشاهده، جزئیات، اطلاعات، دریافت جزئیات، retrieve، get، fetch، read، view، show، details، get details",
+      "Synonyms: دریافت واحد، نمایش واحد، دیدن واحد، مشاهده واحد، جزئیات واحد",
+      "",
       "Tool: unit_retrieve",
       "Description: دریافت جزئیات یک واحد خاص",
       "",
@@ -7337,6 +7585,10 @@
   },
   {
     "page_content": [
+      "Action: update",
+      "Keywords: به‌روزرسانی، ویرایش، تغییر، اصلاح، تغییر دادن، ویرایش کردن، update، edit، modify، change، put",
+      "Synonyms: ویرایش واحد، تغییر واحد، به‌روزرسانی واحد",
+      "",
       "Tool: unit_update",
       "Description: به‌روزرسانی کامل واحد",
       "",
@@ -7464,6 +7716,8 @@
   },
   {
     "page_content": [
+      "Action: partial_update",
+      "",
       "Tool: unit_partial_update",
       "Description: به‌روزرسانی جزئی واحد",
       "",
@@ -7589,6 +7843,8 @@
   },
   {
     "page_content": [
+      "Action: delete",
+      "",
       "Tool: unit_destroy",
       "Description: حذف واحد",
       "",
@@ -7646,6 +7902,8 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "",
       "Tool: unit_statistics_retrieve",
       "Description: دریافت آمار کلی واحدها",
       "",
@@ -7677,6 +7935,10 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "Keywords: لیست، فهرست، نمایش لیست، دریافت لیست، همه، تمام، list، all، get all، fetch all، show all",
+      "Synonyms: لیست هزینه اختصاصی واحدها، فهرست هزینه اختصاصی واحدها، نمایش لیست هزینه اختصاصی واحدها، همه هزینه اختصاصی واحدها، نمایش هزینه اختصاصی واحدها، دریافت هزینه اختصاصی واحدها",
+      "",
       "Tool: unitspecificexpense_list",
       "Description: دریافت لیست تمام هزینه‌های اختصاصی واحدهای پروژه جاری",
       "",
@@ -7750,6 +8012,10 @@
   },
   {
     "page_content": [
+      "Action: create",
+      "Keywords: ایجاد، ساخت، ثبت، اضافه کردن، اضافه، جدید، create، add، new، insert، register، post، create new، add new، register new",
+      "Synonyms: ساخت هزینه اختصاصی واحد، ثبت هزینه اختصاصی واحد، اضافه کردن هزینه اختصاصی واحد، ایجاد هزینه اختصاصی واحد جدید، ثبت هزینه اختصاصی واحد جدید",
+      "",
       "Tool: unitspecificexpense_create",
       "Description: ایجاد هزینه اختصاصی جدید برای واحد",
       "",
@@ -7903,6 +8169,10 @@
   },
   {
     "page_content": [
+      "Action: retrieve",
+      "Keywords: دریافت، نمایش، گرفتن، دیدن، مشاهده، جزئیات، اطلاعات، دریافت جزئیات، retrieve، get، fetch، read، view، show، details، get details",
+      "Synonyms: دریافت هزینه اختصاصی واحد، نمایش هزینه اختصاصی واحد، دیدن هزینه اختصاصی واحد، مشاهده هزینه اختصاصی واحد، جزئیات هزینه اختصاصی واحد",
+      "",
       "Tool: unitspecificexpense_retrieve",
       "Description: دریافت جزئیات یک هزینه اختصاصی خاص",
       "",
@@ -7959,6 +8229,10 @@
   },
   {
     "page_content": [
+      "Action: update",
+      "Keywords: به‌روزرسانی، ویرایش، تغییر، اصلاح، تغییر دادن، ویرایش کردن، update، edit، modify، change، put",
+      "Synonyms: ویرایش هزینه اختصاصی واحد، تغییر هزینه اختصاصی واحد، به‌روزرسانی هزینه اختصاصی واحد",
+      "",
       "Tool: unitspecificexpense_update",
       "Description: به‌روزرسانی کامل هزینه اختصاصی",
       "",
@@ -8122,6 +8396,8 @@
   },
   {
     "page_content": [
+      "Action: partial_update",
+      "",
       "Tool: unitspecificexpense_partial_update",
       "Description: به‌روزرسانی جزئی هزینه اختصاصی",
       "",
@@ -8283,6 +8559,8 @@
   },
   {
     "page_content": [
+      "Action: delete",
+      "",
       "Tool: unitspecificexpense_destroy",
       "Description: حذف هزینه اختصاصی",
       "",
@@ -8339,6 +8617,8 @@
   },
   {
     "page_content": [
+      "Action: create",
+      "",
       "Tool: auth_change_password_create",
       "Description: تغییر رمز عبور کاربر",
       "",
@@ -8373,6 +8653,8 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "",
       "Tool: auth_csrf_retrieve",
       "Description: دریافت CSRF Token برای استفاده در درخواست‌های بعدی",
       "",
@@ -8405,6 +8687,8 @@
   },
   {
     "page_content": [
+      "Action: create",
+      "",
       "Tool: auth_login_create",
       "Description: ورود کاربر به سیستم و دریافت token",
       "",
@@ -8439,6 +8723,8 @@
   },
   {
     "page_content": [
+      "Action: create",
+      "",
       "Tool: auth_logout_create",
       "Description: خروج کاربر از سیستم و حذف token",
       "",
@@ -8471,6 +8757,8 @@
   },
   {
     "page_content": [
+      "Action: create",
+      "",
       "Tool: auth_register_create",
       "Description: ثبت‌نام کاربر جدید (فقط برای ادمین‌ها)",
       "",
@@ -8505,6 +8793,8 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "",
       "Tool: auth_user_retrieve",
       "Description: دریافت اطلاعات کاربر احراز هویت شده",
       "",
@@ -8538,6 +8828,8 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "",
       "Tool: comprehensive_analysis_retrieve",
       "Description: دریافت تحلیل جامع پروژه شامل تمام محاسبات مالی",
       "",
@@ -8586,6 +8878,10 @@
   },
   {
     "page_content": [
+      "Action: list",
+      "Keywords: لیست، فهرست، نمایش لیست، دریافت لیست، همه، تمام، list، all، get all، fetch all، show all",
+      "Synonyms: لیست Authenticationها، فهرست Authenticationها، نمایش لیست Authenticationها، همه Authenticationها، نمایش Authenticationها، دریافت Authenticationها",
+      "",
       "Tool: status_retrieve",
       "Description: بررسی وضعیت API و اطلاعات کاربر",
       "",

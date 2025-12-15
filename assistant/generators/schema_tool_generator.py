@@ -1208,9 +1208,415 @@ Tools تولید شده خودکار از OpenAPI Schema
         
         return all_code
     
+    def _detect_action_from_method(self, method: str, path: str) -> str:
+        """
+        تشخیص action type از HTTP method و path
+        
+        Args:
+            method: HTTP method (GET, POST, PUT, PATCH, DELETE)
+            path: API path
+        
+        Returns:
+            action type (create, retrieve, list, update, partial_update, delete)
+        """
+        method_upper = method.upper()
+        
+        if method_upper == 'POST':
+            return 'create'
+        elif method_upper == 'GET':
+            # اگر path شامل {id} یا {pk} باشد، retrieve است
+            if '{id}' in path or '{pk}' in path or re.search(r'\{[^}]+\}', path):
+                return 'retrieve'
+            else:
+                return 'list'
+        elif method_upper == 'PUT':
+            return 'update'
+        elif method_upper == 'PATCH':
+            return 'partial_update'
+        elif method_upper == 'DELETE':
+            return 'delete'
+        else:
+            return 'unknown'
+    
+    def _is_crud_action(self, operation_id: str, action: str) -> bool:
+        """
+        تشخیص CRUD action از custom action
+        
+        CRUD actions: operation_id دقیقاً 2 بخش دارد: {Resource}_{action}
+        Custom actions: operation_id 3 بخش یا بیشتر دارد: {Resource}_{custom_name}_{action}
+        
+        Args:
+            operation_id: Operation ID از OpenAPI schema (مثلاً "Expense_list" یا "Expense_dashboard_data_retrieve")
+            action: Action type تشخیص داده شده (مثلاً "list", "create", "retrieve")
+        
+        Returns:
+            True اگر CRUD action باشد، False اگر custom action باشد
+        """
+        # لیست CRUD actions استاندارد
+        crud_actions = {'list', 'create', 'retrieve', 'update', 'partial_update', 'delete'}
+        
+        # بررسی اینکه action در لیست CRUD actions است
+        if action not in crud_actions:
+            return False
+        
+        # بررسی operation_id: CRUD actions دقیقاً 2 بخش دارند
+        if operation_id:
+            parts = operation_id.split('_')
+            
+            # اگر 3 بخش یا بیشتر دارد، قطعاً custom action است
+            if len(parts) > 2:
+                return False
+            
+            # اگر دقیقاً 2 بخش دارد، بررسی می‌کنیم که بخش دوم CRUD action است
+            if len(parts) == 2:
+                if parts[1].lower() in crud_actions:
+                    return True
+                else:
+                    return False
+        
+        # اگر operation_id نداریم، نمی‌توانیم مطمئن باشیم
+        # برای امنیت، False برمی‌گردانیم (custom action در نظر می‌گیریم)
+        return False
+    
+    def _get_action_keywords(self, action: str) -> List[str]:
+        """
+        تولید کلمات کلیدی برای هر action type
+        
+        Args:
+            action: نوع action (create, retrieve, list, update, partial_update, delete)
+        
+        Returns:
+            لیست کلمات کلیدی مرتبط با action
+        """
+        keywords_map = {
+            'create': [
+                # فارسی
+                'ایجاد',
+                'ساخت',
+                'ثبت',
+                'اضافه کردن',
+                'اضافه',
+                'جدید',
+                # انگلیسی
+                'create',
+                'add',
+                'new',
+                'insert',
+                'register',
+                'post',
+                # ترکیبی
+                'create new',
+                'add new',
+                'register new',
+            ],
+            'retrieve': [
+                # فارسی
+                'دریافت',
+                'نمایش',
+                'گرفتن',
+                'دیدن',
+                'مشاهده',
+                'جزئیات',
+                'اطلاعات',
+                'دریافت جزئیات',
+                # انگلیسی
+                'retrieve',
+                'get',
+                'fetch',
+                'read',
+                'view',
+                'show',
+                'details',
+                'get details',
+            ],
+            'list': [
+                # فارسی
+                'لیست',
+                'فهرست',
+                'نمایش لیست',
+                'دریافت لیست',
+                'همه',
+                'تمام',
+                # انگلیسی
+                'list',
+                'all',
+                'get all',
+                'fetch all',
+                'show all',
+            ],
+            'update': [
+                # فارسی
+                'به‌روزرسانی',
+                'ویرایش',
+                'تغییر',
+                'اصلاح',
+                'تغییر دادن',
+                'ویرایش کردن',
+                # انگلیسی
+                'update',
+                'edit',
+                'modify',
+                'change',
+                'put',
+            ],
+            'partial_update': [
+                # فارسی
+                'به‌روزرسانی جزئی',
+                'ویرایش جزئی',
+                'تغییر جزئی',
+                'اصلاح جزئی',
+                # انگلیسی
+                'partial update',
+                'patch',
+                'partial edit',
+                'partial modify',
+            ],
+            'delete': [
+                # فارسی
+                'حذف',
+                'پاک کردن',
+                'حذف کردن',
+                'پاک',
+                # انگلیسی
+                'delete',
+                'remove',
+                'destroy',
+                'drop',
+            ],
+        }
+        
+        return keywords_map.get(action, [])
+    
+    def _get_verbose_name_from_tag(self, tag: str) -> str:
+        """
+        استخراج verbose_name از Model با استفاده از tag
+        
+        این روش single source of truth است چون verbose_name در Model تعریف شده است.
+        
+        Args:
+            tag: نام tag (مثلاً "Investor", "Expense")
+        
+        Returns:
+            verbose_name فارسی یا "" اگر پیدا نشد
+        """
+        if not tag:
+            return ""
+        
+        try:
+            from django.apps import apps
+            
+            # لیست app_label های ممکن (می‌توان از settings استخراج کرد)
+            # برای این پروژه، app_label معمولاً "construction" است
+            app_labels = ['construction']
+            
+            # اول: جستجو در app_labels مشخص
+            for app_label in app_labels:
+                try:
+                    model = apps.get_model(app_label, tag)
+                    if model:
+                        verbose_name = model._meta.verbose_name
+                        if verbose_name:
+                            return verbose_name
+                except (LookupError, ValueError):
+                    continue
+            
+            # دوم: اگر پیدا نشد، در تمام apps جستجو کن
+            for app_config in apps.get_app_configs():
+                try:
+                    model = apps.get_model(app_config.label, tag)
+                    if model:
+                        verbose_name = model._meta.verbose_name
+                        if verbose_name:
+                            return verbose_name
+                except (LookupError, ValueError):
+                    continue
+                    
+        except Exception as e:
+            # در صورت خطا (مثلاً Django setup نشده)، None برگردان
+            # این در زمان تولید schema ممکن است اتفاق بیفتد
+            pass
+        
+        return ""
+    
+    def _get_action_synonyms(self, action: str, resource_name_fa: str = "") -> List[str]:
+        """
+        تولید مترادف‌های رایج برای هر action
+        
+        Args:
+            action: نوع action
+            resource_name_fa: نام فارسی resource (مثل "سرمایه‌گذار")
+        
+        Returns:
+            لیست مترادف‌های رایج
+        """
+        if not resource_name_fa:
+            return []
+        
+        synonyms_map = {
+            'create': [
+                f'ساخت {resource_name_fa}',
+                f'ثبت {resource_name_fa}',
+                f'اضافه کردن {resource_name_fa}',
+                f'ایجاد {resource_name_fa} جدید',
+                f'ثبت {resource_name_fa} جدید',
+            ],
+            'retrieve': [
+                f'دریافت {resource_name_fa}',
+                f'نمایش {resource_name_fa}',
+                f'دیدن {resource_name_fa}',
+                f'مشاهده {resource_name_fa}',
+                f'جزئیات {resource_name_fa}',
+            ],
+            'list': [
+                # بررسی اینکه آیا resource_name_fa خودش جمع است یا نه
+                # اگر با "ها" تمام می‌شود، "ها" اضافه نکن
+                f'لیست {resource_name_fa if resource_name_fa.endswith("ها") else resource_name_fa + "ها"}',
+                f'فهرست {resource_name_fa if resource_name_fa.endswith("ها") else resource_name_fa + "ها"}',
+                f'نمایش لیست {resource_name_fa if resource_name_fa.endswith("ها") else resource_name_fa + "ها"}',
+                f'همه {resource_name_fa if resource_name_fa.endswith("ها") else resource_name_fa + "ها"}',
+                # همچنین synonyms بدون "لیست"
+                f'نمایش {resource_name_fa if resource_name_fa.endswith("ها") else resource_name_fa + "ها"}',
+                f'دریافت {resource_name_fa if resource_name_fa.endswith("ها") else resource_name_fa + "ها"}',
+            ],
+            'update': [
+                f'ویرایش {resource_name_fa}',
+                f'تغییر {resource_name_fa}',
+                f'به‌روزرسانی {resource_name_fa}',
+            ],
+            'partial_update': [
+                f'ویرایش جزئی {resource_name_fa}',
+                f'تغییر جزئی {resource_name_fa}',
+            ],
+            'delete': [
+                f'حذف {resource_name_fa}',
+                f'پاک کردن {resource_name_fa}',
+            ],
+        }
+        
+        return synonyms_map.get(action, [])
+    
+    def _extract_custom_keywords(self, description: str) -> Optional[List[str]]:
+        """
+        استخراج keywords سفارشی از docstring
+        
+        در docstring می‌توان بخش Keywords: را اضافه کرد:
+        Keywords: ایجاد، ساخت، ثبت، create, add
+        
+        Args:
+            description: توضیحات endpoint از docstring
+        
+        Returns:
+            لیست keywords سفارشی یا None اگر وجود نداشت
+        """
+        if not description:
+            return None
+        
+        lines = description.split('\n')
+        keywords = None
+        
+        for i, line in enumerate(lines):
+            line_lower = line.lower().strip()
+            # جستجوی "Keywords:" یا "کلمات کلیدی:"
+            if line_lower.startswith('keywords:') or line_lower.startswith('کلمات کلیدی:'):
+                # استخراج keywords از همان خط یا خطوط بعدی
+                keyword_line = line.split(':', 1)[1].strip() if ':' in line else ''
+                
+                # اگر keywords در همان خط است
+                if keyword_line:
+                    # جدا کردن با کاما
+                    keywords = [kw.strip() for kw in keyword_line.split(',') if kw.strip()]
+                else:
+                    # اگر keywords در خطوط بعدی است (با - یا *)
+                    keywords = []
+                    for j in range(i + 1, min(i + 10, len(lines))):
+                        next_line = lines[j].strip()
+                        if next_line.startswith('-') or next_line.startswith('*'):
+                            keywords.append(next_line.lstrip('-*').strip())
+                        elif next_line and not next_line.startswith(' '):
+                            break
+                
+                break
+        
+        return keywords if keywords else None
+    
+    def _extract_custom_synonyms(self, description: str) -> Optional[List[str]]:
+        """
+        استخراج synonyms سفارشی از docstring
+        
+        در docstring می‌توان بخش Synonyms: را اضافه کرد:
+        Synonyms: ساخت سرمایه‌گذار، ثبت سرمایه‌گذار
+        
+        Args:
+            description: توضیحات endpoint از docstring
+        
+        Returns:
+            لیست synonyms سفارشی یا None اگر وجود نداشت
+        """
+        if not description:
+            return None
+        
+        lines = description.split('\n')
+        synonyms = None
+        
+        for i, line in enumerate(lines):
+            line_lower = line.lower().strip()
+            # جستجوی "Synonyms:" یا "مترادف:"
+            if line_lower.startswith('synonyms:') or line_lower.startswith('مترادف:'):
+                # استخراج synonyms از همان خط یا خطوط بعدی
+                synonym_line = line.split(':', 1)[1].strip() if ':' in line else ''
+                
+                # اگر synonyms در همان خط است
+                if synonym_line:
+                    # جدا کردن با کاما
+                    synonyms = [syn.strip() for syn in synonym_line.split(',') if syn.strip()]
+                else:
+                    # اگر synonyms در خطوط بعدی است (با - یا *)
+                    synonyms = []
+                    for j in range(i + 1, min(i + 10, len(lines))):
+                        next_line = lines[j].strip()
+                        if next_line.startswith('-') or next_line.startswith('*'):
+                            synonyms.append(next_line.lstrip('-*').strip())
+                        elif next_line and not next_line.startswith(' '):
+                            break
+                
+                break
+        
+        return synonyms if synonyms else None
+    
+    def _extract_custom_action(self, description: str) -> Optional[str]:
+        """
+        استخراج action سفارشی از docstring
+        
+        در docstring می‌توان بخش Action: را اضافه کرد:
+        Action: create
+        
+        Args:
+            description: توضیحات endpoint از docstring
+        
+        Returns:
+            action سفارشی یا None اگر وجود نداشت
+        """
+        if not description:
+            return None
+        
+        lines = description.split('\n')
+        
+        for line in lines:
+            line_lower = line.lower().strip()
+            # جستجوی "Action:" یا "اکشن:"
+            if line_lower.startswith('action:') or line_lower.startswith('اکشن:'):
+                action = line.split(':', 1)[1].strip() if ':' in line else None
+                return action if action else None
+        
+        return None
+    
     def build_tool_document_content(self, endpoint: Endpoint) -> str:
         """
         ساخت محتوای بهینه برای RAG از Endpoint object
+        
+        این تابع از روش ترکیبی (Hybrid) استفاده می‌کند:
+        - ابتدا سعی می‌کند keywords/synonyms سفارشی را از docstring استخراج کند
+        - اگر وجود نداشت، به صورت خودکار از action type تولید می‌کند
         
         Args:
             endpoint: Endpoint object با اطلاعات کامل
@@ -1229,7 +1635,104 @@ Tools تولید شده خودکار از OpenAPI Schema
         
         content_parts = []
         
-        # 1. عنوان و توضیحات اصلی
+        # ========================================================================
+        # بخش 1: Action, Keywords و Synonyms (روش ترکیبی)
+        # ========================================================================
+        
+        # 1.1. استخراج action سفارشی از docstring یا تشخیص خودکار
+        custom_action = self._extract_custom_action(description)
+        if custom_action:
+            action = custom_action
+        else:
+            action = self._detect_action_from_method(method, path)
+        
+        # 1.2. استخراج keywords سفارشی از docstring یا تولید خودکار
+        custom_keywords = self._extract_custom_keywords(description)
+        if custom_keywords:
+            keywords = custom_keywords
+        else:
+            keywords = self._get_action_keywords(action)
+        
+        # 1.3. استخراج synonyms سفارشی از docstring یا تولید خودکار
+        # استخراج نام فارسی resource با اولویت verbose_name از Model (single source of truth)
+        resource_name_fa = ""
+        
+        # اولویت 1: استفاده از Model.Meta.verbose_name (single source of truth)
+        if tags and tags[0]:
+            resource_name_fa = self._get_verbose_name_from_tag(tags[0])
+        
+        # اولویت 2: از operation_id استخراج کن
+        if not resource_name_fa and operation_id:
+            # مثلاً "Investor_create" -> "Investor"
+            tag_from_op = operation_id.split('_')[0]
+            resource_name_fa = self._get_verbose_name_from_tag(tag_from_op)
+        
+        # اولویت 3: از description استخراج کن (fallback)
+        if not resource_name_fa and description:
+            # سعی می‌کنیم نام resource را از خط اول description استخراج کنیم
+            first_line = description.split('\n')[0].strip()
+            
+            # حذف کلمات action از ابتدا
+            action_words = ['ایجاد', 'دریافت', 'نمایش', 'لیست', 'به‌روزرسانی', 'ویرایش', 'حذف', 
+                          'ساخت', 'ثبت', 'اضافه', 'create', 'get', 'list', 'update', 'delete']
+            for word in action_words:
+                if first_line.startswith(word):
+                    resource_name_fa = first_line.replace(word, '', 1).strip()
+                    # حذف کلمات اضافی
+                    stop_words = ['جدید', 'new', 'برای', 'for', 'پروژه', 'project', 
+                                 'جاری', 'current', 'تمام', 'all', 'همه']
+                    for stop_word in stop_words:
+                        resource_name_fa = resource_name_fa.replace(stop_word, '').strip()
+                    
+                    # حذف "لیست" از ابتدا (برای list action)
+                    if action == 'list' and resource_name_fa.startswith('لیست'):
+                        resource_name_fa = resource_name_fa.replace('لیست', '', 1).strip()
+                    
+                    # استخراج فقط کلمه اول (نام resource)
+                    words = resource_name_fa.split()
+                    if words:
+                        resource_name_fa = words[0]
+                        # حذف "ها" از انتها اگر وجود دارد (برای list action)
+                        if resource_name_fa.endswith('ها'):
+                            resource_name_fa = resource_name_fa[:-2]
+                    break
+            
+            # اگر هنوز پیدا نکردیم، از tags استفاده می‌کنیم (fallback)
+            if not resource_name_fa and tags:
+                resource_name_fa = tags[0] if tags else ""
+        
+        # پاکسازی فاصله‌های اضافی
+        if resource_name_fa:
+            resource_name_fa = re.sub(r'\s+', ' ', resource_name_fa).strip()
+        
+        custom_synonyms = self._extract_custom_synonyms(description)
+        if custom_synonyms:
+            synonyms = custom_synonyms
+        else:
+            synonyms = self._get_action_synonyms(action, resource_name_fa)
+        
+        # 1.4. افزودن Action, Keywords و Synonyms به ابتدای page_content
+        # فقط برای CRUD actions، keywords و synonyms را اضافه می‌کنیم
+        content_parts.append(f"Action: {action}")
+        
+        # بررسی اینکه آیا این یک CRUD action است
+        is_crud = self._is_crud_action(operation_id, action)
+        
+        if is_crud:
+            # فقط برای CRUD actions، keywords و synonyms را اضافه می‌کنیم
+            if keywords:
+                keywords_str = '، '.join(keywords) if isinstance(keywords, list) else keywords
+                content_parts.append(f"Keywords: {keywords_str}")
+            if synonyms:
+                synonyms_str = '، '.join(synonyms) if isinstance(synonyms, list) else synonyms
+                content_parts.append(f"Synonyms: {synonyms_str}")
+        # برای custom actions، keywords و synonyms اضافه نمی‌کنیم
+        
+        content_parts.append("")  # خط خالی برای جداسازی
+        
+        # ========================================================================
+        # بخش 2: عنوان و توضیحات اصلی
+        # ========================================================================
         content_parts.append(f"Tool: {tool_name}")
         if description:
             # استخراج عنوان کوتاه و توضیحات کامل
