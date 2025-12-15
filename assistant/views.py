@@ -15,6 +15,7 @@ from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from construction.project_manager import ProjectManager
 from assistant.jwt_helper import generate_jwt_token
+from assistant.chat_logger import save_chat_log
 
 logger = logging.getLogger(__name__)
 
@@ -122,7 +123,22 @@ def chat_api(request):
             if response.status_code == 200:
                 result = response.json()
                 
-                # اضافه کردن به تاریخچه
+                # ذخیره‌سازی ChatLog در دیتابیس (Separation of Concerns)
+                # این کار به صورت non-blocking انجام می‌شود تا سرعت پاسخ را کاهش ندهد
+                try:
+                    save_chat_log(
+                        user=request.user,
+                        user_message=user_message,
+                        assistant_response=result.get('output', ''),
+                        response_data=result,
+                        project=current_project
+                    )
+                except Exception as e:
+                    # در صورت خطا در ذخیره‌سازی، فقط لاگ می‌کنیم
+                    # اما پاسخ را به کاربر برمی‌گردانیم
+                    logger.warning(f"⚠️ خطا در ذخیره‌سازی ChatLog (غیر بحرانی): {str(e)}")
+                
+                # اضافه کردن به تاریخچه session
                 if result.get('success'):
                     chat_history.append({
                         'role': 'user',
