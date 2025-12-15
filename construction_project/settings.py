@@ -66,6 +66,8 @@ CSRF_TRUSTED_ORIGINS = [
     'https://organic-winner-p649rx6xwxhr9r9-8000.app.github.dev',
     'http://*.app.github.dev',
     'http://*.preview.app.github.dev',
+    'https://django-arash.chbk.dev',
+    'https://*.chbk.dev',
 ]
 
 # تنظیمات Content Security Policy بر اساس محیط

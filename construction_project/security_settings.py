@@ -69,6 +69,8 @@ DEVELOPMENT_SECURITY_SETTINGS = {
         'https://localhost:8000',
         'https://127.0.0.1:8000',
         'https://organic-winner-p649rx6xwxhr9r9-8000.app.github.dev',
+        'https://django-arash.chbk.dev',
+        'https://*.chbk.dev',
     ],
     # تنظیمات Content Security Policy برای CDN
     'CSP_DEFAULT_SRC': ("'self'", "'unsafe-inline'", "'unsafe-eval'", "data:", "blob:", "https:", "http:"),
@@ -102,6 +104,8 @@ PRODUCTION_SECURITY_SETTINGS = {
         'http://127.0.0.1:8000',
         'https://localhost:8000',
         'https://127.0.0.1:8000',
+        'https://django-arash.chbk.dev',
+        'https://*.chbk.dev',
     ],
     # تنظیمات امنیتی نرم‌تر برای Codespaces
     'SECURE_SSL_REDIRECT': False,  # Codespaces خودش HTTPS دارد
