@@ -22,14 +22,12 @@ logger = logging.getLogger(__name__)
 
 def _is_assistant_enabled():
     """بررسی اینکه آیا دستیار فعال است یا نه"""
-    enabled = os.getenv('AI_ASSISTANT_ENABLED', 'false').lower() == 'true'
-    service_url = os.getenv('AI_ASSISTANT_SERVICE_URL', '')
-    return enabled and bool(service_url)
+    return settings.AI_ASSISTANT_ENABLED and bool(settings.AI_ASSISTANT_SERVICE_URL)
 
 
 def _get_assistant_service_url():
     """دریافت URL سرویس دستیار"""
-    return os.getenv('AI_ASSISTANT_SERVICE_URL', '')
+    return settings.AI_ASSISTANT_SERVICE_URL
 
 
 @login_required
@@ -107,7 +105,9 @@ def chat_api(request):
             
             async def send_request():
                 # افزایش timeout به 180 ثانیه (3 دقیقه) برای درخواست‌های طولانی
-                async with httpx.AsyncClient(timeout=180.0) as client:
+                # استفاده از verify=True برای SSL verification (پیش‌فرض)
+                timeout = httpx.Timeout(180.0, connect=30.0)  # 30 ثانیه برای اتصال، 180 ثانیه برای کل درخواست
+                async with httpx.AsyncClient(timeout=timeout, verify=True, follow_redirects=True) as client:
                     headers = {
                         "Content-Type": "application/json",
                         "Authorization": f"Bearer {api_token}"  # ارسال token در header (اولویت اول)
@@ -132,8 +132,17 @@ def chat_api(request):
                 loop = asyncio.get_event_loop()
                 if loop.is_running():
                     # اگر loop در حال اجرا است، از ThreadPoolExecutor استفاده می‌کنیم
+                    # ایجاد یک event loop جدید در thread جداگانه
+                    def run_in_thread():
+                        new_loop = asyncio.new_event_loop()
+                        asyncio.set_event_loop(new_loop)
+                        try:
+                            return new_loop.run_until_complete(send_request())
+                        finally:
+                            new_loop.close()
+                    
                     with ThreadPoolExecutor() as executor:
-                        future = executor.submit(asyncio.run, send_request())
+                        future = executor.submit(run_in_thread)
                         response = future.result()
                 else:
                     # اگر loop در حال اجرا نیست، از run_until_complete استفاده می‌کنیم
@@ -142,9 +151,18 @@ def chat_api(request):
                 # اگر loop وجود ندارد، یک loop جدید ایجاد می‌کنیم
                 response = asyncio.run(send_request())
             
-            if response.status_code == 200:
+            # تلاش برای parse کردن response
+            try:
                 result = response.json()
-                
+            except:
+                result = {
+                    'output': f'خطا در پردازش پاسخ از سرویس دستیار (Status: {response.status_code})',
+                    'success': False,
+                    'error': f'Invalid response format (Status: {response.status_code})'
+                }
+            
+            # بررسی اینکه آیا پاسخ موفق است یا نه
+            if response.status_code == 200 and result.get('success', False):
                 # ذخیره‌سازی ChatLog در دیتابیس (Separation of Concerns)
                 # این کار به صورت non-blocking انجام می‌شود تا سرعت پاسخ را کاهش ندهد
                 try:
@@ -161,26 +179,32 @@ def chat_api(request):
                     logger.warning(f"⚠️ خطا در ذخیره‌سازی ChatLog (غیر بحرانی): {str(e)}")
                 
                 # اضافه کردن به تاریخچه session
-                if result.get('success'):
-                    chat_history.append({
-                        'role': 'user',
-                        'content': user_message
-                    })
-                    chat_history.append({
-                        'role': 'assistant',
-                        'content': result.get('output', '')
-                    })
-                    if len(chat_history) > 10:
-                        chat_history = chat_history[-10:]
-                    request.session['chat_history'] = chat_history
+                chat_history.append({
+                    'role': 'user',
+                    'content': user_message
+                })
+                chat_history.append({
+                    'role': 'assistant',
+                    'content': result.get('output', '')
+                })
+                if len(chat_history) > 10:
+                    chat_history = chat_history[-10:]
+                request.session['chat_history'] = chat_history
                 
                 return JsonResponse(result)
             else:
+                # لاگ کردن جزئیات خطا از سمت دستیار
                 logger.error(f"خطا از سمت دستیار: {response.status_code}")
+                logger.error(f"جزئیات خطا: {result}")
+                
+                # اگر response شامل پیام خطا است، آن را به کاربر نشان می‌دهیم
+                error_message = result.get('error', result.get('output', 'خطا در ارتباط با سرویس دستیار'))
+                
                 return JsonResponse({
-                    'error': 'خطا در ارتباط با سرویس دستیار',
+                    'error': error_message,
                     'success': False,
-                    'status_code': response.status_code
+                    'status_code': response.status_code,
+                    'details': result
                 }, status=503)
         
         except httpx.TimeoutException:
@@ -190,8 +214,11 @@ def chat_api(request):
                 'success': False
             }, status=504)
         
-        except httpx.ConnectError:
-            logger.error("خطا در اتصال به سرویس دستیار")
+        except httpx.ConnectError as e:
+            logger.error(f"خطا در اتصال به سرویس دستیار: {str(e)}")
+            logger.error(f"URL سرویس: {assistant_url}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
             return JsonResponse({
                 'error': 'سرویس دستیار در دسترس نیست. لطفاً بعداً تلاش کنید.',
                 'success': False,
@@ -200,6 +227,8 @@ def chat_api(request):
         
         except Exception as e:
             logger.error(f"خطا در ارتباط با دستیار: {str(e)}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
             return JsonResponse({
                 'error': f'خطا در ارتباط با سرویس دستیار: {str(e)}',
                 'success': False
