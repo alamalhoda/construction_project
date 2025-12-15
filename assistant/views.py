@@ -103,6 +103,7 @@ def chat_api(request):
         try:
             # استفاده از httpx برای async call
             import asyncio
+            from concurrent.futures import ThreadPoolExecutor
             
             async def send_request():
                 # افزایش timeout به 180 ثانیه (3 دقیقه) برای درخواست‌های طولانی
@@ -126,8 +127,20 @@ def chat_api(request):
                     )
                     return response
             
-            # اجرای async request
-            response = asyncio.run(send_request())
+            # اجرای async request با مدیریت event loop
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    # اگر loop در حال اجرا است، از ThreadPoolExecutor استفاده می‌کنیم
+                    with ThreadPoolExecutor() as executor:
+                        future = executor.submit(asyncio.run, send_request())
+                        response = future.result()
+                else:
+                    # اگر loop در حال اجرا نیست، از run_until_complete استفاده می‌کنیم
+                    response = loop.run_until_complete(send_request())
+            except RuntimeError:
+                # اگر loop وجود ندارد، یک loop جدید ایجاد می‌کنیم
+                response = asyncio.run(send_request())
             
             if response.status_code == 200:
                 result = response.json()
