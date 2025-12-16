@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load json_script %}
 
 {% block title %}دستیار هوشمند - AI Assistant{% endblock %}
 
@@ -1040,10 +1041,13 @@
 
 <div id="toast" class="toast" style="display: none;"></div>
 
+{{ assistant_enabled|json_script:"assistant-enabled" }}
+{{ assistant_url|default:''|json_script:"assistant-url" }}
+
 <script>
     // بررسی اینکه آیا دستیار فعال است
-    const ASSISTANT_ENABLED = {{ assistant_enabled|yesno:"true,false" }};
-    const ASSISTANT_URL = "{{ assistant_url|default:'' }}";
+    const ASSISTANT_ENABLED = JSON.parse(document.getElementById('assistant-enabled').textContent);
+    const ASSISTANT_URL = JSON.parse(document.getElementById('assistant-url').textContent);
     
     const messagesDiv = document.getElementById('messages');
     const messageInput = document.getElementById('messageInput');
@@ -1718,14 +1722,64 @@
                 throw new Error(`خطا در خواندن پاسخ سرور: ${e.message}`);
             }
             
+            // بررسی Content-Type header
+            const contentType = response.headers.get('content-type') || '';
+            const isJson = contentType.includes('application/json');
+            
             // Parse کردن JSON از متن
             let data;
             try {
-                data = JSON.parse(responseText);
+                // بررسی اینکه responseText خالی نباشد
+                if (!responseText || responseText.trim() === '') {
+                    // اگر response خالی است اما status OK است، یک response خالی برمی‌گردانیم
+                    if (response.ok) {
+                        data = { success: false, error: 'پاسخ سرور خالی است' };
+                    } else {
+                        throw new Error('پاسخ سرور خالی است - احتمالاً خطا در سرور رخ داده است');
+                    }
+                } else {
+                    // اگر Content-Type JSON نیست اما متن با { یا [ شروع می‌شود، سعی می‌کنیم parse کنیم
+                    if (!isJson && (responseText.trim().startsWith('{') || responseText.trim().startsWith('['))) {
+                        console.warn('⚠️ Content-Type JSON نیست اما متن شبیه JSON است. تلاش برای parse...');
+                    }
+                    
+                    data = JSON.parse(responseText);
+                }
             } catch (e) {
                 // اگر JSON parse نشد
-                console.error('خطا در parse کردن JSON:', responseText);
-                throw new Error('پاسخ سرور نامعتبر است - فرمت JSON معتبر نیست');
+                console.error('خطا در parse کردن JSON:', {
+                    error: e.message,
+                    responseText: responseText.substring(0, 500), // فقط 500 کاراکتر اول برای لاگ
+                    status: response.status,
+                    statusText: response.statusText,
+                    contentType: contentType,
+                    isJson: isJson
+                });
+                
+                // اگر response HTML است (مثلاً صفحه خطا Django)
+                if (responseText.trim().startsWith('<!DOCTYPE') || responseText.trim().startsWith('<html')) {
+                    // استخراج پیام خطا از HTML اگر ممکن باشد
+                    const errorMatch = responseText.match(/<title>(.*?)<\/title>/i) || 
+                                     responseText.match(/<h1>(.*?)<\/h1>/i) ||
+                                     responseText.match(/<p[^>]*>(.*?)<\/p>/i);
+                    const htmlError = errorMatch ? errorMatch[1] : 'خطای سرور';
+                    throw new Error(`پاسخ سرور HTML است (${response.status}): ${htmlError}`);
+                }
+                
+                // اگر response خالی است یا فقط whitespace است
+                if (!responseText || responseText.trim() === '') {
+                    throw new Error(`پاسخ سرور خالی است (Status: ${response.status}) - احتمالاً خطا در سرور رخ داده است`);
+                }
+                
+                // نمایش جزئیات بیشتر در console برای دیباگ
+                console.error('متن کامل response (اول 1000 کاراکتر):', responseText.substring(0, 1000));
+                
+                // اگر status غیر 200 است، پیام خطا را از متن استخراج می‌کنیم
+                if (!response.ok) {
+                    throw new Error(`خطای HTTP ${response.status}: ${responseText.substring(0, 200)}`);
+                }
+                
+                throw new Error(`پاسخ سرور نامعتبر است - فرمت JSON معتبر نیست. خطا: ${e.message}`);
             }
             
             // بررسی وضعیت HTTP response
