@@ -12,6 +12,8 @@ backlog = 2048
 # Worker processes (optimized for Chabokan.net)
 # Use environment variable or default to 3 workers
 workers = int(os.environ.get('GUNICORN_WORKERS', '3'))
+# CRITICAL: Must use 'sync' worker class for SQLite compatibility
+# gevent worker causes "DatabaseWrapper objects created in a thread can only be used in that same thread" error
 worker_class = 'sync'
 worker_connections = 1000
 timeout = 30
@@ -42,7 +44,8 @@ tmp_upload_dir = None
 # certfile = '/path/to/certfile'
 
 # Preload app for better performance
-preload_app = True
+# Disabled for SQLite compatibility (SQLite doesn't work well with preload_app)
+preload_app = False
 
 # Worker timeout
 graceful_timeout = 30

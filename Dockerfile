@@ -40,4 +40,4 @@ USER appuser
 EXPOSE 8000
 
 # دستور اجرا
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "construction_project.wsgi:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "--worker-class", "sync", "construction_project.wsgi:application"]

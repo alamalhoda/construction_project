@@ -178,9 +178,11 @@ fi
 print_step "13. Starting Gunicorn..."
 
 # Start Gunicorn on port 8000
+# Using sync worker class for SQLite compatibility (gevent doesn't work with SQLite)
 nohup gunicorn construction_project.wsgi:application \
     --bind 0.0.0.0:8000 \
     --workers 3 \
+    --worker-class sync \
     --timeout 30 \
     --keep-alive 2 \
     --max-requests 1000 \

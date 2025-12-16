@@ -92,12 +92,14 @@ print_info "Port: $PORT"
 # Try different ways to start Gunicorn
 if [ -f "gunicorn.conf.py" ]; then
     print_info "Using gunicorn.conf.py configuration..."
-    exec gunicorn --config gunicorn.conf.py construction_project.wsgi:application
+    # Explicitly set worker-class to sync to prevent Chabokan.net from auto-detecting gevent
+    exec gunicorn --config gunicorn.conf.py --worker-class sync construction_project.wsgi:application
 else
     print_info "Using direct Gunicorn command..."
     exec gunicorn \
         --bind 0.0.0.0:$PORT \
         --workers 3 \
+        --worker-class sync \
         --timeout 30 \
         --keep-alive 2 \
         --max-requests 1000 \

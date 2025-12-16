@@ -6,7 +6,7 @@ services:
     dockerfilePath: ./Dockerfile
     plan: free
     buildCommand: ""
-    startCommand: "gunicorn --bind 0.0.0.0:$PORT --workers 3 construction_project.wsgi:application"
+    startCommand: "gunicorn --bind 0.0.0.0:$PORT --workers 3 --worker-class sync construction_project.wsgi:application"
     envVars:
       - key: DJANGO_SETTINGS_MODULE
         value: construction_project.production_settings
