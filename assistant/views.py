@@ -91,8 +91,14 @@ def chat_api(request):
             project_id=current_project.id if current_project else None
         )
         
+        # لاگ برای دیباگ: بررسی توکن تولید شده
+        logger.debug(f"🔐 JWT Token تولید شد: {api_token[:50] if api_token else 'None'}...")
+        logger.debug(f"📌 Project ID: {current_project.id if current_project else None}")
+        logger.debug(f"👤 User ID: {request.user.id}")
+        
         # ارسال درخواست به سرویس دستیار
         assistant_url = _get_assistant_service_url()
+        logger.debug(f"🌐 ارسال درخواست به: {assistant_url}/api/v1/chat")
         
         try:
             # استفاده از httpx برای async call
@@ -101,6 +107,12 @@ def chat_api(request):
             async def send_request():
                 # افزایش timeout به 180 ثانیه (3 دقیقه) برای درخواست‌های طولانی
                 async with httpx.AsyncClient(timeout=180.0) as client:
+                    headers = {
+                        "Content-Type": "application/json",
+                        "Authorization": f"Bearer {api_token}"  # ارسال token در header (اولویت اول)
+                    }
+                    logger.debug(f"📤 Headers ارسالی: Authorization={headers.get('Authorization', '')[:50]}...")
+                    
                     response = await client.post(
                         f"{assistant_url}/api/v1/chat",
                         json={
@@ -110,10 +122,7 @@ def chat_api(request):
                             "chat_history": chat_history,
                             "api_token": api_token  # برای backward compatibility
                         },
-                        headers={
-                            "Content-Type": "application/json",
-                            "Authorization": f"Bearer {api_token}"  # ارسال token در header (اولویت اول)
-                        }
+                        headers=headers
                     )
                     return response
             
