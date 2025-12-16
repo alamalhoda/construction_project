@@ -152,8 +152,9 @@ fi
 
 print_step "10. Collecting static files..."
 
-# Collect static files
-python manage.py collectstatic --noinput --clear
+# Collect static files (only show summary, not individual deletions)
+COLLECT_OUTPUT=$(python manage.py collectstatic --noinput --clear 2>&1)
+echo "$COLLECT_OUTPUT" | grep -E "static files copied|post-processed" || true
 print_message "Static files collected"
 
 print_step "11. Running security checks..."
