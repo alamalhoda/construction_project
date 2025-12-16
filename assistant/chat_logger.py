@@ -37,9 +37,17 @@ def save_chat_log(
         ChatLog instance در صورت موفقیت، None در صورت خطا
     """
     try:
+        # لاگ کردن برای دیباگ: بررسی داده‌های دریافتی
+        logger.debug(f"📥 داده‌های دریافتی برای ChatLog: keys={list(response_data.keys())}")
+        logger.debug(f"   token_usage: {response_data.get('token_usage')}")
+        logger.debug(f"   tools_used: {response_data.get('tools_used')}")
+        logger.debug(f"   duration_seconds: {response_data.get('duration_seconds')}")
+        logger.debug(f"   llm_provider: {response_data.get('llm_provider')}")
+        logger.debug(f"   llm_model: {response_data.get('llm_model')}")
+        
         # استخراج اطلاعات از response_data
-        token_usage = response_data.get('token_usage', {})
-        tools_used = response_data.get('tools_used', [])
+        token_usage = response_data.get('token_usage', {}) or {}
+        tools_used = response_data.get('tools_used', []) or []
         
         # تبدیل tools_used به لیست ساده از نام‌ها (برای ذخیره‌سازی)
         tools_list = []
@@ -79,7 +87,8 @@ def save_chat_log(
         logger.info(
             f"✅ ChatLog ذخیره شد: ID={chat_log.id}, "
             f"User={user.username}, "
-            f"Tokens={chat_log.total_tokens}, "
+            f"Tokens={chat_log.total_tokens} (in={chat_log.input_tokens}, out={chat_log.output_tokens}), "
+            f"Tools={chat_log.tools_count}, "
             f"Duration={chat_log.duration_seconds}s"
         )
         

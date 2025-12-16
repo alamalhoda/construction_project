@@ -28,8 +28,13 @@ class ProjectManager:
         
         project_id = None
         
-        # اولویت 1: بررسی header X-Project-ID (برای API calls با token authentication)
-        if hasattr(request, 'META'):
+        # اولویت 1: بررسی project_id از JWT token (برای دستیار هوشمند)
+        if hasattr(request, 'jwt_project_id'):
+            project_id = request.jwt_project_id
+            logger.info(f"🔍 ProjectManager.get_current_project - project_id از JWT token: {project_id}")
+        
+        # اولویت 2: بررسی header X-Project-ID (برای API calls با token authentication)
+        if not project_id and hasattr(request, 'META'):
             project_id_header = request.META.get('HTTP_X_PROJECT_ID') or request.META.get('X-Project-ID')
             if project_id_header:
                 try:
@@ -38,7 +43,7 @@ class ProjectManager:
                 except (ValueError, TypeError):
                     logger.warning(f"⚠️ project_id در header نامعتبر است: {project_id_header}")
         
-        # اولویت 2: بررسی session (برای web requests)
+        # اولویت 3: بررسی session (برای web requests)
         if not project_id and hasattr(request, 'session'):
             project_id = request.session.get('current_project_id')
             if project_id:
