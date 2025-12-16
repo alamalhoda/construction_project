@@ -1709,16 +1709,23 @@
             // پاک کردن timeout بعد از دریافت response
             clearTimeout(timeoutId);
             
+            // خواندن response body فقط یک بار (برای جلوگیری از خطای "body stream already read")
+            let responseText;
+            try {
+                responseText = await response.text();
+            } catch (e) {
+                throw new Error(`خطا در خواندن پاسخ سرور: ${e.message}`);
+            }
+            
             // بررسی وضعیت HTTP response
             if (!response.ok) {
                 // اگر response غیر 200 است، سعی می‌کنیم JSON را parse کنیم
                 let errorData;
                 try {
-                    errorData = await response.json();
+                    errorData = JSON.parse(responseText);
                 } catch (e) {
                     // اگر JSON parse نشد، از متن response استفاده می‌کنیم
-                    const text = await response.text();
-                    throw new Error(`خطای HTTP ${response.status}: ${text || 'خطای نامشخص'}`);
+                    throw new Error(`خطای HTTP ${response.status}: ${responseText || 'خطای نامشخص'}`);
                 }
                 
                 // اگر JSON parse شد، از آن استفاده می‌کنیم
@@ -1741,11 +1748,10 @@
             // Parse کردن JSON response
             let data;
             try {
-                data = await response.json();
+                data = JSON.parse(responseText);
             } catch (e) {
                 // اگر JSON parse نشد
-                const text = await response.text();
-                console.error('خطا در parse کردن JSON:', text);
+                console.error('خطا در parse کردن JSON:', responseText);
                 throw new Error('پاسخ سرور نامعتبر است');
             }
             
