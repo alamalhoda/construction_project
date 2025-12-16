@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% load static %}
-{% load json_script %}
 
 {% block title %}دستیار هوشمند - AI Assistant{% endblock %}
 
@@ -1041,13 +1040,18 @@
 
 <div id="toast" class="toast" style="display: none;"></div>
 
-{{ assistant_enabled|json_script:"assistant-enabled" }}
-{{ assistant_url|default:''|json_script:"assistant-url" }}
+<script id="assistant-config" type="application/json">
+{
+    "enabled": {% if assistant_enabled %}true{% else %}false{% endif %},
+    "url": "{{ assistant_url|default:''|escapejs }}"
+}
+</script>
 
 <script>
     // بررسی اینکه آیا دستیار فعال است
-    const ASSISTANT_ENABLED = JSON.parse(document.getElementById('assistant-enabled').textContent);
-    const ASSISTANT_URL = JSON.parse(document.getElementById('assistant-url').textContent);
+    const config = JSON.parse(document.getElementById('assistant-config').textContent);
+    const ASSISTANT_ENABLED = config.enabled;
+    const ASSISTANT_URL = config.url;
     
     const messagesDiv = document.getElementById('messages');
     const messageInput = document.getElementById('messageInput');
