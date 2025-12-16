@@ -1218,8 +1218,18 @@
                 if (!text.trim()) continue;
                 
                 // بررسی اینکه آیا پیام شامل Markdown است یا نه (بهینه‌سازی شده)
+                // بررسی انواع مختلف markdown: جداول، bold، italic، کد، headers، لینک‌ها، لیست‌ها، blockquote
                 const hasTable = text.includes('|');
-                const hasMarkdown = hasTable || text.includes('**') || text.includes('`') || text.includes('#');
+                const hasMarkdown = hasTable || 
+                    text.includes('**') || text.includes('__') ||  // bold
+                    text.includes('*') || text.includes('_') ||    // italic
+                    text.includes('`') ||                          // code
+                    text.includes('#') ||                           // headers
+                    text.includes('[') || text.includes('](') ||   // links
+                    text.includes('![') ||                         // images
+                    text.includes('- ') || text.includes('* ') ||  // lists
+                    text.includes('> ') ||                         // blockquote
+                    text.includes('```');                          // code blocks
                 
                 // اگر Markdown دارد و قبلاً پردازش نشده، پردازش کن
                 if (hasMarkdown) {
@@ -1280,27 +1290,47 @@
     // تابع برای پردازش جداول Markdown (fallback)
     // این تابع می‌تواند هم متن خام و هم HTML را پردازش کند
     function parseMarkdownTable(text) {
-        // اگر متن شامل تگ‌های HTML است، ابتدا آنها را با placeholder جایگزین می‌کنیم
-        const htmlPlaceholders = [];
-        let htmlIndex = 0;
-        let processedText = text.replace(/<[^>]+>/g, (tag) => {
-            const placeholder = `__HTML_PLACEHOLDER_${htmlIndex}__`;
-            htmlPlaceholders[htmlIndex] = tag;
-            htmlIndex++;
-            return placeholder;
-        });
+        // بررسی ورودی
+        if (!text || typeof text !== 'string') {
+            return '';
+        }
+        
+        try {
+            // اگر متن شامل تگ‌های HTML است، ابتدا آنها را با placeholder جایگزین می‌کنیم
+            const htmlPlaceholders = [];
+            let htmlIndex = 0;
+            let processedText;
+            try {
+                processedText = text.replace(/<[^>]+>/g, (tag) => {
+                    const placeholder = `__HTML_PLACEHOLDER_${htmlIndex}__`;
+                    htmlPlaceholders[htmlIndex] = tag;
+                    htmlIndex++;
+                    return placeholder;
+                });
+            } catch (e) {
+                console.warn('خطا در پردازش HTML tags:', e);
+                processedText = text;
+            }
         // الگوی جدول Markdown: پیدا کردن جداول با الگوی | col1 | col2 |
         // این regex جداول را پیدا می‌کند که شامل خط هدر، خط separator و حداقل یک خط داده است
         // همچنین جداول یک خطی را هم پیدا می‌کند
         
-        // ابتدا جداول چند خطی را پیدا می‌کنیم
-        // الگوی بهبود یافته: پیدا کردن جداول با خط هدر، separator و حداقل یک خط داده
-        let tableRegex = /(\|[^\n]+\|\s*\n\|[\s\-:]+\|\s*\n(?:\|[^\n]+\|\s*\n?)+)/g;
-        let matches = processedText.match(tableRegex);
-        
-        if (matches) {
-            // پردازش جداول چند خطی
-            matches.forEach(match => {
+            // ابتدا جداول چند خطی را پیدا می‌کنیم
+            // الگوی بهبود یافته: پیدا کردن جداول با خط هدر， separator و حداقل یک خط داده
+            let tableRegex;
+            let matches;
+            try {
+                tableRegex = /(\|[^\n]+\|\s*\n\|[\s\-:]+\|\s*\n(?:\|[^\n]+\|\s*\n?)+)/g;
+                matches = processedText.match(tableRegex);
+            } catch (e) {
+                console.warn('خطا در regex جداول چند خطی:', e);
+                matches = null;
+            }
+            
+            if (matches) {
+                // پردازش جداول چند خطی
+                matches.forEach(match => {
+                    try {
                 const lines = match.trim().split(/\r?\n/).map(line => line.trim()).filter(line => line && line.startsWith('|'));
                 if (lines.length < 2) return;
                 
@@ -1329,32 +1359,43 @@
                     tableHtml += '</tr>';
                 });
                 
-                tableHtml += '</tbody></table>';
-                processedText = processedText.replace(match, tableHtml);
-            });
-        }
-        
-        // اگر جدول چند خطی پیدا نشد، جداول یک خطی را پیدا می‌کنیم
+                        tableHtml += '</tbody></table>';
+                        processedText = processedText.replace(match, tableHtml);
+                    } catch (e) {
+                        console.warn('خطا در پردازش یک جدول چند خطی:', e);
+                        // در صورت خطا، جدول را با متن اصلی جایگزین می‌کنیم
+                    }
+                });
+            }
+            
+            // اگر جدول چند خطی پیدا نشد، جداول یک خطی را پیدا می‌کنیم
         // الگوی جدول یک خطی: | header1 | header2 | |---|---| | data1 | data2 |
         // پیدا کردن الگوی: |...|...|...||---|...|...|...|
         // استفاده از || به عنوان جداکننده سطرها
         
-        // پیدا کردن تمام قسمت‌هایی که شامل | و --- هستند و شامل || هستند (جداکننده سطرها)
-        // الگوی: |...|...|...||---|...|...|...| که شامل || است
-        const singleLineTablePattern = /(\|[^|]+\|(?:\s*\|\s*[^|]+\|)+\s*\|\s*[\s\-:]+\s*\|(?:\s*\|\s*[^|]+\|)+)/g;
-        let singleLineMatches = processedText.match(singleLineTablePattern);
-        
-        // اگر regex بالا کار نکرد، از روش دیگری استفاده می‌کنیم
-        // پیدا کردن الگوی: |...|...|...||---|...|...|...| که شامل || است
-        if (!singleLineMatches) {
-            // پیدا کردن تمام قسمت‌هایی که شامل | و --- هستند و شامل || هستند
-            // استفاده از یک regex ساده‌تر که تمام جداول را پیدا می‌کند
-            const simpleTablePattern = /(\|[^|]+\|(?:\s*\|\s*[^|]+\|)+\s*\|\s*[\s\-:]+\s*\|(?:\s*\|\s*[^|]+\|)+)/g;
-            singleLineMatches = processedText.match(simpleTablePattern);
-        }
-        
-        if (singleLineMatches) {
-            singleLineMatches.forEach(match => {
+            // پیدا کردن تمام قسمت‌هایی که شامل | و --- هستند و شامل || هستند (جداکننده سطرها)
+            // الگوی: |...|...|...||---|...|...|...| که شامل || است
+            let singleLineMatches;
+            try {
+                const singleLineTablePattern = /(\|[^|]+\|(?:\s*\|\s*[^|]+\|)+\s*\|\s*[\s\-:]+\s*\|(?:\s*\|\s*[^|]+\|)+)/g;
+                singleLineMatches = processedText.match(singleLineTablePattern);
+                
+                // اگر regex بالا کار نکرد، از روش دیگری استفاده می‌کنیم
+                // پیدا کردن الگوی: |...|...|...||---|...|...|...| که شامل || است
+                if (!singleLineMatches) {
+                    // پیدا کردن تمام قسمت‌هایی که شامل | و --- هستند و شامل || هستند
+                    // استفاده از یک regex ساده‌تر که تمام جداول را پیدا می‌کند
+                    const simpleTablePattern = /(\|[^|]+\|(?:\s*\|\s*[^|]+\|)+\s*\|\s*[\s\-:]+\s*\|(?:\s*\|\s*[^|]+\|)+)/g;
+                    singleLineMatches = processedText.match(simpleTablePattern);
+                }
+            } catch (e) {
+                console.warn('خطا در regex جداول یک خطی:', e);
+                singleLineMatches = null;
+            }
+            
+            if (singleLineMatches) {
+                singleLineMatches.forEach(match => {
+                    try {
                 // جدا کردن سطرها با استفاده از || به عنوان جداکننده
                 // اما باید مراقب باشیم که || داخل سلول‌ها نباشد
                 // برای سادگی، از split استفاده می‌کنیم
@@ -1398,122 +1439,207 @@
                     tableHtml += '</tr>';
                 });
                 
-                tableHtml += '</tbody></table>';
-                processedText = processedText.replace(match, tableHtml);
-            });
+                        tableHtml += '</tbody></table>';
+                        processedText = processedText.replace(match, tableHtml);
+                    } catch (e) {
+                        console.warn('خطا در پردازش یک جدول یک خطی:', e);
+                        // در صورت خطا، جدول را با متن اصلی جایگزین می‌کنیم
+                    }
+                });
+            }
+        
+            // جایگزینی placeholderها با تگ‌های HTML
+            try {
+                htmlPlaceholders.forEach((tag, index) => {
+                    const placeholder = `__HTML_PLACEHOLDER_${index}__`;
+                    processedText = processedText.replace(placeholder, tag);
+                });
+            } catch (e) {
+                console.warn('خطا در جایگزینی HTML placeholders:', e);
+            }
+            
+            return processedText;
+        } catch (error) {
+            // در صورت خطای کلی، متن اصلی را escape کرده و برمی‌گردانیم
+            console.error('خطای کلی در parseMarkdownTable:', error);
+            return escapeHtml(text);
         }
-        
-        // جایگزینی placeholderها با تگ‌های HTML
-        htmlPlaceholders.forEach((tag, index) => {
-            const placeholder = `__HTML_PLACEHOLDER_${index}__`;
-            processedText = processedText.replace(placeholder, tag);
-        });
-        
-        return processedText;
     }
     
     // تابع برای فرمت کردن متن با استفاده از Markdown
     function formatMessage(text) {
-        // ابتدا جداول را پردازش می‌کنیم (قبل از marked.js)
-        // چون marked.js ممکن است جداول را به درستی پردازش نکند
-        const tablePlaceholders = [];
-        let tableIndex = 0;
+        // بررسی ورودی
+        if (!text || typeof text !== 'string') {
+            return '';
+        }
         
-        // پیدا کردن جداول و جایگزینی با placeholder
-        // الگوی جداول چند خطی
-        let processedText = text.replace(/(\|[^\n]+\|\s*\n\|[\s\-:]+\|\s*\n(?:\|[^\n]+\|\s*\n?)+)/g, (match) => {
-            const placeholder = `__TABLE_PLACEHOLDER_${tableIndex}__`;
-            tablePlaceholders[tableIndex] = match;
-            tableIndex++;
-            return placeholder;
-        });
-        
-        // الگوی جداول یک خطی (با ||)
-        processedText = processedText.replace(/(\|[^|]+\|(?:\s*\|\s*[^|]+\|)+\s*\|\s*[\s\-:]+\s*\|(?:\s*\|\s*[^|]+\|)+)/g, (match) => {
-            // بررسی اینکه آیا این match قبلاً پردازش شده است یا نه
-            if (!match.includes('__TABLE_PLACEHOLDER_')) {
-                const placeholder = `__TABLE_PLACEHOLDER_${tableIndex}__`;
-                tablePlaceholders[tableIndex] = match;
-                tableIndex++;
-                return placeholder;
-            }
-            return match;
-        });
-        
-        // اگر marked.js موجود است، از آن برای پردازش سایر عناصر استفاده می‌کنیم
-        if (typeof marked !== 'undefined' && markedReady) {
+        try {
+            // ابتدا جداول را پردازش می‌کنیم (قبل از marked.js)
+            // چون marked.js ممکن است جداول را به درستی پردازش نکند
+            const tablePlaceholders = [];
+            let tableIndex = 0;
+            
+            // پیدا کردن جداول و جایگزینی با placeholder
+            // الگوی جداول چند خطی - با try-catch برای جلوگیری از خطا
+            let processedText = text;
             try {
-                // پردازش با marked.js (با breaks: true که خطوط جدید را به <br> تبدیل می‌کند)
-                let html = marked.parse(processedText);
-                
-                // جایگزینی placeholderها با جداول HTML
-                tablePlaceholders.forEach((tableText, index) => {
+                processedText = text.replace(/(\|[^\n]+\|\s*\n\|[\s\-:]+\|\s*\n(?:\|[^\n]+\|\s*\n?)+)/g, (match) => {
+                    const placeholder = `__TABLE_PLACEHOLDER_${tableIndex}__`;
+                    tablePlaceholders[tableIndex] = match;
+                    tableIndex++;
+                    return placeholder;
+                });
+            } catch (e) {
+                console.warn('خطا در پردازش جداول چند خطی:', e);
+                processedText = text;
+            }
+            
+            // الگوی جداول یک خطی (با ||) - با try-catch
+            try {
+                processedText = processedText.replace(/(\|[^|]+\|(?:\s*\|\s*[^|]+\|)+\s*\|\s*[\s\-:]+\s*\|(?:\s*\|\s*[^|]+\|)+)/g, (match) => {
+                    // بررسی اینکه آیا این match قبلاً پردازش شده است یا نه
+                    if (!match.includes('__TABLE_PLACEHOLDER_')) {
+                        const placeholder = `__TABLE_PLACEHOLDER_${tableIndex}__`;
+                        tablePlaceholders[tableIndex] = match;
+                        tableIndex++;
+                        return placeholder;
+                    }
+                    return match;
+                });
+            } catch (e) {
+                console.warn('خطا در پردازش جداول یک خطی:', e);
+            }
+            
+            // اگر marked.js موجود است، از آن برای پردازش سایر عناصر استفاده می‌کنیم
+            if (typeof marked !== 'undefined' && markedReady) {
+                try {
+                    // پردازش با marked.js (با breaks: true که خطوط جدید را به <br> تبدیل می‌کند)
+                    let html = marked.parse(processedText);
+                    
+                    // جایگزینی placeholderها با جداول HTML - با error handling
+                    tablePlaceholders.forEach((tableText, index) => {
+                        try {
+                            const placeholder = `__TABLE_PLACEHOLDER_${index}__`;
+                            const tableHtml = parseMarkdownTable(tableText);
+                            html = html.replace(placeholder, tableHtml);
+                        } catch (e) {
+                            console.warn(`خطا در پردازش جدول ${index}:`, e);
+                            // در صورت خطا، placeholder را با متن اصلی جایگزین می‌کنیم
+                            const placeholder = `__TABLE_PLACEHOLDER_${index}__`;
+                            html = html.replace(placeholder, escapeHtml(tableText));
+                        }
+                    });
+                    
+                    return html;
+                } catch (error) {
+                    console.error('Error parsing markdown with marked.js:', error);
+                    // در صورت خطا، به روش fallback برگرد
+                }
+            }
+        
+            // Fallback: پردازش جداول و سایر عناصر
+            // جایگزینی placeholderها با جداول HTML - با error handling
+            tablePlaceholders.forEach((tableText, index) => {
+                try {
                     const placeholder = `__TABLE_PLACEHOLDER_${index}__`;
                     const tableHtml = parseMarkdownTable(tableText);
-                    html = html.replace(placeholder, tableHtml);
+                    processedText = processedText.replace(placeholder, tableHtml);
+                } catch (e) {
+                    console.warn(`خطا در پردازش جدول ${index} (fallback):`, e);
+                    // در صورت خطا، placeholder را با متن اصلی جایگزین می‌کنیم
+                    const placeholder = `__TABLE_PLACEHOLDER_${index}__`;
+                    processedText = processedText.replace(placeholder, escapeHtml(tableText));
+                }
+            });
+            
+            // Fallback: پردازش ساده Markdown (روش قدیمی)
+            try {
+                // تبدیل کدهای بلوکی (قبل از هر چیز دیگری)
+                processedText = processedText.replace(/```(\w+)?\n?([\s\S]*?)```/g, function(match, lang, code) {
+                    try {
+                        return `<pre><code>${escapeHtml(code.trim())}</code></pre>`;
+                    } catch (e) {
+                        return escapeHtml(match);
+                    }
+                });
+            } catch (e) {
+                console.warn('خطا در پردازش کدهای بلوکی:', e);
+            }
+            
+            try {
+                // تبدیل کدهای inline (بعد از کدهای بلوکی)
+                processedText = processedText.replace(/`([^`\n]+)`/g, function(match, code) {
+                    try {
+                        return `<code>${escapeHtml(code)}</code>`;
+                    } catch (e) {
+                        return escapeHtml(match);
+                    }
+                });
+            } catch (e) {
+                console.warn('خطا در پردازش کدهای inline:', e);
+            }
+            
+            // تبدیل لیست‌ها (قبل از تبدیل خطوط جدید) - با error handling
+            try {
+                const lines = processedText.split('\n');
+                let inList = false;
+                let formattedLines = [];
+                
+                lines.forEach((line, index) => {
+                    try {
+                        const listMatch = line.match(/^[\s]*[-•]\s+(.+)$/);
+                        if (listMatch) {
+                            if (!inList) {
+                                formattedLines.push('<ul>');
+                                inList = true;
+                            }
+                            formattedLines.push(`<li>${escapeHtml(listMatch[1])}</li>`);
+                        } else {
+                            if (inList) {
+                                formattedLines.push('</ul>');
+                                inList = false;
+                            }
+                            if (line.trim() || index < lines.length - 1) {
+                                formattedLines.push(escapeHtml(line));
+                            }
+                        }
+                    } catch (e) {
+                        // در صورت خطا در پردازش یک خط، آن را escape می‌کنیم
+                        formattedLines.push(escapeHtml(line));
+                    }
                 });
                 
-                return html;
-            } catch (error) {
-                console.error('Error parsing markdown:', error);
-                // در صورت خطا، به روش fallback برگرد
-            }
-        }
-        
-        // Fallback: پردازش جداول و سایر عناصر
-        // جایگزینی placeholderها با جداول HTML
-        tablePlaceholders.forEach((tableText, index) => {
-            const placeholder = `__TABLE_PLACEHOLDER_${index}__`;
-            const tableHtml = parseMarkdownTable(tableText);
-            processedText = processedText.replace(placeholder, tableHtml);
-        });
-        
-        // Fallback: پردازش ساده Markdown (روش قدیمی)
-        // تبدیل کدهای بلوکی (قبل از هر چیز دیگری)
-        processedText = processedText.replace(/```(\w+)?\n?([\s\S]*?)```/g, function(match, lang, code) {
-            return `<pre><code>${escapeHtml(code.trim())}</code></pre>`;
-        });
-        
-        // تبدیل کدهای inline (بعد از کدهای بلوکی)
-        processedText = processedText.replace(/`([^`\n]+)`/g, '<code>$1</code>');
-        
-        // تبدیل لیست‌ها (قبل از تبدیل خطوط جدید)
-        const lines = processedText.split('\n');
-        let inList = false;
-        let formattedLines = [];
-        
-        lines.forEach((line, index) => {
-            const listMatch = line.match(/^[\s]*[-•]\s+(.+)$/);
-            if (listMatch) {
-                if (!inList) {
-                    formattedLines.push('<ul>');
-                    inList = true;
-                }
-                formattedLines.push(`<li>${listMatch[1]}</li>`);
-            } else {
                 if (inList) {
                     formattedLines.push('</ul>');
-                    inList = false;
                 }
-                if (line.trim() || index < lines.length - 1) {
-                    formattedLines.push(line);
-                }
+                
+                processedText = formattedLines.join('\n');
+            } catch (e) {
+                console.warn('خطا در پردازش لیست‌ها:', e);
+                // در صورت خطا، متن را escape می‌کنیم
+                processedText = escapeHtml(processedText);
             }
-        });
-        
-        if (inList) {
-            formattedLines.push('</ul>');
+            
+            try {
+                // تبدیل خطوط جدید
+                processedText = processedText.replace(/\n/g, '<br>');
+            } catch (e) {
+                console.warn('خطا در تبدیل خطوط جدید:', e);
+            }
+            
+            try {
+                // تبدیل لینک‌ها
+                processedText = processedText.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+            } catch (e) {
+                console.warn('خطا در تبدیل لینک‌ها:', e);
+            }
+            
+            return processedText;
+        } catch (error) {
+            // در صورت خطای کلی، متن اصلی را escape کرده و برمی‌گردانیم
+            console.error('خطای کلی در formatMessage:', error);
+            return escapeHtml(text);
         }
-        
-        processedText = formattedLines.join('\n');
-        
-        // تبدیل خطوط جدید
-        processedText = processedText.replace(/\n/g, '<br>');
-        
-        // تبدیل لینک‌ها
-        processedText = processedText.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
-        
-        return processedText;
     }
     
     function escapeHtml(text) {
@@ -1717,8 +1843,58 @@
             // پاک کردن timeout بعد از دریافت response
             clearTimeout(timeoutId);
             
+            // بررسی وضعیت HTTP response قبل از خواندن body
+            // اگر status خطا است (مثل 504, 500, 503 و غیره)، مستقیماً خطا را throw می‌کنیم
+            if (!response.ok) {
+                // خواندن response body برای استخراج پیام خطا
+                let errorText = '';
+                try {
+                    errorText = await response.text();
+                } catch (e) {
+                    // اگر نتوانستیم متن را بخوانیم، از status code استفاده می‌کنیم
+                    errorText = '';
+                }
+                
+                // بررسی اینکه آیا response HTML است (مثلاً صفحه خطا Django یا Gateway Timeout)
+                if (errorText.trim().startsWith('<!DOCTYPE') || errorText.trim().startsWith('<html')) {
+                    // استخراج پیام خطا از HTML
+                    const errorMatch = errorText.match(/<title>(.*?)<\/title>/i) || 
+                                     errorText.match(/<h1>(.*?)<\/h1>/i) ||
+                                     errorText.match(/<p[^>]*>(.*?)<\/p>/i);
+                    const htmlError = errorMatch ? errorMatch[1] : `خطای HTTP ${response.status}`;
+                    
+                    // پیام خطای مناسب بر اساس status code
+                    if (response.status === 504) {
+                        throw new Error(`⏱️ زمان انتظار به پایان رسید (Gateway Timeout). سرور در حال پردازش درخواست شما است. لطفاً چند لحظه صبر کنید و دوباره تلاش کنید.`);
+                    } else if (response.status === 503) {
+                        throw new Error(`⚠️ سرویس دستیار هوشمند در حال حاضر در دسترس نیست. لطفاً بعداً تلاش کنید.`);
+                    } else {
+                        throw new Error(`خطای HTTP ${response.status}: ${htmlError}`);
+                    }
+                }
+                
+                // اگر response خالی است
+                if (!errorText || errorText.trim() === '') {
+                    if (response.status === 504) {
+                        throw new Error(`⏱️ زمان انتظار به پایان رسید (Gateway Timeout). سرور در حال پردازش درخواست شما است.`);
+                    } else {
+                        throw new Error(`خطای HTTP ${response.status}: ${response.statusText || 'خطای نامشخص'}`);
+                    }
+                }
+                
+                // سعی می‌کنیم JSON parse کنیم (ممکن است خطا به صورت JSON برگردانده شده باشد)
+                try {
+                    const errorData = JSON.parse(errorText);
+                    const errorMessage = errorData.error || errorData.message || `خطای HTTP ${response.status}`;
+                    throw new Error(errorMessage);
+                } catch (e) {
+                    // اگر JSON نبود، از متن استفاده می‌کنیم
+                    throw new Error(`خطای HTTP ${response.status}: ${errorText.substring(0, 200)}`);
+                }
+            }
+            
+            // اگر status OK است، response body را می‌خوانیم
             // خواندن response body فقط یک بار (برای جلوگیری از خطای "body stream already read")
-            // همیشه از text() استفاده می‌کنیم و سپس parse می‌کنیم تا مطمئن شویم body فقط یک بار خوانده می‌شود
             let responseText;
             try {
                 responseText = await response.text();
@@ -1735,12 +1911,7 @@
             try {
                 // بررسی اینکه responseText خالی نباشد
                 if (!responseText || responseText.trim() === '') {
-                    // اگر response خالی است اما status OK است، یک response خالی برمی‌گردانیم
-                    if (response.ok) {
-                        data = { success: false, error: 'پاسخ سرور خالی است' };
-                    } else {
-                        throw new Error('پاسخ سرور خالی است - احتمالاً خطا در سرور رخ داده است');
-                    }
+                    data = { success: false, error: 'پاسخ سرور خالی است' };
                 } else {
                     // اگر Content-Type JSON نیست اما متن با { یا [ شروع می‌شود، سعی می‌کنیم parse کنیم
                     if (!isJson && (responseText.trim().startsWith('{') || responseText.trim().startsWith('['))) {
@@ -1753,60 +1924,17 @@
                 // اگر JSON parse نشد
                 console.error('خطا در parse کردن JSON:', {
                     error: e.message,
-                    responseText: responseText.substring(0, 500), // فقط 500 کاراکتر اول برای لاگ
+                    responseText: responseText.substring(0, 500),
                     status: response.status,
                     statusText: response.statusText,
                     contentType: contentType,
                     isJson: isJson
                 });
                 
-                // اگر response HTML است (مثلاً صفحه خطا Django)
-                if (responseText.trim().startsWith('<!DOCTYPE') || responseText.trim().startsWith('<html')) {
-                    // استخراج پیام خطا از HTML اگر ممکن باشد
-                    const errorMatch = responseText.match(/<title>(.*?)<\/title>/i) || 
-                                     responseText.match(/<h1>(.*?)<\/h1>/i) ||
-                                     responseText.match(/<p[^>]*>(.*?)<\/p>/i);
-                    const htmlError = errorMatch ? errorMatch[1] : 'خطای سرور';
-                    throw new Error(`پاسخ سرور HTML است (${response.status}): ${htmlError}`);
-                }
-                
-                // اگر response خالی است یا فقط whitespace است
-                if (!responseText || responseText.trim() === '') {
-                    throw new Error(`پاسخ سرور خالی است (Status: ${response.status}) - احتمالاً خطا در سرور رخ داده است`);
-                }
-                
-                // نمایش جزئیات بیشتر در console برای دیباگ
-                console.error('متن کامل response (اول 1000 کاراکتر):', responseText.substring(0, 1000));
-                
-                // اگر status غیر 200 است، پیام خطا را از متن استخراج می‌کنیم
-                if (!response.ok) {
-                    throw new Error(`خطای HTTP ${response.status}: ${responseText.substring(0, 200)}`);
-                }
-                
                 throw new Error(`پاسخ سرور نامعتبر است - فرمت JSON معتبر نیست. خطا: ${e.message}`);
             }
             
-            // بررسی وضعیت HTTP response
-            if (!response.ok) {
-                // اگر response غیر 200 است
-                const errorMessage = (data && typeof data === 'object' && (data.error || data.message)) 
-                    || `خطای HTTP ${response.status}: ${responseText || 'خطای نامشخص'}`;
-                
-                // بررسی اینکه آیا دستیار در دسترس نیست
-                if ((data && data.assistant_unavailable) || response.status === 503) {
-                    addMessage(`⚠️ سرویس دستیار هوشمند در حال حاضر در دسترس نیست. لطفاً بعداً تلاش کنید.`, false);
-                    showToast('دستیار در دسترس نیست', 'warning');
-                    // غیرفعال کردن input و button
-                    if (messageInput) messageInput.disabled = true;
-                    if (sendButton) sendButton.disabled = true;
-                } else {
-                    addMessage(`❌ خطا: ${errorMessage}`, false);
-                    showToast('خطا در دریافت پاسخ', 'error');
-                }
-                return;
-            }
-            
-            // بررسی ساختار response
+            // بررسی ساختار response (اگر به اینجا رسیدیم، response.ok است)
             if (data && typeof data === 'object') {
                 if (data.success) {
                     const output = data.output || 'پاسخ دریافت نشد.';
@@ -1834,7 +1962,7 @@
             const errorMessage = error.message || 'خطا در ارتباط با سرور';
             
             // بررسی اینکه آیا این یک خطای timeout است
-            if (error.name === 'AbortError' || errorMessage.includes('aborted') || errorMessage.includes('timeout')) {
+            if (error.name === 'AbortError' || errorMessage.includes('aborted') || errorMessage.includes('timeout') || errorMessage.includes('Gateway Timeout')) {
                 addMessage('⏱️ زمان انتظار به پایان رسید. درخواست شما در حال پردازش است و ممکن است چند لحظه دیگر پاسخ دریافت کنید. لطفاً صبر کنید.', false);
                 showToast('زمان انتظار به پایان رسید - در حال پردازش', 'warning');
             } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
@@ -1842,7 +1970,10 @@
                 showToast('خطا در ارتباط با سرور', 'error');
             } else {
                 // برای خطاهای دیگر، پیام دقیق‌تر نمایش بده
-                addMessage(`❌ خطا: ${errorMessage}`, false);
+                // اگر پیام خطا از قبل شامل emoji یا فرمت خاص است، آن را مستقیماً نمایش می‌دهیم
+                addMessage(errorMessage.startsWith('⏱️') || errorMessage.startsWith('⚠️') || errorMessage.startsWith('❌') 
+                    ? errorMessage 
+                    : `❌ خطا: ${errorMessage}`, false);
                 showToast('خطا در پردازش درخواست', 'error');
             }
         } finally {

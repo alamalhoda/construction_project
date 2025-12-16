@@ -13,6 +13,8 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
+from django.core.paginator import Paginator
+from django.db.models import Q, Sum
 from construction.project_manager import ProjectManager
 from assistant.jwt_helper import generate_jwt_token
 from assistant.chat_logger import save_chat_log
@@ -162,21 +164,38 @@ def chat_api(request):
                 }
             
             # بررسی اینکه آیا پاسخ موفق است یا نه
-            if response.status_code == 200 and result.get('success', False):
+            # ذخیره‌سازی ChatLog در دیتابیس برای تمام پاسخ‌های موفق (status_code 200)
+            # حتی اگر success=False باشد، باز هم ذخیره می‌کنیم تا خطاها هم ثبت شوند
+            logger.debug(f"🔍 بررسی شرایط ذخیره‌سازی: status_code={response.status_code}, success={result.get('success')}")
+            
+            # ذخیره‌سازی برای تمام پاسخ‌های 200 (حتی اگر success=False باشد)
+            if response.status_code == 200:
                 # ذخیره‌سازی ChatLog در دیتابیس (Separation of Concerns)
                 # این کار به صورت non-blocking انجام می‌شود تا سرعت پاسخ را کاهش ندهد
+                logger.info(f"💾 شروع ذخیره‌سازی ChatLog برای کاربر {request.user.username}")
                 try:
-                    save_chat_log(
+                    chat_log = save_chat_log(
                         user=request.user,
                         user_message=user_message,
                         assistant_response=result.get('output', ''),
                         response_data=result,
                         project=current_project
                     )
+                    if chat_log:
+                        logger.info(f"✅ ChatLog با موفقیت ذخیره شد: ID={chat_log.id}")
+                    else:
+                        logger.warning(f"⚠️ ChatLog ذخیره نشد (تابع None برگرداند)")
                 except Exception as e:
                     # در صورت خطا در ذخیره‌سازی، فقط لاگ می‌کنیم
                     # اما پاسخ را به کاربر برمی‌گردانیم
-                    logger.warning(f"⚠️ خطا در ذخیره‌سازی ChatLog (غیر بحرانی): {str(e)}")
+                    logger.error(f"❌ خطا در ذخیره‌سازی ChatLog: {str(e)}", exc_info=True)
+            else:
+                logger.warning(
+                    f"⚠️ ChatLog ذخیره نشد - status_code نامعتبر: {response.status_code}"
+                )
+            
+            # بررسی اینکه آیا پاسخ موفق است یا نه (برای return)
+            if response.status_code == 200 and result.get('success', False):
                 
                 # اضافه کردن به تاریخچه session
                 chat_history.append({
@@ -253,11 +272,77 @@ def chat_api(request):
 
 @login_required
 def chat_history(request):
-    """تاریخچه چت (اختیاری - برای آینده)"""
-    # TODO: پیاده‌سازی ذخیره و بازیابی تاریخچه چت
-    return JsonResponse({
-        'message': 'این قابلیت در حال توسعه است',
-        'history': []
+    """نمایش تاریخچه چت‌های کاربر با دستیار هوشمند"""
+    from assistant.models import ChatLog
+    from django.core.paginator import Paginator
+    from construction.project_manager import ProjectManager
+    
+    # دریافت پروژه جاری (اختیاری)
+    current_project = ProjectManager.get_current_project(request)
+    project_id = request.GET.get('project_id')
+    
+    # دریافت فیلترها
+    search_query = request.GET.get('search', '').strip()
+    llm_provider = request.GET.get('llm_provider', '')
+    success_filter = request.GET.get('success', '')
+    
+    # ساخت query
+    chat_logs = ChatLog.objects.filter(user=request.user)
+    
+    # فیلتر بر اساس پروژه
+    if project_id:
+        chat_logs = chat_logs.filter(project_id=project_id)
+    elif current_project:
+        # اگر پروژه جاری وجود دارد، فقط چت‌های آن پروژه را نشان بده
+        chat_logs = chat_logs.filter(project=current_project)
+    
+    # فیلتر بر اساس جستجو
+    if search_query:
+        chat_logs = chat_logs.filter(
+            Q(user_message__icontains=search_query) |
+            Q(assistant_response__icontains=search_query)
+        )
+    
+    # فیلتر بر اساس ارائه‌دهنده LLM
+    if llm_provider:
+        chat_logs = chat_logs.filter(llm_provider=llm_provider)
+    
+    # فیلتر بر اساس موفقیت
+    if success_filter == 'true':
+        chat_logs = chat_logs.filter(success=True)
+    elif success_filter == 'false':
+        chat_logs = chat_logs.filter(success=False)
+    
+    # مرتب‌سازی بر اساس تاریخ (جدیدترین اول)
+    chat_logs = chat_logs.order_by('-created_at')
+    
+    # Pagination
+    paginator = Paginator(chat_logs, 20)  # 20 چت در هر صفحه
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    
+    # دریافت لیست ارائه‌دهندگان منحصر به فرد برای فیلتر
+    llm_providers = ChatLog.objects.filter(user=request.user).values_list(
+        'llm_provider', flat=True
+    ).distinct().order_by('llm_provider')
+    
+    # آمار کلی
+    total_chats = ChatLog.objects.filter(user=request.user).count()
+    successful_chats = ChatLog.objects.filter(user=request.user, success=True).count()
+    total_tokens = ChatLog.objects.filter(user=request.user).aggregate(
+        total=Sum('total_tokens')
+    )['total'] or 0
+    
+    return render(request, 'assistant/chat_history.html', {
+        'chat_logs': page_obj,
+        'llm_providers': llm_providers,
+        'current_project': current_project,
+        'search_query': search_query,
+        'llm_provider_filter': llm_provider,
+        'success_filter': success_filter,
+        'total_chats': total_chats,
+        'successful_chats': successful_chats,
+        'total_tokens': total_tokens,
     })
 
 

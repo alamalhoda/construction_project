@@ -73,13 +73,17 @@ CACHES = {
     }
 }
 
-# تنظیمات Logging برای Render
+# تنظیمات Logging برای Render (هماهنگ با تنظیمات اصلی، به‌همراه لاگ‌های Chat)
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
             'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
             'style': '{',
         },
         'tehran_time': {
@@ -93,18 +97,120 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
+        # Dashboard Logging - RotatingFileHandler (بر اساس اندازه)
+        'dashboard_file': {
+            'level': DASHBOARD_LOG_LEVEL,
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOGS_DIR / 'dashboard.log',
+            'maxBytes': 10 * 1024 * 1024,  # 10 MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+        # API Logging - RotatingFileHandler (بر اساس اندازه)
+        'api_file': {
+            'level': API_LOG_LEVEL,
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOGS_DIR / 'api.log',
+            'maxBytes': 10 * 1024 * 1024,  # 10 MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+        # Calculations Logging - TimedRotatingFileHandler (بر اساس زمان)
+        'calculations_file': {
+            'level': CALCULATIONS_LOG_LEVEL,
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': LOGS_DIR / 'calculations.log',
+            'when': 'midnight',
+            'interval': 1,
+            'backupCount': 30,  # نگه داشتن 30 روز
+            'formatter': 'verbose',
+        },
+        # Security Logging - TimedRotatingFileHandler (بر اساس زمان)
+        'security_file': {
+            'level': 'WARNING',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': LOGS_DIR / 'security.log',
+            'when': 'midnight',
+            'interval': 1,
+            'backupCount': 30,  # نگه داشتن 30 روز
+            'formatter': 'verbose',
+        },
+        # Django General Logging - TimedRotatingFileHandler (بر اساس زمان - روزانه)
+        'django_file': {
+            'level': 'WARNING',  # فقط WARNING و ERROR (نه INFO)
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': LOGS_DIR / 'django.log',
+            'when': 'midnight',
+            'interval': 1,
+            'backupCount': 20,  # نگه داشتن 20 روز
+            'formatter': 'verbose',
+        },
+        # Chat Logging - TimedRotatingFileHandler (بر اساس زمان - روزانه)
+        'chat_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': LOGS_DIR / 'chat.log',
+            'when': 'midnight',
+            'interval': 1,
+            'backupCount': 30,  # نگه داشتن 30 روز
+            'formatter': 'verbose',
+        },
     },
     'loggers': {
         'django': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': True,
+            'handlers': ['console', 'django_file'],
+            'level': 'WARNING',  # فقط WARNING و ERROR (نه INFO)
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['console', 'django_file'],
+            'level': 'ERROR',
+            'propagate': False,
         },
         'django.security': {
-            'handlers': ['console'],
+            'handlers': ['console', 'security_file'],
             'level': 'WARNING',
-            'propagate': True,
+            'propagate': False,
         },
+        'dashboard': {
+            'handlers': ['console', 'dashboard_file'],
+            'level': DASHBOARD_LOG_LEVEL,
+            'propagate': False,
+        },
+        'dashboard.views': {
+            'handlers': ['console', 'dashboard_file'],
+            'level': DASHBOARD_LOG_LEVEL,
+            'propagate': False,
+        },
+        'construction.api': {
+            'handlers': ['console', 'api_file'],
+            'level': API_LOG_LEVEL,
+            'propagate': False,
+        },
+        'construction.calculations': {
+            'handlers': ['console', 'calculations_file'],
+            'level': CALCULATIONS_LOG_LEVEL,
+            'propagate': False,
+        },
+        'assistant': {
+            'handlers': ['console', 'chat_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'assistant.chat_logger': {
+            'handlers': ['console', 'chat_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'assistant.viewset_helper': {
+            'handlers': ['console', 'chat_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
     },
 }
 
