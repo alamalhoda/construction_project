@@ -146,20 +146,31 @@ LOGGING = {
             'backupCount': 30,  # نگه داشتن 30 روز
             'formatter': 'verbose',
         },
-        # Django General Logging - RotatingFileHandler (بر اساس اندازه)
+        # Django General Logging - TimedRotatingFileHandler (بر اساس زمان - روزانه)
         'django_file': {
-            'level': DJANGO_LOG_LEVEL,
-            'class': 'logging.handlers.RotatingFileHandler',
+            'level': 'WARNING',  # فقط WARNING و ERROR (نه INFO)
+            'class': 'logging.handlers.TimedRotatingFileHandler',
             'filename': LOGS_DIR / 'django.log',
-            'maxBytes': 10 * 1024 * 1024,  # 10 MB
-            'backupCount': 5,
+            'when': 'midnight',
+            'interval': 1,
+            'backupCount': 20,  # نگه داشتن 20 روز
+            'formatter': 'verbose',
+        },
+        # Chat Logging - TimedRotatingFileHandler (بر اساس زمان - روزانه)
+        'chat_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': LOGS_DIR / 'chat.log',
+            'when': 'midnight',
+            'interval': 1,
+            'backupCount': 30,  # نگه داشتن 30 روز
             'formatter': 'verbose',
         },
     },
     'loggers': {
         'django': {
             'handlers': ['console', 'django_file'],
-            'level': DJANGO_LOG_LEVEL,
+            'level': 'WARNING',  # فقط WARNING و ERROR (نه INFO)
             'propagate': False,
         },
         'django.request': {
@@ -190,6 +201,21 @@ LOGGING = {
         'construction.calculations': {
             'handlers': ['console', 'calculations_file'],
             'level': CALCULATIONS_LOG_LEVEL,
+            'propagate': False,
+        },
+        'assistant': {
+            'handlers': ['console', 'chat_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'assistant.chat_logger': {
+            'handlers': ['console', 'chat_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'assistant.viewset_helper': {
+            'handlers': ['console', 'chat_file'],
+            'level': 'INFO',
             'propagate': False,
         },
     },
