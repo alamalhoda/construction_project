@@ -4,13 +4,15 @@ API Security System for Construction Project
 """
 
 from rest_framework import permissions
-from rest_framework.authentication import SessionAuthentication, TokenAuthentication
+from rest_framework.authentication import SessionAuthentication, TokenAuthentication, BaseAuthentication
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import AuthenticationFailed
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.conf import settings
 from datetime import timedelta
 import logging
+import jwt
 
 logger = logging.getLogger('django.security')
 
@@ -131,6 +133,86 @@ class APIThrottlePermission(permissions.BasePermission):
         # پیاده‌سازی ساده - در production بهتر است از cache استفاده شود
         # فعلاً False برمی‌گردانیم (بدون محدودیت)
         return False
+
+class JWTAuthentication(BaseAuthentication):
+    """
+    احراز هویت JWT برای API
+    پشتیبانی از JWT tokens در Authorization header برای دستیار هوشمند
+    """
+    
+    def authenticate(self, request):
+        """
+        احراز هویت با JWT token
+        """
+        # خواندن Authorization header
+        auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+        
+        if not auth_header:
+            return None
+        
+        # بررسی فرمت Bearer token
+        if not auth_header.startswith('Bearer '):
+            return None
+        
+        # استخراج token
+        token = auth_header.split('Bearer ')[1].strip()
+        
+        if not token:
+            return None
+        
+        try:
+            # Decode کردن JWT token
+            payload = jwt.decode(
+                token,
+                settings.SECRET_KEY,
+                algorithms=['HS256']
+            )
+            
+            # استخراج user_id از payload
+            user_id = payload.get('user_id')
+            if not user_id:
+                logger.warning("JWT token missing user_id")
+                return None
+            
+            # پیدا کردن کاربر
+            try:
+                user = User.objects.get(id=user_id)
+            except User.DoesNotExist:
+                logger.warning(f"JWT token references non-existent user_id: {user_id}")
+                raise AuthenticationFailed('کاربر یافت نشد')
+            
+            # بررسی فعال بودن کاربر
+            if not user.is_active:
+                logger.warning(f"JWT token for inactive user: {user_id}")
+                raise AuthenticationFailed('کاربر غیرفعال است')
+            
+            # استخراج project_id از payload و ذخیره در request
+            project_id = payload.get('project_id')
+            if project_id:
+                request.jwt_project_id = project_id
+            
+            # بررسی X-Project-ID header (اولویت با header است)
+            x_project_id = request.META.get('HTTP_X_PROJECT_ID')
+            if x_project_id:
+                try:
+                    request.jwt_project_id = int(x_project_id)
+                except (ValueError, TypeError):
+                    logger.warning(f"Invalid X-Project-ID header: {x_project_id}")
+            
+            logger.debug(f"JWT authentication successful for user_id: {user_id}, project_id: {getattr(request, 'jwt_project_id', None)}")
+            
+            return (user, token)
+            
+        except jwt.ExpiredSignatureError:
+            logger.warning("JWT token expired")
+            raise AuthenticationFailed('Token منقضی شده است')
+        except jwt.InvalidTokenError as e:
+            logger.warning(f"Invalid JWT token: {str(e)}")
+            raise AuthenticationFailed('Token نامعتبر است')
+        except Exception as e:
+            logger.error(f"JWT authentication error: {str(e)}")
+            raise AuthenticationFailed('خطا در احراز هویت')
+
 
 class SecureAPIAuthentication(SessionAuthentication):
     """

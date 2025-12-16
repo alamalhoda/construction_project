@@ -13,7 +13,7 @@ from . import serializers
 from . import models
 from . import calculations
 from .calculations import InvestorCalculations
-from .api_security import APISecurityPermission, ReadOnlyPermission, AdminOnlyPermission
+from .api_security import APISecurityPermission, ReadOnlyPermission, AdminOnlyPermission, JWTAuthentication
 from .mixins import ProjectFilterMixin
 
 # ایجاد logger برای API
@@ -56,6 +56,15 @@ class CsrfExemptSessionAuthenticationScheme(OpenApiAuthenticationExtension):
         }
 
 
+# Authentication classes مشترک برای همه viewsets
+# شامل JWT Authentication برای پشتیبانی از دستیار هوشمند
+DEFAULT_AUTHENTICATION_CLASSES = [
+    JWTAuthentication,  # اولویت اول: JWT برای دستیار هوشمند
+    CsrfExemptSessionAuthentication,
+    TokenAuthentication
+]
+
+
 class ExpenseViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
     """
     ViewSet برای مدیریت هزینه‌های پروژه
@@ -89,7 +98,7 @@ class ExpenseViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
     queryset = models.Expense.objects.all()
     serializer_class = serializers.ExpenseSerializer
-    authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
+    authentication_classes = DEFAULT_AUTHENTICATION_CLASSES
     permission_classes = [APISecurityPermission]
 
     # ===== عملیات CRUD با توضیحات جداگانه =====
@@ -698,7 +707,7 @@ class InvestorViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
     queryset = models.Investor.objects.all()
     serializer_class = serializers.InvestorSerializer
-    authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
+    authentication_classes = DEFAULT_AUTHENTICATION_CLASSES
     permission_classes = [APISecurityPermission]
 
     # ===== عملیات CRUD با توضیحات جداگانه =====
@@ -1276,7 +1285,7 @@ class InvestorViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 class ComprehensiveAnalysisViewSet(viewsets.ViewSet):
     """ViewSet for comprehensive project analysis"""
     
-    authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
+    authentication_classes = DEFAULT_AUTHENTICATION_CLASSES
     permission_classes = [APISecurityPermission]
     
     @extend_schema(
@@ -1400,7 +1409,7 @@ class PeriodViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
     queryset = models.Period.objects.all().order_by('-year', '-month_number')
     serializer_class = serializers.PeriodSerializer
-    authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
+    authentication_classes = DEFAULT_AUTHENTICATION_CLASSES
     permission_classes = [APISecurityPermission]
 
     # ===== عملیات CRUD با توضیحات جداگانه =====
@@ -1897,7 +1906,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
     queryset = models.Project.objects.all()
     serializer_class = serializers.ProjectSerializer
-    authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
+    authentication_classes = DEFAULT_AUTHENTICATION_CLASSES
     permission_classes = [APISecurityPermission]
 
     # ===== عملیات CRUD با توضیحات جداگانه =====
@@ -2568,7 +2577,7 @@ class SaleViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
     queryset = models.Sale.objects.all()
     serializer_class = serializers.SaleSerializer
-    authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
+    authentication_classes = DEFAULT_AUTHENTICATION_CLASSES
     permission_classes = [APISecurityPermission]
 
     # ===== عملیات CRUD با توضیحات جداگانه =====
@@ -2828,7 +2837,7 @@ class TransactionViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
     queryset = models.Transaction.objects.all()
     serializer_class = serializers.TransactionSerializer
-    authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
+    authentication_classes = DEFAULT_AUTHENTICATION_CLASSES
     permission_classes = [APISecurityPermission]
     filterset_fields = ['investor', 'project', 'period', 'transaction_type']
 
@@ -3308,7 +3317,7 @@ class InterestRateViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
     queryset = models.InterestRate.objects.all()
     serializer_class = serializers.InterestRateSerializer
-    authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
+    authentication_classes = DEFAULT_AUTHENTICATION_CLASSES
     permission_classes = [APISecurityPermission]
 
     # ===== عملیات CRUD با توضیحات جداگانه =====
@@ -3527,7 +3536,7 @@ class UnitViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
     queryset = models.Unit.objects.all()
     serializer_class = serializers.UnitSerializer
-    authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
+    authentication_classes = DEFAULT_AUTHENTICATION_CLASSES
     permission_classes = [APISecurityPermission]
 
     # ===== عملیات CRUD با توضیحات جداگانه =====
@@ -3763,7 +3772,7 @@ class UnitSpecificExpenseViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
 
     queryset = models.UnitSpecificExpense.objects.all()
     serializer_class = serializers.UnitSpecificExpenseSerializer
-    authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
+    authentication_classes = DEFAULT_AUTHENTICATION_CLASSES
     permission_classes = [APISecurityPermission]
     filterset_fields = ['unit', 'project']
 
@@ -3970,7 +3979,7 @@ class PettyCashTransactionViewSet(ProjectFilterMixin, viewsets.ModelViewSet):
     """
   
     queryset = models.PettyCashTransaction.objects.all()
-    authentication_classes = [CsrfExemptSessionAuthentication, TokenAuthentication]
+    authentication_classes = DEFAULT_AUTHENTICATION_CLASSES
     permission_classes = [APISecurityPermission]
     serializer_class = serializers.PettyCashTransactionSerializer
 
