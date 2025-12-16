@@ -1710,6 +1710,7 @@
             clearTimeout(timeoutId);
             
             // خواندن response body فقط یک بار (برای جلوگیری از خطای "body stream already read")
+            // همیشه از text() استفاده می‌کنیم و سپس parse می‌کنیم تا مطمئن شویم body فقط یک بار خوانده می‌شود
             let responseText;
             try {
                 responseText = await response.text();
@@ -1717,22 +1718,24 @@
                 throw new Error(`خطا در خواندن پاسخ سرور: ${e.message}`);
             }
             
+            // Parse کردن JSON از متن
+            let data;
+            try {
+                data = JSON.parse(responseText);
+            } catch (e) {
+                // اگر JSON parse نشد
+                console.error('خطا در parse کردن JSON:', responseText);
+                throw new Error('پاسخ سرور نامعتبر است - فرمت JSON معتبر نیست');
+            }
+            
             // بررسی وضعیت HTTP response
             if (!response.ok) {
-                // اگر response غیر 200 است، سعی می‌کنیم JSON را parse کنیم
-                let errorData;
-                try {
-                    errorData = JSON.parse(responseText);
-                } catch (e) {
-                    // اگر JSON parse نشد، از متن response استفاده می‌کنیم
-                    throw new Error(`خطای HTTP ${response.status}: ${responseText || 'خطای نامشخص'}`);
-                }
-                
-                // اگر JSON parse شد، از آن استفاده می‌کنیم
-                const errorMessage = errorData.error || errorData.message || `خطای HTTP ${response.status}`;
+                // اگر response غیر 200 است
+                const errorMessage = (data && typeof data === 'object' && (data.error || data.message)) 
+                    || `خطای HTTP ${response.status}: ${responseText || 'خطای نامشخص'}`;
                 
                 // بررسی اینکه آیا دستیار در دسترس نیست
-                if (errorData.assistant_unavailable || response.status === 503) {
+                if ((data && data.assistant_unavailable) || response.status === 503) {
                     addMessage(`⚠️ سرویس دستیار هوشمند در حال حاضر در دسترس نیست. لطفاً بعداً تلاش کنید.`, false);
                     showToast('دستیار در دسترس نیست', 'warning');
                     // غیرفعال کردن input و button
@@ -1743,16 +1746,6 @@
                     showToast('خطا در دریافت پاسخ', 'error');
                 }
                 return;
-            }
-            
-            // Parse کردن JSON response
-            let data;
-            try {
-                data = JSON.parse(responseText);
-            } catch (e) {
-                // اگر JSON parse نشد
-                console.error('خطا در parse کردن JSON:', responseText);
-                throw new Error('پاسخ سرور نامعتبر است');
             }
             
             // بررسی ساختار response
