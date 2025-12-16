@@ -184,7 +184,7 @@ nohup gunicorn construction_project.wsgi:application \
     --bind 0.0.0.0:8000 \
     --workers 3 \
     --worker-class sync \
-    --timeout 30 \
+    --timeout 220 \
     --keep-alive 2 \
     --max-requests 1000 \
     --access-logfile - \

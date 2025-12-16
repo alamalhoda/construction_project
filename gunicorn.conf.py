@@ -16,7 +16,8 @@ workers = int(os.environ.get('GUNICORN_WORKERS', '3'))
 # gevent worker causes "DatabaseWrapper objects created in a thread can only be used in that same thread" error
 worker_class = 'sync'
 worker_connections = 1000
-timeout = 30
+# افزایش timeout به 220 ثانیه برای پشتیبانی از درخواست‌های طولانی دستیار (httpx timeout: 180s + buffer)
+timeout = 220
 keepalive = 2
 
 # Restart workers after this many requests, to prevent memory leaks
@@ -47,8 +48,8 @@ tmp_upload_dir = None
 # Disabled for SQLite compatibility (SQLite doesn't work well with preload_app)
 preload_app = False
 
-# Worker timeout
-graceful_timeout = 30
+# Worker timeout (باید بیشتر از timeout اصلی باشد)
+graceful_timeout = 230
 
 # Security
 limit_request_line = 4094
