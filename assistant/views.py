@@ -69,9 +69,17 @@ def chat_api(request):
             }, status=400)
         
         # دریافت تاریخچه چت از session
-        chat_history = request.session.get('chat_history', [])
+        try:
+            chat_history = request.session.get('chat_history', [])
+            # اطمینان از اینکه chat_history یک لیست است
+            if not isinstance(chat_history, list):
+                logger.warning(f"⚠️ chat_history از session نوع نامعتبر است: {type(chat_history)}. تبدیل به لیست خالی...")
+                chat_history = []
+        except Exception as e:
+            logger.warning(f"⚠️ خطا در خواندن chat_history از session: {str(e)}")
+            chat_history = []
         
-        # نگه داشتن فقط 5 سوال و جواب آخر
+        # نگه داشتن فقط 10 سوال و جواب آخر
         if len(chat_history) > 10:
             chat_history = chat_history[-10:]
         
@@ -83,13 +91,30 @@ def chat_api(request):
         logger.info("=" * 80)
         
         # دریافت پروژه جاری
-        current_project = ProjectManager.get_current_project(request)
+        try:
+            current_project = ProjectManager.get_current_project(request)
+        except Exception as e:
+            logger.warning(f"⚠️ خطا در دریافت پروژه جاری: {str(e)}")
+            current_project = None
         
         # تولید JWT Token
-        api_token = generate_jwt_token(
-            user_id=request.user.id,
-            project_id=current_project.id if current_project else None
-        )
+        try:
+            api_token = generate_jwt_token(
+                user_id=request.user.id,
+                project_id=current_project.id if current_project else None
+            )
+            if not api_token:
+                logger.error("❌ JWT Token تولید نشد")
+                return JsonResponse({
+                    'error': 'خطا در تولید توکن احراز هویت',
+                    'success': False
+                }, status=500)
+        except Exception as e:
+            logger.error(f"❌ خطا در تولید JWT Token: {str(e)}", exc_info=True)
+            return JsonResponse({
+                'error': 'خطا در تولید توکن احراز هویت',
+                'success': False
+            }, status=500)
         
         # لاگ برای دیباگ: بررسی توکن تولید شده
         logger.debug(f"🔐 JWT Token تولید شد: {api_token[:50] if api_token else 'None'}...")
@@ -145,7 +170,12 @@ def chat_api(request):
                     
                     with ThreadPoolExecutor() as executor:
                         future = executor.submit(run_in_thread)
-                        response = future.result()
+                        # اضافه کردن timeout برای جلوگیری از hang شدن
+                        try:
+                            response = future.result(timeout=200)  # 200 ثانیه timeout
+                        except TimeoutError:
+                            logger.error("❌ Timeout در اجرای async request در thread")
+                            raise httpx.TimeoutException("Request timeout in thread execution")
                 else:
                     # اگر loop در حال اجرا نیست، از run_until_complete استفاده می‌کنیم
                     response = loop.run_until_complete(send_request())
@@ -156,11 +186,21 @@ def chat_api(request):
             # تلاش برای parse کردن response
             try:
                 result = response.json()
-            except:
+            except (ValueError, json.JSONDecodeError) as json_error:
+                logger.error(f"❌ خطا در parse کردن JSON response: {str(json_error)}")
+                logger.error(f"Response status: {response.status_code}")
+                logger.error(f"Response text (first 500 chars): {response.text[:500] if hasattr(response, 'text') else 'N/A'}")
                 result = {
                     'output': f'خطا در پردازش پاسخ از سرویس دستیار (Status: {response.status_code})',
                     'success': False,
                     'error': f'Invalid response format (Status: {response.status_code})'
+                }
+            except Exception as e:
+                logger.error(f"❌ خطای غیرمنتظره در parse کردن response: {str(e)}", exc_info=True)
+                result = {
+                    'output': f'خطا در پردازش پاسخ از سرویس دستیار (Status: {response.status_code})',
+                    'success': False,
+                    'error': f'Unexpected error parsing response: {str(e)}'
                 }
             
             # بررسی اینکه آیا پاسخ موفق است یا نه
@@ -195,24 +235,80 @@ def chat_api(request):
                 )
             
             # بررسی اینکه آیا پاسخ موفق است یا نه (برای return)
-            if response.status_code == 200 and result.get('success', False):
+            # اگر status_code 200 است و output وجود دارد، حتی اگر success=False باشد، پاسخ را برمی‌گردانیم
+            # چون ممکن است دستیار پاسخ معتبری داده باشد اما success=False باشد (مثلاً ابزار فراخوانی نشده)
+            if response.status_code == 200:
+                output = result.get('output', '')
+                success = result.get('success', False)
                 
-                # اضافه کردن به تاریخچه session
-                chat_history.append({
-                    'role': 'user',
-                    'content': user_message
-                })
-                chat_history.append({
-                    'role': 'assistant',
-                    'content': result.get('output', '')
-                })
-                if len(chat_history) > 10:
-                    chat_history = chat_history[-10:]
-                request.session['chat_history'] = chat_history
-                
-                return JsonResponse(result)
+                # اگر output وجود دارد، پاسخ را برمی‌گردانیم (حتی اگر success=False باشد)
+                if output:
+                    # اضافه کردن به تاریخچه session (با exception handling)
+                    try:
+                        chat_history.append({
+                            'role': 'user',
+                            'content': user_message
+                        })
+                        chat_history.append({
+                            'role': 'assistant',
+                            'content': output
+                        })
+                        if len(chat_history) > 10:
+                            chat_history = chat_history[-10:]
+                        request.session['chat_history'] = chat_history
+                        request.session.modified = True
+                    except Exception as session_error:
+                        # اگر خطا در ذخیره‌سازی session رخ داد، فقط لاگ می‌کنیم
+                        # اما پاسخ را به کاربر برمی‌گردانیم
+                        logger.warning(f"⚠️ خطا در ذخیره‌سازی session: {str(session_error)}")
+                    
+                    # اگر success=False است اما output وجود دارد، لاگ می‌کنیم اما پاسخ را برمی‌گردانیم
+                    if not success:
+                        logger.warning(f"⚠️ پاسخ با success=False دریافت شد اما output وجود دارد. پاسخ برگردانده می‌شود.")
+                    
+                    try:
+                        # بررسی اینکه آیا result قابل serialize است
+                        # اگر result شامل داده‌های غیرقابل serialize باشد، آن را پاک می‌کنیم
+                        serializable_result = {
+                            'output': result.get('output', ''),
+                            'success': result.get('success', False),
+                            'error': result.get('error'),
+                            'status_code': result.get('status_code'),
+                        }
+                        # اضافه کردن سایر فیلدها فقط اگر قابل serialize باشند
+                        for key, value in result.items():
+                            if key not in serializable_result:
+                                try:
+                                    # تست serialize کردن
+                                    json.dumps(value)
+                                    serializable_result[key] = value
+                                except (TypeError, ValueError):
+                                    logger.warning(f"⚠️ فیلد '{key}' قابل serialize نیست و حذف می‌شود")
+                        
+                        return JsonResponse(serializable_result)
+                    except Exception as json_error:
+                        logger.error(f"❌ خطا در return کردن JsonResponse: {str(json_error)}", exc_info=True)
+                        # در صورت خطا، یک پاسخ ساده برمی‌گردانیم
+                        return JsonResponse({
+                            'output': output,
+                            'success': success,
+                            'error': f'خطا در پردازش پاسخ: {str(json_error)}' if settings.DEBUG else None
+                        })
+                else:
+                    # اگر output وجود ندارد، خطا را برمی‌گردانیم
+                    logger.error(f"خطا از سمت دستیار: status_code={response.status_code}, output موجود نیست")
+                    logger.error(f"جزئیات خطا: {result}")
+                    
+                    error_message = result.get('error', 'خطا در ارتباط با سرویس دستیار - پاسخ خالی است')
+                    
+                    return JsonResponse({
+                        'error': error_message,
+                        'success': False,
+                        'status_code': response.status_code,
+                        'details': result
+                    }, status=503)
             else:
-                # لاگ کردن جزئیات خطا از سمت دستیار
+                # اگر status_code 200 نیست، خطا را برمی‌گردانیم
                 logger.error(f"خطا از سمت دستیار: {response.status_code}")
                 logger.error(f"جزئیات خطا: {result}")
                 
@@ -226,15 +322,17 @@ def chat_api(request):
                     'details': result
                 }, status=503)
         
-        except httpx.TimeoutException:
-            logger.error("Timeout در ارتباط با سرویس دستیار")
+        except httpx.TimeoutException as e:
+            logger.error(f"⏱️ Timeout در ارتباط با سرویس دستیار: {str(e)}")
+            logger.error(f"URL سرویس: {assistant_url}")
             return JsonResponse({
                 'error': 'زمان انتظار به پایان رسید. لطفاً دوباره تلاش کنید.',
-                'success': False
+                'success': False,
+                'timeout': True
             }, status=504)
         
         except httpx.ConnectError as e:
-            logger.error(f"خطا در اتصال به سرویس دستیار: {str(e)}")
+            logger.error(f"🔌 خطا در اتصال به سرویس دستیار: {str(e)}")
             logger.error(f"URL سرویس: {assistant_url}")
             import traceback
             logger.error(f"Traceback: {traceback.format_exc()}")
@@ -244,8 +342,27 @@ def chat_api(request):
                 'assistant_unavailable': True
             }, status=503)
         
+        except httpx.HTTPStatusError as e:
+            logger.error(f"❌ خطای HTTP از سرویس دستیار: {e.response.status_code}")
+            logger.error(f"Response: {e.response.text[:500] if hasattr(e.response, 'text') else 'N/A'}")
+            return JsonResponse({
+                'error': f'خطای HTTP {e.response.status_code} از سرویس دستیار',
+                'success': False,
+                'status_code': e.response.status_code
+            }, status=503)
+        
+        except httpx.RequestError as e:
+            logger.error(f"❌ خطای درخواست به سرویس دستیار: {str(e)}")
+            logger.error(f"URL سرویس: {assistant_url}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            return JsonResponse({
+                'error': 'خطا در ارسال درخواست به سرویس دستیار',
+                'success': False
+            }, status=503)
+        
         except Exception as e:
-            logger.error(f"خطا در ارتباط با دستیار: {str(e)}")
+            logger.error(f"❌ خطای غیرمنتظره در ارتباط با دستیار: {str(e)}")
             import traceback
             logger.error(f"Traceback: {traceback.format_exc()}")
             return JsonResponse({

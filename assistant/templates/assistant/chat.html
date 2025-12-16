@@ -1049,9 +1049,22 @@
 
 <script>
     // بررسی اینکه آیا دستیار فعال است
-    const config = JSON.parse(document.getElementById('assistant-config').textContent);
-    const ASSISTANT_ENABLED = config.enabled;
-    const ASSISTANT_URL = config.url;
+    let ASSISTANT_ENABLED = false;
+    let ASSISTANT_URL = '';
+    try {
+        const configElement = document.getElementById('assistant-config');
+        if (configElement) {
+            const config = JSON.parse(configElement.textContent);
+            ASSISTANT_ENABLED = config.enabled || false;
+            ASSISTANT_URL = config.url || '';
+        } else {
+            console.error('⚠️ عنصر assistant-config پیدا نشد');
+        }
+    } catch (e) {
+        console.error('⚠️ خطا در parse کردن config:', e);
+        ASSISTANT_ENABLED = false;
+        ASSISTANT_URL = '';
+    }
     
     const messagesDiv = document.getElementById('messages');
     const messageInput = document.getElementById('messageInput');
@@ -1897,8 +1910,16 @@
             // خواندن response body فقط یک بار (برای جلوگیری از خطای "body stream already read")
             let responseText;
             try {
-                responseText = await response.text();
+                // اضافه کردن timeout برای خواندن response
+                const textPromise = response.text();
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Timeout در خواندن پاسخ')), 10000)
+                );
+                responseText = await Promise.race([textPromise, timeoutPromise]);
             } catch (e) {
+                if (e.message.includes('Timeout')) {
+                    throw new Error('⏱️ زمان خواندن پاسخ سرور به پایان رسید. لطفاً دوباره تلاش کنید.');
+                }
                 throw new Error(`خطا در خواندن پاسخ سرور: ${e.message}`);
             }
             
@@ -1913,18 +1934,32 @@
                 if (!responseText || responseText.trim() === '') {
                     data = { success: false, error: 'پاسخ سرور خالی است' };
                 } else {
+                    // بررسی اندازه response (اگر خیلی بزرگ باشد، ممکن است مشکل ایجاد کند)
+                    if (responseText.length > 10 * 1024 * 1024) { // 10MB
+                        console.warn('⚠️ پاسخ سرور خیلی بزرگ است:', responseText.length, 'bytes');
+                        throw new Error('پاسخ سرور خیلی بزرگ است و نمی‌تواند پردازش شود');
+                    }
+                    
                     // اگر Content-Type JSON نیست اما متن با { یا [ شروع می‌شود، سعی می‌کنیم parse کنیم
                     if (!isJson && (responseText.trim().startsWith('{') || responseText.trim().startsWith('['))) {
                         console.warn('⚠️ Content-Type JSON نیست اما متن شبیه JSON است. تلاش برای parse...');
                     }
                     
-                    data = JSON.parse(responseText);
+                    try {
+                        data = JSON.parse(responseText);
+                    } catch (parseError) {
+                        // اگر JSON parse نشد، بررسی می‌کنیم که آیا response HTML است
+                        if (responseText.trim().startsWith('<!DOCTYPE') || responseText.trim().startsWith('<html')) {
+                            throw new Error('پاسخ سرور به صورت HTML است (احتمالاً صفحه خطا)');
+                        }
+                        throw parseError;
+                    }
                 }
             } catch (e) {
                 // اگر JSON parse نشد
                 console.error('خطا در parse کردن JSON:', {
                     error: e.message,
-                    responseText: responseText.substring(0, 500),
+                    responseText: responseText ? responseText.substring(0, 500) : 'null',
                     status: response.status,
                     statusText: response.statusText,
                     contentType: contentType,
@@ -1936,13 +1971,29 @@
             
             // بررسی ساختار response (اگر به اینجا رسیدیم، response.ok است)
             if (data && typeof data === 'object') {
-                if (data.success) {
-                    const output = data.output || 'پاسخ دریافت نشد.';
-                    console.log('✅ پاسخ موفق دریافت شد:', output.substring(0, 100) + '...');
-                    addMessage(output, false);
-                    // بعد از نمایش پیام موفق، return می‌کنیم تا catch block اجرا نشود
-                    return;
+                // اگر success=true است یا output وجود دارد (حتی اگر success=false باشد)، پیام را نمایش می‌دهیم
+                // چون ممکن است دستیار پاسخ معتبری داده باشد اما success=False باشد (مثلاً ابزار فراخوانی نشده)
+                const output = data.output || '';
+                if (data.success || output) {
+                    if (output) {
+                        if (data.success) {
+                            console.log('✅ پاسخ موفق دریافت شد:', output.substring(0, 100) + '...');
+                        } else {
+                            console.warn('⚠️ پاسخ با success=false دریافت شد اما output وجود دارد:', output.substring(0, 100) + '...');
+                        }
+                        addMessage(output, false);
+                        // بعد از نمایش پیام، return می‌کنیم تا catch block اجرا نشود
+                        return;
+                    } else {
+                        // اگر success=true است اما output وجود ندارد
+                        const errorMessage = data.error || data.message || 'پاسخ دریافت نشد.';
+                        console.warn('⚠️ success=true اما output وجود ندارد:', errorMessage);
+                        addMessage(`⚠️ ${errorMessage}`, false);
+                        showToast('پاسخ خالی دریافت شد', 'warning');
+                        return;
+                    }
                 } else {
+                    // اگر success=false است و output هم وجود ندارد
                     const errorMessage = data.error || data.message || 'خطای نامشخص';
                     console.error('❌ خطا از سرور:', errorMessage);
                     addMessage(`❌ خطا: ${errorMessage}`, false);
@@ -2024,7 +2075,24 @@
                     credentials: 'include'
                 });
                 
-                const data = await response.json();
+                // بررسی status قبل از parse کردن JSON
+                if (!response.ok) {
+                    throw new Error(`خطای HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                let data;
+                try {
+                    const responseText = await response.text();
+                    if (!responseText || responseText.trim() === '') {
+                        data = { success: false, error: 'پاسخ خالی است' };
+                    } else {
+                        data = JSON.parse(responseText);
+                    }
+                } catch (parseError) {
+                    console.error('خطا در parse کردن پاسخ clear_chat_history:', parseError);
+                    throw new Error('پاسخ سرور نامعتبر است');
+                }
+                
                 if (data.success) {
                     showToast('تاریخچه چت پاک شد', 'success');
                 } else {
@@ -2111,7 +2179,18 @@
                 
                 // فقط اگر پیام جدیدی وجود دارد، ذخیره کن
                 const currentHistory = localStorage.getItem(STORAGE_KEY);
-                const currentMessages = currentHistory ? JSON.parse(currentHistory) : [];
+                let currentMessages = [];
+                if (currentHistory) {
+                    try {
+                        currentMessages = JSON.parse(currentHistory);
+                        if (!Array.isArray(currentMessages)) {
+                            currentMessages = [];
+                        }
+                    } catch (e) {
+                        console.warn('⚠️ خطا در parse کردن تاریخچه از localStorage:', e);
+                        currentMessages = [];
+                    }
+                }
                 
                 // مقایسه تعداد پیام‌ها برای جلوگیری از ذخیره غیرضروری
                 if (messages.length !== currentMessages.length || 
@@ -2130,52 +2209,64 @@
         try {
             const saved = localStorage.getItem(STORAGE_KEY);
             if (saved) {
-                const messages = JSON.parse(saved);
-                
-                // تابع برای لود کردن پیام‌ها به صورت دسته‌ای
-                const loadMessages = () => {
-                    let index = 0;
-                    const batchSize = 3; // لود 3 پیام در هر فریم
-                    
-                    function loadBatch() {
-                        const endIndex = Math.min(index + batchSize, messages.length);
-                        
-                        for (let i = index; i < endIndex; i++) {
-                            addMessage(messages[i].text, messages[i].isUser);
-                        }
-                        
-                        index = endIndex;
-                        
-                        if (index < messages.length) {
-                            requestAnimationFrame(loadBatch);
-                        } else {
-                            // بعد از لود شدن تمام پیام‌ها، پردازش مجدد را انجام بده
-                            scheduleReprocess();
-                        }
+                let messages;
+                try {
+                    messages = JSON.parse(saved);
+                    if (!Array.isArray(messages)) {
+                        console.warn('⚠️ تاریخچه ذخیره شده معتبر نیست (آرایه نیست)');
+                        messages = [];
                     }
-                    
-                    loadBatch();
-                };
+                } catch (e) {
+                    console.error('⚠️ خطا در parse کردن تاریخچه:', e);
+                    messages = [];
+                }
                 
-                // اگر marked.js آماده است، پیام‌ها را لود کن
-                if (markedReady) {
-                    loadMessages();
-                } else {
-                    // اگر marked.js آماده نیست، منتظر بمان
-                    let checkCount = 0;
-                    const maxChecks = 50;
-                    
-                    const loadInterval = setInterval(() => {
-                        checkCount++;
-                        if (markedReady) {
-                            clearInterval(loadInterval);
-                            loadMessages();
-                        } else if (checkCount >= maxChecks) {
-                            clearInterval(loadInterval);
-                            // حتی اگر marked.js لود نشد، پیام‌ها را نمایش بده
-                            loadMessages();
+                if (messages && messages.length > 0) {
+                    // تابع برای لود کردن پیام‌ها به صورت دسته‌ای
+                    const loadMessages = () => {
+                        let index = 0;
+                        const batchSize = 3; // لود 3 پیام در هر فریم
+                        
+                        function loadBatch() {
+                            const endIndex = Math.min(index + batchSize, messages.length);
+                            
+                            for (let i = index; i < endIndex; i++) {
+                                addMessage(messages[i].text, messages[i].isUser);
+                            }
+                            
+                            index = endIndex;
+                            
+                            if (index < messages.length) {
+                                requestAnimationFrame(loadBatch);
+                            } else {
+                                // بعد از لود شدن تمام پیام‌ها، پردازش مجدد را انجام بده
+                                scheduleReprocess();
+                            }
                         }
-                    }, 100);
+                        
+                        loadBatch();
+                    };
+                    
+                    // اگر marked.js آماده است، پیام‌ها را لود کن
+                    if (markedReady) {
+                        loadMessages();
+                    } else {
+                        // اگر marked.js آماده نیست، منتظر بمان
+                        let checkCount = 0;
+                        const maxChecks = 50;
+                        
+                        const loadInterval = setInterval(() => {
+                            checkCount++;
+                            if (markedReady) {
+                                clearInterval(loadInterval);
+                                loadMessages();
+                            } else if (checkCount >= maxChecks) {
+                                clearInterval(loadInterval);
+                                // حتی اگر marked.js لود نشد، پیام‌ها را نمایش بده
+                                loadMessages();
+                            }
+                        }, 100);
+                    }
                 }
             }
         } catch (error) {
