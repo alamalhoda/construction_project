@@ -273,7 +273,6 @@
         margin-bottom: 25px;
     }
     
-    
     .dashboard-card.petty-cash-card {
         position: relative;
     }
@@ -298,6 +297,31 @@
     
     .dashboard-card.petty-cash-card .card-btn:hover {
         box-shadow: 0 8px 25px rgba(255, 152, 0, 0.4);
+    }
+
+    /* استایل مخصوص بخش دستیار هوش مصنوعی */
+    .ai-assistant-section {
+        grid-column: 1 / -1;
+        margin-top: 30px;
+        padding-top: 10px;
+        position: relative;
+    }
+
+    .ai-assistant-section-border {
+        position: absolute;
+        top: 0;
+        right: 0;
+        left: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+        border-radius: 3px;
+    }
+
+    .section-header.ai-assistant-header {
+        grid-column: 1 / -1;
+        background: white;
+        border: 2px solid rgba(102, 126, 234, 0.35);
+        margin-bottom: 25px;
     }
     
     /* استایل مخصوص کارت دستیار هوش مصنوعی */
@@ -499,18 +523,6 @@
                 <p>دسترسی کامل به تمام بخش‌های سیستم</p>
             </div>
             
-            <!-- کارت ویژه دستیار هوش مصنوعی -->
-            <div class="dashboard-card ai-assistant-card">
-                <span class="card-icon">🤖✨</span>
-                <h3 class="card-title">دستیار هوش مصنوعی</h3>
-                <p class="card-description">
-                    دستیار هوشمند برای پاسخگویی به سوالات و کمک در مدیریت پروژه. از هوش مصنوعی برای دریافت راهنمایی‌های تخصصی استفاده کنید.
-                </p>
-                <a href="/assistant/chat/" class="card-btn">
-                    🚀 شروع گفتگو با دستیار
-                </a>
-            </div>
-            
             <div class="dashboard-card admin-card">
                 <span class="card-icon">📋 <!-- <i class="fas fa-project-diagram" style="margin-right: 10px;"></i> --></span>
                 <h3 class="card-title">مدیریت پروژه‌ها</h3>
@@ -669,6 +681,40 @@
                                 دریافت Schema JSON
                             </a>
                         </div>
+
+            <!-- بخش دستیار هوش مصنوعی -->
+            <div class="ai-assistant-section">
+                <div class="ai-assistant-section-border"></div>
+                <div class="section-header ai-assistant-header">
+                    <h2>🤖 دستیار هوش مصنوعی</h2>
+                    <p>گفتگو و راهنمایی هوشمند برای مدیریت بهتر پروژه</p>
+                </div>
+            </div>
+            
+            <!-- کارت ویژه دستیار هوش مصنوعی -->
+            <div class="dashboard-card ai-assistant-card">
+                <span class="card-icon">🤖✨</span>
+                <h3 class="card-title">دستیار هوش مصنوعی</h3>
+                <p class="card-description">
+                    دستیار هوشمند برای پاسخگویی به سوالات و کمک در مدیریت پروژه. از هوش مصنوعی برای دریافت راهنمایی‌های تخصصی استفاده کنید.
+                </p>
+                <a href="/assistant/chat/" class="card-btn">
+                    🚀 شروع گفتگو با دستیار
+                </a>
+            </div>
+
+            <!-- کارت تاریخچه گفتگو با دستیار -->
+            <div class="dashboard-card ai-assistant-card">
+                <span class="card-icon">🕒</span>
+                <h3 class="card-title">تاریخچه گفتگو با دستیار</h3>
+                <p class="card-description">
+                    مشاهده و مرور گفتگوهای قبلی شما با دستیار هوش مصنوعی برای دسترسی سریع به پاسخ‌ها و راهنمایی‌های گذشته.
+                </p>
+                <a href="/assistant/history/" class="card-btn">
+                    📜 مشاهده تاریخچه گفتگو
+                </a>
+            </div>
+
             <!-- بخش حسابداری تنخواه -->
             <div class="petty-cash-section">
                 <div class="petty-cash-section-border"></div>
@@ -740,18 +786,6 @@
                 <h2>👥 ابزارهای کاربری</h2>
                 <p>دسترسی به بخش‌های کاربران نهایی</p>
             </div>
-
- <!-- کارت ویژه دستیار هوش مصنوعی -->
- <div class="dashboard-card ai-assistant-card">
-    <span class="card-icon">🤖✨</span>
-    <h3 class="card-title">دستیار هوش مصنوعی</h3>
-    <p class="card-description">
-        دستیار هوشمند برای پاسخگویی به سوالات و کمک در مدیریت پروژه. از هوش مصنوعی برای دریافت راهنمایی‌های تخصصی استفاده کنید.
-    </p>
-    <a href="/assistant/chat/" class="card-btn">
-        🚀 شروع گفتگو با دستیار
-    </a>
-</div>
 
             <div class="dashboard-card">
                 <span class="card-icon">🏗️ <!-- <i class="fas fa-project-diagram" style="margin-right: 10px;"></i> --></span>
@@ -880,6 +914,39 @@
                 </p>
                 <a href="/dashboard/detailed-calculations/" class="card-btn">
                     مشاهده محاسبات
+                </a>
+            </div>
+
+            <!-- بخش دستیار هوش مصنوعی -->
+            <div class="ai-assistant-section">
+                <div class="ai-assistant-section-border"></div>
+                <div class="section-header ai-assistant-header">
+                    <h2>🤖 دستیار هوش مصنوعی</h2>
+                    <p>گفتگو و راهنمایی هوشمند برای مدیریت بهتر پروژه</p>
+                </div>
+            </div>
+            
+            <!-- کارت ویژه دستیار هوش مصنوعی -->
+            <div class="dashboard-card ai-assistant-card">
+                <span class="card-icon">🤖✨</span>
+                <h3 class="card-title">دستیار هوش مصنوعی</h3>
+                <p class="card-description">
+                    دستیار هوشمند برای پاسخگویی به سوالات و کمک در مدیریت پروژه. از هوش مصنوعی برای دریافت راهنمایی‌های تخصصی استفاده کنید.
+                </p>
+                <a href="/assistant/chat/" class="card-btn">
+                    🚀 شروع گفتگو با دستیار
+                </a>
+            </div>
+
+            <!-- کارت تاریخچه گفتگو با دستیار -->
+            <div class="dashboard-card ai-assistant-card">
+                <span class="card-icon">🕒</span>
+                <h3 class="card-title">تاریخچه گفتگو با دستیار</h3>
+                <p class="card-description">
+                    مشاهده و مرور گفتگوهای قبلی شما با دستیار هوش مصنوعی برای دسترسی سریع به پاسخ‌ها و راهنمایی‌های گذشته.
+                </p>
+                <a href="/assistant/history/" class="card-btn">
+                    📜 مشاهده تاریخچه گفتگو
                 </a>
             </div>
             
