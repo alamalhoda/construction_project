@@ -111,12 +111,13 @@ class Project(models.Model):
                 from django.apps import apps
                 Transaction = apps.get_model('construction', 'Transaction')
                 
-                # به‌روزرسانی day_remaining برای همه تراکنش‌ها
+                # به‌روزرسانی day_remaining برای همه تراکنش‌های این پروژه (فقط همین پروژه)
+                # اگر هیچ تراکنشی وجود نداشته باشد، خطا نمی‌دهد
                 transactions = Transaction.objects.filter(project=self)
                 
                 for transaction in transactions:
                     if transaction.date_gregorian:
-                        # محاسبه day_remaining جدید
+                        # محاسبه day_remaining جدید بر اساس تاریخ پایان جدید پروژه
                         new_day_remaining = (new_end_date - transaction.date_gregorian).days
                         transaction.day_remaining = new_day_remaining
                         transaction.save(update_fields=['day_remaining'])
