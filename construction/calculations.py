@@ -719,6 +719,11 @@ class InvestorCalculations(FinancialCalculationService):
             else:
                 current_unit_cost = 0
         
+        # محاسبه بدهی فعلی واحد
+        # فرمول: هزینه فعلی واحد - سرمایه موجود سرمایه‌گذار
+        # مقدار مثبت = بدهی (باید بپردازد)، مقدار منفی = اضافه پرداخت (دریافت دارد)
+        current_unit_debt = current_unit_cost - net_principal
+        
         return {
             'ownership_area': round(ownership_area, 10),  # مساحت مالکیت
             'total_amount': total_amount,  # مبلغ کل (سرمایه خالص + سود)
@@ -734,6 +739,7 @@ class InvestorCalculations(FinancialCalculationService):
             'transfer_price_per_meter': round(transfer_price_per_meter, 10),  # قیمت انتقال هر متر مربع
             'actual_paid': round(actual_paid, 10),  # مقدار پرداخت شده واقعی
             'current_unit_cost': round(current_unit_cost, 10),  # هزینه فعلی واحد
+            'current_unit_debt': round(current_unit_debt, 10),  # بدهی فعلی واحد (هزینه فعلی واحد - سرمایه موجود)
             'calculation_method': 'unit_based',  # روش محاسبه (بر اساس واحدها)
             'message': 'محاسبه بر اساس واحدهای مالکیت'  # پیام توضیحی
         }

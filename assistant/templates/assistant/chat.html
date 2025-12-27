@@ -1049,22 +1049,9 @@
 
 <script>
     // بررسی اینکه آیا دستیار فعال است
-    let ASSISTANT_ENABLED = false;
-    let ASSISTANT_URL = '';
-    try {
-        const configElement = document.getElementById('assistant-config');
-        if (configElement) {
-            const config = JSON.parse(configElement.textContent);
-            ASSISTANT_ENABLED = config.enabled || false;
-            ASSISTANT_URL = config.url || '';
-        } else {
-            console.error('⚠️ عنصر assistant-config پیدا نشد');
-        }
-    } catch (e) {
-        console.error('⚠️ خطا در parse کردن config:', e);
-        ASSISTANT_ENABLED = false;
-        ASSISTANT_URL = '';
-    }
+    const config = JSON.parse(document.getElementById('assistant-config').textContent);
+    const ASSISTANT_ENABLED = config.enabled;
+    const ASSISTANT_URL = config.url;
     
     const messagesDiv = document.getElementById('messages');
     const messageInput = document.getElementById('messageInput');
@@ -1934,32 +1921,18 @@
                 if (!responseText || responseText.trim() === '') {
                     data = { success: false, error: 'پاسخ سرور خالی است' };
                 } else {
-                    // بررسی اندازه response (اگر خیلی بزرگ باشد، ممکن است مشکل ایجاد کند)
-                    if (responseText.length > 10 * 1024 * 1024) { // 10MB
-                        console.warn('⚠️ پاسخ سرور خیلی بزرگ است:', responseText.length, 'bytes');
-                        throw new Error('پاسخ سرور خیلی بزرگ است و نمی‌تواند پردازش شود');
-                    }
-                    
                     // اگر Content-Type JSON نیست اما متن با { یا [ شروع می‌شود، سعی می‌کنیم parse کنیم
                     if (!isJson && (responseText.trim().startsWith('{') || responseText.trim().startsWith('['))) {
                         console.warn('⚠️ Content-Type JSON نیست اما متن شبیه JSON است. تلاش برای parse...');
                     }
                     
-                    try {
-                        data = JSON.parse(responseText);
-                    } catch (parseError) {
-                        // اگر JSON parse نشد، بررسی می‌کنیم که آیا response HTML است
-                        if (responseText.trim().startsWith('<!DOCTYPE') || responseText.trim().startsWith('<html')) {
-                            throw new Error('پاسخ سرور به صورت HTML است (احتمالاً صفحه خطا)');
-                        }
-                        throw parseError;
-                    }
+                    data = JSON.parse(responseText);
                 }
             } catch (e) {
                 // اگر JSON parse نشد
                 console.error('خطا در parse کردن JSON:', {
                     error: e.message,
-                    responseText: responseText ? responseText.substring(0, 500) : 'null',
+                    responseText: responseText.substring(0, 500),
                     status: response.status,
                     statusText: response.statusText,
                     contentType: contentType,

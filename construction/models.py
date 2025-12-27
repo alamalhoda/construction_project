@@ -77,7 +77,50 @@ class Project(models.Model):
         return reverse('construction_Project_update', kwargs={'pk': self.pk})
     
     def save(self, *args, **kwargs):
+        # بررسی اینکه آیا این یک به‌روزرسانی است یا ایجاد جدید
+        is_update = self.pk is not None
+        
+        # اگر به‌روزرسانی است، تاریخ پایان قبلی را از دیتابیس بخوانیم
+        old_end_date = None
+        if is_update:
+            try:
+                # استفاده از refresh_from_db یا get برای اطمینان از خواندن از دیتابیس
+                old_instance = Project.objects.only('end_date_gregorian').get(pk=self.pk)
+                old_end_date = old_instance.end_date_gregorian
+            except Project.DoesNotExist:
+                pass
+        
+        # ذخیره پروژه
         super().save(*args, **kwargs)
+        
+        # اگر تاریخ پایان تغییر کرده باشد، day_remaining تراکنش‌ها را به‌روزرسانی کنیم
+        if is_update and old_end_date is not None and self.end_date_gregorian:
+            # تبدیل به date object برای مقایسه صحیح
+            if isinstance(old_end_date, str):
+                from datetime import datetime
+                old_end_date = datetime.strptime(old_end_date, '%Y-%m-%d').date()
+            if isinstance(self.end_date_gregorian, str):
+                from datetime import datetime
+                new_end_date = datetime.strptime(self.end_date_gregorian, '%Y-%m-%d').date()
+            else:
+                new_end_date = self.end_date_gregorian
+            
+            # بررسی تغییر تاریخ پایان
+            if old_end_date != new_end_date:
+                # استفاده از apps.get_model برای جلوگیری از circular import
+                from django.apps import apps
+                Transaction = apps.get_model('construction', 'Transaction')
+                
+                # به‌روزرسانی day_remaining برای همه تراکنش‌های این پروژه (فقط همین پروژه)
+                # اگر هیچ تراکنشی وجود نداشته باشد، خطا نمی‌دهد
+                transactions = Transaction.objects.filter(project=self)
+                
+                for transaction in transactions:
+                    if transaction.date_gregorian:
+                        # محاسبه day_remaining جدید بر اساس تاریخ پایان جدید پروژه
+                        new_day_remaining = (new_end_date - transaction.date_gregorian).days
+                        transaction.day_remaining = new_day_remaining
+                        transaction.save(update_fields=['day_remaining'])
     
 
 

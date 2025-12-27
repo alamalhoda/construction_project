@@ -73,9 +73,7 @@ CACHES = {
     }
 }
 
-# تنظیمات Logging برای Production
-# استفاده از logging کامل از settings.py با تنظیمات مناسب برای production
-# فقط سطح لاگ را برای production تنظیم می‌کنیم (INFO به جای DEBUG)
+# تنظیمات Logging برای Render (هماهنگ با تنظیمات اصلی، به‌همراه لاگ‌های Chat)
 from pathlib import Path
 
 # تعیین سطح لاگ برای production
@@ -88,7 +86,6 @@ DJANGO_LOG_LEVEL = 'WARNING'
 LOGS_DIR = BASE_DIR / 'logs'
 LOGS_DIR.mkdir(exist_ok=True)
 
-# تنظیمات Logging کامل برای Production (مشابه settings.py اما با سطح INFO)
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -99,6 +96,10 @@ LOGGING = {
         },
         'simple': {
             'format': '{levelname} {message}',
+            'style': '{',
+        },
+        'tehran_time': {
+            'format': '{levelname} {asctime} [Tehran] {module} {process:d} {thread:d} {message}',
             'style': '{',
         },
     },

@@ -399,7 +399,7 @@
         max-height: 0;
         overflow: hidden;
         transition: max-height 0.4s ease;
-        background: var(--bg-primary);
+        background: #28a74540;
     }
     
     .chat-log-item.expanded .chat-log-content {
@@ -439,7 +439,7 @@
         padding: 20px 24px;
         border-radius: 12px;
         border: 2px solid var(--border-color);
-        box-shadow: var(--shadow-sm);
+        box-shadow: var(--green);
     }
     
     .message-box.user-message {
@@ -686,6 +686,10 @@
                 </div>
             </div>
             <div class="history-header-actions">
+                <a href="/user-dashboard/" class="header-btn">
+                    <i class="fas fa-home"></i>
+                    صفحه اصلی داشبورد
+                </a>
                 <a href="{% url 'assistant:chat' %}" class="header-btn">
                     <i class="fas fa-comments"></i>
                     چت جدید
