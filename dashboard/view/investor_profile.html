@@ -1223,6 +1223,10 @@
                         <h4 id="currentUnitCost">-</h4>
                         <p>هزینه فعلی واحد (تومان)</p>
                     </div>
+                    <div class="stat-card" style="border: 2px solid var(--withdrawal-color); background: linear-gradient(135deg, var(--withdrawal-color-light), rgba(219, 40, 40, 0.05));">
+                        <h4 id="currentUnitDebt">-</h4>
+                        <p>بدهی فعلی واحد (تومان)</p>
+                    </div>
                     <div class="stat-card" style="border: 2px solid var(--expense-color); background: linear-gradient(135deg, var(--expense-color-light), rgba(220, 53, 69, 0.05));">
                         <h4 id="unitSpecificExpenseTotal">-</h4>
                         <p>هزینه اختصاصی واحد (تومان)</p>
@@ -1765,7 +1769,8 @@
                         totalUnitsPrice: investorOwnership?.total_units_price || 0,
                         averagePricePerMeter: investorOwnership?.average_price_per_meter || 0,
                         value_per_meter: investorOwnership?.value_per_meter || 0,
-                        currentUnitCost: investorOwnership?.current_unit_cost || 0
+                        currentUnitCost: investorOwnership?.current_unit_cost || 0,
+                        currentUnitDebt: investorOwnership?.current_unit_debt || 0
                     };
 
 
@@ -1806,7 +1811,8 @@
                 { id: 'transferPricePerMeter', value: serverCalculations.transferPricePerMeter },
                 { id: 'totalUnitsPrice', value: serverCalculations.totalUnitsPrice },
                 { id: 'averagePricePerMeter', value: serverCalculations.averagePricePerMeter },
-                { id: 'currentUnitCost', value: serverCalculations.currentUnitCost }
+                { id: 'currentUnitCost', value: serverCalculations.currentUnitCost },
+                { id: 'currentUnitDebt', value: serverCalculations.currentUnitDebt }
             ];
 
             elements.forEach(element => {
@@ -1838,6 +1844,24 @@
                         // برای هزینه فعلی واحد، فرمت عددی با جداکننده
                         const v = parseFloat(element.value);
                         domElement.textContent = (isNaN(v) || v <= 0) ? '-' : formatNumberWithCommas(v);
+                    } else if (element.id === 'currentUnitDebt') {
+                        // برای بدهی فعلی واحد، نمایش با رنگ (مثبت = بدهی، منفی = اضافه پرداخت)
+                        const value = parseFloat(element.value);
+                        if (value && value !== 0) {
+                            const formatted = formatNumberWithCommas(Math.abs(value));
+                            if (value >= 0) {
+                                // بدهی مثبت (باید بپردازد) - رنگ قرمز
+                                domElement.textContent = formatted;
+                                domElement.style.color = '#db2828';
+                            } else {
+                                // بدهی منفی (اضافه پرداخت کرده) - رنگ سبز
+                                domElement.textContent = '-' + formatted;
+                                domElement.style.color = '#28a745';
+                            }
+                        } else {
+                            domElement.textContent = '0';
+                            domElement.style.color = '';
+                        }
                     } else if (element.id === 'finalPayment') {
                         // برای پرداخت نهایی، نمایش با علامت مثبت/منفی
                         const value = parseFloat(element.value);

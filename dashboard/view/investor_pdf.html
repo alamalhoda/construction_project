@@ -1301,6 +1301,10 @@
                         <h4 id="currentUnitCost">-</h4>
                         <p>هزینه فعلی واحد (تومان)</p>
                     </div>
+                    <div class="stat-card" style="border: 2px solid var(--withdrawal-color); background: linear-gradient(135deg, var(--withdrawal-color-light), rgba(219, 40, 40, 0.05));">
+                        <h4 id="currentUnitDebt">-</h4>
+                        <p>بدهی فعلی واحد (تومان)</p>
+                    </div>
                     <div class="stat-card" style="border: 2px solid var(--expense-color); background: linear-gradient(135deg, var(--expense-color-light), rgba(220, 53, 69, 0.05));">
                         <h4 id="unitSpecificExpenseTotal">-</h4>
                         <p>هزینه اختصاصی واحد (تومان)</p>
@@ -1822,6 +1826,7 @@
                 const totalUnitsPrice = ownershipData?.total_units_price || unitInfo.price;
                 const valuePerMeter = ownershipData?.value_per_meter || 0;
                 const currentUnitCost = ownershipData?.current_unit_cost || 0;
+                const currentUnitDebt = ownershipData?.current_unit_debt || 0;
 
                 // Update UI
                 document.getElementById('reportDate').textContent = `تاریخ گزارش: ${getCurrentPersianDate()}`;
@@ -1931,6 +1936,24 @@
                 const currentUnitCostEl = document.getElementById('currentUnitCost');
                 if (currentUnitCostEl) {
                     currentUnitCostEl.textContent = (currentUnitCost && currentUnitCost > 0) ? formatNumber(currentUnitCost) : '-';
+                }
+                const currentUnitDebtEl = document.getElementById('currentUnitDebt');
+                if (currentUnitDebtEl) {
+                    if (currentUnitDebt && currentUnitDebt !== 0) {
+                        const debtFormatted = formatNumber(Math.abs(currentUnitDebt));
+                        if (currentUnitDebt >= 0) {
+                            // بدهی مثبت (باید بپردازد) - رنگ قرمز
+                            currentUnitDebtEl.textContent = debtFormatted;
+                            currentUnitDebtEl.style.color = '#db2828';
+                        } else {
+                            // بدهی منفی (اضافه پرداخت کرده) - رنگ سبز
+                            currentUnitDebtEl.textContent = '-' + debtFormatted;
+                            currentUnitDebtEl.style.color = '#28a745';
+                        }
+                    } else {
+                        currentUnitDebtEl.textContent = '0';
+                        currentUnitDebtEl.style.color = '';
+                    }
                 }
                 const valuePerMeterInvestorEl = document.getElementById('valuePerMeterInvestor');
                 if (valuePerMeterInvestorEl) {
