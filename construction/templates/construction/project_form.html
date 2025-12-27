@@ -43,6 +43,16 @@
                             {{ form.name }}
                         </div>
                         
+                        {% if object %}
+                            <div class="alert alert-info" role="alert">
+                                <i class="fas fa-info-circle"></i>
+                                <strong>نکته مهم:</strong> در صورت تغییر تاریخ پایان پروژه، مقادیر "روز مانده تا پایان پروژه" برای همه تراکنش‌ها به‌طور خودکار به‌روزرسانی می‌شوند. 
+                                پس از ذخیره تغییرات، لطفاً به صفحه 
+                                <a href="/dashboard/interest-rate-manager/" target="_blank" class="alert-link">مدیریت نرخ سود</a>
+                                مراجعه کرده و با استفاده از دکمه "محاسبه مجدد سودها" اقدام به محاسبه مجدد سودهای تراکنش‌ها کنید.
+                            </div>
+                        {% endif %}
+                        
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
