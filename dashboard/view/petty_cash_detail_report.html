@@ -6,14 +6,17 @@
     <title>گزارش تفصیلی تنخواه</title>
 
     <!-- Tabulator CSS -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/css/tabulator_semanticui.min.css" rel="stylesheet">
+    <!-- <link href="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/css/tabulator_semanticui.min.css" rel="stylesheet"> -->
+    <link href="/static/vendor/tabulator/5.5.2/css/tabulator_semanticui.min.css" rel="stylesheet">
+
     
     <!-- Semantic UI CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.css" rel="stylesheet">
     
     <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    
+    <!-- <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"> -->
+    <link rel="stylesheet" href="/static/vendor/font-awesome/6.0.0/css/all.css">
+
     <!-- Vazir Font CSS -->
     <link rel="stylesheet" href="/static/fonts/vazir.css">
     
@@ -176,10 +179,15 @@
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/js/tabulator.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script> -->
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.js"></script> -->
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/js/tabulator.min.js"></script> -->
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script> -->
+
+    <script src="/static/vendor/jquery/3.6.0/jquery.min.js"></script>
+    <script src="/static/vendor/semantic-ui/2.5.0/semantic.min.js"></script>
+    <script src="/static/vendor/tabulator/5.5.2/js/tabulator.min.js"></script>
+    <script src="/static/vendor/xlsx/0.18.5/xlsx.full.min.js"></script>
     
     <script>
         const API_BASE = '/api/v1/';
