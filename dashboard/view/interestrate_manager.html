@@ -6,13 +6,19 @@
     <title>مدیریت سود</title>
 
     <!-- Bootstrap CSS -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet"> -->
+    <!-- <link href="https://lib.arvancloud.ir/bootstrap/5.3.0-alpha1/css/bootstrap.min.css" rel="stylesheet"> -->
+     <link href="/static/vendor/bootstrap/5.3.0/css/bootstrap.min.css">
     
     <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"> -->
+    <!-- <link rel="stylesheet" href="https://lib.arvancloud.ir/font-awesome/6.4.0/css/all.css"> -->
+     <link rel="stylesheet" href="/static/vendor/font-awesome/6.0.0/css/all.css"
+
     
     <!-- Persian Date Picker -->
-    <link href="https://cdn.jsdelivr.net/npm/persian-datepicker@1.2.0/dist/css/persian-datepicker.min.css" rel="stylesheet">
+    <!-- <link href="https://cdn.jsdelivr.net/npm/persian-datepicker@1.2.0/dist/css/persian-datepicker.min.css" rel="stylesheet"> -->
+     <link rel="stylesheet" href="/static/vendor/persian-datepicker/1.2.0/css/persian-datepicker.min.css"
     
     <!-- Project Switcher CSS -->
     <link rel="stylesheet" href="/static/css/project-switcher.css">
@@ -23,9 +29,89 @@
     <style>
         /* استایل‌های خاص این صفحه - استایل‌های مشترک در dashboard-common.css هستند */
 
+/* ========== Modal Base Styles ========== */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1055;
+    display: none;
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    outline: 0;
+}
+
+.modal-dialog {
+    position: relative;
+    width: auto;
+    margin: 0.5rem;
+    pointer-events: none;
+}
+
+.modal.fade .modal-dialog {
+    transition: transform 0.3s ease-out;
+    transform: translate(0, -50px);
+}
+
+.modal.show .modal-dialog {
+    transform: none;
+}
+
+.modal-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    pointer-events: auto;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 0.3rem;
+    outline: 0;
+}
+
+/* مخفی کردن مودال‌ها در ابتدا */
+#addRateModal,
+#recalculateModal {
+    display: none;
+}
+
+/* نمایش مودال وقتی کلاس show دارد */
+#addRateModal.show,
+#recalculateModal.show {
+    display: block;
+}
+
+/* Backdrop styles */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1050;
+    width: 100vw;
+    height: 100vh;
+    background-color: #000;
+}
+
+.modal-backdrop.fade {
+    opacity: 0;
+}
+
+.modal-backdrop.show {
+    opacity: 0.5;
+}   
+
+        .modal-backdrop.show {
+            display: block;
+}
+
         .main-container {
             max-width: 1200px;
         }
+
+
 
         .navigation-menu {
             display: flex;
@@ -1138,8 +1224,8 @@
         </div>
         
         <!-- Project Statistics Cards -->
-        <div class="row mb-4" id="projectStatsCards" style="display: none;">
-            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+        <div class="row mb-4" id="projectStatsCards">
+            <div class="col-lg-4 col-md-4 col-sm-6 mb-3">
                 <div class="stat-card units-card">
                     <div class="stat-icon">
                         <i class="fas fa-building"></i>
@@ -1150,7 +1236,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+            <div class="col-lg-4 col-md-4 col-sm-6 mb-3">
                 <div class="stat-card area-card">
                     <div class="info-icon" data-tooltip="مجموع متراژ  همه واحدها ">
                         <i class="fas fa-info"></i>
@@ -1473,10 +1559,14 @@
     </div>
 
     <!-- Scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/persian-date@1.1.0/dist/persian-date.min.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script> -->
+     <script src="/static/vendor/jquery/3.7.1/jquery.min.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script> -->
+     <script src="/static/vendor/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script> -->
+     <script src="/static/vendor/persian-datepicker/1.2.0/js/persian-datepicker.min.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/persian-date@1.1.0/dist/persian-date.min.js"></script> -->
+     <script src="/static/vendor/persian-date/1.1.0/persian-date.min.js"></script>
     
     <!-- Financial Calculations Service -->
     <script src="/static/js/financial-calculations.js"></script>
@@ -1495,6 +1585,24 @@
             initializeCSRFToken();
             initializeModalEvents();
             
+            // بستن مودال در صورت باز بودن خودکار
+            const addRateModalEl = document.getElementById('addRateModal');
+            if (addRateModalEl && addRateModalEl.classList.contains('show')) {
+                const modalInstance = bootstrap.Modal.getInstance(addRateModalEl);
+                if (modalInstance) {
+                    modalInstance.hide();
+                }
+            }
+
+            // بستن مودال recalculateModal در صورت باز بودن خودکار
+            const recalculateModalEl = document.getElementById('recalculateModal');
+            if (recalculateModalEl && recalculateModalEl.classList.contains('show')) {
+                const modalInstance = bootstrap.Modal.getInstance(recalculateModalEl);
+                if (modalInstance) {
+                    modalInstance.hide();
+                }
+            }
+
             // منتظر بارگذاری پروژه بمانیم و سپس داده‌ها را بارگذاری کنیم
             waitForProjectAndLoadData();
         });
@@ -2009,7 +2117,7 @@
             calculateAndDisplayCostPerMeter(data);
 
             // Show the project statistics cards
-            document.getElementById('projectStatsCards').style.display = 'flex';
+            document.getElementById('projectStatsCards').style.display = 'ruby';
         }
 
         // Calculate cost per meter (net and gross) and value per meter

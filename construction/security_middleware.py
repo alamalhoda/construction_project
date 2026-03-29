@@ -119,10 +119,10 @@ class SecurityHeadersMiddleware(MiddlewareMixin):
             # Development: CSP نرم‌تر با مجوز CDN ها
             response['Content-Security-Policy'] = (
                 "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; "
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com; "
-                "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://fonts.googleapis.com; "
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://lib.arvancloud.ir  https://unpkg.com; "
+                "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://lib.arvancloud.ir https://unpkg.com https://fonts.googleapis.com; "
                 "img-src 'self' data: https: http:; "
-                "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com https://stackpath.bootstrapcdn.com data: blob:; "
+                "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com https://lib.arvancloud.ir https://stackpath.bootstrapcdn.com data: blob:; "
                 "connect-src 'self' https: http:; "
                 "frame-src 'self' https: http:;"
             )
@@ -130,10 +130,10 @@ class SecurityHeadersMiddleware(MiddlewareMixin):
             # Production: CSP با پشتیبانی از CDN ها
             response['Content-Security-Policy'] = (
                 "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https: http:; "
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://code.jquery.com https://stackpath.bootstrapcdn.com; "
-                "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com https://stackpath.bootstrapcdn.com https://unpkg.com https:; "
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://lib.arvancloud.ir  https://unpkg.com https://code.jquery.com https://stackpath.bootstrapcdn.com; "
+                "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://lib.arvancloud.ir https://fonts.googleapis.com https://stackpath.bootstrapcdn.com https://unpkg.com https:; "
                 "img-src 'self' data: https: http: blob:; "
-                "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com https://stackpath.bootstrapcdn.com https: data:; "
+                "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com https://lib.arvancloud.ir https://stackpath.bootstrapcdn.com https: data:; "
                 "connect-src 'self' https: http:; "
                 "frame-src 'self' https: http:;"
             )
