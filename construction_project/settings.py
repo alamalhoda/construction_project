@@ -68,7 +68,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://*.preview.app.github.dev',
     'https://django-arash.chbk.dev',
     'https://*.chbk.dev',
-    'https://arshasaft.ir/',
+    'https://arshasaft.ir',
 ]
 
 # تنظیمات Content Security Policy بر اساس محیط
