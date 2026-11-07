@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from django.urls import reverse
 from django_jalali.db import models as jmodels
 from decimal import Decimal
@@ -737,9 +737,11 @@ class Transaction(models.Model):
         # مرحله 2: محاسبه سودهای جدید با نرخ جدید برای پروژه
         new_profit_transactions = cls.calculate_all_profits(project=project, interest_rate=new_interest_rate)
         
-        # مرحله 3: ذخیره سودهای جدید
-        for profit_transaction in new_profit_transactions:
-            profit_transaction.save()
+        # مرحله 3: ذخیره سودهای جدید با bulk_create برای بهینه‌سازی عملکرد
+        # bulk_create یک کوئری INSERT اجرا می‌کند و متد save() را صدا نمی‌زند.
+        with transaction.atomic():
+            if new_profit_transactions:
+                cls.objects.bulk_create(new_profit_transactions)
         
         return {
             'deleted_count': deleted_count,
